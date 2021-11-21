@@ -1,5 +1,9 @@
 /**
  * @name NitroPerks
+ * @author Riolubruh
+ * @version 3.0.2
+ * @source https://github.com/riolubruh/NitroPerks
+ * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
 /*@cc_on
 @if (@_jscript)
@@ -33,10 +37,10 @@ module.exports = (() => {
                 "discord_id": "407348579376693260",
                 "github_username": "respecting"
             }],
-            "version": "3.0.1",
+            "version": "3.0.2",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
-            "github": "https://127.0.0.1/respecting/NitroPerks",
-            "github_raw": "https://127.0.0.1"
+            "github": "https://github.com/riolubruh/NitroPerks",
+            "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
         },
         "main": "NitroPerks.plugin.js"
     };
