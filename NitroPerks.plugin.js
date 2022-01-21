@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.0.3
+ * @version 3.0.4
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "407348579376693260",
                 "github_username": "respecting"
             }],
-            "version": "3.0.3",
+            "version": "3.0.4",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -161,7 +161,7 @@ module.exports = (() => {
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
                             msg.validNonShortcutEmojis.forEach(emoji => {
                                 if (emoji.url.startsWith("/assets/")) return;
-                                msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.slice(0, -8) + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content) //finally fixed this shit up
+                                msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content)
                             })
                         });
                         //for editing message also
