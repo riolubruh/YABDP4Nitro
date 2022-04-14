@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.0.7
+ * @version 3.0.8
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "407348579376693260",
                 "github_username": "respecting"
             }],
-            "version": "3.0.7",
+            "version": "3.0.8",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -92,6 +92,7 @@ module.exports = (() => {
                     "emojiBypass": true,
 					"ghostMode": false,
                     "clientsidePfp": false,
+					"freeStickersCompat": false,
                     "pfpUrl": "https://i.imgur.com/N6X1vzT.gif",
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
@@ -101,7 +102,8 @@ module.exports = (() => {
                 getSettingsPanel() {
                     return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
                         new Settings.SettingGroup("Features").append(...[
-                            new Settings.Switch("High Quality Screensharing", "Enable or disable 1080p/source @ 60fps screensharing. This adapts to your current nitro status.", this.settings.screenSharing, value => this.settings.screenSharing = value)
+                            new Settings.Switch("High Quality Screensharing", "Enable or disable 1080p/source @ 60fps screensharing. This adapts to your current nitro status.", this.settings.screenSharing, value => this.settings.screenSharing = value),
+							new Settings.Switch("FreeStickers Compatibility Mode", "Enable if you are using FreeStickers. This will lock Source resolution when screensharing, but FreeStickers will work.", this.settings.freeStickersCompat, value => this.settings.freeStickersCompat = value)
                         ]),
                         new Settings.SettingGroup("Emojis").append(
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the Nitro Emote bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
@@ -125,6 +127,7 @@ module.exports = (() => {
                 }
                 
                 saveAndUpdate() {
+					console.log("saveAndUpdate")
                     PluginUtilities.saveSettings(this.getName(), this.settings)
                     if (!this.settings.screenSharing) {
                         switch (this.originalNitroStatus) {
@@ -147,24 +150,46 @@ module.exports = (() => {
                                   #app-mount > div.layerContainer-yqaFcK > div.layer-2KE1M9 > div > div > form > div:nth-child(2) > div > div > div.flex-1xMQg5.flex-1O1GKY.horizontal-1ae9ci.horizontal-2EEEnY.flex-1O1GKY.directionRow-3v3tfG.justifyStart-2NDFzi.alignStretch-DpGPf3.noWrap-3jynv6.modalContent-BM7Qeh > div:nth-child(2) > div > button:nth-child(3) {
                                     display: none;
                                   }`)
+								if(this.settings.screenSharing){
                                 this.screenShareFix = setInterval(()=>{
                                     document.querySelector("#app-mount > div.layerContainer-yqaFcK > div.layer-2KE1M9 > div > div > form > div:nth-child(2) > div > div > div.flex-1xMQg5.flex-1O1GKY.horizontal-1ae9ci.horizontal-2EEEnY.flex-1O1GKY.directionRow-3v3tfG.justifyStart-2NDFzi.alignStretch-DpGPf3.noWrap-3jynv6.modalContent-BM7Qeh > div:nth-child(1) > div > button:nth-child(2)").click()
                                     document.querySelector("#app-mount > div.layerContainer-yqaFcK > div.layer-2KE1M9 > div > div > form > div:nth-child(2) > div > div > div.flex-1xMQg5.flex-1O1GKY.horizontal-1ae9ci.horizontal-2EEEnY.flex-1O1GKY.directionRow-3v3tfG.justifyStart-2NDFzi.alignStretch-DpGPf3.noWrap-3jynv6.modalContent-BM7Qeh > div:nth-child(2) > div > button:nth-child(2)").click()
                                     clearInterval(this.screenShareFix)
                                 }, 100)
                             break;
+								}
                         }
                     }
-
+					
+					if(this.settings.freeStickersCompat){
+					DiscordAPI.currentUser.discordObject.premiumType = 1
+					//console.log("Sticker Compat Enabled")
+					}
+					else{
+						if(!this.settings.freeStickersCompat){
+                    DiscordAPI.currentUser.discordObject.premiumType = 2
+					//console.log("Sticker Compat Disabled")
+						}
+					}
+					
                     if (this.settings.screenSharing) BdApi.clearCSS("screenShare")
 
                     if (this.settings.emojiBypass) {
 						if(this.settings.ghostMode) { //If experimental Ghost Mode is enabled do this shit
 							Patcher.unpatchAll(DiscordModules.MessageActions)
-							console.log("Ghost Mode enabled.")
+							//console.log("Ghost Mode enabled.")
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
+							if (msg.content.includes("stickers")) return;
                             msg.validNonShortcutEmojis.forEach(emoji => {
                                 if (emoji.url.startsWith("/assets/")) return;
+								//if no ghost mode required
+								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
+									console.log("Message empty, no ghost mode needed");
+									//then do no ghost mode
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `), console.log(msg.content), console.log("no ghost")
+									console.log(msg.content);
+									return;
+								}
 								let ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
 								if (msg.content.includes(ghostmodetext)){
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `, console.log(msg.content), console.log("Multiple emojis")
@@ -179,7 +204,7 @@ module.exports = (() => {
 						else
 						if(!this.settings.ghostMode) { //If ghost mode is disabled do original method shit
 						Patcher.unpatchAll(DiscordModules.MessageActions)
-						console.log("Original Method (No Ghost)")
+						//console.log("Original Method (No Ghost)")
                         //fix emotes with bad method
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
                             msg.validNonShortcutEmojis.forEach(emoji => {
@@ -233,7 +258,12 @@ module.exports = (() => {
                 onStart() {
                     this.originalNitroStatus = DiscordAPI.currentUser.discordObject.premiumType;
                     this.saveAndUpdate()
+					if(this.settings.freeStickersCompat){
+					DiscordAPI.currentUser.discordObject.premiumType = 1
+					}
+					else{
                     DiscordAPI.currentUser.discordObject.premiumType = 2
+					}
                 }
 
                 onStop() {
