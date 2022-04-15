@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.0
+ * @version 3.1.1
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "407348579376693260",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.0",
+            "version": "3.1.1",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -67,7 +67,7 @@ module.exports = (() => {
                 cancelText: "Cancel",
                 onConfirm: () => {
                     require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
-                        if (error) return require("electron").shell.openExternal("https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+                        if (error) return require("electron").shell.openExternal("https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
                         await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
                     });
                 }
@@ -90,7 +90,7 @@ module.exports = (() => {
                     "emojiSize": "48",
                     "screenSharing": true,
                     "emojiBypass": true,
-					"ghostMode": false,
+					"ghostMode": true,
 					"freeStickersCompat": false,
                     "clientsidePfp": false,
                     "pfpUrl": "https://i.imgur.com/N6X1vzT.gif",
@@ -107,11 +107,11 @@ module.exports = (() => {
                         ]),
                         new Settings.SettingGroup("Emojis").append(
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the Nitro Emote bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-                            new Settings.Slider("Size", "The size of the emoji in pixels. 48 is recommended.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
-							new Settings.Switch("Ghost Mode", "(EXPERIMENTAL!!) Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value)
+                            new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
+							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
-                                new Settings.Switch("Clientsided Profile Picture", "**Does not work anymore; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
+                                new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
                                 new Settings.Textbox("URL", "The direct URL that has the profile picture you want.", this.settings.pfpUrl,
                                     image => {
                                         try {
@@ -134,14 +134,12 @@ module.exports = (() => {
 					
 					//This is where the old screensharing fix was, it no longer worked, and was not needed, so it has been removed.
                    
-					if(this.settings.freeStickersCompat == true){
-					//DiscordAPI.currentUser.discordObject.premiumType = 1 //old DiscordAPI call
+					if(this.settings.freeStickersCompat){
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
 					//console.log("Sticker Compat Enabled")
 					}
 					else{
-						if(!this.settings.freeStickersCompat == true){
-                   // DiscordAPI.currentUser.discordObject.premiumType = 2 //old DiscordAPI call
+						if(!this.settings.freeStickersCompat){
 				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
 					//console.log("Sticker Compat Disabled")
 						}
@@ -150,7 +148,7 @@ module.exports = (() => {
                    // if (this.settings.screenSharing) BdApi.clearCSS("screenShare") //Obsolete
 
                     if (this.settings.emojiBypass) {
-						if(this.settings.ghostMode) { //If experimental Ghost Mode is enabled do this shit
+						if(this.settings.ghostMode) { //If Ghost Mode is enabled do this shit
 							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Ghost Mode enabled.")
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
@@ -159,8 +157,7 @@ module.exports = (() => {
                                 if (emoji.url.startsWith("/assets/")) return;
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
-									console.log("Message empty, no ghost mode needed");
-									//then do no ghost mode
+									//console.log("Message empty, no ghost mode needed");
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
 									//console.log(msg.content);
 									return;
@@ -173,18 +170,17 @@ module.exports = (() => {
 								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `//, console.log(msg.content), console.log("First emoji code ran")
 								return
 							})
-                        });
-						//return
+						});
 						}
 						else
-						if(!this.settings.ghostMode) { //If ghost mode is disabled do original method shit
+						if(!this.settings.ghostMode) { //If ghost mode is disabled do shitty original method
 						Patcher.unpatchAll(DiscordModules.MessageActions)
 						//console.log("Original Method (No Ghost)")
                         //fix emotes with bad method
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
                             msg.validNonShortcutEmojis.forEach(emoji => {
                                 if (emoji.url.startsWith("/assets/")) return;
-                                msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `), console.log(msg.content), console.log("no ghost")
+                                msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
                             })
                         });
                         //for editing message also
@@ -201,48 +197,15 @@ module.exports = (() => {
 
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
 					
-                    /*
-					if (this.settings.clientsidePfp && this.settings.pfpUrl) {
-                        this.clientsidePfp = setInterval(()=>{
-                            document.querySelectorAll(`[src="${DiscordAPI.currentUser.discordObject.avatarURL.replace(".png", ".webp")}"]`).forEach(avatar=>{
-                                avatar.src = this.settings.pfpUrl
-                            })
-                            document.querySelectorAll(`[src="${DiscordAPI.currentUser.discordObject.avatarURL}"]`).forEach(avatar=>{
-                                avatar.src = this.settings.pfpUrl
-                            })
-                            document.querySelectorAll(`.avatarContainer-28iYmV.avatar-3tNQiO.avatarSmall-1PJoGO`).forEach(avatar=>{
-                                if (!avatar.style.backgroundImage.includes(DiscordAPI.currentUser.discordObject.avatarURL)) return;
-                                avatar.style = `background-image: url("${this.settings.pfpUrl}");`
-                            })
-                        }, 100)
-                    }
-                    if (!this.settings.clientsidePfp) this.removeClientsidePfp()
-                }
-                removeClientsidePfp() {
-                    clearInterval(this.clientsidePfp)
-                    document.querySelectorAll(`[src="${this.settings.pfpUrl}"]`).forEach(avatar=>{
-                        avatar.src = DiscordAPI.currentUser.discordObject.avatarURL
-                    })
-                    document.querySelectorAll(`[src="${this.settings.pfpUrl}"]`).forEach(avatar=>{
-                        avatar.src = DiscordAPI.currentUser.discordObject.avatarURL
-                    })
-                    document.querySelectorAll(`.avatarContainer-28iYmV.avatar-3tNQiO.avatarSmall-1PJoGO`).forEach(avatar=>{
-                        if (!avatar.style.backgroundImage.includes(this.settings.pfpUrl)) return;
-                        avatar.style = `background-image: url("${DiscordAPI.currentUser.discordObject.avatarURL}");`
-                    })
-					*/
                 }
                 onStart() {
-                   // this.originalNitroStatus = DiscordAPI.currentUser.discordObject.premiumType;
 				   this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType; //new DiscordModules call
                     this.saveAndUpdate()
 					if(this.settings.freeStickersCompat){
-					//DiscordAPI.currentUser.discordObject.premiumType = 1 //old DiscordAPI call
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1 //new DiscordModules call
 					}
 					else{
 						if(!this.settings.freeStickersCompat){
-                   // DiscordAPI.currentUser.discordObject.premiumType = 2 //old DiscordAPI call
 				   DiscordModules.UserStore.getCurrentUser().premiumType = 2 //new DiscordModules call
 						}
 					
@@ -250,9 +213,8 @@ module.exports = (() => {
                 }
 
                 onStop() {
-                    //DiscordAPI.currentUser.discordObject.premiumType = this.originalNitroStatus; //old DiscordAPI call
 					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
-                    //this.removeClientsidePfp() //removed.
+                    //this.removeClientsidePfp() //removed
                     Patcher.unpatchAll();
                 }
             };
