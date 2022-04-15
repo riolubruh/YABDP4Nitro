@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.0.9
+ * @version 3.1.0
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -35,9 +35,9 @@ module.exports = (() => {
             "authors": [{
                 "name": "lemons & Riolubruh",
                 "discord_id": "407348579376693260",
-                "github_username": "respecting"
+                "github_username": "riolubruh"
             }],
-            "version": "3.0.9",
+            "version": "3.1.0",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -66,8 +66,8 @@ module.exports = (() => {
                 confirmText: "Download Now",
                 cancelText: "Cancel",
                 onConfirm: () => {
-                    require("request").get("https://raw.githubusercontent.com/riolubruh/NitroPerks/main/0PluginLibrary.plugin.js", async (error, response, body) => {
-                        if (error) return require("electron").shell.openExternal("https://github.com/riolubruh/NitroPerks/blob/main/0PluginLibrary.plugin.js");
+                    require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
+                        if (error) return require("electron").shell.openExternal("https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
                         await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
                     });
                 }
@@ -125,27 +125,29 @@ module.exports = (() => {
                             ])
                     ])
                 }
+
                 
+				
                 saveAndUpdate() {
 					//console.log("saveAndUpdate")
                     PluginUtilities.saveSettings(this.getName(), this.settings)
-					//This is where the old screensharing fix was, it longer worked, and was not needed, so it has been removed.
-                   
 					
+					//This is where the old screensharing fix was, it no longer worked, and was not needed, so it has been removed.
+                   
 					if(this.settings.freeStickersCompat == true){
-					DiscordAPI.currentUser.discordObject.premiumType = 1
+					//DiscordAPI.currentUser.discordObject.premiumType = 1 //old DiscordAPI call
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
 					//console.log("Sticker Compat Enabled")
-					//console.log(DiscordAPI.currentUser.discordObject.premiumType)
 					}
 					else{
 						if(!this.settings.freeStickersCompat == true){
-                    DiscordAPI.currentUser.discordObject.premiumType = 2
+                   // DiscordAPI.currentUser.discordObject.premiumType = 2 //old DiscordAPI call
+				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
 					//console.log("Sticker Compat Disabled")
-					//console.log(DiscordAPI.currentUser.discordObject.premiumType)
 						}
 					}
 					
-                   // if (this.settings.screenSharing) BdApi.clearCSS("screenShare") //Obsolete?
+                   // if (this.settings.screenSharing) BdApi.clearCSS("screenShare") //Obsolete
 
                     if (this.settings.emojiBypass) {
 						if(this.settings.ghostMode) { //If experimental Ghost Mode is enabled do this shit
@@ -172,7 +174,7 @@ module.exports = (() => {
 								return
 							})
                         });
-						return
+						//return
 						}
 						else
 						if(!this.settings.ghostMode) { //If ghost mode is disabled do original method shit
@@ -198,8 +200,9 @@ module.exports = (() => {
 				}
 
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
-
-                    if (this.settings.clientsidePfp && this.settings.pfpUrl) {
+					
+                    /*
+					if (this.settings.clientsidePfp && this.settings.pfpUrl) {
                         this.clientsidePfp = setInterval(()=>{
                             document.querySelectorAll(`[src="${DiscordAPI.currentUser.discordObject.avatarURL.replace(".png", ".webp")}"]`).forEach(avatar=>{
                                 avatar.src = this.settings.pfpUrl
@@ -227,24 +230,29 @@ module.exports = (() => {
                         if (!avatar.style.backgroundImage.includes(this.settings.pfpUrl)) return;
                         avatar.style = `background-image: url("${DiscordAPI.currentUser.discordObject.avatarURL}");`
                     })
+					*/
                 }
                 onStart() {
-                    this.originalNitroStatus = DiscordAPI.currentUser.discordObject.premiumType;
+                   // this.originalNitroStatus = DiscordAPI.currentUser.discordObject.premiumType;
+				   this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType; //new DiscordModules call
                     this.saveAndUpdate()
 					if(this.settings.freeStickersCompat){
-					DiscordAPI.currentUser.discordObject.premiumType = 1
+					//DiscordAPI.currentUser.discordObject.premiumType = 1 //old DiscordAPI call
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1 //new DiscordModules call
 					}
 					else{
 						if(!this.settings.freeStickersCompat){
-                    DiscordAPI.currentUser.discordObject.premiumType = 2
+                   // DiscordAPI.currentUser.discordObject.premiumType = 2 //old DiscordAPI call
+				   DiscordModules.UserStore.getCurrentUser().premiumType = 2 //new DiscordModules call
 						}
 					
 					}
                 }
 
                 onStop() {
-                    DiscordAPI.currentUser.discordObject.premiumType = this.originalNitroStatus;
-                    this.removeClientsidePfp()
+                    //DiscordAPI.currentUser.discordObject.premiumType = this.originalNitroStatus; //old DiscordAPI call
+					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+                    //this.removeClientsidePfp() //removed.
                     Patcher.unpatchAll();
                 }
             };

@@ -1,9 +1,9 @@
 /**
  * @name ZeresPluginLibrary
- * @version 9.9.9
- * @invite TyFxKer
- * @authorLink https://twitter.com/ZackRauen
- * @updateURL https://127.0.0.1
+ * @version 2.0.2
+ * @authorLink https://twitter.com/IAmZerebos
+ * @website https://github.com/rauenzi/BDPluginLibrary
+ * @source https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js
  */
 
 /*@cc_on
@@ -29,101 +29,59 @@
     WScript.Quit();
 
 @else@*/
-module.exports =
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/index.js");
-/******/ })
-/************************************************************************/
-/******/ ({
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/styles/settings.css":
+/*!*********************************!*\
+  !*** ./src/styles/settings.css ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".plugin-input-group {\r\n    margin-top: 5px;\r\n}\r\n\r\n.plugin-input-group .button-collapse {\r\n    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FscXVlXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSItOTUwIDUzMiAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAtOTUwIDUzMiAxOCAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6bm9uZTt9DQoJLnN0MXtmaWxsOm5vbmU7c3Ryb2tlOiNGRkZGRkY7c3Ryb2tlLXdpZHRoOjEuNTtzdHJva2UtbWl0ZXJsaW1pdDoxMDt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTS05MzIsNTMydjE4aC0xOHYtMThILTkzMnoiLz4NCjxwb2x5bGluZSBjbGFzcz0ic3QxIiBwb2ludHM9Ii05MzYuNiw1MzguOCAtOTQxLDU0My4yIC05NDUuNCw1MzguOCAiLz4NCjwvc3ZnPg0K);\r\n    height: 16px;\r\n    width: 16px;\r\n    display: inline-block;\r\n    vertical-align: bottom;\r\n    transition: transform .3s ease;\r\n    transform: rotate(0);\r\n}\r\n\r\n.plugin-input-group .button-collapse.collapsed {\r\n    transition: transform .3s ease;\r\n    transform: rotate(-90deg);\r\n}\r\n\r\n.plugin-input-group h2 {\r\n    font-size: 14px;\r\n}\r\n\r\n.plugin-input-group .plugin-input-group h2 {\r\n    margin-left: 16px;\r\n}\r\n\r\n.plugin-inputs {\r\n    height: auto;\r\n    overflow: hidden;\r\n    transition: height 300ms cubic-bezier(0.47, 0, 0.745, 0.715);\r\n}\r\n\r\n.plugin-inputs.collapsed {\r\n    height: 0px;\r\n}\r\n\r\n.file-input {\r\n\r\n}\r\n\r\n.file-input::-webkit-file-upload-button {\r\n    color: white;\r\n    background: #7289DA;\r\n    outline: 0;\r\n    border: 0;\r\n    padding: 10px;\r\n    vertical-align: top;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 3px 0 0 3px;\r\n    font-size: 14px;\r\n    font-weight: 500;\r\n    font-family: Whitney,Helvetica Neue,Helvetica,Arial,sans-serif;\r\n    cursor: pointer;\r\n}\r\n\r\n.color-input {\r\n    background: none;\r\n    padding: 0;\r\n    border: none;\r\n}\r\n\r\n.color-input:hover {\r\n    opacity: 0.8;\r\n}\r\n");
+
+/***/ }),
+
+/***/ "./src/styles/toasts.css":
+/*!*******************************!*\
+  !*** ./src/styles/toasts.css ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".toasts {\r\n    position: fixed;\r\n    display: flex;\r\n    top: 0;\r\n    flex-direction: column;\r\n    align-items: center;\r\n    justify-content: flex-end;\r\n    pointer-events: none;\r\n    z-index: 4000;\r\n}\r\n\r\n@keyframes toast-up {\r\n    from {\r\n        transform: translateY(0);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast {\r\n    animation: toast-up 300ms ease;\r\n    transform: translateY(-10px);\r\n    background: #36393F;\r\n    padding: 10px;\r\n    border-radius: 5px;\r\n    box-shadow: 0 0 0 1px rgba(32,34,37,.6), 0 2px 10px 0 rgba(0,0,0,.2);\r\n    font-weight: 500;\r\n    color: #fff;\r\n    user-select: text;\r\n    font-size: 14px;\r\n    opacity: 1;\r\n    margin-top: 10px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n}\r\n\r\n@keyframes toast-down {\r\n    to {\r\n        transform: translateY(0px);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast.closing {\r\n    animation: toast-down 200ms ease;\r\n    animation-fill-mode: forwards;\r\n    opacity: 1;\r\n    transform: translateY(-10px);\r\n}\r\n\r\n.toast.toast-info {\r\n    background-color: #4a90e2;\r\n}\r\n\r\n.toast.toast-success {\r\n    background-color: #43b581;\r\n}\r\n\r\n.toast.toast-danger,\r\n.toast.toast-error {\r\n    background-color: #f04747;\r\n}\r\n\r\n.toast.toast-warning,\r\n.toast.toast-warn {\r\n    background-color: #FFA600;\r\n}\r\n\r\n.toast-icon {\r\n    margin-right: 5px;\r\n    fill: white;\r\n    border-radius: 50%;\r\n    overflow: hidden;\r\n    height: 20px;\r\n    width: 20px;\r\n}\r\n\r\n.toast-text {\r\n    line-height: 20px;\r\n}");
+
+/***/ }),
+
+/***/ "./src/styles/updates.css":
+/*!********************************!*\
+  !*** ./src/styles/updates.css ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("#pluginNotice {\r\n    -webkit-app-region: drag;\r\n    border-radius: 0;\r\n    overflow: hidden;\r\n    height: 36px;\r\n    animation: open-updates 400ms ease;\r\n}\r\n\r\n@keyframes open-updates {\r\n    from { height: 0; }\r\n}\r\n\r\n#pluginNotice.closing {\r\n    transition: height 400ms ease;\r\n    height: 0;\r\n}\r\n\r\n#outdatedPlugins {\r\n    font-weight: 700;\r\n}\r\n\r\n#outdatedPlugins>span {\r\n    -webkit-app-region: no-drag;\r\n    color: #fff;\r\n    cursor: pointer;\r\n}\r\n\r\n#outdatedPlugins>span:hover {\r\n    text-decoration: underline;\r\n}");
+
+/***/ }),
 
 /***/ "./src/config.js":
 /*!***********************!*\
   !*** ./src/config.js ***!
   \***********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = {
     info: {
@@ -134,19 +92,13 @@ module.exports = {
             github_username: "rauenzi",
             twitter_username: "IAmZerebos"
         }],
-        version: "9.9.99",
+        version: "2.0.2",
         description: "Gives other plugins utility functions and the ability to emulate v2.",
-        github: "https://github.com/riolubruh/NitroPerks",
-        github_raw: "https://127.0.0.1"
+        github: "https://github.com/rauenzi/BDPluginLibrary",
+        github_raw: "https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js"
     },
     changelog: [
-        {
-            title: "Fixed Canary",
-            type: "fixed",
-            items: [
-                "Hotfix for Canary changes"
-            ]
-        }
+        {title: "What's Fixed?", type: "improved", items: ["Fixed an issue causing crashes.", "Fixed an issue where popouts got placed incorrectly.", "File picker does not overlay the entire settings panel", "Fixed an issue with color picker."]},
     ],
     main: "plugin.js"
 };
@@ -154,84 +106,21 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./src/index.js":
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
-
-
-
-const Library = {};
-Library.DiscordContextMenu = ui__WEBPACK_IMPORTED_MODULE_1__["DiscordContextMenu"];
-Library.DCM = ui__WEBPACK_IMPORTED_MODULE_1__["DiscordContextMenu"];
-Library.ContextMenu = ui__WEBPACK_IMPORTED_MODULE_1__["ContextMenu"];
-Library.Tooltip = ui__WEBPACK_IMPORTED_MODULE_1__["Tooltip"];
-Library.EmulatedTooltip = ui__WEBPACK_IMPORTED_MODULE_1__["Tooltip"]; // @deprecated 12/3/2020 the original Tooltip module was replaced with the EmulatedTooltip.
-Library.Toasts = ui__WEBPACK_IMPORTED_MODULE_1__["Toasts"];
-Library.Settings = ui__WEBPACK_IMPORTED_MODULE_1__["Settings"];
-Library.Popouts = ui__WEBPACK_IMPORTED_MODULE_1__["Popouts"];
-Library.Modals = ui__WEBPACK_IMPORTED_MODULE_1__["Modals"];
-for (const mod in modules__WEBPACK_IMPORTED_MODULE_0__) Library[mod] = modules__WEBPACK_IMPORTED_MODULE_0__[mod];
-
-Library.Components = {ErrorBoundary: ui__WEBPACK_IMPORTED_MODULE_1__["ErrorBoundary"]};
-
-const config = __webpack_require__(/*! ./src/config.js */ "./src/config.js");
-const baseModule = __webpack_require__(/*! ./src/plugin.js */ "./src/plugin.js");
-const pluginFunction = baseModule.default ? baseModule.default : baseModule;
-
-const getBoundLibrary = () => {
-    const name = config.info.name;
-    const BoundAPI = {
-        Logger: {
-            stacktrace: (message, error) => Library.Logger.stacktrace(name, message, error),
-            log: (...message) => Library.Logger.log(name, ...message),
-            error: (...message) => Library.Logger.err(name, ...message),
-            err: (...message) => Library.Logger.err(name, ...message),
-            warn: (...message) => Library.Logger.warn(name, ...message),
-            info: (...message) => Library.Logger.info(name, ...message),
-            debug: (...message) => Library.Logger.debug(name, ...message)
-        },
-        Patcher: {
-            getPatchesByCaller: () => {return Library.Patcher.getPatchesByCaller(name);},
-            unpatchAll: () => {return Library.Patcher.unpatchAll(name);},
-            before: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.before(name, moduleToPatch, functionName, callback, options);},
-            instead: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.instead(name, moduleToPatch, functionName, callback, options);},
-            after: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.after(name, moduleToPatch, functionName, callback, options);}
-        }
-    };
-
-    const BoundLib = Object.assign({}, Library);
-    BoundLib.Logger = BoundAPI.Logger;
-    BoundLib.Patcher = BoundAPI.Patcher;
-    return BoundLib;
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (pluginFunction(Library.Structs.Plugin(config),  false ? undefined : Library)); // eslint-disable-line new-cap
-
-/***/ }),
-
 /***/ "./src/modules/colorconverter.js":
 /*!***************************************!*\
   !*** ./src/modules/colorconverter.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ColorConverter; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ColorConverter)
+/* harmony export */ });
 /* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
 /**
  * Helpful utilities for dealing with colors.
  * @module ColorConverter
- * @version 0.0.2
  */
 
 
@@ -312,137 +201,17 @@ class ColorConverter {
 
 /***/ }),
 
-/***/ "./src/modules/discordapi.js":
-/*!***********************************!*\
-  !*** ./src/modules/discordapi.js ***!
-  \***********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DiscordAPI; });
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
-/**
- * BetterDiscord Discord API
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-/**
- * A large list of known and useful webpack modules internal to Discord.
- * Click the filename below to see the whole list.
- * @deprecated 7/27/2020
- * @module DiscordAPI
- * @version 0.0.1
- */
-
-
-
-class DiscordAPI {
-
-    static get InsufficientPermissions() {return structs__WEBPACK_IMPORTED_MODULE_0__["InsufficientPermissions"];}
-    static get List() {return structs__WEBPACK_IMPORTED_MODULE_0__["List"];}
-    static get User() {return structs__WEBPACK_IMPORTED_MODULE_0__["User"];}
-    static get Channel() {return structs__WEBPACK_IMPORTED_MODULE_0__["Channel"];}
-    static get Guild() {return structs__WEBPACK_IMPORTED_MODULE_0__["Guild"];}
-    static get Message() {return structs__WEBPACK_IMPORTED_MODULE_0__["Message"];}
-    static get UserSettings() {return structs__WEBPACK_IMPORTED_MODULE_0__["UserSettings"];}
-
-    /**
-     * A list of loaded guilds.
-     */
-    static get guilds() {
-        const guilds = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].GuildStore.getGuilds();
-        return structs__WEBPACK_IMPORTED_MODULE_0__["List"].from(Object.values(guilds), g => structs__WEBPACK_IMPORTED_MODULE_0__["Guild"].from(g));
-    }
-
-    /**
-     * A list of loaded channels.
-     */
-    static get channels() {
-        const channels = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].ChannelStore.getChannels();
-        return structs__WEBPACK_IMPORTED_MODULE_0__["List"].from(Object.values(channels), c => structs__WEBPACK_IMPORTED_MODULE_0__["Channel"].from(c));
-    }
-
-    /**
-     * A list of loaded users.
-     */
-    static get users() {
-        const users = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].UserStore.getUsers();
-        return structs__WEBPACK_IMPORTED_MODULE_0__["List"].from(Object.values(users), u => structs__WEBPACK_IMPORTED_MODULE_0__["User"].from(u));
-    }
-
-    /**
-     * An object mapping guild IDs to their member counts.
-     */
-    static get memberCounts() {
-        return _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].MemberCountStore.getMemberCounts();
-    }
-
-    /**
-     * A list of guilds in the order they appear in the server list.
-     */
-    static get sortedGuilds() {
-        const guilds = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].SortedGuildStore.getSortedGuilds();
-        return structs__WEBPACK_IMPORTED_MODULE_0__["List"].from(guilds, g => structs__WEBPACK_IMPORTED_MODULE_0__["Guild"].from(g));
-    }
-
-    /**
-     * An array of guild IDs in the order they appear in the server list.
-     */
-    static get guildPositions() {
-        return _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].SortedGuildStore.guildPositions;
-    }
-
-    /**
-     * The currently selected guild.
-     */
-    static get currentGuild() {
-        const guild = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].GuildStore.getGuild(_discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].SelectedGuildStore.getGuildId());
-        return guild ? structs__WEBPACK_IMPORTED_MODULE_0__["Guild"].from(guild) : null;
-    }
-
-    /**
-     * The currently selected channel.
-     */
-    static get currentChannel() {
-        const channel = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].ChannelStore.getChannel(_discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].SelectedChannelStore.getChannelId());
-        return channel ? structs__WEBPACK_IMPORTED_MODULE_0__["Channel"].from(channel) : null;
-    }
-
-    /**
-     * The current user.
-     */
-    static get currentUser() {
-        const user = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].UserStore.getCurrentUser();
-        return user ? structs__WEBPACK_IMPORTED_MODULE_0__["User"].from(user) : null;
-    }
-
-    /**
-     * A list of the current user's friends.
-     */
-    static get friends() {
-        const friends = _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].RelationshipStore.getFriendIDs();
-        return structs__WEBPACK_IMPORTED_MODULE_0__["List"].from(friends, id => structs__WEBPACK_IMPORTED_MODULE_0__["User"].fromId(id));
-    }
-}
-
-/***/ }),
-
 /***/ "./src/modules/discordclasses.js":
 /*!***************************************!*\
   !*** ./src/modules/discordclasses.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _discordclassmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./discordclassmodules */ "./src/modules/discordclassmodules.js");
 /* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
 
@@ -468,7 +237,6 @@ const getClass = function(prop) {
  * 
  * @see module:DiscordClassModules
  * @module DiscordClasses
- * @version 0.1.0
  */
 const DiscordModules = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE_0__["default"], {
     get: function(list, item) {
@@ -484,7 +252,7 @@ const DiscordModules = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE_0
         });
     }
 });
-/* harmony default export */ __webpack_exports__["default"] = (DiscordModules);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DiscordModules);
 
 /***/ }),
 
@@ -492,11 +260,13 @@ const DiscordModules = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE_0
 /*!********************************************!*\
   !*** ./src/modules/discordclassmodules.js ***!
   \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
 /* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
 
@@ -513,9 +283,8 @@ __webpack_require__.r(__webpack_exports__);
  * @see module:DiscordClasses
  * @see module:DiscordSelectors
  * @module DiscordClassModules
- * @version 0.0.2
  */
-/* harmony default export */ __webpack_exports__["default"] = (_utilities__WEBPACK_IMPORTED_MODULE_0__["default"].memoizeObject({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_utilities__WEBPACK_IMPORTED_MODULE_0__["default"].memoizeObject({
     get ContextMenu() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("menu", "item");},
     get Scrollers() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("scrollerWrap", "scrollerThemed", "scrollerTrack");},
     get AccountDetails() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("container", "avatar", "hasBuildOverride");},
@@ -541,7 +310,7 @@ __webpack_require__.r(__webpack_exports__);
     get Margins() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => !m.title && m.marginBottom40 && m.marginTop40);},
     get Dividers() {return Object.assign({}, _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("dividerDefault"), _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => Object.keys(m).length == 1 && m.divider));},
     get Changelog() {return Object.assign({}, _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("container", "added"), _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("content", "modal", "size"));},
-    get BasicInputs() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("inputDefault");},
+    get BasicInputs() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("inputDefault", "copyInput");},
     get Messages() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("message", "containerCozy");},
     get Guilds() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("guildsWrapper");},
     get EmojiPicker() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("emojiPicker", "emojiItem");},
@@ -558,11 +327,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!***************************************!*\
   !*** ./src/modules/discordmodules.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
 /* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
 /**
@@ -571,12 +342,11 @@ __webpack_require__.r(__webpack_exports__);
  * have the library installed or have a plugin using this library,
  * do `Object.keys(ZLibrary.DiscordModules)` in console for a list of modules.
  * @module DiscordModules
- * @version 0.0.3
  */
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (_utilities__WEBPACK_IMPORTED_MODULE_0__["default"].memoizeObject({
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_utilities__WEBPACK_IMPORTED_MODULE_0__["default"].memoizeObject({
     get React() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("createElement", "cloneElement");},
     get ReactDOM() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("render", "findDOMNode");},
     get Events() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByPrototypes("setMaxListeners", "emit");},
@@ -591,7 +361,7 @@ __webpack_require__.r(__webpack_exports__);
     get GuildMemberStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getMember");},
     get MemberCountStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getMemberCounts");},
     get GuildEmojiStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getEmojis");},
-    get GuildActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("requestMembers");}, // apparently it's back
+    get GuildActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("requestMembers");},
     get GuildPermissions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getGuildPermissions");},
 
     /* Channel Store & Actions */
@@ -599,15 +369,11 @@ __webpack_require__.r(__webpack_exports__);
     get SelectedChannelStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getLastSelectedChannelId");},
     get ChannelActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("selectChannel");},
     get PrivateChannelActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openPrivateChannel");},
-    // Absorbed into ChannelActions
-    // get ChannelSelector() {return WebpackModules.getByProps("selectGuild", "selectChannel");},
 
     /* Current User Info, State and Settings */
     get UserInfoStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getSessionId");},
     get UserSettingsStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("guildPositions");},
     get StreamerModeStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("hidePersonalInformation");},
-    // Not really needed by plugins
-    // get AccountManager() {return WebpackModules.getByProps("register", "login");},
     get UserSettingsUpdater() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("updateRemoteSettings");},
     get OnlineWatcher() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("isOnline");},
     get CurrentUserIdle() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("isIdle");},
@@ -643,21 +409,14 @@ __webpack_require__.r(__webpack_exports__);
     get TinyColor() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByPrototypes("toRgb");},
     get ClassResolver() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getClass");},
     get ButtonData() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("ButtonSizes");},
-    // They removed this
-    // get IconNames() {return WebpackModules.getByProps("IconNames");},
     get NavigationUtils() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("transitionTo", "replaceWith", "getHistory");},
 
     /* Discord Messages */
-    get MessageStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getMessages");},
+    get MessageStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getMessage", "getMessages");},
     get ReactionsStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getReactions", "_dispatcher");},
     get MessageActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("jumpToMessage", "_sendMessage");},
     get MessageQueue() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("enqueue");},
     get MessageParser() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => Object.keys(m).length && Object.keys(m).every(k => k === "parse" || k === "unparse"));},
-
-    /* In-Game Overlay */
-    // Plugins don't need these
-    // get OverlayUserPopoutSettings() {return WebpackModules.getByProps("openUserPopout");},
-    // get OverlayUserPopoutInfo() {return WebpackModules.getByProps("getOpenedUserPopout");},
 
     /* Experiments */
     get ExperimentStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getExperimentOverrides");},
@@ -674,8 +433,6 @@ __webpack_require__.r(__webpack_exports__);
     get AvatarDefaults() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getUserAvatarURL", "DEFAULT_AVATARS");},
 
     /* Drag & Drop */
-    // No longer a part of their DND arch
-    // get DNDActions() {return WebpackModules.getByProps("beginDrag");},
     get DNDSources() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("addTarget");},
     get DNDObjects() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("DragSource");},
 
@@ -693,26 +450,20 @@ __webpack_require__.r(__webpack_exports__);
     get DeviceStore() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getDevices");},
     get SoftwareInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("os");},
     get i18n() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("Messages", "languages");},
-    // Absorbed into Sentry
-    // get CurrentContext() {return WebpackModules.getByProps("setTagsContext");},
 
     /* Media Stuff (Audio/Video) */
     get MediaDeviceInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("Codecs", "MediaEngineContextTypes");},
     get MediaInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getOutputVolume");},
     get MediaEngineInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("determineMediaEngine");},
     get VoiceInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("getEchoCancellation");},
-    // DNE with restructure
-    // get VideoStream() {return WebpackModules.getByProps("getVideoStream");},
     get SoundModule() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("playSound");},
 
     /* Window, DOM, HTML */
     get WindowInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("isFocused", "windowSize");},
-    // Was never needed anyway
-    // get TagInfo() {return WebpackModules.getByProps("VALID_TAG_NAMES");},
     get DOMInfo() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("canUseDOM");},
 
     /* Locale/Location and Time */
-    get LocaleManager() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("setLocale");},
+    get LocaleManager() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.Messages && Object.keys(m.Messages).length);},
     get Moment() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("parseZone");},
     get LocationManager() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("createLocation");},
     get Timestamps() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("fromTimestamp");},
@@ -733,8 +484,6 @@ __webpack_require__.r(__webpack_exports__);
     /* DOM/React Components */
     /* ==================== */
     get LayerManager() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("popLayer", "pushLayer");},
-    // Restructured away
-    // get Tooltips() {return WebpackModules.find(m => m.hide && m.show && !m.search && !m.submit && !m.search && !m.activateRagingDemon && !m.dismiss);},
     get UserSettingsWindow() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "updateAccount");},
     get ChannelSettingsWindow() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "updateChannel");},
     get GuildSettingsWindow() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "updateGuild");},
@@ -745,38 +494,16 @@ __webpack_require__.r(__webpack_exports__);
     get UserProfileModals() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("fetchMutualFriends", "setSection");},
     get AlertModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByPrototypes("handleCancel", "handleSubmit");},
     get ConfirmationModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].findByDisplayName("ConfirmModal");},
-    // Grab with react components or open with UserProfileModals
-    // get UserProfileModal() {
-    //     return WebpackModules.find(m => {
-    //         try {return m.modalConfig && m.prototype.render().type.displayName == "FluxContainer(Component)";}
-    //         catch (err) {return false;}
-    //     });
-    // },
     get ChangeNicknameModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "changeNickname");},
     get CreateChannelModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "createChannel");},
     get PruneMembersModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "prune");},
     get NotificationSettingsModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "updateNotificationSettings");},
     get PrivacySettingsModal() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.open && m.open.toString().includes("PRIVACY_SETTINGS_MODAL"));},
-    // No longer available
-    // get CreateInviteModal() {return WebpackModules.getByProps("open", "createInvite");},
     get Changelog() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule((m => m.defaultProps && m.defaultProps.selectable == false));},
-    // Grab with react components
-    // get Avatar() {
-    //     return WebpackModules.find(m => {
-    //         if (m.displayName != "FluxContainer(t)") return false;
-    //         try {
-    //             const temp = new m();
-    //             return temp.state && temp.state.hasOwnProperty("isFocused");
-    //         }
-    //         catch (err) {return false;}
-    //     });
-    // },
 
     /* Popouts */
     get PopoutStack() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "close", "closeAll");},
     get PopoutOpener() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openPopout");},
-    // Grab with react components
-    // get EmojiPicker() {return WebpackModules.getByDisplayName("FluxContainer(EmojiPicker)");},
     get UserPopout() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.type.displayName === "UserPopoutContainer");},
 
     /* Context Menus */
@@ -814,8 +541,8 @@ __webpack_require__.r(__webpack_exports__);
     get SettingsNote() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("FormText");},
     get SettingsDivider() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => !m.defaultProps && m.prototype && m.prototype.render && m.prototype.render.toString().includes("default.divider"));},
 
-    get ColorPicker() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("ColorPicker");}, // Loaded by Discord on demand
-    get Dropdown() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.prototype && !m.prototype.handleClick && m.prototype.render && m.prototype.render.toString().includes("default.select"));},
+    get ColorPicker() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.displayName === "ColorPicker" && m.defaultProps);},
+    get Dropdown() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("SingleSelect").SingleSelect;},
     get Keybind() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByPrototypes("handleComboChange");},
     get RadioGroup() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("RadioGroup");},
     get Slider() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByPrototypes("renderMark");},
@@ -830,11 +557,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************!*\
   !*** ./src/modules/discordselectors.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _discordclassmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./discordclassmodules */ "./src/modules/discordclassmodules.js");
 /* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
 
@@ -860,7 +589,6 @@ const getSelector = function(prop) {
  * 
  * @see module:DiscordClassModules
  * @module DiscordSelectors
- * @version 0.1.0
  */
 const DiscordSelectors = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE_0__["default"], {
     get: function(list, item) {
@@ -877,7 +605,7 @@ const DiscordSelectors = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE
     }
 });
 
-/* harmony default export */ __webpack_exports__["default"] = (DiscordSelectors);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DiscordSelectors);
 
 /***/ }),
 
@@ -885,15 +613,14 @@ const DiscordSelectors = new Proxy(_discordclassmodules__WEBPACK_IMPORTED_MODULE
 /*!*********************************!*\
   !*** ./src/modules/domtools.js ***!
   \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DOMTools; });
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ DOMTools)
+/* harmony export */ });
+/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
 /**
  * Helpful utilities for dealing with DOM operations.
  * 
@@ -901,10 +628,7 @@ __webpack_require__.r(__webpack_exports__);
  * the same as the ones available in the module itself, but with the `element`
  * parameter bound to `this`.
  * @module DOMTools
- * @version 0.0.5
  */
-
-
 
 
 
@@ -926,9 +650,9 @@ __webpack_require__.r(__webpack_exports__);
  
 class DOMTools {
 
-    static get Selector() {return structs__WEBPACK_IMPORTED_MODULE_2__["Selector"];}
-    static get ClassName() {return structs__WEBPACK_IMPORTED_MODULE_2__["ClassName"];}
-    static get DOMObserver() {return structs__WEBPACK_IMPORTED_MODULE_2__["DOMObserver"];}
+    static get Selector() {return structs__WEBPACK_IMPORTED_MODULE_0__.Selector;}
+    static get ClassName() {return structs__WEBPACK_IMPORTED_MODULE_0__.ClassName;}
+    static get DOMObserver() {return structs__WEBPACK_IMPORTED_MODULE_0__.DOMObserver;}
 
     /**
      * Default DOMObserver for global usage.
@@ -936,7 +660,75 @@ class DOMTools {
      * @see DOMObserver
      */
     static get observer() {
-        return this._observer || (this._observer = new structs__WEBPACK_IMPORTED_MODULE_2__["DOMObserver"]());
+        return this._observer || (this._observer = new structs__WEBPACK_IMPORTED_MODULE_0__.DOMObserver());
+    }
+
+    /** Document/window width */
+    static get screenWidth() {return Math.max(document.documentElement.clientWidth, window.innerWidth || 0);}
+
+    /** Document/window height */
+    static get screenHeight() {return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);}
+
+    static animate({timing = _ => _, update, duration}) {
+        // https://javascript.info/js-animation
+        const start = performance.now();
+
+        requestAnimationFrame(function renderFrame(time) {
+            // timeFraction goes from 0 to 1
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+
+            // calculate the current animation state
+            const progress = timing(timeFraction);
+
+            update(progress); // draw it
+
+            if (timeFraction < 1) requestAnimationFrame(renderFrame);
+        });
+    }
+
+    /**
+     * Adds a style to the document.
+     * @param {string} id - identifier to use as the element id
+     * @param {string} css - css to add to the document
+     */
+    static addStyle(id, css) {
+        document.head.append(DOMTools.createElement(`<style id="${id}">${css}</style>`));
+    }
+
+    /**
+     * Removes a style from the document.
+     * @param {string} id - original identifier used
+     */
+    static removeStyle(id) {
+        const element = document.getElementById(id);
+        if (element && element.tagName === "STYLE") element.remove();
+    }
+
+    /**
+     * Adds/requires a remote script to be loaded
+     * @param {string} id - identifier to use for this script
+     * @param {string} url - url from which to load the script
+     * @returns {Promise} promise that resolves when the script is loaded
+     */
+    static addScript(id, url) {
+        return new Promise(resolve => {
+            const script = document.createElement("script");
+            script.id = id;
+            script.src = url;
+            script.type = "text/javascript";
+            script.onload = resolve;
+            document.head.append(script);
+        });
+    }
+
+    /**
+     * Removes a remote script from the document.
+     * @param {string} id - original identifier used
+     */
+    static removeScript(id) {
+        const element = document.getElementById(id);
+        if (element && element.tagName === "SCRIPT") element.remove();
     }
 
     /**
@@ -1598,69 +1390,24 @@ class DOMTools {
     }
 }
 
-const addToPrototype = function(MainObject, prop, func) {
-    _utilities__WEBPACK_IMPORTED_MODULE_0__["default"].addToPrototype(HTMLElement, prop, function() {
-        _logger__WEBPACK_IMPORTED_MODULE_1__["default"].warn("DOMTools", "These custom functions on HTMLElement will be removed.");
-        return Reflect.apply(func, this, arguments);
-    });
-};
-
-addToPrototype(HTMLElement, "addClass", function(...classes) {return DOMTools.addClass(this, ...classes);});
-addToPrototype(HTMLElement, "removeClass", function(...classes) {return DOMTools.removeClass(this, ...classes);});
-addToPrototype(HTMLElement, "toggleClass", function(className, indicator) {return DOMTools.toggleClass(this, className, indicator);});
-addToPrototype(HTMLElement, "replaceClass", function(oldClass, newClass) {return DOMTools.replaceClass(this, oldClass, newClass);});
-addToPrototype(HTMLElement, "hasClass", function(className) {return DOMTools.hasClass(this, className);});
-addToPrototype(HTMLElement, "insertAfter", function(referenceNode) {return DOMTools.insertAfter(this, referenceNode);});
-addToPrototype(HTMLElement, "after", function(newNode) {return DOMTools.after(this, newNode);});
-addToPrototype(HTMLElement, "next", function(selector = "") {return DOMTools.next(this, selector);});
-addToPrototype(HTMLElement, "nextAll", function() {return DOMTools.nextAll(this);});
-addToPrototype(HTMLElement, "nextUntil", function(selector) {return DOMTools.nextUntil(this, selector);});
-addToPrototype(HTMLElement, "previous", function(selector = "") {return DOMTools.previous(this, selector);});
-addToPrototype(HTMLElement, "previousAll", function() {return DOMTools.previousAll(this);});
-addToPrototype(HTMLElement, "previousUntil", function(selector) {return DOMTools.previousUntil(this, selector);});
-addToPrototype(HTMLElement, "index", function() {return DOMTools.index(this);});
-addToPrototype(HTMLElement, "findChild", function(selector) {return DOMTools.findChild(this, selector);});
-addToPrototype(HTMLElement, "findChildren", function(selector) {return DOMTools.findChildren(this, selector);});
-addToPrototype(HTMLElement, "parent", function(selector) {return DOMTools.parent(this, selector);});
-addToPrototype(HTMLElement, "parents", function(selector = "") {return DOMTools.parents(this, selector);});
-addToPrototype(HTMLElement, "parentsUntil", function(selector) {return DOMTools.parentsUntil(this, selector);});
-addToPrototype(HTMLElement, "siblings", function(selector = "*") {return DOMTools.siblings(this, selector);});
-addToPrototype(HTMLElement, "css", function(attribute, value) {return DOMTools.css(this, attribute, value);});
-addToPrototype(HTMLElement, "width", function(value) {return DOMTools.width(this, value);});
-addToPrototype(HTMLElement, "height", function(value) {return DOMTools.height(this, value);});
-addToPrototype(HTMLElement, "innerWidth", function() {return DOMTools.innerWidth(this);});
-addToPrototype(HTMLElement, "innerHeight", function() {return DOMTools.innerHeight(this);});
-addToPrototype(HTMLElement, "outerWidth", function() {return DOMTools.outerWidth(this);});
-addToPrototype(HTMLElement, "outerHeight", function() {return DOMTools.outerHeight(this);});
-addToPrototype(HTMLElement, "offset", function() {return DOMTools.offset(this);});
-addToPrototype(HTMLElement, "text", function(value) {return DOMTools.text(this, value);});
-addToPrototype(HTMLElement, "on", function(event, delegate, callback) {return DOMTools.on(this, event, delegate, callback);});
-addToPrototype(HTMLElement, "once", function(event, delegate, callback) {return DOMTools.once(this, event, delegate, callback);});
-addToPrototype(HTMLElement, "off", function(event, delegate, callback) {return DOMTools.off(this, event, delegate, callback);});
-addToPrototype(HTMLElement, "find", function(selector) {return DOMTools.query(selector, this);});
-addToPrototype(HTMLElement, "findAll", function(selector) {return DOMTools.queryAll(selector, this);});
-addToPrototype(HTMLElement, "appendTo", function(otherNode) {return DOMTools.appendTo(this, otherNode);});
-addToPrototype(HTMLElement, "onAdded", function(callback) {return DOMTools.onAdded(this, callback);});
-addToPrototype(HTMLElement, "onRemoved", function(callback) {return DOMTools.onRemoved(this, callback);});
-
 /***/ }),
 
 /***/ "./src/modules/logger.js":
 /*!*******************************!*\
   !*** ./src/modules/logger.js ***!
   \*******************************/
-/*! exports provided: LogTypes, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LogTypes", function() { return LogTypes; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Logger; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "LogTypes": () => (/* binding */ LogTypes),
+/* harmony export */   "default": () => (/* binding */ Logger)
+/* harmony export */ });
 /** 
  * Simple logger for the lib and plugins.
  * 
  * @module Logger
- * @version 0.1.0
  */
 
 /* eslint-disable no-console */
@@ -1758,70 +1505,48 @@ class Logger {
 /*!********************************!*\
   !*** ./src/modules/modules.js ***!
   \********************************/
-/*! exports provided: Utilities, WebpackModules, Filters, DiscordModules, ColorConverter, DOMTools, DiscordClasses, DiscordSelectors, ReactTools, ReactComponents, DiscordAPI, Logger, Patcher, PluginUpdater, PluginUtilities, DiscordClassModules, Structs */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Utilities": () => (/* reexport safe */ _utilities__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   "WebpackModules": () => (/* reexport safe */ _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   "Filters": () => (/* reexport safe */ _webpackmodules__WEBPACK_IMPORTED_MODULE_1__.Filters),
+/* harmony export */   "DiscordModules": () => (/* reexport safe */ _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   "ColorConverter": () => (/* reexport safe */ _colorconverter__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   "DOMTools": () => (/* reexport safe */ _domtools__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   "DiscordClasses": () => (/* reexport safe */ _discordclasses__WEBPACK_IMPORTED_MODULE_5__["default"]),
+/* harmony export */   "DiscordSelectors": () => (/* reexport safe */ _discordselectors__WEBPACK_IMPORTED_MODULE_6__["default"]),
+/* harmony export */   "ReactTools": () => (/* reexport safe */ _reacttools__WEBPACK_IMPORTED_MODULE_7__["default"]),
+/* harmony export */   "ReactComponents": () => (/* reexport safe */ _reactcomponents__WEBPACK_IMPORTED_MODULE_8__["default"]),
+/* harmony export */   "Logger": () => (/* reexport safe */ _logger__WEBPACK_IMPORTED_MODULE_9__["default"]),
+/* harmony export */   "Patcher": () => (/* reexport safe */ _patcher__WEBPACK_IMPORTED_MODULE_10__["default"]),
+/* harmony export */   "PluginUpdater": () => (/* reexport safe */ _pluginupdater__WEBPACK_IMPORTED_MODULE_11__["default"]),
+/* harmony export */   "PluginUtilities": () => (/* reexport safe */ _pluginutilities__WEBPACK_IMPORTED_MODULE_12__["default"]),
+/* harmony export */   "DiscordClassModules": () => (/* reexport safe */ _discordclassmodules__WEBPACK_IMPORTED_MODULE_13__["default"]),
+/* harmony export */   "Structs": () => (/* reexport module object */ structs__WEBPACK_IMPORTED_MODULE_14__)
+/* harmony export */ });
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Utilities", function() { return _utilities__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "WebpackModules", function() { return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Filters", function() { return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["Filters"]; });
-
 /* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordModules", function() { return _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _colorconverter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./colorconverter */ "./src/modules/colorconverter.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ColorConverter", function() { return _colorconverter__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DOMTools", function() { return _domtools__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 /* harmony import */ var _discordclasses__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./discordclasses */ "./src/modules/discordclasses.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordClasses", function() { return _discordclasses__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
 /* harmony import */ var _discordselectors__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./discordselectors */ "./src/modules/discordselectors.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordSelectors", function() { return _discordselectors__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
 /* harmony import */ var _reacttools__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./reacttools */ "./src/modules/reacttools.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ReactTools", function() { return _reacttools__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
 /* harmony import */ var _reactcomponents__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./reactcomponents */ "./src/modules/reactcomponents.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ReactComponents", function() { return _reactcomponents__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
-/* harmony import */ var _discordapi__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./discordapi */ "./src/modules/discordapi.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordAPI", function() { return _discordapi__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Logger", function() { return _logger__WEBPACK_IMPORTED_MODULE_10__["default"]; });
-
-/* harmony import */ var _patcher__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./patcher */ "./src/modules/patcher.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Patcher", function() { return _patcher__WEBPACK_IMPORTED_MODULE_11__["default"]; });
-
-/* harmony import */ var _pluginupdater__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./pluginupdater */ "./src/modules/pluginupdater.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PluginUpdater", function() { return _pluginupdater__WEBPACK_IMPORTED_MODULE_12__["default"]; });
-
-/* harmony import */ var _pluginutilities__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./pluginutilities */ "./src/modules/pluginutilities.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PluginUtilities", function() { return _pluginutilities__WEBPACK_IMPORTED_MODULE_13__["default"]; });
-
-/* harmony import */ var _discordclassmodules__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./discordclassmodules */ "./src/modules/discordclassmodules.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordClassModules", function() { return _discordclassmodules__WEBPACK_IMPORTED_MODULE_14__["default"]; });
-
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Structs", function() { return structs__WEBPACK_IMPORTED_MODULE_15__; });
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
+/* harmony import */ var _patcher__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./patcher */ "./src/modules/patcher.js");
+/* harmony import */ var _pluginupdater__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./pluginupdater */ "./src/modules/pluginupdater.js");
+/* harmony import */ var _pluginutilities__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./pluginutilities */ "./src/modules/pluginutilities.js");
+/* harmony import */ var _discordclassmodules__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./discordclassmodules */ "./src/modules/discordclassmodules.js");
+/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
 
 
 
 
 
-
-
-
-
-// export {default as DiscordComponents} from "./discordcomponents";
 
 
 
@@ -1843,12 +1568,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************!*\
   !*** ./src/modules/patcher.js ***!
   \********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Patcher; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Patcher)
+/* harmony export */ });
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
 /* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
 /* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
@@ -1859,7 +1585,6 @@ __webpack_require__.r(__webpack_exports__);
  * This is a modified version of what we have been working on in BDv2. {@link https://github.com/JsSucks/BetterDiscordApp/blob/master/client/src/modules/patcher.js}
  *
  * @module Patcher
- * @version 0.0.2
  */
 
 
@@ -2092,24 +1817,22 @@ class Patcher {
 /*!**************************************!*\
   !*** ./src/modules/pluginupdater.js ***!
   \**************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PluginUpdater; });
-/* harmony import */ var _pluginutilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./pluginutilities */ "./src/modules/pluginutilities.js");
-/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
-/* harmony import */ var _discordclasses__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./discordclasses */ "./src/modules/discordclasses.js");
-/* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
-/* harmony import */ var _styles_updates_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../styles/updates.css */ "./src/styles/updates.css");
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PluginUpdater)
+/* harmony export */ });
+/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
+/* harmony import */ var _discordclasses__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./discordclasses */ "./src/modules/discordclasses.js");
+/* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
+/* harmony import */ var _styles_updates_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../styles/updates.css */ "./src/styles/updates.css");
 /**
  * Functions that check for and update existing plugins.
  * @module PluginUpdater
- * @version 0.1.2
  */
-
 
 
 
@@ -2136,7 +1859,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class PluginUpdater {
 
-    static get CSS() {return _styles_updates_css__WEBPACK_IMPORTED_MODULE_5__["default"];}
+    static get CSS() {return _styles_updates_css__WEBPACK_IMPORTED_MODULE_4__["default"];}
 
     /**
      * Checks for updates for the specified plugin at the specified link. The final
@@ -2227,7 +1950,7 @@ class PluginUpdater {
     }
 
     static patchPluginList() {
-        _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].observer.subscribeToQuerySelector(mutation => {
+        _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].observer.subscribeToQuerySelector(mutation => {
             if (!mutation.addedNodes || !mutation.addedNodes.length) return;
             const button = document.getElementsByClassName("bd-pfbtn")[0];
             if (!button || !button.textContent.toLowerCase().includes("plugin") || button.nextElementSibling.classList.contains("bd-updatebtn")) return;
@@ -2241,12 +1964,12 @@ class PluginUpdater {
      * @returns {HTMLElement} check for update button
      */
     static createUpdateButton() {
-        const updateButton = _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].parseHTML(`<button class="bd-pfbtn bd-updatebtn" style="left: 220px;">Check for Updates</button>`);
+        const updateButton = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<button class="bd-pfbtn bd-updatebtn" style="left: 220px;">Check for Updates</button>`);
         updateButton.onclick = function () {
-            ui__WEBPACK_IMPORTED_MODULE_4__["Toasts"].info("Plugin update check in progress.");
-            window.PluginUpdates.checkAll().then(() => {ui__WEBPACK_IMPORTED_MODULE_4__["Toasts"].success("Plugin update check complete.");});
+            ui__WEBPACK_IMPORTED_MODULE_3__.Toasts.info("Plugin update check in progress.");
+            window.PluginUpdates.checkAll().then(() => {ui__WEBPACK_IMPORTED_MODULE_3__.Toasts.success("Plugin update check complete.");});
         };
-        const tooltip = new ui__WEBPACK_IMPORTED_MODULE_4__["Tooltip"](updateButton, "Checks for updates of plugins that support this feature. Right-click for a list.");
+        const tooltip = new ui__WEBPACK_IMPORTED_MODULE_3__.Tooltip(updateButton, "Checks for updates of plugins that support this feature. Right-click for a list.");
         updateButton.oncontextmenu = function () {
             if (!window.PluginUpdates || !window.PluginUpdates.plugins) return;
             tooltip.label = Object.values(window.PluginUpdates.plugins).map(p => p.name).join(", ");
@@ -2272,20 +1995,20 @@ class PluginUpdater {
         const fileSystem = require("fs");
         const path = require("path");
         request(updateLink, async (error, response, body) => {
-            if (error) return _logger__WEBPACK_IMPORTED_MODULE_2__["default"].warn("PluginUpdates", "Unable to get update for " + pluginName);
+            if (error) return _logger__WEBPACK_IMPORTED_MODULE_1__["default"].warn("PluginUpdates", "Unable to get update for " + pluginName);
             const remoteVersion = window.PluginUpdates.plugins[updateLink].versioner(body);
             let filename = updateLink.split("/");
             filename = filename[filename.length - 1];
-            const file = path.join(_pluginutilities__WEBPACK_IMPORTED_MODULE_0__["default"].getPluginsFolder(), filename);
+            const file = path.join(BdApi.Plugins.folder, filename);
             await new Promise(r => fileSystem.writeFile(file, body, r));
-            ui__WEBPACK_IMPORTED_MODULE_4__["Toasts"].success(`${pluginName} ${window.PluginUpdates.plugins[updateLink].version} has been replaced by ${pluginName} ${remoteVersion}`);
+            ui__WEBPACK_IMPORTED_MODULE_3__.Toasts.success(`${pluginName} ${window.PluginUpdates.plugins[updateLink].version} has been replaced by ${pluginName} ${remoteVersion}`);
             this.removeUpdateNotice(pluginName);
 
             if (BdApi.isSettingEnabled("fork-ps-5")) return;
             if (!window.PluginUpdates.downloaded) {
                 window.PluginUpdates.downloaded = [];
-                const button = _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].parseHTML(`<button class="btn btn-reload ${_discordclasses__WEBPACK_IMPORTED_MODULE_3__["default"].Notices.buttonMinor} ${_discordclasses__WEBPACK_IMPORTED_MODULE_3__["default"].Notices.button}">Reload</button>`);
-                const tooltip = new ui__WEBPACK_IMPORTED_MODULE_4__["Tooltip"](button, window.PluginUpdates.downloaded.join(", "), {side: "top"});
+                const button = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<button class="btn btn-reload ${_discordclasses__WEBPACK_IMPORTED_MODULE_2__["default"].Notices.buttonMinor} ${_discordclasses__WEBPACK_IMPORTED_MODULE_2__["default"].Notices.button}">Reload</button>`);
+                const tooltip = new ui__WEBPACK_IMPORTED_MODULE_3__.Tooltip(button, window.PluginUpdates.downloaded.join(", "), {side: "top"});
                 button.addEventListener("click", (e) => {
                     e.preventDefault();
                     window.location.reload(false);
@@ -2308,11 +2031,11 @@ class PluginUpdater {
      */
     static showUpdateNotice(pluginName, updateLink) {
         if (!document.getElementById("pluginNotice")) {
-            const noticeElement = _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].parseHTML(`<div class="${_discordclasses__WEBPACK_IMPORTED_MODULE_3__["default"].Notices.notice} ${_discordclasses__WEBPACK_IMPORTED_MODULE_3__["default"].Notices.colorInfo}" id="pluginNotice">
-                                                        <div class="${_discordclasses__WEBPACK_IMPORTED_MODULE_3__["default"].Notices.closeButton}" id="pluginNoticeDismiss"></div>
+            const noticeElement = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<div class="${_discordclasses__WEBPACK_IMPORTED_MODULE_2__["default"].Notices.notice} ${_discordclasses__WEBPACK_IMPORTED_MODULE_2__["default"].Notices.colorInfo}" id="pluginNotice">
+                                                        <div class="${_discordclasses__WEBPACK_IMPORTED_MODULE_2__["default"].Notices.closeButton}" id="pluginNoticeDismiss"></div>
                                                         <span class="notice-message">The following plugins have updates:</span>&nbsp;&nbsp;<strong id="outdatedPlugins"></strong>
                                                     </div>`);
-            _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].query("[class*='app-'] > [class*='app-']").prepend(noticeElement);
+            _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].query("[class*='app-'] > [class*='app-']").prepend(noticeElement);
             noticeElement.querySelector("#pluginNoticeDismiss").addEventListener("click", async () => {
                 noticeElement.classList.add("closing");
                 await new Promise(resolve => setTimeout(resolve, 400));
@@ -2321,14 +2044,14 @@ class PluginUpdater {
         }
         const pluginNoticeID = pluginName + "-notice";
         if (document.getElementById(pluginNoticeID)) return;
-        const pluginNoticeElement = _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].parseHTML(`<span id="${pluginNoticeID}">${pluginName}</span>`);
+        const pluginNoticeElement = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<span id="${pluginNoticeID}">${pluginName}</span>`);
         pluginNoticeElement.addEventListener("click", () => {
             this.downloadPlugin(pluginName, updateLink);
         });
-        if (document.getElementById("outdatedPlugins").querySelectorAll("span").length) document.getElementById("outdatedPlugins").append(_domtools__WEBPACK_IMPORTED_MODULE_1__["default"].createElement("<span class='separator'>, </span>"));
+        if (document.getElementById("outdatedPlugins").querySelectorAll("span").length) document.getElementById("outdatedPlugins").append(_domtools__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("<span class='separator'>, </span>"));
         document.getElementById("outdatedPlugins").append(pluginNoticeElement);
 
-        const tooltip = new ui__WEBPACK_IMPORTED_MODULE_4__["Tooltip"](pluginNoticeElement, "Click To Update!", {side: "bottom"});
+        const tooltip = new ui__WEBPACK_IMPORTED_MODULE_3__.Tooltip(pluginNoticeElement, "Click To Update!", {side: "bottom"});
 
         // If this is the first one added, show the tooltip immediately.
         if (document.getElementById("outdatedPlugins").querySelectorAll("span").length === 1) tooltip.show();
@@ -2362,26 +2085,22 @@ class PluginUpdater {
 /*!****************************************!*\
   !*** ./src/modules/pluginutilities.js ***!
   \****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PluginUtilities; });
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
-/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _ui_discordcontextmenu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../ui/discordcontextmenu */ "./src/ui/discordcontextmenu.js");
-
-
-
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PluginUtilities)
+/* harmony export */ });
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
+/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
 
 
 
 /**
  * A series of useful functions for BetterDiscord plugins.
  * @module PluginUtilities
- * @version 0.2.5
+ * @deprecated 1/21/22 Use Alternatives
  */
 
 
@@ -2393,47 +2112,40 @@ __webpack_require__.r(__webpack_exports__);
      * @param {string} key - which key the data is saved under
      * @param {object} defaultData - default data to populate the object with
      * @returns {object} the combined saved and default data
+     * @deprecated 1/21/22 Use Utilities or BdApi directly
     */
-    static loadData(name, key, defaultData) {
-        const defaults = _utilities__WEBPACK_IMPORTED_MODULE_1__["default"].deepclone(defaultData);
-        try {return _utilities__WEBPACK_IMPORTED_MODULE_1__["default"].extend(defaults ? defaults : {}, BdApi.getData(name, key));}
-        catch (err) {_logger__WEBPACK_IMPORTED_MODULE_0__["default"].err(name, "Unable to load data: ", err);}
-        return defaults;
-    }
+    static loadData(name, key, defaultData) {return _utilities__WEBPACK_IMPORTED_MODULE_0__["default"].loadData(name, key, defaultData);}
 
     /**
      * Saves data through BetterDiscord's API.
      * @param {string} name - name for the file (usually plugin name)
      * @param {string} key - which key the data should be saved under
      * @param {object} data - data to save
+     * @deprecated 1/21/22 Use Utilities or BdApi directly
     */
-    static saveData(name, key, data) {
-        try {BdApi.setData(name, key, data);}
-        catch (err) {_logger__WEBPACK_IMPORTED_MODULE_0__["default"].err(name, "Unable to save data: ", err);}
-    }
+    static saveData(name, key, data) {return _utilities__WEBPACK_IMPORTED_MODULE_0__["default"].saveData(name, key, data);}
 
     /**
      * Loads settings through BetterDiscord's API.
      * @param {string} name - name for the file (usually plugin name)
      * @param {object} defaultData - default data to populate the object with
      * @returns {object} the combined saved and default settings
+     * @deprecated 1/21/22 Use Utilities or BdApi directly
     */
-    static loadSettings(name, defaultSettings) {
-        return this.loadData(name, "settings", defaultSettings);
-    }
+    static loadSettings(name, defaultSettings) {return _utilities__WEBPACK_IMPORTED_MODULE_0__["default"].loadSettings(name, defaultSettings);}
 
     /**
      * Saves settings through BetterDiscord's API.
      * @param {string} name - name for the file (usually plugin name)
      * @param {object} data - settings to save
+     * @deprecated 1/21/22 Use Utilities or BdApi directly
     */
-    static saveSettings(name, data) {
-        this.saveData(name, "settings", data);
-    }
+    static saveSettings(name, data) {return _utilities__WEBPACK_IMPORTED_MODULE_0__["default"].saveSettings(name, data);}
 
     /**
      * Get the full path to the BetterDiscord folder.
      * @returns {string} full path to the BetterDiscord folder
+     * @deprecated 1/21/22 Use BdApi
      */
     static getBDFolder(subtarget = "") {
         const process = require("process");
@@ -2452,86 +2164,61 @@ __webpack_require__.r(__webpack_exports__);
     /**
      * Get the full path to the plugins folder.
      * @returns {string} full path to the plugins folder
+     * @deprecated 1/21/22 Use BdApi
      */
-    static getPluginsFolder() {
-        return this.getBDFolder("plugins/");
-    }
+    static getPluginsFolder() {return BdApi.Plugins.folder;}
 
     /**
      * Get the full path to the themes folder.
      * @returns {string} full path to the themes folder
+     * @deprecated 1/21/22 Use BdApi
      */
-    static getThemesFolder() {
-        return this.getBDFolder("themes/");
-    }
+    static getThemesFolder() {return BdApi.Themes.folder;}
 
     /**
      * Adds a callback to a set of listeners for onSwitch.
      * @param {callable} callback - basic callback to happen on channel switch
+     * @deprecated 1/21/22 Use onSwitch
      */
-    static addOnSwitchListener(callback) {
-        require("electron").remote.getCurrentWebContents().on("did-navigate-in-page", callback);
-    }
+    static addOnSwitchListener() {}
 
     /**
      * Removes the listener added by {@link InternalUtilities.addOnSwitchListener}.
      * @param {callable} callback - callback to remove from the listener list
+     * @deprecated 1/21/22 Use onSwitch
      */
-    static removeOnSwitchListener(callback) {
-        require("electron").remote.getCurrentWebContents().removeListener("did-navigate-in-page", callback);
-    }
+    static removeOnSwitchListener() {}
 
     /**
      * Adds a style to the document.
      * @param {string} id - identifier to use as the element id
      * @param {string} css - css to add to the document
+     * @deprecated 1/21/22 Use DOMTools
      */
-    static addStyle(id, css) {
-        document.head.append(_domtools__WEBPACK_IMPORTED_MODULE_2__["default"].createElement(`<style id="${id}">${css}</style>`));
-    }
+    static addStyle(id, css) {return _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].addStyle(id, css);}
 
     /**
      * Removes a style from the document.
      * @param {string} id - original identifier used
+     * @deprecated 1/21/22 Use DOMTools
      */
-    static removeStyle(id) {
-        const element = document.getElementById(id);
-        if (element) element.remove();
-    }
+    static removeStyle(id) {return _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].removeStyle(id);}
 
     /**
      * Adds/requires a remote script to be loaded
      * @param {string} id - identifier to use for this script
      * @param {string} url - url from which to load the script
      * @returns {Promise} promise that resolves when the script is loaded
+     * @deprecated 1/21/22 Use DOMTools
      */
-    static addScript(id, url) {
-        return new Promise(resolve => {
-            const script = document.createElement("script");
-            script.id = id;
-            script.src = url;
-            script.type = "text/javascript";
-            script.onload = resolve;
-            document.head.append(script);
-        });
-    }
+    static addScript(id, url) {return _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].addScript(id, url);}
 
     /**
      * Removes a remote script from the document.
      * @param {string} id - original identifier used
+     * @deprecated 1/21/22 Use DOMTools
      */
-    static removeScript(id) {
-        const element = document.getElementById(id);
-        if (element) element.remove();
-    }
-
-    static async getContextMenu(type) {
-        return _ui_discordcontextmenu__WEBPACK_IMPORTED_MODULE_3__["default"].getDiscordMenu(type);
-    }
-
-    static forceUpdateContextMenus() {
-        return _ui_discordcontextmenu__WEBPACK_IMPORTED_MODULE_3__["default"].forceUpdateMenus();
-    }
+    static removeScript(id) {return _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].removeScript(id);}
 }
 
 
@@ -2543,18 +2230,18 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./src/modules/reactcomponents.js ***!
   \****************************************/
-/*! exports provided: ReactHelpers, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ReactHelpers", function() { return Helpers; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ReactComponents; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ReactComponents)
+/* harmony export */ });
 /* harmony import */ var _patcher__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./patcher */ "./src/modules/patcher.js");
-/* harmony import */ var _reflection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./reflection */ "./src/modules/reflection.js");
-/* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
-/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _reacttools__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./reacttools */ "./src/modules/reacttools.js");
+/* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
+/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
+/* harmony import */ var _reacttools__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./reacttools */ "./src/modules/reacttools.js");
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
 /**
  * BetterDiscord React Component Manipulations
  * Original concept and some code by samogot - https://github.com/samogot / https://github.com/samogot/betterdiscord-plugins/tree/master/v2/1Lib%20Discord%20Internals
@@ -2573,143 +2260,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Helpers {
-    static get plannedActions() {
-        return this._plannedActions || (this._plannedActions = new Map());
-    }
-
-    static recursiveArray(parent, key, count = 1) {
-        let index = 0;
-        function* innerCall(parent, key) {
-            const item = parent[key];
-            if (Array.isArray(item)) {
-                for (const subKey of item.keys()) {
-                    yield* innerCall(item, subKey);
-                }
-                return;
-            }
-            yield {item, parent, key, index: index++, count};
-        }
-
-        return innerCall(parent, key);
-    }
-
-    static recursiveArrayCount(parent, key) {
-        let count = 0;
-        // eslint-disable-next-line no-empty-pattern
-        for (let {} of this.recursiveArray(parent, key)) ++count;
-        return this.recursiveArray(parent, key, count);
-    }
-
-    static get recursiveChildren() {
-        return function* (parent, key, index = 0, count = 1) {
-            const item = parent[key];
-            yield {item, parent, key, index, count};
-            if (item && item.props && item.props.children) {
-                for (const {parent, key, index, count} of this.recursiveArrayCount(item.props, "children")) {
-                    yield* this.recursiveChildren(parent, key, index, count);
-                }
-            }
-        };
-    }
-
-    static returnFirst(iterator, process) {
-        for (const child of iterator) {
-            const retVal = process(child);
-            if (retVal !== undefined) return retVal;
-        }
-    }
-
-    static getFirstChild(rootParent, rootKey, selector) {
-        const getDirectChild = (item, selector) => {
-            if (item && item.props && item.props.children) {
-                return this.returnFirst(this.recursiveArrayCount(item.props, "children"), checkFilter.bind(null, selector));
-            }
-        };
-        const checkFilter = (selector, {item, parent, key, count, index}) => {
-            let match = true;
-            if (selector.type) match = item && selector.type === item.type;
-            if (match && selector.tag) match = item && typeof item.type === "string" && selector.tag === item.type;
-            if (match && selector.className) {
-                match = item && item.props && typeof item.props.className === "string";
-                if (match) {
-                    const classes = item.props.className.split(" ");
-                    if (selector.className === true) match = !!classes[0];
-                    else if (typeof selector.className === "string") match = classes.includes(selector.className);
-                    else if (selector.className instanceof RegExp) match = !!classes.find(cls => selector.className.test(cls));
-                    else match = false;
-                }
-            }
-            if (match && selector.text) {
-                if (selector.text === true) match = typeof item === "string";
-                else if (typeof selector.text === "string") match = item === selector.text;
-                else if (selector.text instanceof RegExp) match = typeof item === "string" && selector.text.test(item);
-                else match = false;
-            }
-            if (match && selector.nthChild) match = index === (selector.nthChild < 0 ? count + selector.nthChild : selector.nthChild);
-            if (match && selector.hasChild) match = getDirectChild(item, selector.hasChild);
-            if (match && selector.hasSuccessor) match = item && !!this.getFirstChild(parent, key, selector.hasSuccessor).item;
-            if (match && selector.eq) {
-                --selector.eq;
-                return;
-            }
-            if (match) {
-                if (selector.child) return getDirectChild(item, selector.child);
-                else if (selector.successor) return this.getFirstChild(parent, key, selector.successor);
-                return {item, parent, key};
-            }
-        };
-        return this.returnFirst(this.recursiveChildren(rootParent, rootKey), checkFilter.bind(null, selector)) || {};
-    }
-
-    static parseSelector(selector) {
-        if (selector.startsWith(".")) return {className: selector.substr(1)};
-        if (selector.startsWith("#")) return {id: selector.substr(1)};
-        return {};
-    }
-
-    static findByProp(obj, what, value) {
-        if (obj.hasOwnProperty(what) && obj[what] === value) return obj;
-        if (obj.props && !obj.children) return this.findByProp(obj.props, what, value);
-        if (!obj.children) return null;
-        if (!Array.isArray(obj.children)) return this.findByProp(obj.children, what, value);
-        for (const child of obj.children) {
-            if (!child) continue;
-            const findInChild = this.findByProp(child, what, value);
-            if (findInChild) return findInChild;
-        }
-        return null;
-    }
-
-    static findProp(obj, what) {
-        if (obj.hasOwnProperty(what)) return obj[what];
-        if (obj.props && !obj.children) return this.findProp(obj.props, what);
-        if (!obj.children) return null;
-        if (!Array.isArray(obj.children)) return this.findProp(obj.children, what);
-        for (const child of obj.children) {
-            if (!child) continue;
-            const findInChild = this.findProp(child, what);
-            if (findInChild) return findInChild;
-        }
-        return null;
-    }
-
-    static get React() {
-        return _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"].React;
-    }
-
-    static get ReactDOM() {
-        return _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"].ReactDOM;
-    }
-}
-
-
-
 class ReactComponent {
     constructor(id, component, selector, filter) {
         this.id = id;
         this.component = component;
-        // this.important = important;
         this.selector = selector;
         this.filter = filter;
     }
@@ -2717,7 +2271,9 @@ class ReactComponent {
     forceUpdateAll() {
         if (!this.selector) return;
         for (const e of document.querySelectorAll(this.selector)) {
-            Object(_reflection__WEBPACK_IMPORTED_MODULE_1__["default"])(e).forceUpdate(this); // eslint-disable-line new-cap
+            const stateNode = _utilities__WEBPACK_IMPORTED_MODULE_4__["default"].findInTree(_reacttools__WEBPACK_IMPORTED_MODULE_3__["default"].getReactInstance(e), m => m && m.forceUpdate, {walkable: ["return", "stateNode"]});
+            if (!stateNode) continue;
+            stateNode.forceUpdate();
         }
     }
 }
@@ -2725,7 +2281,6 @@ class ReactComponent {
 /**
  * Methods for obtaining and interacting with react components.
  * @module ReactComponents
- * @version 0.0.1
  */
 class ReactComponents {
     static get components() {return this._components || (this._components = new Map());}
@@ -2734,8 +2289,12 @@ class ReactComponents {
     static get nameSetters() {return this._nameSetters || (this._nameSetters = new Set());}
 
     static get ReactComponent() {return ReactComponent;}
-    static get Helpers() {return Helpers;}
-    static get AutoPatcher() {return ReactAutoPatcher;}
+
+    static initialize() {
+        ReactAutoPatcher.autoUnpatch();
+        ReactAutoPatcher.autoPatch();
+        ReactAutoPatcher.processAll();
+    }
 
     static push(component, selector, filter) {
         if (typeof(component) !== "function") return null;
@@ -2751,17 +2310,12 @@ class ReactComponents {
 
         const c = new ReactComponent(displayName, component, selector, filter);
         this.components.set(c.id, c);
-        // if (!have) this.components.push(c);
 
         const listener = this.listeners.get(displayName);
         if (listener) {
             for (const l of listener.children) l(c);
             this.listeners.delete(listener);
         }
-
-        // for (const listen of this.listeners) {
-        //     if (!listen.filter) continue;
-        // }
 
         return c;
     }
@@ -2794,43 +2348,32 @@ class ReactComponents {
         if (selector) {
             const callback = () => {
                 if (this.components.get(name)) {
-                    // Logger.info("ReactComponents", `Important component ${name} already found`);
-                    _domtools__WEBPACK_IMPORTED_MODULE_3__["default"].observer.unsubscribe(observerSubscription);
+                    _domtools__WEBPACK_IMPORTED_MODULE_2__["default"].observer.unsubscribe(observerSubscription);
                     return;
                 }
 
                 const elements = document.querySelectorAll(selector);
                 if (!elements.length) return;
 
-                let component, reflect;
+                let component;
                 for (const element of elements) {
-                    reflect = Object(_reflection__WEBPACK_IMPORTED_MODULE_1__["default"])(element); // eslint-disable-line new-cap
-                    component = filter ? reflect.components.find(filter) : reflect.component;
+                    const componentsFound = _reacttools__WEBPACK_IMPORTED_MODULE_3__["default"].getComponents(element);
+                    component = filter ? componentsFound.find(filter) : componentsFound[0];
                     if (component) break;
                 }
 
-                if (!component && filter) return;// Logger.log("ReactComponents", ["Found elements matching the query selector but no components passed the filter"]);
+                if (!component && filter) return;
 
-                _domtools__WEBPACK_IMPORTED_MODULE_3__["default"].observer.unsubscribe(observerSubscription);
+                _domtools__WEBPACK_IMPORTED_MODULE_2__["default"].observer.unsubscribe(observerSubscription);
 
-                if (!component) return;// Logger.err("ReactComponents", [`FAILED TO GET IMPORTANT COMPONENT ${name} WITH REFLECTION FROM`, elements]);
+                if (!component) return;
 
                 if (!component.displayName) component.displayName = name;
-                // if (component.displayName && component.displayName != name) {
-                //     let existing = this.listeners.find(l => l.id === component.displayName);
-                //     let current = this.listeners.find(l => l.id === name);
-                //     if (!existing) {current.id = component.displayName;}
-                //     else {
-                //         existing.listeners.push(current.listeners);
-                //         Utilities.removeFromArray(this.listeners, current);
-                //     }
-                // }
-                // Logger.info("ReactComponents", [`Found important component ${name} with reflection`, reflect]);
 
                 this.push(component, selector, filter);
             };
 
-            const observerSubscription = _domtools__WEBPACK_IMPORTED_MODULE_3__["default"].observer.subscribeToQuerySelector(callback, selector, null, true);
+            const observerSubscription = _domtools__WEBPACK_IMPORTED_MODULE_2__["default"].observer.subscribeToQuerySelector(callback, selector, null, true);
             setTimeout(callback, 0);
         }
 
@@ -2877,7 +2420,7 @@ class ReactComponents {
         return component;
     }
 
-    static *recursiveComponents(internalInstance = _reacttools__WEBPACK_IMPORTED_MODULE_4__["default"].rootInstance) {
+    static *recursiveComponents(internalInstance = _reacttools__WEBPACK_IMPORTED_MODULE_3__["default"].rootInstance) {
         if (internalInstance.stateNode) yield internalInstance.stateNode;
         if (internalInstance.sibling) yield* this.recursiveComponents(internalInstance.sibling);
         if (internalInstance.child) yield* this.recursiveComponents(internalInstance.child);
@@ -2891,10 +2434,9 @@ class ReactAutoPatcher {
      */
     static async autoPatch() {
         this.autoUnpatch();
-        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].before("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"].React, "createElement", (react, [component]) => ReactComponents.push(component));
-        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].instead("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"].React.Component.prototype, "UNSAFE_componentWillMount", (component) => ReactComponents.push(component));
-        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].instead("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_2__["default"].React.Component.prototype, "componentWillMount", (component) => ReactComponents.push(component));
-        // this.patchComponents();
+        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].before("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].React, "createElement", (react, [component]) => ReactComponents.push(component));
+        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].instead("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].React.Component.prototype, "UNSAFE_componentWillMount", (component) => ReactComponents.push(component));
+        _patcher__WEBPACK_IMPORTED_MODULE_0__["default"].instead("ReactComponents", _discordmodules__WEBPACK_IMPORTED_MODULE_1__["default"].React.Component.prototype, "componentWillMount", (component) => ReactComponents.push(component));
     }
 
     static async autoUnpatch() {
@@ -2918,36 +2460,26 @@ class ReactAutoPatcher {
 /*!***********************************!*\
   !*** ./src/modules/reacttools.js ***!
   \***********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ReactTools; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ReactTools)
+/* harmony export */ });
 /* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
 /* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities */ "./src/modules/utilities.js");
-/* harmony import */ var _reflection__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./reflection */ "./src/modules/reflection.js");
 /**
  * Helpful utilities for dealing with getting react information from DOM objects.
  * @module ReactTools
- * @version 0.0.5
  */
 
 
 
 
 
-
 class ReactTools {
-
-    /**
-     * Performs reflection on a specific node.
-     * @param {(HTMLElement|jQuery|Selector)} node - node or selector to reflect on.
-     */
-    static Reflect(node) {
-        return Object(_reflection__WEBPACK_IMPORTED_MODULE_3__["default"])(node);
-    }
 
     static get rootInstance() {return document.getElementById("app-mount")._reactRootContainer._internalRoot.current;}
 
@@ -3008,6 +2540,40 @@ class ReactTools {
     }
 
     /**
+     * Grabs the react internal state node trees of a specific node.
+     * @param {(HTMLElement|jQuery)} node - node to obtain state nodes of
+     * @return {Array<Function>} list of found state nodes
+     */
+    static getStateNodes(node) {
+        const instance = this.getReactInstance(node);
+        const stateNodes = [];
+        let lastInstance = instance;
+        while (lastInstance && lastInstance.return) {
+            if (lastInstance.return.stateNode instanceof HTMLElement) break;
+            if (lastInstance.return.stateNode) stateNodes.push(lastInstance.return.stateNode);
+            lastInstance = lastInstance.return;
+        }
+        return stateNodes;
+    }
+    
+    /**
+     * Grabs the react internal component tree of a specific node.
+     * @param {(HTMLElement|jQuery)} node - node to obtain react components of
+     * @return {Array<Function>} list of found react components
+     */
+    static getComponents(node) {
+        const instance = this.getReactInstance(node);
+        const components = [];
+        let lastInstance = instance;
+        while (lastInstance && lastInstance.return) {
+            if (typeof lastInstance.return.type === "string") break;
+            if (lastInstance.return.type) components.push(lastInstance.return.type);
+            lastInstance = lastInstance.return;
+        }
+        return components;
+    }
+
+    /**
      * Creates and renders a react element that wraps dom elements.
      * @param {(HTMLElement|Array<HTMLElement>)} element - element or array of elements to wrap into a react element
      * @returns {object} - rendered react element
@@ -3038,265 +2604,21 @@ class ReactTools {
 
 /***/ }),
 
-/***/ "./src/modules/reflection.js":
-/*!***********************************!*\
-  !*** ./src/modules/reflection.js ***!
-  \***********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
-/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _webpackmodules__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./webpackmodules */ "./src/modules/webpackmodules.js");
-/* harmony import */ var _reactcomponents__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./reactcomponents */ "./src/modules/reactcomponents.js");
-/**
- * BetterDiscord Reflection Module
- * Copyright (c) 2015-present JsSucks - https://github.com/JsSucks
- * All rights reserved.
- * https://betterdiscord.net
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
-*/
-
-
-
-
-
-
-class Reflection {
-    static reactInternalInstance(node) {
-        if (!node) return null;
-        if (!Object.keys(node) || !Object.keys(node).length) return null;
-        const riiKey = Object.keys(node).find(k => k.startsWith("__reactInternalInstance") || k.startsWith("__reactFiber"));
-        return riiKey ? node[riiKey] : null;
-    }
-
-    static findProp(node, prop) {
-        const ii = this.reactInternalInstance(node);
-        if (!ii) return null;
-        const fir = this.findInReturn(ii, prop);
-        if (fir) return fir;
-        const fim = this.findInChildProps(ii, prop);
-        if (fim) return fim;
-        return null;
-    }
-
-    static findInReturn(internalInstance, prop) {
-        const r = internalInstance.return;
-        if (!r) return null;
-        let find = this.findMemoizedProp(r, prop);
-        if (find) return find;
-        find = this.findMemoizedState(r, prop);
-        if (find) return find;
-        return this.findInReturn(r, prop);
-    }
-
-    static findMemoizedProp(obj, prop) {
-        if (!obj.hasOwnProperty("memoizedProps")) return null;
-        obj = obj.memoizedProps;
-        return this.findPropIn(obj, prop);
-    }
-
-    static findMemoizedState(obj, prop) {
-        if (!obj.hasOwnProperty("memoizedState")) return null;
-        obj = obj.memoizedState;
-        return this.findPropIn(obj, prop);
-    }
-
-    static findInChildProps(obj, prop) {
-        try {
-            const f = obj.children || obj.memoizedProps.children;
-            if (!f.props) return null;
-            if (!f.props.hasOwnProperty(prop)) return null;
-            return f.props[prop];
-        }
-        catch (err) {
-            return null;
-        }
-    }
-
-    static findPropIn(obj, prop) {
-        if (obj && !Array.isArray(obj) && obj instanceof Object && obj.hasOwnProperty(prop)) return obj[prop];
-        if (obj && Array.isArray(obj)) {
-            const found = obj.find(mp => {
-                if (mp.props && mp.props.hasOwnProperty(prop)) return true;
-            });
-            if (found) return found;
-        }
-        return null;
-    }
-
-    static propIterator(obj, propNames) {
-        if (obj === null || obj === undefined) return null;
-        const curPropName = propNames.shift(1);
-        if (!obj.hasOwnProperty(curPropName)) return null;
-        const curProp = obj[curPropName];
-        if (propNames.length === 0) {
-            return curProp;
-        }
-        return this.propIterator(curProp, propNames);
-    }
-
-    static getState(node) {
-        const stateNode = this.getStateNode(node);
-        if (stateNode) return stateNode.state;
-    }
-
-    static getStateNode(node) {
-        return this.getStateNodes(node)[0];
-    }
-
-    static getStateNodes(node) {
-        const instance = this.reactInternalInstance(node);
-        const stateNodes = [];
-        let lastInstance = instance;
-
-        while (lastInstance && lastInstance.return) {
-            if (lastInstance.return.stateNode instanceof HTMLElement) break;
-            if (lastInstance.return.stateNode) stateNodes.push(lastInstance.return.stateNode);
-            lastInstance = lastInstance.return;
-        }
-
-        return stateNodes;
-    }
-
-    static getComponentStateNode(node, component) {
-        if (component instanceof _reactcomponents__WEBPACK_IMPORTED_MODULE_3__["default"].ReactComponent) component = component.component;
-
-        for (const stateNode of this.getStateNodes(node)) {
-            if (stateNode instanceof component) return stateNode;
-        }
-    }
-
-    static findStateNode(node, filter, first = true) {
-        return this.getStateNodes(node)[first ? "find" : "filter"](filter);
-    }
-
-    static getComponent(node) {
-        return this.getComponents(node)[0];
-    }
-
-    static getComponents(node) {
-        const instance = this.reactInternalInstance(node);
-        const components = [];
-        let lastInstance = instance;
-
-        while (lastInstance && lastInstance.return) {
-            if (typeof lastInstance.return.type === "string") break;
-            if (lastInstance.return.type) components.push(lastInstance.return.type);
-            lastInstance = lastInstance.return;
-        }
-
-        return components;
-    }
-
-    static findComponent(node, filter, first = true) {
-        return this.getComponents(node)[first ? "find" : "filter"](filter);
-    }
-}
-
-const propsProxyHandler = {
-    get(node, prop) {
-        return Reflection.findProp(node, prop);
-    }
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (function(node) {
-    return new class ReflectionInstance {
-        constructor(ele) {
-            if (typeof ele === "string") ele = document.querySelector(ele);
-            this.node = _domtools__WEBPACK_IMPORTED_MODULE_1__["default"].resolveElement(ele);
-        }
-
-        get el() {return this.node;}
-        get element() {return this.node;}
-
-        get reactInternalInstance() {
-            return Reflection.reactInternalInstance(this.node);
-        }
-
-        get props() {
-            return new Proxy(this.node, propsProxyHandler);
-        }
-        get state() {
-            return Reflection.getState(this.node);
-        }
-
-        get stateNode() {
-            return Reflection.getStateNode(this.node);
-        }
-        get stateNodes() {
-            return Reflection.getStateNodes(this.node);
-        }
-        getComponentStateNode(component) {
-            return Reflection.getComponentStateNode(this.node, component);
-        }
-        findStateNode(filter) {
-            if (typeof filter === "function") return Reflection.findStateNode(this.node, filter);
-            if (filter) return Reflection.getComponentStateNode(this.node, filter);
-            return Reflection.getStateNode(this.node);
-        }
-
-        get component() {
-            return Reflection.getComponent(this.node);
-        }
-        get components() {
-            return Reflection.getComponents(this.node);
-        }
-        getComponentByProps(props, selector) {
-            return Reflection.findComponent(this.node, _webpackmodules__WEBPACK_IMPORTED_MODULE_2__["Filters"].byProperties(props, selector));
-        }
-        getComponentByPrototypes(props, selector) {
-            return Reflection.findComponent(this.node, _webpackmodules__WEBPACK_IMPORTED_MODULE_2__["Filters"].byPrototypeFields(props, selector));
-        }
-        getComponentByRegex(regex, selector) {
-            return Reflection.findComponent(this.node, _webpackmodules__WEBPACK_IMPORTED_MODULE_2__["Filters"].byCode(regex, selector));
-        }
-        getComponentByDisplayName(name) {
-            return Reflection.findComponent(this.node, _webpackmodules__WEBPACK_IMPORTED_MODULE_2__["Filters"].byDisplayName(name));
-        }
-
-        forceUpdate(filter) {
-            try {
-                const stateNode = this.findStateNode(filter);
-                if (!stateNode || !stateNode.forceUpdate) return;
-                stateNode.forceUpdate();
-            }
-            catch (err) {
-                _logger__WEBPACK_IMPORTED_MODULE_0__["default"].err("Reflection", err);
-            }
-        }
-
-        prop(propName) {
-            const split = propName.split(".");
-            const first = Reflection.findProp(this.node, split[0]);
-            if (split.length === 1) return first;
-            return Reflection.propIterator(first, split.slice(1));
-        }
-    }(node);
-});
-
-
-/***/ }),
-
 /***/ "./src/modules/utilities.js":
 /*!**********************************!*\
   !*** ./src/modules/utilities.js ***!
   \**********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Utilities; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Utilities)
+/* harmony export */ });
 /* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
 /**
  * Random set of utilities that didn't fit elsewhere.
  * @module Utilities
- * @version 0.0.2
  */
 
 
@@ -3381,7 +2703,7 @@ class Utilities {
 
     /**
      * Format template strings with placeholders (`${placeholder}`) into full strings.
-     * Quick example: `PluginUtilities.formatString("Hello, ${user}", {user: "Zerebos"})`
+     * Quick example: `Utilities.formatString("Hello, ${user}", {user: "Zerebos"})`
      * would return "Hello, Zerebos".
      * @param {string} string - string to format
      * @param {object} values - object literal of placeholders to replacements
@@ -3399,7 +2721,7 @@ class Utilities {
 
     /**
      * Format strings with placeholders (`{{placeholder}}`) into full strings.
-     * Quick example: `PluginUtilities.formatString("Hello, {{user}}", {user: "Zerebos"})`
+     * Quick example: `Utilities.formatString("Hello, {{user}}", {user: "Zerebos"})`
      * would return "Hello, Zerebos".
      * @param {string} string - string to format
      * @param {object} values - object literal of placeholders to replacements
@@ -3628,56 +2950,47 @@ class Utilities {
     }
 
     /**
-     * Checks if a file exists and is a file.
-     * @param {String} path The file's path
-     * @return {Promise}
-     * @deprecated 12/3/2020 Just use fs...
-     */
-    static async fileExists(path) {
-        const fs = require("fs");
-        return new Promise((resolve, reject) => {
-            fs.stat(path, (err, stats) => {
-                if (err) {
-                    return reject({
-                        message: `No such file or directory: ${err.path}`,
-                        err
-                    });
-                }
-
-                if (!stats.isFile()) {
-                    return reject({
-                        message: `Not a file: ${path}`,
-                        stats
-                    });
-                }
-
-                resolve();
-            });
-        });
+     * Loads data through BetterDiscord's API.
+     * @param {string} name - name for the file (usually plugin name)
+     * @param {string} key - which key the data is saved under
+     * @param {object} defaultData - default data to populate the object with
+     * @returns {object} the combined saved and default data
+    */
+     static loadData(name, key, defaultData) {
+        const defaults = this.deepclone(defaultData);
+        try {return this.extend(defaults ? defaults : {}, BdApi.getData(name, key));}
+        catch (err) {_logger__WEBPACK_IMPORTED_MODULE_0__["default"].err(name, "Unable to load data: ", err);}
+        return defaults;
     }
 
     /**
-     * Returns the contents of a file.
-     * @param {String} path The file's path
-     * @return {Promise}
-     * @deprecated 12/3/2020 Just use fs...
-     */
-    static async readFile(path) {
-        await this.fileExists(path);
-        
-        const fs = require("fs");
-        return new Promise((resolve, reject) => {
-            fs.readFile(path, "utf-8", (err, data) => {
-                if (err) {
-                    return reject({
-                        message: `Could not read file: ${path}`,
-                        err
-                    });
-                }
+     * Saves data through BetterDiscord's API.
+     * @param {string} name - name for the file (usually plugin name)
+     * @param {string} key - which key the data should be saved under
+     * @param {object} data - data to save
+    */
+    static saveData(name, key, data) {
+        try {BdApi.setData(name, key, data);}
+        catch (err) {_logger__WEBPACK_IMPORTED_MODULE_0__["default"].err(name, "Unable to save data: ", err);}
+    }
 
-                resolve(data);
-            });
-        });
+    /**
+     * Loads settings through BetterDiscord's API.
+     * @param {string} name - name for the file (usually plugin name)
+     * @param {object} defaultData - default data to populate the object with
+     * @returns {object} the combined saved and default settings
+    */
+    static loadSettings(name, defaultSettings) {
+        return this.loadData(name, "settings", defaultSettings);
+    }
+
+    /**
+     * Saves settings through BetterDiscord's API.
+     * @param {string} name - name for the file (usually plugin name)
+     * @param {object} data - settings to save
+    */
+    static saveSettings(name, data) {
+        this.saveData(name, "settings", data);
     }
 
 }
@@ -3688,19 +3001,21 @@ class Utilities {
 /*!***************************************!*\
   !*** ./src/modules/webpackmodules.js ***!
   \***************************************/
-/*! exports provided: Filters, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Filters", function() { return Filters; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return WebpackModules; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Filters": () => (/* binding */ Filters),
+/* harmony export */   "default": () => (/* binding */ WebpackModules)
+/* harmony export */ });
 /* harmony import */ var _discordmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./discordmodules */ "./src/modules/discordmodules.js");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./logger */ "./src/modules/logger.js");
 /**
  * Random set of utilities that didn't fit elsewhere.
  * @module WebpackModules
- * @version 0.0.2
  */
+
 
 
  /**
@@ -3993,12 +3308,12 @@ class WebpackModules {
     static get require() {
         if (this._require) return this._require;
         const id = "zl-webpackmodules";
-        const __webpack_require__ = window.webpackJsonp.push([[], {
+        const __nested_webpack_require_11118__ = window.webpackJsonp.push([[], {
             [id]: (module, exports, req) => module.exports = req
         }, [[id]]]);
-        delete __webpack_require__.m[id];
-        delete __webpack_require__.c[id];
-        return this._require = __webpack_require__;
+        delete __nested_webpack_require_11118__.m[id];
+        delete __nested_webpack_require_11118__.c[id];
+        return this._require = __nested_webpack_require_11118__;
     }
 
     /**
@@ -4009,7 +3324,82 @@ class WebpackModules {
         return this.require.c;
     }
 
+
+
+    // Webpack Chunk Observing
+    static get chunkName() {return "webpackChunkdiscord_app";}
+
+    static initialize() {
+        this.handlePush = this.handlePush.bind(this);
+        this.listeners = new Set();
+        
+        this.__ORIGINAL_PUSH__ = window[this.chunkName].push;
+        Object.defineProperty(window[this.chunkName], "push", {
+            configurable: true,
+            get: () => this.handlePush,
+            set: (newPush) => {
+                this.__ORIGINAL_PUSH__ = newPush;
+
+                Object.defineProperty(window[this.chunkName], "push", {
+                    value: this.handlePush,
+                    configurable: true,
+                    writable: true
+                });
+            }
+        });
+    }    
+
+    /**
+     * Adds a listener for when discord loaded a chunk. Useful for subscribing to lazy loaded modules.
+     * @param {Function} listener - Function to subscribe for chunks
+     * @returns {Function} A cancelling function
+     */
+     static addListener(listener) {
+        this.listeners.add(listener);
+        return this.removeListener.bind(this, listener);
+    }
+
+    /**
+     * Removes a listener for when discord loaded a chunk.
+     * @param {Function} listener
+     * @returns {boolean}
+     */
+    static removeListener(listener) {return this.listeners.delete(listener);}
+
+    static handlePush(chunk) {
+        const [, modules] = chunk;
+
+        for (const moduleId in modules) {
+            const originalModule = modules[moduleId];
+
+            modules[moduleId] = (module, exports, require) => {
+                try {
+                    Reflect.apply(originalModule, null, [module, exports, require]);
+
+                    const listeners = [...this.listeners];
+                    for (let i = 0; i < listeners.length; i++) {
+                        try {listeners[i](exports, originalModule, moduleId);}
+                        catch (error) {
+                            _logger__WEBPACK_IMPORTED_MODULE_1__["default"].err("WebpackModules", "Could not fire callback listener:", error);
+                        }
+                    }
+                }
+                catch (error) {
+                    _logger__WEBPACK_IMPORTED_MODULE_1__["default"].stacktrace("WebpackModules", "Error patching chunked module push", error);
+                }
+            };
+
+            Object.assign(modules[moduleId], originalModule, {
+                toString: () => originalModule.toString()
+            });
+        }
+
+        return Reflect.apply(this.__ORIGINAL_PUSH__, window[this.chunkName], [chunk]);
+    }
+
 }
+
+WebpackModules.initialize();
 
 /***/ }),
 
@@ -4017,13 +3407,15 @@ class WebpackModules {
 /*!***********************!*\
   !*** ./src/plugin.js ***!
   \***********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ((BasePlugin, Library) => {
-    const {PluginUpdater, Patcher, Logger, Settings, Toasts, PluginUtilities, ReactComponents, DCM} = Library;
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((BasePlugin, Library) => {
+    const {PluginUpdater, Patcher, Logger, Settings, Toasts, DOMTools, ReactComponents, DCM, Popouts} = Library;
     const PluginLibrary = class PluginLibrary extends BasePlugin {
         get Library() {return Library;}
         
@@ -4031,11 +3423,11 @@ __webpack_require__.r(__webpack_exports__);
             super.load();
             const wasLibLoaded = !!document.getElementById("ZLibraryCSS");
             const isBBDLoading = document.getElementsByClassName("bd-loaderv2").length;
-            PluginUtilities.removeStyle("ZLibraryCSS");
-            PluginUtilities.addStyle("ZLibraryCSS", Settings.CSS + Toasts.CSS + PluginUpdater.CSS);
-            ReactComponents.AutoPatcher.processAll();
-            ReactComponents.AutoPatcher.autoPatch();
-            DCM.patchComponents();
+            DOMTools.removeStyle("ZLibraryCSS");
+            DOMTools.addStyle("ZLibraryCSS", Settings.CSS + Toasts.CSS + PluginUpdater.CSS);
+            ReactComponents.initialize();
+            DCM.initialize();
+            Popouts.initialize();
             
             /**
              * Checking if this is the library first being loaded during init
@@ -4064,8 +3456,8 @@ __webpack_require__.r(__webpack_exports__);
 
         _reloadPlugins() {
             const list = BdApi.Plugins.getAll().reduce((acc, val) => {
-                if (!val._config) return acc;
-                const name = val.getName();
+                if (!val.instance || !val.instance._config) return acc;
+                const name = val.name || val.instance.getName();
                 if (name === "ZeresPluginLibrary") return acc;
                 acc.push(name);
                 return acc;
@@ -4110,1861 +3502,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/structs/discord/channel.js":
-/*!****************************************!*\
-  !*** ./src/structs/discord/channel.js ***!
-  \****************************************/
-/*! exports provided: Channel, PermissionOverwrite, RolePermissionOverwrite, MemberPermissionOverwrite, GuildChannel, GuildTextChannel, GuildVoiceChannel, ChannelCategory, PrivateChannel, DirectMessageChannel, GroupChannel */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Channel", function() { return Channel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PermissionOverwrite", function() { return PermissionOverwrite; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RolePermissionOverwrite", function() { return RolePermissionOverwrite; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MemberPermissionOverwrite", function() { return MemberPermissionOverwrite; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GuildChannel", function() { return GuildChannel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GuildTextChannel", function() { return GuildTextChannel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GuildVoiceChannel", function() { return GuildVoiceChannel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ChannelCategory", function() { return ChannelCategory; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PrivateChannel", function() { return PrivateChannel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DirectMessageChannel", function() { return DirectMessageChannel; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GroupChannel", function() { return GroupChannel; });
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _guild__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./guild */ "./src/structs/discord/guild.js");
-/* harmony import */ var _message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./message */ "./src/structs/discord/message.js");
-/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./user */ "./src/structs/discord/user.js");
-/**
- * BetterDiscord Channel Struct
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-
-
-
-
-
-
-const BotMessager = modules__WEBPACK_IMPORTED_MODULE_0__["WebpackModules"].getByProps("createBotMessage");
-
-const cache = new WeakMap();
-
-/**
- * @memberof module:DiscordAPI
- */
-class Channel {
-
-    constructor(data) {
-        if (cache.has(data)) return cache.get(data);
-        cache.set(data, this);
-
-        this.discordObject = data;
-    }
-
-    static from(channel) {
-        switch (channel.type) {
-            default: return new Channel(channel);
-            case 0: return new GuildTextChannel(channel);
-            case 1: return new DirectMessageChannel(channel);
-            case 2: return new GuildVoiceChannel(channel);
-            case 3: return new GroupChannel(channel);
-            case 4: return new ChannelCategory(channel);
-        }
-    }
-
-    static fromId(id) {
-        const channel = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ChannelStore.getChannel(id);
-        if (channel) return Channel.from(channel);
-    }
-
-    static get GuildChannel() {return GuildChannel;}
-    static get GuildTextChannel() {return GuildTextChannel;}
-    static get GuildVoiceChannel() {return GuildVoiceChannel;}
-    static get ChannelCategory() {return ChannelCategory;}
-    static get PrivateChannel() {return PrivateChannel;}
-    static get DirectMessageChannel() {return DirectMessageChannel;}
-    static get GroupChannel() {return GroupChannel;}
-
-    get id() {return this.discordObject.id;}
-    get applicationId() {return this.discordObject.application_id;}
-    get type() {return this.discordObject.type;}
-    get name() {return this.discordObject.name;}
-
-    /**
-     * Send a message in this channel.
-     * @param {String|object} content The new message's content
-     * @param {Boolean} parse Whether to parse the message or send it as it is
-     * @return {Promise<Message>}
-     */
-    async sendMessage(content, parse = false) {
-        if (this.assertPermissions) this.assertPermissions("SEND_MESSAGES", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.VIEW_CHANNEL | modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.SEND_MESSAGES);
-
-        this.select();
-
-        if (parse) content = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageParser.parse(this.discordObject, content);
-        else if (typeof content == "string") content = {content, validNonShortcutEmojis: Array(0)};
-
-        const response = await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions._sendMessage(this.id, content, {});
-        return _message__WEBPACK_IMPORTED_MODULE_3__["Message"].from(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessage(this.id, response.body.id));
-    }
-
-    /**
-     * Send a bot message in this channel that only the current user can see.
-     * @param {String} content The new message's content
-     * @return {Message}
-     */
-    sendBotMessage(content) {
-        this.select();
-        if (!BotMessager) return modules__WEBPACK_IMPORTED_MODULE_0__["Logger"].err("DiscordAPI", "Unable to create bot message");
-        const message = BotMessager.createBotMessage(this.id, content);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.receiveMessage(this.id, message);
-        return _message__WEBPACK_IMPORTED_MODULE_3__["Message"].from(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessage(this.id, message.id));
-    }
-
-    /**
-     * A list of messages in this channel.
-     */
-    get messages() {
-        const messages = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessages(this.id).toArray();
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(messages, m => _message__WEBPACK_IMPORTED_MODULE_3__["Message"].from(m));
-    }
-
-    /**
-     * Jumps to the latest message in this channel.
-     */
-    jumpToPresent() {
-        if (this.assertPermissions) this.assertPermissions("VIEW_CHANNEL", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.VIEW_CHANNEL);
-        if (this.hasMoreAfter) modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.jumpToPresent(this.id, modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.MAX_MESSAGES_PER_CHANNEL);
-        else this.messages[this.messages.length - 1].jumpTo(false);
-    }
-
-    get hasMoreAfter() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessages(this.id).hasMoreAfter;
-    }
-
-    /**
-     * Sends an invite in this channel.
-     * @param {String} code The invite code
-     * @return {Promise<Message>}
-     */
-    async sendInvite(code) {
-        if (this.assertPermissions) this.assertPermissions("SEND_MESSAGES", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.VIEW_CHANNEL | modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.SEND_MESSAGES);
-        const response = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.sendInvite(this.id, code);
-        return _message__WEBPACK_IMPORTED_MODULE_3__["Message"].from(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessage(this.id, response.body.id));
-    }
-
-    /**
-     * Opens this channel in the UI.
-     */
-    select() {
-        if (this.assertPermissions) this.assertPermissions("VIEW_CHANNEL", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.VIEW_CHANNEL);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].NavigationUtils.transitionToGuild(this.guildId ? this.guildId : modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.ME, this.id);
-    }
-
-    /**
-     * Whether this channel is currently selected.
-     */
-    get isSelected() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentChannel === this;
-    }
-
-    /**
-     * Updates this channel.
-     * @return {Promise}
-     */
-    async updateChannel(body) {
-        if (this.assertPermissions) this.assertPermissions("MANAGE_CHANNELS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_CHANNELS);
-        await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.patch({
-            url: `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.CHANNELS}/${this.id}`,
-            body
-        });
-        this.discordObject = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ChannelStore.getChannel(this.id);
-        cache.set(this.discordObject, this);
-    }
-
-}
-
-
-
-class PermissionOverwrite {
-    constructor(data, channel_id) {
-        this.discordObject = data;
-        this.channelId = channel_id;
-    }
-
-    static from(data, channel_id) {
-        switch (data.type) {
-            default: return new PermissionOverwrite(data, channel_id);
-            case "role": return new RolePermissionOverwrite(data, channel_id);
-            case "member": return new MemberPermissionOverwrite(data, channel_id);
-        }
-    }
-
-    static get RolePermissionOverwrite() {return RolePermissionOverwrite;}
-    static get MemberPermissionOverwrite() {return MemberPermissionOverwrite;}
-
-    get type() {return this.discordObject.type;}
-    get allow() {return this.discordObject.allow;}
-    get deny() {return this.discordObject.deny;}
-
-    get channel() {
-        return Channel.fromId(this.channelId);
-    }
-
-    get guild() {
-        if (this.channel) return this.channel.guild;
-        return null;
-    }
-}
-
-class RolePermissionOverwrite extends PermissionOverwrite {
-    get roleId() {return this.discordObject.id;}
-
-    get role() {
-        if (this.guild) return this.guild.roles.find(r => r.id === this.roleId);
-        return null;
-    }
-}
-
-class MemberPermissionOverwrite extends PermissionOverwrite {
-    get memberId() {return this.discordObject.id;}
-
-    get member() {
-        return _user__WEBPACK_IMPORTED_MODULE_4__["GuildMember"].fromId(this.memberId);
-    }
-}
-
-class GuildChannel extends Channel {
-    static get PermissionOverwrite() {return PermissionOverwrite;}
-
-    get guildId() {return this.discordObject.guild_id;}
-    get parentId() {return this.discordObject.parent_id;} // Channel category
-    get position() {return this.discordObject.position;}
-    get nicks() {return this.discordObject.nicks;}
-
-    checkPermissions(perms) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Permissions.can({data: BigInt(perms)}, modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser, this.discordObject);
-    }
-
-    assertPermissions(name, perms) {
-        if (!this.checkPermissions(perms)) throw new structs__WEBPACK_IMPORTED_MODULE_1__["InsufficientPermissions"](name);
-    }
-
-    get category() {
-        return Channel.fromId(this.parentId);
-    }
-
-    /**
-     * The current user's permissions on this channel.
-     */
-    get permissions() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildPermissions.getChannelPermissions(this.id);
-    }
-
-    get permissionOverwrites() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(Object.values(this.discordObject.permissionOverwrites), p => PermissionOverwrite.from(p, this.id));
-    }
-
-    get guild() {
-        return _guild__WEBPACK_IMPORTED_MODULE_2__["Guild"].fromId(this.guildId);
-    }
-
-    /**
-     * Whether this channel is the guild's default channel.
-     */
-    get isDefaultChannel() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildChannelsStore.getDefaultChannel(this.guildId).id === this.id;
-    }
-
-    /**
-     * Opens this channel's settings window.
-     * @param {String} section The section to open (see DiscordConstants.ChannelSettingsSections)
-     */
-    openSettings(section = "OVERVIEW") {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ChannelSettingsWindow.setSection(section);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ChannelSettingsWindow.open(this.id);
-    }
-
-    /**
-     * Updates this channel's name.
-     * @param {String} name The channel's new name
-     * @return {Promise}
-     */
-    updateName(name) {
-        return this.updateChannel({name});
-    }
-
-    /**
-     * Changes the channel's position.
-     * @param {Number} position The channel's new position
-     * @return {Promise}
-     */
-    changeSortLocation(position = 0) {
-        if (position instanceof GuildChannel) position = position.position;
-        return this.updateChannel({position});
-    }
-
-    /**
-     * Updates this channel's permission overwrites.
-     * @param {Array} permission_overwrites An array of permission overwrites
-     * @return {Promise}
-     */
-    updatePermissionOverwrites(permission_overwrites) {
-        return this.updateChannel({permission_overwrites});
-    }
-
-    /**
-     * Updates this channel's category.
-     * @param {ChannelCategory} category The new channel category
-     * @return {Promise}
-     */
-    updateCategory(category) {
-        return this.updateChannel({parent_id: category.id || category});
-    }
-}
-
-// Type 0 - GUILD_TEXT
-class GuildTextChannel extends GuildChannel {
-    get type() {return "GUILD_TEXT";}
-    get topic() {return this.discordObject.topic;}
-    get nsfw() {return this.discordObject.nsfw;}
-
-    /**
-     * Updates this channel's topic.
-     * @param {String} topic The new channel topic
-     * @return {Promise}
-     */
-    updateTopic(topic) {
-        return this.updateChannel({topic});
-    }
-
-    /**
-     * Updates this channel's NSFW flag.
-     * @param {Boolean} nsfw Whether the channel should be marked as NSFW
-     * @return {Promise}
-     */
-    setNsfw(nsfw = true) {
-        return this.updateChannel({nsfw});
-    }
-
-    setNotNsfw() {
-        return this.setNswf(false);
-    }
-}
-
-// Type 2 - GUILD_VOICE
-class GuildVoiceChannel extends GuildChannel {
-    get type() {return "GUILD_VOICE";}
-    get userLimit() {return this.discordObject.userLimit;}
-    get bitrate() {return this.discordObject.bitrate;}
-
-    sendMessage() {throw new Error("Cannot send messages in a voice channel.");}
-    get messages() {return new structs__WEBPACK_IMPORTED_MODULE_1__["List"]();}
-    jumpToPresent() {throw new Error("Cannot select a voice channel.");}
-    get hasMoreAfter() {return false;}
-    sendInvite() {throw new Error("Cannot invite someone to a voice channel.");}
-    select() {throw new Error("Cannot select a voice channel.");}
-
-    /**
-     * Updates this channel's bitrate.
-     * @param {Number} bitrate The new bitrate
-     * @return {Promise}
-     */
-    updateBitrate(bitrate) {
-        return this.updateChannel({bitrate});
-    }
-
-    /**
-     * Updates this channel's user limit.
-     * @param {Number} user_limit The new user limit
-     * @return {Promise}
-     */
-    updateUserLimit(user_limit) {
-        return this.updateChannel({user_limit});
-    }
-}
-
-// Type 4 - GUILD_CATEGORY
-class ChannelCategory extends GuildChannel {
-    get type() {return "GUILD_CATEGORY";}
-    get parentId() {return undefined;}
-    get category() {return undefined;}
-
-    sendMessage() {throw new Error("Cannot send messages in a channel category.");}
-    get messages() {return new structs__WEBPACK_IMPORTED_MODULE_1__["List"]();}
-    jumpToPresent() {throw new Error("Cannot select a channel category.");}
-    get hasMoreAfter() {return false;}
-    sendInvite() {throw new Error("Cannot invite someone to a channel category.");}
-    select() {throw new Error("Cannot select a channel category.");}
-    updateCategory() {throw new Error("Cannot set a channel category on another channel category.");}
-
-    /**
-     * A list of channels in this category.
-     */
-    get channels() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.guild.channels, c => c.parentId === this.id);
-    }
-
-    /**
-     * Opens the create channel modal for this guild.
-     * @param {Number} type The type of channel to create - either 0 (text), 2 (voice) or 4 (category)
-     * @param {GuildChannel} clone A channel to clone permissions of
-     */
-    openCreateChannelModal(type, category, clone) {
-        this.guild.openCreateChannelModal(type, this.id, this, clone);
-    }
-
-    /**
-     * Creates a channel in this category.
-     * @param {Number} type The type of channel to create - either 0 (text) or 2 (voice)
-     * @param {String} name A name for the new channel
-     * @param {Array} permission_overwrites An array of PermissionOverwrite-like objects - leave to use the permissions of the category
-     * @return {Promise<GuildChannel>}
-     */
-    createChannel(type, name, permission_overwrites) {
-        return this.guild.createChannel(type, name, this, permission_overwrites);
-    }
-}
-
-class PrivateChannel extends Channel {
-    get userLimit() {return this.discordObject.userLimit;}
-    get bitrate() {return this.discordObject.bitrate;}
-}
-
-// Type 1 - DM
-class DirectMessageChannel extends PrivateChannel {
-    get type() {return "DM";}
-    get recipientId() {return this.discordObject.recipients[0];}
-
-    /**
-     * The other user of this direct message channel.
-     */
-    get recipient() {
-        return _user__WEBPACK_IMPORTED_MODULE_4__["User"].fromId(this.recipientId);
-    }
-}
-
-// Type 3 - GROUP_DM
-class GroupChannel extends PrivateChannel {
-    get ownerId() {return this.discordObject.ownerId;}
-    get type() {return "GROUP_DM";}
-    get name() {return this.discordObject.name;}
-    get icon() {return this.discordObject.icon;}
-
-    /**
-     * A list of the other members of this group direct message channel.
-     */
-    get members() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.discordObject.recipients, id => _user__WEBPACK_IMPORTED_MODULE_4__["User"].fromId(id));
-    }
-
-    /**
-     * The owner of this group direct message channel. This is usually the person who created it.
-     */
-    get owner() {
-        return _user__WEBPACK_IMPORTED_MODULE_4__["User"].fromId(this.ownerId);
-    }
-
-    /**
-     * Updates this channel's name.
-     * @param {String} name The channel's new name
-     * @return {Promise}
-     */
-    updateName(name) {
-        return this.updateChannel({name});
-    }
-}
-
-
-// export {Channel, GuildChannel, ChannelCategory, GuildTextChannel, GuildVoiceChannel, PrivateChannel, DirectMessageChannel, GroupChannel};
-// export {PermissionOverwrite, RolePermissionOverwrite, MemberPermissionOverwrite};
-
-
-/***/ }),
-
-/***/ "./src/structs/discord/guild.js":
-/*!**************************************!*\
-  !*** ./src/structs/discord/guild.js ***!
-  \**************************************/
-/*! exports provided: Role, Emoji, Guild */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Role", function() { return Role; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Emoji", function() { return Emoji; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Guild", function() { return Guild; });
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _channel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./channel */ "./src/structs/discord/channel.js");
-/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user */ "./src/structs/discord/user.js");
-/**
- * BetterDiscord Guild Struct
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-
-
-
-
-
-const roles = new WeakMap();
-
-class Role {
-    constructor(data, guild_id) {
-        if (roles.has(data)) return roles.get(data);
-        roles.set(data, this);
-
-        this.discordObject = data;
-        this.guildId = guild_id;
-    }
-
-    get id() {return this.discordObject.id;}
-    get name() {return this.discordObject.name;}
-    get position() {return this.discordObject.position;}
-    get originalPosition() {return this.discordObject.originalPosition;}
-    get permissions() {return this.discordObject.permissions;}
-    get managed() {return this.discordObject.managed;}
-    get mentionable() {return this.discordObject.mentionable;}
-    get hoist() {return this.discordObject.hoist;}
-    get colour() {return this.discordObject.color;}
-    get colourString() {return this.discordObject.colorString;}
-
-    get guild() {
-        return Guild.fromId(this.guildId);
-    }
-
-    get members() {
-        return this.guild.members.filter(m => m.roles.includes(this));
-    }
-}
-
-const emojis = new WeakMap();
-
-class Emoji {
-    constructor(data) {
-        if (emojis.has(data)) return emojis.get(data);
-        emojis.set(data, this);
-
-        this.discordObject = data;
-    }
-
-    get id() {return this.discordObject.id;}
-    get guildId() {return this.discordObject.guild_id;}
-    get name() {return this.discordObject.name;}
-    get managed() {return this.discordObject.managed;}
-    get animated() {return this.discordObject.animated;}
-    get allNamesString() {return this.discordObject.allNamesString;}
-    get requireColons() {return this.discordObject.require_colons;}
-    get url() {return this.discordObject.url;}
-    get roles() {return this.discordObject.roles;}
-
-    get guild() {
-        return Guild.fromId(this.guildId);
-    }
-}
-
-const guilds = new WeakMap();
-
-/**
- * @memberof module:DiscordAPI
- */
-class Guild {
-
-    constructor(data) {
-        if (guilds.has(data)) return guilds.get(data);
-        guilds.set(data, this);
-
-        this.discordObject = data;
-    }
-
-    static from(data) {
-        return new Guild(data);
-    }
-
-    static fromId(id) {
-        const guild = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildStore.getGuild(id);
-        if (guild) return Guild.from(guild);
-    }
-
-    static get Role() {return Role;}
-    static get Emoji() {return Emoji;}
-
-    get id() {return this.discordObject.id;}
-    get ownerId() {return this.discordObject.ownerId;}
-    get applicationId() {return this.discordObject.application_id;}
-    get systemChannelId() {return this.discordObject.systemChannelId;}
-    get name() {return this.discordObject.name;}
-    get acronym() {return this.discordObject.acronym;}
-    get icon() {return this.discordObject.icon;}
-    get joinedAt() {return this.discordObject.joinedAt;}
-    get verificationLevel() {return this.discordObject.verificationLevel;}
-    get mfaLevel() {return this.discordObject.mfaLevel;}
-    get large() {return this.discordObject.large;}
-    get lazy() {return this.discordObject.lazy;}
-    get voiceRegion() {return this.discordObject.region;}
-    get afkChannelId() {return this.discordObject.afkChannelId;}
-    get afkTimeout() {return this.discordObject.afkTimeout;}
-    get explicitContentFilter() {return this.discordObject.explicitContentFilter;}
-    get defaultMessageNotifications() {return this.discordObject.defaultMessageNotifications;}
-    get splash() {return this.discordObject.splash;}
-    get features() {return this.discordObject.features;}
-
-    get owner() {
-        return this.members.find(m => m.userId === this.ownerId);
-    }
-
-    get roles() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(Object.values(this.discordObject.roles), r => new Role(r, this.id))
-            .sort((r1, r2) => r1.position === r2.position ? 0 : r1.position > r2.position ? 1 : -1);
-    }
-
-    get channels() {
-        const channels = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildChannelsStore.getChannels(this.id);
-        const returnChannels = new structs__WEBPACK_IMPORTED_MODULE_1__["List"]();
-        for (const category in channels) {
-            if (channels.hasOwnProperty(category)) {
-                if (!Array.isArray(channels[category])) continue;
-                const channelList = channels[category];
-                for (const channel of channelList) {
-                    // For some reason Discord adds a new category with the ID "null" and name "Uncategorized"
-                    if (channel.channel.id === "null") continue;
-                    returnChannels.push(_channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].from(channel.channel));
-                }
-            }
-        }
-        return returnChannels;
-    }
-
-    /**
-     * Channels that don't have a parent. (Channel categories and any text/voice channel not in one.)
-     */
-    get mainChannels() {
-        return this.channels.filter(c => !c.parentId);
-    }
-
-    /**
-     * The guild's default channel. (Usually the first in the list.)
-     */
-    get defaultChannel() {
-        return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].from(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildChannelsStore.getDefaultChannel(this.id));
-    }
-
-    /**
-     * The guild's AFK channel.
-     */
-    get afkChannel() {
-        if (this.afkChannelId) return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(this.afkChannelId);
-        return null;
-    }
-
-    /**
-     * The channel system messages are sent to.
-     */
-    get systemChannel() {
-        if (this.systemChannelId) return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(this.systemChannelId);
-        return null;
-    }
-
-    /**
-     * A list of GuildMember objects.
-     */
-    get members() {
-        const members = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildMemberStore.getMembers(this.id);
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(members, m => new _user__WEBPACK_IMPORTED_MODULE_3__["GuildMember"](m, this.id));
-    }
-
-    /**
-     * The current user as a GuildMember of this guild.
-     */
-    get currentUser() {
-        return this.members.find(m => m.user === modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser);
-    }
-
-    /**
-     * The total number of members in the guild.
-     */
-    get memberCount() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MemberCountStore.getMemberCount(this.id);
-    }
-
-    /**
-     * An array of the guild's custom emojis.
-     */
-    get emojis() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].EmojiUtils.getGuildEmoji(this.id), e => new Emoji(e));
-    }
-
-    checkPermissions(perms) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Permissions.can(perms, modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser, this.discordObject);
-    }
-
-    assertPermissions(name, perms) {
-        if (!this.checkPermissions(perms)) throw new structs__WEBPACK_IMPORTED_MODULE_1__["InsufficientPermissions"](name);
-    }
-
-    /**
-     * The current user's permissions on this guild.
-     */
-    get permissions() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildPermissions.getGuildPermissions(this.id);
-    }
-
-    getMember(id) {
-        const member = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildMemberStore.getMember(this.id, id);
-        if (member) return new _user__WEBPACK_IMPORTED_MODULE_3__["GuildMember"](member, this.id);
-    }
-
-    isMember(id) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildMemberStore.isMember(this.id, id);
-    }
-
-    /**
-     * Whether the user has not restricted direct messages from members of this guild.
-     */
-    get allowPrivateMessages() {
-        return !modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].UserSettings.restrictedGuildIds.includes(this.id);
-    }
-
-    /**
-     * Marks all messages in the guild as read.
-     */
-    markAsRead() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.markGuildAsRead(this.id);
-    }
-
-    /**
-     * Selects the guild in the UI.
-     */
-    select() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.selectGuild(this.id);
-    }
-
-    /**
-     * Whether this guild is currently selected.
-     */
-    get isSelected() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentGuild === this;
-    }
-
-    /**
-     * Opens this guild's settings window.
-     * @param {String} section The section to open (see DiscordConstants.GuildSettingsSections)
-     */
-    openSettings(section = "OVERVIEW") {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildSettingsWindow.setSection(section);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildSettingsWindow.open(this.id);
-    }
-
-    /**
-     * Kicks members who don't have any roles and haven't been seen in the number of days passed.
-     * @param {Number} days
-     */
-    pruneMembers(days) {
-        this.assertPermissions("KICK_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.KICK_MEMBERS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].PruneMembersModal.prune(this.id, days);
-    }
-
-    openPruneMumbersModal() {
-        this.assertPermissions("KICK_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.KICK_MEMBERS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].PruneMembersModal.open(this.id);
-    }
-
-    /**
-     * Opens the create channel modal for this guild.
-     * @param {Number} type The type of channel to create - either 0 (text), 2 (voice) or 4 (category)
-     * @param {ChannelCategory} category The category to create the channel in
-     * @param {GuildChannel} clone A channel to clone permissions, topic, bitrate and user limit of
-     */
-    openCreateChannelModal(type, category, clone) {
-        this.assertPermissions("MANAGE_CHANNELS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_CHANNELS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].CreateChannelModal.open(type, this.id, category ? category.id : undefined, clone ? clone.id : undefined);
-    }
-
-    /**
-     * Creates a channel in this guild.
-     * @param {Number} type The type of channel to create - either 0 (text), 2 (voice) or 4 (category)
-     * @param {String} name A name for the new channel
-     * @param {ChannelCategory} category The category to create the channel in
-     * @param {Array} permission_overwrites An array of PermissionOverwrite-like objects - leave to use the permissions of the category
-     * @return {Promise<GuildChannel>}
-     */
-    async createChannel(type, name, category, permission_overwrites) {
-        this.assertPermissions("MANAGE_CHANNELS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_CHANNELS);
-        const response = await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.post({
-            url: modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.GUILD_CHANNELS(this.id), // eslint-disable-line new-cap
-            body: {
-                type,
-                name,
-                parent_id: category ? category.id : undefined,
-                permission_overwrites: permission_overwrites ? permission_overwrites.map(p => ({
-                    type: p.type,
-                    id: (p.type === "user" ? p.userId : p.roleId) || p.id,
-                    allow: p.allow,
-                    deny: p.deny
-                })) : undefined
-            }
-        });
-
-        return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(response.body.id);
-    }
-
-    openNotificationSettingsModal() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].NotificationSettingsModal.open(this.id);
-    }
-
-    openPrivacySettingsModal() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].PrivacySettingsModal.open(this.id);
-    }
-
-    nsfwAgree() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.nsfwAgree(this.id);
-    }
-
-    nsfwDisagree() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.nsfwDisagree(this.id);
-    }
-
-    /**
-     * Changes the guild's position in the list.
-     * @param {Number} index The new position
-     */
-    changeSortLocation(index) {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.move(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].guildPositions.indexOf(this.id), index);
-    }
-
-    /**
-     * Updates this guild.
-     * @return {Promise}
-     */
-    async updateGuild(body) {
-        this.assertPermissions("MANAGE_GUILD", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_GUILD);
-        await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildSettingsWindow.saveGuild(this.id, body);
-        this.discordObject = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildStore.getGuild(this.id);
-        guilds.set(this.discordObject, this);
-    }
-
-    /**
-     * Updates this guild's name.
-     * @param {String} name The new name
-     * @return {Promise}
-     */
-    updateName(name) {
-        return this.updateGuild({name});
-    }
-
-    /**
-     * Updates this guild's voice region.
-     * @param {String} region The ID of the new voice region (obtainable via the API - see https://discordapp.com/developers/docs/resources/voice#list-voice-regions)
-     * @return {Promise}
-     */
-    updateVoiceRegion(region) {
-        return this.updateGuild({region});
-    }
-
-    /**
-     * Updates this guild's verification level.
-     * @param {Number} verificationLevel The new verification level (see https://discordapp.com/developers/docs/resources/guild#guild-object-verification-level)
-     * @return {Promise}
-     */
-    updateVerificationLevel(verification_level) {
-        return this.updateGuild({verification_level});
-    }
-
-    /**
-     * Updates this guild's default message notification level.
-     * @param {Number} defaultMessageNotifications The new default notification level (0: all messages, 1: only mentions)
-     * @return {Promise}
-     */
-    updateDefaultMessageNotifications(default_message_notifications) {
-        return this.updateGuild({default_message_notifications});
-    }
-
-    /**
-     * Updates this guild's explicit content filter level.
-     * @param {Number} explicitContentFilter The new explicit content filter level (0: disabled, 1: members without roles, 2: everyone)
-     * @return {Promise}
-     */
-    updateExplicitContentFilter(explicit_content_filter) {
-        return this.updateGuild({explicit_content_filter});
-    }
-
-    /**
-     * Updates this guild's AFK channel.
-     * @param {GuildVoiceChannel} afkChannel The new AFK channel
-     * @return {Promise}
-     */
-    updateAfkChannel(afk_channel) {
-        return this.updateGuild({afk_channel_id: afk_channel.id || afk_channel});
-    }
-
-    /**
-     * Updates this guild's AFK timeout.
-     * @param {Number} afkTimeout The new AFK timeout
-     * @return {Promise}
-     */
-    updateAfkTimeout(afk_timeout) {
-        return this.updateGuild({afk_timeout});
-    }
-
-    /**
-     * Updates this guild's icon.
-     * @param {Buffer|String} icon A buffer/base 64 encoded 128x128 JPEG image
-     * @return {Promise}
-     */
-    updateIcon(icon) {
-        return this.updateGuild({icon: typeof icon === "string" ? icon : icon.toString("base64")});
-    }
-
-    /**
-     * Updates this guild's icon using a local file.
-     * TODO
-     * @param {String} icon_path The path to the new icon
-     * @return {Promise}
-     */
-    async updateIconFromFile(icon_path) {
-        const buffer = await modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].readFileBuffer(icon_path);
-        return this.updateIcon(buffer);
-    }
-
-    /**
-     * Updates this guild's owner. (Should plugins really ever need to do this?)
-     * @param {User|GuildMember} owner The user/guild member to transfer ownership to
-     * @return {Promise}
-     */
-    updateOwner(owner) {
-        return this.updateGuild({owner_id: owner.user ? owner.user.id : owner.id || owner});
-    }
-
-    /**
-     * Updates this guild's splash image.
-     * (I don't know what this is actually used for. The API documentation says it's VIP-only.)
-     * @param {Buffer|String} icon A buffer/base 64 encoded 128x128 JPEG image
-     * @return {Promise}
-     */
-    updateSplash(splash) {
-        return this.updateGuild({splash: typeof splash === "string" ? splash : splash.toString("base64")});
-    }
-
-    /**
-     * Updates this guild's splash image using a local file.
-     * TODO
-     * @param {String} splash_path The path to the new splash
-     * @return {Promise}
-     */
-    async updateSplashFromFile(splash_path) {
-        const buffer = await modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].readFileBuffer(splash_path);
-        return this.updateSplash(buffer);
-    }
-
-    /**
-     * Updates this guild's system channel.
-     * @param {GuildTextChannel} systemChannel The new system channel
-     * @return {Promise}
-     */
-    updateSystemChannel(system_channel) {
-        return this.updateGuild({system_channel_id: system_channel.id || system_channel});
-    }
-
-}
-
-
-
-/***/ }),
-
-/***/ "./src/structs/discord/message.js":
-/*!****************************************!*\
-  !*** ./src/structs/discord/message.js ***!
-  \****************************************/
-/*! exports provided: Reaction, Embed, Message, DefaultMessage, RecipientAddMessage, RecipientRemoveMessage, CallMessage, GroupChannelNameChangeMessage, GroupChannelIconChangeMessage, MessagePinnedMessage, GuildMemberJoinMessage */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Reaction", function() { return Reaction; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Embed", function() { return Embed; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Message", function() { return Message; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DefaultMessage", function() { return DefaultMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RecipientAddMessage", function() { return RecipientAddMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RecipientRemoveMessage", function() { return RecipientRemoveMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CallMessage", function() { return CallMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GroupChannelNameChangeMessage", function() { return GroupChannelNameChangeMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GroupChannelIconChangeMessage", function() { return GroupChannelIconChangeMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MessagePinnedMessage", function() { return MessagePinnedMessage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GuildMemberJoinMessage", function() { return GuildMemberJoinMessage; });
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _channel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./channel */ "./src/structs/discord/channel.js");
-/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user */ "./src/structs/discord/user.js");
-/**
- * BetterDiscord Message Struct
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-
-
-
-
-
-const reactions = new WeakMap();
-
-class Reaction {
-    constructor(data, message_id, channel_id) {
-        if (reactions.has(data)) return reactions.get(data);
-        reactions.set(data, this);
-
-        this.discordObject = data;
-        this.messageId = message_id;
-        this.channelId = channel_id;
-    }
-
-    get emoji() {
-        const id = this.discordObject.emoji.id;
-        if (!id || !this.guild) return this.discordObject.emoji;
-        return this.guild.emojis.find(e => e.id === id);
-    }
-
-    get count() {return this.discordObject.count;}
-    get me() {return this.discordObject.me;}
-
-    get channel() {
-        return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(this.channel_id);
-    }
-
-    get message() {
-        if (this.channel) return this.channel.messages.find(m => m.id === this.messageId);
-        return null;
-    }
-
-    get guild() {
-        if (this.channel) return this.channel.guild;
-        return null;
-    }
-}
-
-const embeds = new WeakMap();
-
-class Embed {
-    constructor(data, message_id, channel_id) {
-        if (embeds.has(data)) return embeds.get(data);
-        embeds.set(data, this);
-
-        this.discordObject = data;
-        this.messageId = message_id;
-        this.channelId = channel_id;
-    }
-
-    get title() {return this.discordObject.title;}
-    get type() {return this.discordObject.type;}
-    get description() {return this.discordObject.description;}
-    get url() {return this.discordObject.url;}
-    get timestamp() {return this.discordObject.timestamp;}
-    get colour() {return this.discordObject.color;}
-    get footer() {return this.discordObject.footer;}
-    get image() {return this.discordObject.image;}
-    get thumbnail() {return this.discordObject.thumbnail;}
-    get video() {return this.discordObject.video;}
-    get provider() {return this.discordObject.provider;}
-    get author() {return this.discordObject.author;}
-    get fields() {return this.discordObject.fields;}
-
-    get channel() {
-        return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(this.channelId);
-    }
-
-    get message() {
-        if (this.channel) return this.channel.messages.find(m => m.id === this.messageId);
-        return null;
-    }
-
-    get guild() {
-        if (this.channel) return this.channel.guild;
-        return null;
-    }
-}
-
-const messages = new WeakMap();
-
-/**
- * @memberof module:DiscordAPI
- */
-class Message {
-
-    constructor(data) {
-        if (messages.has(data)) return messages.get(data);
-        messages.set(data, this);
-
-        this.discordObject = data;
-    }
-
-    static from(data) {
-        switch (data.type) {
-            default: return new Message(data);
-            case 0: return new DefaultMessage(data);
-            case 1: return new RecipientAddMessage(data);
-            case 2: return new RecipientRemoveMessage(data);
-            case 3: return new CallMessage(data);
-            case 4: return new GroupChannelNameChangeMessage(data);
-            case 5: return new GroupChannelIconChangeMessage(data);
-            case 6: return new MessagePinnedMessage(data);
-            case 7: return new GuildMemberJoinMessage(data);
-        }
-    }
-
-    static get DefaultMessage() {return DefaultMessage;}
-    static get RecipientAddMessage() {return RecipientAddMessage;}
-    static get RecipientRemoveMessage() {return RecipientRemoveMessage;}
-    static get CallMessage() {return CallMessage;}
-    static get GroupChannelNameChangeMessage() {return GroupChannelNameChangeMessage;}
-    static get GroupChannelIconChangeMessage() {return GroupChannelIconChangeMessage;}
-    static get MessagePinnedMessage() {return MessagePinnedMessage;}
-    static get GuildMemberJoinMessage() {return GuildMemberJoinMessage;}
-
-    static get Reaction() {return Reaction;}
-    static get Embed() {return Embed;}
-
-    get id() {return this.discordObject.id;}
-    get channelId() {return this.discordObject.channel_id;}
-    get nonce() {return this.discordObject.nonce;}
-    get type() {return this.discordObject.type;}
-    get timestamp() {return this.discordObject.timestamp;}
-    get state() {return this.discordObject.state;}
-    get nick() {return this.discordObject.nick;}
-    get colourString() {return this.discordObject.colorString;}
-
-    get author() {
-        if (this.discordObject.author && !this.webhookId) return _user__WEBPACK_IMPORTED_MODULE_3__["User"].from(this.discordObject.author);
-        return null;
-    }
-
-    get channel() {
-        return _channel__WEBPACK_IMPORTED_MODULE_2__["Channel"].fromId(this.channelId);
-    }
-
-    get guild() {
-        if (this.channel) return this.channel.guild;
-        return null;
-    }
-
-    /**
-     * Deletes the message.
-     * @return {Promise}
-     */
-    delete() {
-        if (!this.isDeletable) throw new Error(`Message type ${this.type} is not deletable.`);
-        if (this.author !== modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser) {
-            if (this.channel.assertPermissions) this.channel.assertPermissions("MANAGE_MESSAGES", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_MESSAGES);
-            else if (!this.channel.owner === modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser) throw new structs__WEBPACK_IMPORTED_MODULE_1__["InsufficientPermissions"]("MANAGE_MESSAGES");
-        }
-
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.delete(`${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.MESSAGES(this.channelId)}/${this.id}`); // eslint-disable-line new-cap
-    }
-
-    get isDeletable() {
-        return this.type === "DEFAULT" || this.type === "CHANNEL_PINNED_MESSAGE" || this.type === "GUILD_MEMBER_JOIN";
-    }
-
-    /**
-     * Jumps to the message.
-     */
-    jumpTo(flash = true) {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.jumpToMessage(this.channelId, this.id, flash);
-    }
-
-}
-
-
-
-class DefaultMessage extends Message {
-    get webhookId() {return this.discordObject.webhookId;}
-    get type() {return "DEFAULT";}
-    get content() {return this.discordObject.content;}
-    get contentParsed() {return this.discordObject.contentParsed;}
-    get inviteCodes() {return this.discordObject.invites;}
-    get attachments() {return this.discordObject.attachments;}
-    get mentionIds() {return this.discordObject.mentions;}
-    get mentionRoleIds() {return this.discordObject.mentionRoles;}
-    get mentionEveryone() {return this.discordObject.mentionEveryone;}
-    get editedTimestamp() {return this.discordObject.editedTimestamp;}
-    get tts() {return this.discordObject.tts;}
-    get mentioned() {return this.discordObject.mentioned;}
-    get bot() {return this.discordObject.bot;}
-    get blocked() {return this.discordObject.blocked;}
-    get pinned() {return this.discordObject.pinned;}
-    get activity() {return this.discordObject.activity;}
-    get application() {return this.discordObject.application;}
-
-    get webhook() {
-        if (this.webhookId) return this.discordObject.author;
-        return null;
-    }
-
-    get mentions() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.mentionIds, id => _user__WEBPACK_IMPORTED_MODULE_3__["User"].fromId(id));
-    }
-
-    get mention_roles() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.mentionRoleIds, id => this.guild.roles.find(r => r.id === id));
-    }
-
-    get embeds() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.discordObject.embeds, r => new Embed(r, this.id, this.channelId));
-    }
-
-    get reactions() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.discordObject.reactions, r => new Reaction(r, this.id, this.channelId));
-    }
-
-    get edited() {
-        return !!this.editedTimestamp;
-    }
-
-    /**
-     * Programmatically update the message's content.
-     * @param {String} content The message's new content
-     * @param {Boolean} parse Whether to parse the message or update it as it is
-     * @return {Promise}
-     */
-    async edit(content, parse = false) {
-        if (this.author !== modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser) throw new Error("Cannot edit messages sent by other users.");
-        if (parse) content = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageParser.parse(this.discordObject, content);
-        else content = {content};
-
-        const response = await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.patch({
-            url: `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.MESSAGES(this.channelId)}/${this.id}`, // eslint-disable-line new-cap
-            body: content
-        });
-
-        this.discordObject = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageStore.getMessage(this.id, response.body.id);
-        messages.set(this.discordObject, this);
-    }
-
-    /**
-     * Start the edit mode of the UI.
-     * @param {String} content A string to show in the message text area - if empty the message's current content will be used
-     */
-    startEdit(content) {
-        if (this.author !== modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser) throw new Error("Cannot edit messages sent by other users.");
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.startEditMessage(this.channelId, this.id, content || this.content);
-    }
-
-    /**
-     * Exit the edit mode of the UI.
-     */
-    endEdit() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].MessageActions.endEditMessage();
-    }
-}
-
-class RecipientAddMessage extends Message {
-    get type() {return "RECIPIENT_ADD";}
-    get addedUserId() {return this.discordObject.mentions[0];}
-
-    get addedUser() {
-        return _user__WEBPACK_IMPORTED_MODULE_3__["User"].fromId(this.addedUserId);
-    }
-}
-
-class RecipientRemoveMessage extends Message {
-    get type() {return "RECIPIENT_REMOVE";}
-    get removedUserId() {return this.discordObject.mentions[0];}
-
-    get removedUser() {
-        return _user__WEBPACK_IMPORTED_MODULE_3__["User"].fromId(this.removedUserId);
-    }
-
-    get userLeft() {
-        return this.author === this.removedUser;
-    }
-}
-
-class CallMessage extends Message {
-    get type() {return "CALL";}
-    get mentionIds() {return this.discordObject.mentions;}
-    get call() {return this.discordObject.call;}
-
-    get endedTimestamp() {return this.call.endedTimestamp;}
-
-    get mentions() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.mentionIds, id => _user__WEBPACK_IMPORTED_MODULE_3__["User"].fromId(id));
-    }
-
-    get participants() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.call.participants, id => _user__WEBPACK_IMPORTED_MODULE_3__["User"].fromId(id));
-    }
-}
-
-class GroupChannelNameChangeMessage extends Message {
-    get type() {return "CHANNEL_NAME_CHANGE";}
-    get newName() {return this.discordObject.content;}
-}
-
-class GroupChannelIconChangeMessage extends Message {
-    get type() {return "CHANNEL_ICON_CHANGE";}
-}
-
-class MessagePinnedMessage extends Message {
-    get type() {return "CHANNEL_PINNED_MESSAGE";}
-}
-
-class GuildMemberJoinMessage extends Message {
-    get type() {return "GUILD_MEMBER_JOIN";}
-}
-
-
-/***/ }),
-
-/***/ "./src/structs/discord/user.js":
-/*!*************************************!*\
-  !*** ./src/structs/discord/user.js ***!
-  \*************************************/
-/*! exports provided: User, GuildMember */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "User", function() { return User; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GuildMember", function() { return GuildMember; });
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _guild__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./guild */ "./src/structs/discord/guild.js");
-/* harmony import */ var _channel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./channel */ "./src/structs/discord/channel.js");
-/**
- * BetterDiscord User Struct
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-
-
-
-
-
-const users = new WeakMap();
-
-/**
- * @memberof module:DiscordAPI
- */
-class User {
-
-    constructor(data) {
-        if (users.has(data)) return users.get(data);
-        users.set(data, this);
-
-        this.discordObject = data;
-    }
-
-    static from(data) {
-        return new User(data);
-    }
-
-    static fromId(id) {
-        const user = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserStore.getUser(id);
-        if (user) return User.from(user);
-    }
-
-    get id() {return this.discordObject.id;}
-    get username() {return this.discordObject.username;}
-    get usernameLowerCase() {return this.discordObject.usernameLowerCase;}
-    get discriminator() {return this.discordObject.discriminator;}
-    get avatar() {return this.discordObject.avatar;}
-    get email() {return undefined;}
-    get phone() {return undefined;}
-    get flags() {return this.discordObject.flags;}
-    get isBot() {return this.discordObject.bot;}
-    get premium() {return this.discordObject.premium;}
-    get verified() {return this.discordObject.verified;}
-    get mfaEnabled() {return this.discordObject.mfaEnabled;}
-    get mobile() {return this.discordObject.mobile;}
-
-    get tag() {return this.discordObject.tag;}
-    get avatarUrl() {return this.discordObject.avatarURL;}
-    get createdAt() {return this.discordObject.createdAt;}
-
-    get isClamied() {return this.discordObject.isClaimed();}
-    get isLocalBot() {return this.discordObject.isLocalBot();}
-    get isPhoneVerified() {return this.discordObject.isPhoneVerified();}
-
-    get guilds() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].guilds.filter(g => g.members.find(m => m.user === this));
-    }
-
-    get status() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserStatusStore.getStatus(this.id);
-    }
-
-    get activity() {
-        // type can be either 0 (normal/rich presence game), 1 (streaming) or 2 (listening to Spotify)
-        // (3 appears as watching but is undocumented)
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserStatusStore.getActivity(this.id);
-    }
-
-    get note() {
-        const note = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserNoteStore.getNote(this.id);
-        if (note) return note;
-        return null;
-    }
-
-    /**
-     * Updates the note for this user.
-     * @param {String} note The new note
-     * @return {Promise}
-     */
-    updateNote(note) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.put({
-            url: `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.NOTES}/${this.id}`,
-            body: {note}
-        });
-    }
-
-    get privateChannel() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].channels.find(c => c.type === "DM" && c.recipientId === this.id);
-    }
-
-    async ensurePrivateChannel() {
-        if (modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser === this) throw new Error("Cannot create a direct message channel to the current user.");
-        return _channel__WEBPACK_IMPORTED_MODULE_3__["Channel"].fromId(await modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].PrivateChannelActions.ensurePrivateChannel(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser.id, this.id));
-    }
-
-    async sendMessage(content, parse = true) {
-        const channel = await this.ensurePrivateChannel();
-        return channel.sendMessage(content, parse);
-    }
-
-    get isFriend() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipStore.isFriend(this.id);
-    }
-
-    get isBlocked() {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipStore.isBlocked(this.id);
-    }
-
-    addFriend() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipManager.addRelationship(this.id, {location: "Context Menu"});
-    }
-
-    removeFriend() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipManager.removeRelationship(this.id, {location: "Context Menu"});
-    }
-
-    block() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipManager.addRelationship(this.id, {location: "Context Menu"}, modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.RelationshipTypes.BLOCKED);
-    }
-
-    unblock() {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].RelationshipManager.removeRelationship(this.id, {location: "Context Menu"});
-    }
-
-    /**
-     * Opens the profile modal for this user.
-     * @param {String} section The section to open (see DiscordConstants.UserProfileSections)
-     */
-    openUserProfileModal(section = "USER_INFO") {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserProfileModal.open(this.id);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserProfileModal.setSection(section);
-    }
-}
-
-
-
-const guild_members = new WeakMap();
-
-class GuildMember {
-    constructor(data, guild_id) {
-        if (guild_members.has(data)) return guild_members.get(data);
-        guild_members.set(data, this);
-
-        this.discordObject = data;
-        this.guildId = guild_id;
-    }
-
-    get userId() {return this.discordObject.userId;}
-    get nickname() {return this.discordObject.nick;}
-    get colourString() {return this.discordObject.colorString;}
-    get hoistRoleId() {return this.discordObject.hoistRoleId;}
-    get roleIds() {return this.discordObject.roles;}
-
-    get user() {
-        return User.fromId(this.userId);
-    }
-
-    get name() {
-        return this.nickname || this.user.username;
-    }
-
-    get guild() {
-        return _guild__WEBPACK_IMPORTED_MODULE_2__["Guild"].fromId(this.guildId);
-    }
-
-    get roles() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.roleIds, id => this.guild.roles.find(r => r.id === id))
-            .sort((r1, r2) => r1.position === r2.position ? 0 : r1.position > r2.position ? 1 : -1);
-    }
-
-    get hoistRole() {
-        return this.guild.roles.find(r => r.id === this.hoistRoleId);
-    }
-
-    checkPermissions(perms) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Permissions.can(perms, modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser.discordObject, this.guild.discordObject);
-    }
-
-    assertPermissions(name, perms) {
-        if (!this.checkPermissions(perms)) throw new structs__WEBPACK_IMPORTED_MODULE_1__["InsufficientPermissions"](name);
-    }
-
-    /**
-     * Opens the modal to change this user's nickname.
-     */
-    openChangeNicknameModal() {
-        if (modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser === this.user) this.assertPermissions("CHANGE_NICKNAME", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.CHANGE_NICKNAME);
-        else this.assertPermissions("MANAGE_NICKNAMES", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_NICKNAMES);
-
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ChangeNicknameModal.open(this.guildId, this.userId);
-    }
-
-    /**
-     * Changes the user's nickname on this guild.
-     * @param {String} nickname The user's new nickname
-     * @return {Promise}
-     */
-    changeNickname(nick) {
-        if (modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser === this.user) this.assertPermissions("CHANGE_NICKNAME", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.CHANGE_NICKNAME);
-        else this.assertPermissions("MANAGE_NICKNAMES", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MANAGE_NICKNAMES);
-
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.patch({
-            url: `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.GUILD_MEMBERS(this.guild_id)}/${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordAPI"].currentUser === this.user ? "@me/nick" : this.userId}`, // eslint-disable-line new-cap
-            body: {nick}
-        });
-    }
-
-    /**
-     * Kicks this user from the guild.
-     * @param {String} reason A reason to attach to the audit log entry
-     * @return {Promise}
-     */
-    kick(reason = "") {
-        this.assertPermissions("KICK_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.KICK_MEMBERS);
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.kickUser(this.guildId, this.userId, reason);
-    }
-
-    /**
-     * Bans this user from the guild.
-     * @param {Number} daysToDelete The number of days of the user's recent message history to delete
-     * @param {String} reason A reason to attach to the audit log entry
-     * @return {Promise}
-     */
-    ban(daysToDelete = 1, reason = "") {
-        this.assertPermissions("BAN_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.BAN_MEMBERS);
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.banUser(this.guildId, this.userId, daysToDelete, reason);
-    }
-
-    /**
-     * Removes the ban for this user.
-     * @return {Promise}
-     */
-    unban() {
-        this.assertPermissions("BAN_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.BAN_MEMBERS);
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.unbanUser(this.guildId, this.userId);
-    }
-
-    /**
-     * Moves this user to another voice channel.
-     * @param {GuildVoiceChannel} channel The channel to move this user to
-     */
-    move(channel) {
-        this.assertPermissions("MOVE_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MOVE_MEMBERS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.setChannel(this.guildId, this.userId, channel.id);
-    }
-
-    /**
-     * Mutes this user for everyone in the guild.
-     */
-    mute(active = true) {
-        this.assertPermissions("MUTE_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.MUTE_MEMBERS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.setServerMute(this.guildId, this.userId, active);
-    }
-
-    /**
-     * Unmutes this user.
-     */
-    unmute() {
-        this.mute(false);
-    }
-
-    /**
-     * Deafens this user.
-     */
-    deafen(active = true) {
-        this.assertPermissions("DEAFEN_MEMBERS", modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordPermissions.DEAFEN_MEMBERS);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].GuildActions.setServerDeaf(this.guildId, this.userId, active);
-    }
-
-    /**
-     * Undeafens this user.
-     */
-    undeafen() {
-        this.deafen(false);
-    }
-
-    /**
-     * Gives this user a role.
-     * @param {Role} role The role to add
-     * @return {Promise}
-     */
-    addRole(...roles) {
-        const newRoles = this.roleIds.concat([]);
-        let changed = false;
-        for (const role of roles) {
-            if (newRoles.includes(role.id || role)) continue;
-            newRoles.push(role.id || role);
-            changed = true;
-        }
-        if (!changed) return;
-        return this.updateRoles(newRoles);
-    }
-
-    /**
-     * Removes a role from this user.
-     * @param {Role} role The role to remove
-     * @return {Promise}
-     */
-    removeRole(...roles) {
-        const newRoles = this.roleIds.concat([]);
-        let changed = false;
-        for (const role of roles) {
-            if (!newRoles.includes(role.id || role)) continue;
-            modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].removeFromArray(newRoles, role.id || role);
-            changed = true;
-        }
-        if (!changed) return;
-        return this.updateRoles(newRoles);
-    }
-
-    /**
-     * Updates this user's roles.
-     * @param {Array} roles An array of Role objects or role IDs
-     * @return {Promise}
-     */
-    updateRoles(roles) {
-        roles = roles.map(r => r.id || r);
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].APIModule.patch({
-            url: `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].DiscordConstants.Endpoints.GUILD_MEMBERS(this.guildId)}/${this.userId}`, // eslint-disable-line new-cap
-            body: {roles}
-        });
-    }
-}
-
-
-/***/ }),
-
-/***/ "./src/structs/discord/usersettings.js":
-/*!*********************************************!*\
-  !*** ./src/structs/discord/usersettings.js ***!
-  \*********************************************/
-/*! exports provided: UserSettings */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UserSettings", function() { return UserSettings; });
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var _guild__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./guild */ "./src/structs/discord/guild.js");
-/**
- * BetterDiscord Channel Struct
- * Copyright (c) 2018-present JsSucks
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found at
- * https://github.com/JsSucks/BetterDiscordApp/blob/master/LICENSE
-*/
-
-
-
-
-
-
-
-/**
- * @memberof module:DiscordAPI
- */
-class UserSettings {
-    /**
-     * Opens Discord's settings UI.
-     */
-    static open(section = "ACCOUNT") {
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsWindow.setSection(section);
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsWindow.open();
-    }
-
-    /**
-     * The user's current status. Either "online", "idle", "dnd" or "invisible".
-     */
-    static get status() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.status;}
-
-    /**
-     * The user's selected explicit content filter level.
-     * 0 == off, 1 == everyone except friends, 2 == everyone
-     * Configurable in the privacy and safety panel.
-     */
-    static get explicitContentFilter() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.explicitContentFilter;}
-
-    /**
-     * Whether to disallow direct messages from server members by default.
-     */
-    static get defaultGuildsRestricted() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.defaultGuildsRestricted;}
-
-    /**
-     * An array of guilds to disallow direct messages from their members.
-     * This is bypassed if the member is has another mutual guild with this disabled, or the member is friends with the current user.
-     * Configurable in each server's privacy settings.
-     */
-    static get restrictedGuildIds() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.restrictedGuilds;}
-
-    static get restrictedGuilds() {
-        return structs__WEBPACK_IMPORTED_MODULE_1__["List"].from(this.restrictedGuildIds, id => _guild__WEBPACK_IMPORTED_MODULE_2__["Guild"].fromId(id) || id);
-    }
-
-    /**
-     * An array of flags specifying who should be allowed to add the current user as a friend.
-     * If everyone is checked, this will only have one item, "all". Otherwise it has either "mutual_friends", "mutual_guilds", both or neither.
-     * Configurable in the privacy and safety panel.
-     */
-    static get friendSourceFlags() {return Object.keys(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.friendSourceFlags);}
-    static get friendSourceEveryone() {return this.friend_source_flags.include("all");}
-    static get friendSourceMutual_friends() {return this.friend_source_flags.include("all") || this.friend_source_flags.include("mutual_friends");}
-    static get friendSourceMutual_guilds() {return this.friend_source_flags.include("all") || this.friend_source_flags.include("mutual_guilds");}
-    static get friendSourceAnyone() {return this.friend_source_flags.length > 0;}
-
-    /**
-     * Whether to automatically add accounts from other platforms running on the user's computer.
-     * Configurable in the connections panel.
-     */
-    static get detectPlatformAccounts() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.detectPlatformAccounts;}
-
-    /**
-     * The number of seconds Discord will wait for activity before sending mobile push notifications.
-     * Configurable in the notifications panel.
-     */
-    static get afkTimeout() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.afkTimeout;}
-
-    /**
-     * Whether to display the currently running game as a status message.
-     * Configurable in the games panel.
-     */
-    static get showCurrentGame() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.showCurrentGame;}
-
-    /**
-     * Whether to show images uploaded directly to Discord.
-     * Configurable in the text and images panel.
-     */
-    static get inlineAttachmentMedia() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.inlineAttachmentMedia;}
-
-    /**
-     * Whether to show images linked in Discord.
-     * Configurable in the text and images panel.
-     */
-    static get inlineEmbedMedia() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.inlineEmbedMedia;}
-
-    /**
-     * Whether to automatically play GIFs when the Discord window is active without having to hover the mouse over the image.
-     * Configurable in the text and images panel.
-     */
-    static get autoplayGifs() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.gifAutoPlay;}
-
-    /**
-     * Whether to show content from HTTP[s] links as embeds.
-     * Configurable in the text and images panel.
-     */
-    static get showEmbeds() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.renderEmbeds;}
-
-    /**
-     * Whether to show a message's reactions.
-     * Configurable in the text and images panel.
-     */
-    static get showReactions() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.renderReactions;}
-
-    /**
-     * Whether to play animated emoji.
-     * Configurable in the text and images panel.
-     */
-    static get animateEmoji() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.animateEmoji;}
-
-    /**
-     * Whether to convert ASCII emoticons to emoji.
-     * Configurable in the text and images panel.
-     */
-    static get convertEmoticons() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.convertEmoticons;}
-
-    /**
-     * Whether to allow playing text-to-speech messages.
-     * Configurable in the text and images panel.
-     */
-    static get allowTts() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.enableTTSCommand;}
-
-    /**
-     * The user's selected theme. Either "dark" or "light".
-     * Configurable in the appearance panel.
-     */
-    static get theme() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.theme;}
-
-    /**
-     * Whether the user has enabled compact mode.
-     * `true` if compact mode is enabled, `false` if cozy mode is enabled.
-     * Configurable in the appearance panel.
-     */
-    static get displayCompact() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.messageDisplayCompact;}
-
-    /**
-     * Whether the user has enabled developer mode.
-     * Currently only adds a "Copy ID" option to the context menu on users, guilds and channels.
-     * Configurable in the appearance panel.
-     */
-    static get developerMode() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.developerMode;}
-
-    /**
-     * The user's selected language code.
-     * Configurable in the language panel.
-     */
-    static get locale() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.locale;}
-
-    /**
-     * The user's timezone offset in hours.
-     * This is not configurable.
-     */
-    static get timezoneOffset() {return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserSettingsStore.timezoneOffset;}
-}
-
-
-
-/***/ }),
-
 /***/ "./src/structs/dom/classname.js":
 /*!**************************************!*\
   !*** ./src/structs/dom/classname.js ***!
   \**************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _selector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector */ "./src/structs/dom/selector.js");
 
 
@@ -6024,7 +3572,7 @@ class ClassName {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (ClassName);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ClassName);
 
 /***/ }),
 
@@ -6032,11 +3580,13 @@ class ClassName {
 /*!*************************************!*\
   !*** ./src/structs/dom/observer.js ***!
   \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /**
  * BetterDiscord Client DOM Module
@@ -6084,7 +3634,7 @@ class DOMObserver {
                 }
             }
             catch (err) {
-                modules__WEBPACK_IMPORTED_MODULE_0__["Logger"].stacktrace("DOMObserver", "Error in observer callback", err);
+                modules__WEBPACK_IMPORTED_MODULE_0__.Logger.stacktrace("DOMObserver", "Error in observer callback", err);
             }
         }
     }
@@ -6147,7 +3697,7 @@ class DOMObserver {
      */
     unsubscribe(subscription) {
         if (!this.subscriptions.includes(subscription)) subscription = this.subscriptions.find(s => s.callback === subscription);
-        modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].removeFromArray(this.subscriptions, subscription);
+        modules__WEBPACK_IMPORTED_MODULE_0__.Utilities.removeFromArray(this.subscriptions, subscription);
         if (!this.subscriptions.length) this.disconnect();
     }
 
@@ -6173,7 +3723,7 @@ class DOMObserver {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (DOMObserver);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DOMObserver);
 
 /***/ }),
 
@@ -6181,11 +3731,13 @@ class DOMObserver {
 /*!*************************************!*\
   !*** ./src/structs/dom/selector.js ***!
   \*************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /** 
  * Representation of a Selector
  * @memberof module:DOMTools
@@ -6266,79 +3818,7 @@ class Selector {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Selector);
-
-/***/ }),
-
-/***/ "./src/structs/errors/permissionserror.js":
-/*!************************************************!*\
-  !*** ./src/structs/errors/permissionserror.js ***!
-  \************************************************/
-/*! exports provided: default, InsufficientPermissions */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "InsufficientPermissions", function() { return InsufficientPermissions; });
-class PermissionsError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "PermissionsError";
-    }
-}
-
-/**
- * @memberof module:DiscordAPI
- */
-class InsufficientPermissions extends PermissionsError {
-    constructor(message) {
-        super(`Missing Permission — ${message}`);
-        this.name = "InsufficientPermissions";
-    }
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (PermissionsError);
-
-
-/***/ }),
-
-/***/ "./src/structs/list.js":
-/*!*****************************!*\
-  !*** ./src/structs/list.js ***!
-  \*****************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/**
- * @memberof module:DiscordAPI
- */
-
-/**
- * Extension of Array that adds simple utilities.
- */
-class List extends Array {
-
-    /**
-     * Allows multiple filters at once
-     * @param {...callable} filters - set a filters to filter the list by
-     */
-    get(...filters) {
-        return this.find(item => {
-            for (const filter of filters) {
-                for (const key in filter) {
-                    if (filter.hasOwnProperty(key)) {
-                        if (item[key] !== filter[key]) return false;
-                    }
-                }
-            }
-            return true;
-        });
-    }
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (List);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Selector);
 
 /***/ }),
 
@@ -6346,11 +3826,13 @@ class List extends Array {
 /*!***********************************!*\
   !*** ./src/structs/listenable.js ***!
   \***********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Acts as an interface for anything that should be listenable.
  */
@@ -6391,7 +3873,7 @@ class Listenable {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Listenable);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Listenable);
 
 /***/ }),
 
@@ -6399,19 +3881,20 @@ class Listenable {
 /*!*******************************!*\
   !*** ./src/structs/plugin.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _modules_pluginupdater__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/pluginupdater */ "./src/modules/pluginupdater.js");
 /* harmony import */ var _modules_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/logger */ "./src/modules/logger.js");
 /* harmony import */ var _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../modules/reacttools */ "./src/modules/reacttools.js");
 /* harmony import */ var _ui_modals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../ui/modals */ "./src/ui/modals.js");
-/* harmony import */ var _modules_pluginutilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/pluginutilities */ "./src/modules/pluginutilities.js");
-/* harmony import */ var _modules_utilities__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../modules/utilities */ "./src/modules/utilities.js");
-/* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
-/* harmony import */ var _ui_settings__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../ui/settings */ "./src/ui/settings/index.js");
+/* harmony import */ var _modules_utilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/utilities */ "./src/modules/utilities.js");
+/* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
+/* harmony import */ var _ui_settings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ui/settings */ "./src/ui/settings/index.js");
 
 
 
@@ -6420,27 +3903,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-/* harmony default export */ __webpack_exports__["default"] = (function(config) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(meta) {
     return class Plugin {
         constructor() {
-            this._config = config;
+            this._config = meta;
             this._enabled = false;
-            if (typeof(config.defaultConfig) != "undefined") {
+            if (typeof(meta.defaultConfig) != "undefined") {
                 this.defaultSettings = {};
-                for (let s = 0; s < config.defaultConfig.length; s++) {
-                    const current = config.defaultConfig[s];
+                for (let s = 0; s < meta.defaultConfig.length; s++) {
+                    const current = meta.defaultConfig[s];
                     if (current.type != "category") {this.defaultSettings[current.id] = current.value;}
                     else {
                         this.defaultSettings[current.id] = {};
-                        for (let s = 0; s < current.settings.length; s++) {
-                            const subCurrent = current.settings[s];
+                        for (let si = 0; si < current.settings.length; si++) {
+                            const subCurrent = current.settings[si];
                             this.defaultSettings[current.id][subCurrent.id] = subCurrent.value;
                         }
                     }
                 }
                 this._hasConfig = true;
-                this.settings = _modules_utilities__WEBPACK_IMPORTED_MODULE_5__["default"].deepclone(this.defaultSettings);
+                this.settings = _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].deepclone(this.defaultSettings);
             }
         }
         getName() {return this._config.info.name.replace(" ", "");}
@@ -6448,10 +3930,10 @@ __webpack_require__.r(__webpack_exports__);
         getVersion() {return this._config.info.version;}
         getAuthor() {return this._config.info.authors.map(a => a.name).join(", ");}
         load() {
-            const currentVersionInfo = _modules_pluginutilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadData(this.getName(), "currentVersionInfo", {version: this.getVersion(), hasShownChangelog: false});
+            const currentVersionInfo = _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadData(this.getName(), "currentVersionInfo", {version: this.getVersion(), hasShownChangelog: false});
             if (currentVersionInfo.version != this.getVersion() || !currentVersionInfo.hasShownChangelog) {
                 this.showChangelog();
-                _modules_pluginutilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveData(this.getName(), "currentVersionInfo", {version: this.getVersion(), hasShownChangelog: true});
+                _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveData(this.getName(), "currentVersionInfo", {version: this.getVersion(), hasShownChangelog: true});
             }
             _modules_pluginupdater__WEBPACK_IMPORTED_MODULE_0__["default"].checkForUpdate(this.getName(), this.getVersion(), this._config.info.github_raw);
         }
@@ -6470,7 +3952,7 @@ __webpack_require__.r(__webpack_exports__);
         get isEnabled() {return this._enabled;}
         get strings() {
             if (!this._config.strings) return {};
-            const locale = _modules_discordmodules__WEBPACK_IMPORTED_MODULE_6__["default"].UserSettingsStore.locale.split("-")[0];
+            const locale = _modules_discordmodules__WEBPACK_IMPORTED_MODULE_5__["default"].UserSettingsStore.locale.split("-")[0];
             if (this._config.strings.hasOwnProperty(locale)) return this._config.strings[locale];
             if (this._config.strings.hasOwnProperty("en")) return this._config.strings.en;
             return this._config.strings;
@@ -6495,25 +3977,25 @@ __webpack_require__.r(__webpack_exports__);
         }
 
         saveSettings(settings) {
-            _modules_pluginutilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveSettings(this.getName(), this.settings ? this.settings : settings);
+            _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveSettings(this.getName(), this.settings ? this.settings : settings);
         }
 
         loadSettings(defaultSettings) {
             // loadSettings -> loadData -> defaultSettings gets deep cloned
-            return _modules_pluginutilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadSettings(this.getName(), this.defaultSettings ? this.defaultSettings : defaultSettings);
+            return _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadSettings(this.getName(), this.defaultSettings ? this.defaultSettings : defaultSettings);
         }
 
         buildSetting(data) {
             const {name, note, type, value, onChange, id} = data;
             let setting = null;
-            if (type == "color") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["ColorPicker"](name, note, value, onChange, {disabled: data.disabled, presetColors: data.presetColors});
-            else if (type == "dropdown") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["Dropdown"](name, note, value, data.options, onChange);
-            else if (type == "file") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["FilePicker"](name, note, onChange);
-            else if (type == "keybind") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["Keybind"](name, note, value, onChange);
-            else if (type == "radio") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["RadioGroup"](name, note, value, data.options, onChange, {disabled: data.disabled});
-            else if (type == "slider") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["Slider"](name, note, data.min, data.max, value, onChange, data);
-            else if (type == "switch") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["Switch"](name, note, value, onChange, {disabled: data.disabled});
-            else if (type == "textbox") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["Textbox"](name, note, value, onChange, {placeholder: data.placeholder || ""});
+            if (type == "color") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.ColorPicker(name, note, value, onChange, {disabled: data.disabled, presetColors: data.presetColors});
+            else if (type == "dropdown") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Dropdown(name, note, value, data.options, onChange);
+            else if (type == "file") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.FilePicker(name, note, onChange);
+            else if (type == "keybind") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Keybind(name, note, value, onChange);
+            else if (type == "radio") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.RadioGroup(name, note, value, data.options, onChange, {disabled: data.disabled});
+            else if (type == "slider") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Slider(name, note, data.min, data.max, value, onChange, data);
+            else if (type == "switch") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Switch(name, note, value, onChange, {disabled: data.disabled});
+            else if (type == "textbox") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Textbox(name, note, value, onChange, {placeholder: data.placeholder || ""});
             if (id) setting.id = id;
             return setting;
         }
@@ -6532,14 +4014,14 @@ __webpack_require__.r(__webpack_exports__);
                         this.settings[id][current.id] = value;
                     };
                     if (Object.keys(this.strings).length && this.strings.settings && this.strings.settings[id] && this.strings.settings[id][current.id]) {
-                        const {name, note} = this.strings.settings[id][current.id];
-                        current.name = name;
+                        const {settingName = name, note} = this.strings.settings[id][current.id];
+                        current.name = settingName;
                         current.note = note;
                     }
                     list.push(this.buildSetting(current));
                 }
                 
-                const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["SettingGroup"](name, {shown, collapsible}).append(...list);
+                const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingGroup(name, {shown, collapsible}).append(...list);
                 settingGroup.id = id;
                 return settingGroup;
             };
@@ -6563,10 +4045,10 @@ __webpack_require__.r(__webpack_exports__);
                 }
             }
 
-            return new _ui_settings__WEBPACK_IMPORTED_MODULE_7__["SettingPanel"](this.saveSettings.bind(this), ...list);
+            return new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingPanel(this.saveSettings.bind(this), ...list);
         }
     };
-});
+}
 
 /***/ }),
 
@@ -6574,13 +4056,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************!*\
   !*** ./src/structs/screen.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Representation of the screen such as width and height.
+ * @deprecated 1/21/22 Use DOMTools
  */
 class Screen {
     /** Document/window width */
@@ -6589,7 +4074,7 @@ class Screen {
     static get height() {return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);}
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Screen);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Screen);
 
 /***/ }),
 
@@ -6597,107 +4082,24 @@ class Screen {
 /*!********************************!*\
   !*** ./src/structs/structs.js ***!
   \********************************/
-/*! exports provided: List, Screen, Selector, ClassName, DOMObserver, InsufficientPermissions, User, GuildMember, Role, Emoji, Guild, Channel, PermissionOverwrite, RolePermissionOverwrite, MemberPermissionOverwrite, GuildChannel, GuildTextChannel, GuildVoiceChannel, ChannelCategory, PrivateChannel, DirectMessageChannel, GroupChannel, Reaction, Embed, Message, DefaultMessage, RecipientAddMessage, RecipientRemoveMessage, CallMessage, GroupChannelNameChangeMessage, GroupChannelIconChangeMessage, MessagePinnedMessage, GuildMemberJoinMessage, UserSettings, Plugin, Listenable */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _list__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./list */ "./src/structs/list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "List", function() { return _list__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./screen */ "./src/structs/screen.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Screen", function() { return _screen__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _dom_selector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dom/selector */ "./src/structs/dom/selector.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Selector", function() { return _dom_selector__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
-/* harmony import */ var _dom_classname__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dom/classname */ "./src/structs/dom/classname.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClassName", function() { return _dom_classname__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-/* harmony import */ var _dom_observer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./dom/observer */ "./src/structs/dom/observer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DOMObserver", function() { return _dom_observer__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
-/* harmony import */ var _errors_permissionserror__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./errors/permissionserror */ "./src/structs/errors/permissionserror.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InsufficientPermissions", function() { return _errors_permissionserror__WEBPACK_IMPORTED_MODULE_5__["InsufficientPermissions"]; });
-
-/* harmony import */ var _discord_user__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./discord/user */ "./src/structs/discord/user.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _discord_user__WEBPACK_IMPORTED_MODULE_6__["User"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GuildMember", function() { return _discord_user__WEBPACK_IMPORTED_MODULE_6__["GuildMember"]; });
-
-/* harmony import */ var _discord_guild__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./discord/guild */ "./src/structs/discord/guild.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Role", function() { return _discord_guild__WEBPACK_IMPORTED_MODULE_7__["Role"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Emoji", function() { return _discord_guild__WEBPACK_IMPORTED_MODULE_7__["Emoji"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Guild", function() { return _discord_guild__WEBPACK_IMPORTED_MODULE_7__["Guild"]; });
-
-/* harmony import */ var _discord_channel__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./discord/channel */ "./src/structs/discord/channel.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Channel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["Channel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PermissionOverwrite", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["PermissionOverwrite"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RolePermissionOverwrite", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["RolePermissionOverwrite"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MemberPermissionOverwrite", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["MemberPermissionOverwrite"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GuildChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["GuildChannel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GuildTextChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["GuildTextChannel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GuildVoiceChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["GuildVoiceChannel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ChannelCategory", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["ChannelCategory"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "PrivateChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["PrivateChannel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DirectMessageChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["DirectMessageChannel"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GroupChannel", function() { return _discord_channel__WEBPACK_IMPORTED_MODULE_8__["GroupChannel"]; });
-
-/* harmony import */ var _discord_message__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./discord/message */ "./src/structs/discord/message.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Reaction", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["Reaction"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Embed", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["Embed"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Message", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["Message"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DefaultMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["DefaultMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecipientAddMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["RecipientAddMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecipientRemoveMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["RecipientRemoveMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CallMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["CallMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GroupChannelNameChangeMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["GroupChannelNameChangeMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GroupChannelIconChangeMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["GroupChannelIconChangeMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MessagePinnedMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["MessagePinnedMessage"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GuildMemberJoinMessage", function() { return _discord_message__WEBPACK_IMPORTED_MODULE_9__["GuildMemberJoinMessage"]; });
-
-/* harmony import */ var _discord_usersettings__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./discord/usersettings */ "./src/structs/discord/usersettings.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserSettings", function() { return _discord_usersettings__WEBPACK_IMPORTED_MODULE_10__["UserSettings"]; });
-
-/* harmony import */ var _plugin__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./plugin */ "./src/structs/plugin.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Plugin", function() { return _plugin__WEBPACK_IMPORTED_MODULE_11__["default"]; });
-
-/* harmony import */ var _listenable__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./listenable */ "./src/structs/listenable.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Listenable", function() { return _listenable__WEBPACK_IMPORTED_MODULE_12__["default"]; });
-
-
-
-
-
-
-
-
-
-
-
-
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Screen": () => (/* reexport safe */ _screen__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   "Selector": () => (/* reexport safe */ _dom_selector__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   "ClassName": () => (/* reexport safe */ _dom_classname__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   "DOMObserver": () => (/* reexport safe */ _dom_observer__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   "Listenable": () => (/* reexport safe */ _listenable__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   "Plugin": () => (/* reexport safe */ _plugin__WEBPACK_IMPORTED_MODULE_5__["default"])
+/* harmony export */ });
+/* harmony import */ var _screen__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./screen */ "./src/structs/screen.js");
+/* harmony import */ var _dom_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom/selector */ "./src/structs/dom/selector.js");
+/* harmony import */ var _dom_classname__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dom/classname */ "./src/structs/dom/classname.js");
+/* harmony import */ var _dom_observer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dom/observer */ "./src/structs/dom/observer.js");
+/* harmony import */ var _listenable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./listenable */ "./src/structs/listenable.js");
+/* harmony import */ var _plugin__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./plugin */ "./src/structs/plugin.js");
 
 
 
@@ -6708,364 +4110,82 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/styles/settings.css":
-/*!*********************************!*\
-  !*** ./src/styles/settings.css ***!
-  \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (".plugin-input-group {\r\n    margin-top: 5px;\r\n}\r\n\r\n.plugin-input-group .button-collapse {\r\n    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FscXVlXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSItOTUwIDUzMiAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAtOTUwIDUzMiAxOCAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6bm9uZTt9DQoJLnN0MXtmaWxsOm5vbmU7c3Ryb2tlOiNGRkZGRkY7c3Ryb2tlLXdpZHRoOjEuNTtzdHJva2UtbWl0ZXJsaW1pdDoxMDt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTS05MzIsNTMydjE4aC0xOHYtMThILTkzMnoiLz4NCjxwb2x5bGluZSBjbGFzcz0ic3QxIiBwb2ludHM9Ii05MzYuNiw1MzguOCAtOTQxLDU0My4yIC05NDUuNCw1MzguOCAiLz4NCjwvc3ZnPg0K);\r\n    height: 16px;\r\n    width: 16px;\r\n    display: inline-block;\r\n    vertical-align: bottom;\r\n    transition: transform .3s ease;\r\n    transform: rotate(0);\r\n}\r\n\r\n.plugin-input-group .button-collapse.collapsed {\r\n    transition: transform .3s ease;\r\n    transform: rotate(-90deg);\r\n}\r\n\r\n.plugin-input-group h2 {\r\n    font-size: 14px;\r\n}\r\n\r\n.plugin-input-group .plugin-input-group h2 {\r\n    margin-left: 16px;\r\n}\r\n\r\n.plugin-inputs {\r\n    height: auto;\r\n    overflow: hidden;\r\n    transition: height 300ms cubic-bezier(0.47, 0, 0.745, 0.715);\r\n}\r\n\r\n.plugin-inputs.collapsed {\r\n    height: 0px;\r\n}\r\n\r\n.file-input {\r\n\r\n}\r\n\r\n.file-input::-webkit-file-upload-button {\r\n    color: white;\r\n    background: #7289DA;\r\n    outline: 0;\r\n    border: 0;\r\n    padding: 10px;\r\n    vertical-align: top;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 3px 0 0 3px;\r\n    font-size: 14px;\r\n    font-weight: 500;\r\n    font-family: Whitney,Helvetica Neue,Helvetica,Arial,sans-serif;\r\n    cursor: pointer;\r\n}\r\n\r\n.color-input {\r\n    background: none;\r\n    padding: 0;\r\n    border: none;\r\n}\r\n\r\n.color-input:hover {\r\n    opacity: 0.8;\r\n}\r\n");
-
-/***/ }),
-
-/***/ "./src/styles/toasts.css":
+/***/ "./src/ui/colorpicker.js":
 /*!*******************************!*\
-  !*** ./src/styles/toasts.css ***!
+  !*** ./src/ui/colorpicker.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (".toasts {\r\n    position: fixed;\r\n    display: flex;\r\n    top: 0;\r\n    flex-direction: column;\r\n    align-items: center;\r\n    justify-content: flex-end;\r\n    pointer-events: none;\r\n    z-index: 4000;\r\n}\r\n\r\n@keyframes toast-up {\r\n    from {\r\n        transform: translateY(0);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast {\r\n    animation: toast-up 300ms ease;\r\n    transform: translateY(-10px);\r\n    background: #36393F;\r\n    padding: 10px;\r\n    border-radius: 5px;\r\n    box-shadow: 0 0 0 1px rgba(32,34,37,.6), 0 2px 10px 0 rgba(0,0,0,.2);\r\n    font-weight: 500;\r\n    color: #fff;\r\n    user-select: text;\r\n    font-size: 14px;\r\n    opacity: 1;\r\n    margin-top: 10px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n}\r\n\r\n@keyframes toast-down {\r\n    to {\r\n        transform: translateY(0px);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast.closing {\r\n    animation: toast-down 200ms ease;\r\n    animation-fill-mode: forwards;\r\n    opacity: 1;\r\n    transform: translateY(-10px);\r\n}\r\n\r\n.toast.toast-info {\r\n    background-color: #4a90e2;\r\n}\r\n\r\n.toast.toast-success {\r\n    background-color: #43b581;\r\n}\r\n\r\n.toast.toast-danger,\r\n.toast.toast-error {\r\n    background-color: #f04747;\r\n}\r\n\r\n.toast.toast-warning,\r\n.toast.toast-warn {\r\n    background-color: #FFA600;\r\n}\r\n\r\n.toast-icon {\r\n    margin-right: 5px;\r\n    fill: white;\r\n    border-radius: 50%;\r\n    overflow: hidden;\r\n    height: 20px;\r\n    width: 20px;\r\n}\r\n\r\n.toast-text {\r\n    line-height: 20px;\r\n}");
-
-/***/ }),
-
-/***/ "./src/styles/updates.css":
-/*!********************************!*\
-  !*** ./src/styles/updates.css ***!
-  \********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("#pluginNotice {\r\n    -webkit-app-region: drag;\r\n    border-radius: 0;\r\n    overflow: hidden;\r\n    height: 36px;\r\n    animation: open-updates 400ms ease;\r\n}\r\n\r\n@keyframes open-updates {\r\n    from { height: 0; }\r\n}\r\n\r\n#pluginNotice.closing {\r\n    transition: height 400ms ease;\r\n    height: 0;\r\n}\r\n\r\n#outdatedPlugins {\r\n    font-weight: 700;\r\n}\r\n\r\n#outdatedPlugins>span {\r\n    -webkit-app-region: no-drag;\r\n    color: #fff;\r\n    cursor: pointer;\r\n}\r\n\r\n#outdatedPlugins>span:hover {\r\n    text-decoration: underline;\r\n}");
-
-/***/ }),
-
-/***/ "./src/ui/contextmenu.js":
-/*!*******************************!*\
-  !*** ./src/ui/contextmenu.js ***!
-  \*******************************/
-/*! exports provided: updateDiscordMenu, Menu, ItemGroup, MenuItem, TextItem, ImageItem, SubMenuItem, ToggleItem */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateDiscordMenu", function() { return updateDiscordMenu; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Menu", function() { return Menu; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ItemGroup", function() { return ItemGroup; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MenuItem", function() { return MenuItem; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TextItem", function() { return TextItem; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ImageItem", function() { return ImageItem; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SubMenuItem", function() { return SubMenuItem; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToggleItem", function() { return ToggleItem; });
-/* harmony import */ var _modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/discordclasses */ "./src/modules/discordclasses.js");
-/* harmony import */ var _modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/discordselectors */ "./src/modules/discordselectors.js");
-/* harmony import */ var _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../modules/reacttools */ "./src/modules/reacttools.js");
-/* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
-/* harmony import */ var _modules_domtools__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _structs_screen__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../structs/screen */ "./src/structs/screen.js");
-/**
- * Self-made context menus that emulate Discord's own context menus.
- * @module ContextMenu
- * @version 0.1.0
- * @deprecated 12/3/2020 in favor of DiscordContextMenu
- */
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ColorPicker)
+/* harmony export */ });
+/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
 
+const React = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.React;
 
+const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByDisplayName("Popout");
+const ColorPickerComponents = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("CustomColorPicker");
+const Swatch = ColorPickerComponents?.CustomColorButton.prototype.render.call({props: {}}).type;
+const {default: Tooltip, TooltipPositions} = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("TooltipContainer");
+const LocaleManager = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.LocaleManager;
 
+class ColorPicker extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            value: props.value || 0
+        };
 
-
-
-/**
- * Updates the location of a Discord menu, especially useful when adding items to the menu via DOM.
- * @param {HTMLElement|jQuery} menu - The original discord menu
- */
-function updateDiscordMenu(menu) {
-    const menuNode = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].resolveElement(menu);
-    if (!(menuNode instanceof Element)) return;
-    const updateHeight = _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__["default"].getReactProperty(menuNode, "return.return.return.stateNode.updatePosition");
-    if (updateHeight) updateHeight();
-}
-
-/** Main menu class for creating custom context menus. */
-class Menu {
-    /**
-     *
-     * @param {boolean} [scroll=false] - should this menu be a scrolling menu (usually only used for submenus)
-     */
-    constructor(submenu = false, scroll = false) {
-        this.theme = _modules_discordmodules__WEBPACK_IMPORTED_MODULE_3__["default"].UserSettingsStore.theme == "dark" ? "theme-dark" : "theme-light";
-        this.isSubmenu = submenu;
-        this.element = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.contextMenu} plugin-context-menu ${this.theme}"></div>`);
-        this.scroll = scroll;
-        if (!scroll) return;
-        this.scroller = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Scrollers.scroller} ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.scroller}"></div>`);
-        this.scrollerWrap = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Scrollers.scrollerWrap} ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Scrollers.scrollerThemed} ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Scrollers.themeGhostHairline}"></div>`);
-        this.scrollerWrap.append(this.scroller);
-        this.element.append(this.scrollerWrap);
+        this.onChange = this.onChange.bind(this);
+        this.swatchRef = React.createRef();
     }
+    
+    get canCustom() {return this.props.acceptsCustom || true;}
 
-    /**
-     * Adds an item group to the menu. The group should already be populated.
-     * @param {module:ContextMenu.ItemGroup} contextGroup - group to add to the menu
-     * @returns {module:ContextMenu.Menu} returns self for chaining
-     */
-    addGroup(contextGroup) {
-        if (this.scroll) this.scroller.append(contextGroup.getElement());
-        else this.element.append(contextGroup.getElement());
-        return this;
-    }
-
-    /**
-     * Adds items to the context menu directly. It is recommended to add to a group and use
-     * {@link module:ContextMenu.Menu.addGroup} instead to behave as natively as possible.
-     * @param {module:ContextMenu.MenuItem} contextItems - list of items to add to the context menu
-     * @returns {module:ContextMenu.Menu} returns self for chaining
-     */
-    addItems(...contextItems) {
-        for (let i = 0; i < contextItems.length; i++) {
-            if (this.scroll) this.scroller.append(contextItems[i].getElement());
-            else this.element.append(contextItems[i].getElement());
-        }
-        return this;
-    }
-
-    /**
-     * Shows the menu at a specific x and y position. This generally comes from the
-     * pointer position on a right click event.
-     * @param {number} x - x coordinate for the menu to show at
-     * @param {number} y - y coordinate for the menu to show at
-     */
-    show(x, y) {
-        const mouseX = x;
-        const mouseY = y;
-
-        const parents = this.element.closest(this.parentSelector);
-        const depth = parents.length;
-        // if (depth == 0) {
-            const layer = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].TooltipLayers.layer}"></div>`);
-            let elementToAdd = this.element;
-            if (this.isSubmenu) {
-                const submenu = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.subMenuContext}"></div>`);
-                submenu.append(this.element);
-                elementToAdd = submenu;
-            }
-            layer.append(elementToAdd);
-            layer.appendTo(_modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].App.app.sibling(_modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].TooltipLayers.layerContainer).toString());
-        // }
-        this.element.css("top", mouseY + "px").css("left", mouseX + "px");
-
-        if (mouseY + this.element.outerHeight() >= _structs_screen__WEBPACK_IMPORTED_MODULE_5__["default"].height) {
-            this.element.addClass("invertY").addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.invertY);
-            this.element.css("top", `${mouseY - this.element.outerHeight()}px`);
-            if (depth > 0) this.element.css("top", `${(mouseY + this.element.parent().outerHeight()) - this.element.outerHeight()}px`);
-        }
-        if (this.element.offset().left + this.element.outerWidth() >= _structs_screen__WEBPACK_IMPORTED_MODULE_5__["default"].width) {
-            this.element.addClass("invertX");
-            this.element.css("left", `${mouseX - this.element.outerWidth()}px`);
-        }
-        if (this.element.offset().left + 2 * this.element.outerWidth() >= _structs_screen__WEBPACK_IMPORTED_MODULE_5__["default"].width) {
-            this.element.addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.invertChildX);
-        }
-
-        if (depth !== 0) return;
-        _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].on(document, "mousedown.zctx", (e) => {if (!this.element.contains(e.target) && !this.element.isSameNode(e.target)) this.removeMenu();});
-        _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].on(document, "click.zctx", (e) => {if (this.element.contains(e.target)) this.removeMenu();});
-        _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].on(document, "keyup.zctx", (e) => {if (e.keyCode === 27) this.removeMenu();});
-    }
-
-    /** Allows you to remove the menu. */
-    removeMenu() {
-        this.element.closest(_modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].TooltipLayers.layer.toString())[0].remove();
-        const childs = this.element.findAll(this.parentSelector);
-        if (childs) childs.forEach(c => c.remove());
-        _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].off(document, ".zctx");
-    }
-
-    /**
-     * Used to attach a menu to a menu item. This is how to create a submenu.
-     * If using {@link module:ContextMenu.SubMenuItem} then you do not need
-     * to call this function as it is done automatically. If you want to attach
-     * a submenu to an existing Discord context menu, then you should use this
-     * method.
-     * @param {(HTMLElement|jQuery)} menuItem - item to attach to
-     */
-    attachTo(menuItem) {
-        this.menuItem = menuItem;
-        menuItem.addEventListener("mouseenter", () => {
-            // this.element.appendTo(DiscordSelectors.Popouts.popouts.sibling(DiscordSelectors.TooltipLayers.layerContainer).toString());
-            // const left = this.element.parents(this.parentSelector)[0].css("left");
-            // console.log(parseInt(menuItem.offset().left), parseInt(menuItem.offset().top));
-            this.show(parseInt(menuItem.offset().right), parseInt(menuItem.offset().top));
-        });
-        menuItem.addEventListener("mouseleave", () => {this.element.closest(_modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].TooltipLayers.layer.toString())[0].remove();});
-    }
-
-    get parentSelector() {return this.element.closest(".plugin-context-menu").length > this.element.closest(_modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].ContextMenu.contextMenu).length ? ".plugin-context-menu" : _modules_discordselectors__WEBPACK_IMPORTED_MODULE_1__["default"].ContextMenu.contextMenu;}
-}
-
-/** Class that represents a group of menu items. */
-class ItemGroup {
-    /** Creates an item group. */
-    constructor() {
-        this.element = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.itemGroup}"></div>`);
-    }
-
-    /**
-     * This is the method of adding menu items to a menu group.
-     * @param {module:ContextMenu.MenuItem} contextItems - list of context menu items to add to this group
-     * @returns {module:ContextMenu.ItemGroup} returns self for chaining
-     */
-    addItems(...contextItems) {
-        for (let i = 0; i < contextItems.length; i++) {
-            this.element.append(contextItems[i].getElement());
-        }
-        return this;
-    }
-
-    /** @returns {HTMLElement} returns the DOM node for the group */
-    getElement() {return this.element;}
-}
-
-/**
- * Fires when the attached menu item it clicked.
- * @param {MouseEvent} event - the mouse event from clicking the item
- * @callback module:ContextMenu~clickEvent
- */
-
- /**
- * Fires when the checkbox item changes state.
- * @param {boolean} isChecked - if the checkbox is now checked
- * @callback module:ContextMenu~onChange
- */
-
-/** Base class for all other menu items. */
-class MenuItem {
-    /**
-     * @param {string} label - label to show on the menu item
-     * @param {object} options - additional options for the item
-     * @param {boolean} [options.danger=false] - should the item show as danger
-     * @param {module:ContextMenu~clickEvent} [options.callback] - callback for when it is clicked
-     */
-    constructor(label, options = {}) {
-        const {danger = false, callback} = options;
-        this.element = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.item}"></div>`);
-        this.label = label;
-        if (danger) this.element.addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.danger);
-        this.element.on("click", (event) => {
-            if (!Array.from(this.element.children).some(c => c.isSameNode(event.target)) && !this.element.isSameNode(event.target)) return;
-            if (typeof(callback) == "function") callback(event);
-            else event.stopPropagation();
+    onChange(value) {
+        this.setState({value: value}, () => {
+            if (typeof(this.props.onChange) === "function") this.props.onChange(this.state.value); 
         });
     }
-    getElement() {return this.element;}
-}
 
-/**
- * Creates a text menu item that can have a hint.
- * @extends module:ContextMenu.MenuItem
- */
-class TextItem extends MenuItem {
-    /**
-     * @param {string} label - label to show on the menu item
-     * @param {object} options - additional options for the item
-     * @param {string} [options.hint=""] - hint to show on the item (usually used for key combos)
-     * @param {boolean} [options.danger=false] - should the item show as danger
-     * @param {module:ContextMenu~clickEvent} [options.callback] - callback for when it is clicked
-     */
-    constructor(label, options = {}) {
-        super(label, options);
-        const {hint = ""} = options;
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<span>${label}</span>`));
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.hint}">${hint}</div>`));
-    }
-}
+    render() {
+        const renderPopout = () => {
+            return React.createElement(ColorPickerComponents.CustomColorPicker, {
+                value: this.state.value,
+                onChange: this.onChange,
+            });
+        };
 
-/**
- * Creates an image menu item that can have an image.
- * @extends module:ContextMenu.MenuItem
- */
-class ImageItem extends MenuItem {
-    /**
-     * @param {string} label - label to show on the menu item
-     * @param {string} imageSrc - link to the image to embed
-     * @param {object} options - additional options for the item
-     * @param {string} [options.hint=""] - hint to show on the item (usually used for key combos)
-     * @param {boolean} [options.danger=false] - should the item show as danger
-     * @param {module:ContextMenu~clickEvent} [options.callback] - callback for when it is clicked
-     */
-    constructor(label, imageSrc, options = {}) {
-        super(label, options);
-        this.element.addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.itemImage);
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.label}">${label}</div>`));
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<img src="${imageSrc}">`));
-    }
-}
-
-/**
- * Creates a menu item with an attached submenu.
- * @extends module:ContextMenu.MenuItem
- */
-class SubMenuItem extends MenuItem {
-    /**
-     * @param {string} label - label to show on the menu item
-     * @param {module:ContextMenu.Menu} subMenu - context menu that should be attached to this item
-     * @param {object} options - additional options for the item
-     * @param {string} [options.hint=""] - hint to show on the item (usually used for key combos)
-     * @param {boolean} [options.danger=false] - should the item show as danger
-     * @param {module:ContextMenu~clickEvent} [options.callback] - callback for when it is clicked
-     */
-    constructor(label, subMenu, options = {}) {
-        // if (!(subMenu instanceof ContextSubMenu)) throw "subMenu must be of ContextSubMenu type.";
-        super(label, options);
-        this.element.addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.itemSubMenu);
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.label}">${label}</div>`));
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<svg class="caret-UIZBlm da-caret" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.59 8.59004L12 13.17L7.41 8.59004L6 10L12 16L18 10L16.59 8.59004Z"></path></svg>`));
-        this.subMenu = subMenu;
-        this.subMenu.attachTo(this.getElement());
-    }
-}
-
-/**
- * Creates a menu item with a checkbox.
- * @extends module:ContextMenu.MenuItem
- */
-class ToggleItem extends MenuItem {
-    /**
-     * @param {string} label - label to show on the menu item
-     * @param {boolean} checked - should the item start out checked
-     * @param {object} options - additional options for the item
-     * @param {string} [options.hint=""] - hint to show on the item (usually used for key combos)
-     * @param {boolean} [options.danger=false] - should the item show as danger
-     * @param {module:ContextMenu~onChange} [options.callback] - callback for when the checkbox changes
-     */
-    constructor(label, checked, options = {}) {
-        const {callback: onChange} = options;
-        if (options.callback) delete options.callback;
-        super(label, options);
-        this.element.addClass(_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.itemToggle);
-        this.element.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.label}">${label}</div>`));
-        this.checkbox = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="checkbox ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Checkbox.checkbox} ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].ContextMenu.checkbox}" role="button"></div>`);
-        this.checkbox.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<div class="checkbox-inner ${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Checkbox.checkboxInner}"></div>`));
-        this.checkbox.append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement("<span>"));
-        this.input = _modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement(`<input type="checkbox" class="${_modules_discordclasses__WEBPACK_IMPORTED_MODULE_0__["default"].Checkbox.checkboxElement}">`);
-        this.input.checked = checked;
-        this.checkbox.find(".checkbox-inner").append(this.input);
-        this.checkbox.find(".checkbox-inner").append(_modules_domtools__WEBPACK_IMPORTED_MODULE_4__["default"].createElement("<span>"));
-        this.element.append(this.checkbox);
-        this.element.on("click", (e) => {
-            if (!Array.from(this.element.children).some(c => c.isSameNode(e.target)) && !this.element.isSameNode(e.target)) return;
-            e.stopPropagation();
-            this.input.checked = !this.input.checked;
-            if (typeof(onChange) == "function") onChange(this.input.checked);
+        return React.createElement(ColorPickerComponents.default, {
+            value: this.state.value,
+            onChange: this.onChange,
+            colors: this.props.colors,
+            renderDefaultButton: props => React.createElement(Tooltip, {
+                position: TooltipPositions.BOTTOM,
+                text: LocaleManager.Messages.DEFAULT
+            }, tooltipProps => React.createElement("div", Object.assign(tooltipProps, {
+                className: "defaultButtonWrapper",
+            }), React.createElement(ColorPickerComponents.DefaultColorButton, Object.assign(props, {color: this.props.defaultColor})))),
+            renderCustomButton: () => React.createElement(Popout, {
+                renderPopout: renderPopout,
+                animation: Popout.Animation.TRANSLATE,
+                align: Popout.Align.CENTER,
+                position: Popout.Positions.BOTTOM
+            }, props => React.createElement(Tooltip, {
+                position: TooltipPositions.BOTTOM,
+                text: LocaleManager.Messages.PICK_A_COLOR
+            }, tooltipProps => React.createElement("div", Object.assign({}, tooltipProps, props, {
+                className: "colorPickerButtonWrapper"
+            }), React.createElement(Swatch, {
+                isCustom: true,
+                color: this.state.value,
+                isSelected: !this.props.colors.includes(this.state.value) && this.props.defaultColor !== this.state.value,
+                disabled: !this.canCustom
+            }))))
         });
     }
 }
@@ -7076,12 +4196,13 @@ class ToggleItem extends MenuItem {
 /*!**************************************!*\
   !*** ./src/ui/discordcontextmenu.js ***!
   \**************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DiscordContextMenu; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ DiscordContextMenu)
+/* harmony export */ });
 /* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
 /* harmony import */ var _modules_webpackmodules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/webpackmodules */ "./src/modules/webpackmodules.js");
 /* harmony import */ var _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../modules/reacttools */ "./src/modules/reacttools.js");
@@ -7089,8 +4210,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_utilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/utilities */ "./src/modules/utilities.js");
 /* harmony import */ var _modules_discordclasses__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../modules/discordclasses */ "./src/modules/discordclasses.js");
 /* harmony import */ var _modules_domtools__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../modules/domtools */ "./src/modules/domtools.js");
-/* harmony import */ var _modules_logger__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../modules/logger */ "./src/modules/logger.js");
-
 
 
 
@@ -7212,7 +4331,6 @@ const ContextMenu = _modules_webpackmodules__WEBPACK_IMPORTED_MODULE_1__["defaul
 /**
  * A utility for building and rendering Discord's own menus.
  * @module DiscordContextMenu
- * @version 0.0.1
  */
 class DiscordContextMenu {
 
@@ -7357,20 +4475,25 @@ class DiscordContextMenu {
     /**
      * Attempts to find and return a specific context menu type's module. Useful
      * when patching the render of these menus.
-     * @param {string} type - name of the context menu type
+     * @param {string | Function} nameOrFilter - name of the context menu type
      * @returns {Promise<object>} the webpack module the menu was found in
      */
-    static async getDiscordMenu() {
-        _modules_logger__WEBPACK_IMPORTED_MODULE_7__["default"].warn("DiscordContextMenu", "This function no longer applies, please update your plugin.");
-        // return new Promise(resolve => {
-        //     const cancel = Patcher.after("ZeresLibrary.DiscordContextMenu", ContextMenuActions, "openContextMenu", (_, [, component]) => {
-        //         const rendered = component();
-        //         const menuType = rendered.props && rendered.props.type || (rendered.type && rendered.type.displayName);
-        //         if (!menuType || typeof(menuType) != "string" || !menuType.includes(type)) return;
-        //         cancel();
-        //         return resolve(WebpackModules.getModule(m => m.default == rendered.type));
-        //     });
-        // });
+    static getDiscordMenu(nameOrFilter) {
+        if (typeof(nameOrFilter) !== "function") {
+            const displayName = nameOrFilter;
+            nameOrFilter = (m) => m && m.displayName === displayName;
+        }
+
+        const directMatch = _modules_webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.default && nameOrFilter(m.default));
+        if (directMatch) return Promise.resolve(directMatch);
+
+        return new Promise(resolve => {
+            const cancel = _modules_webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].addListener(module => {
+                if (!module.default || !nameOrFilter(module.default)) return;
+                resolve(module);
+                cancel();
+            });
+        });
     }
 
     /**
@@ -7387,7 +4510,7 @@ class DiscordContextMenu {
         }
     }
 
-    static patchComponents() {
+    static initialize() {
         _modules_patcher__WEBPACK_IMPORTED_MODULE_3__["default"].unpatchAll("DCM");
         this.patchMenuItem();
         this.patchToggleItem();
@@ -7432,13 +4555,14 @@ class DiscordContextMenu {
 /*!*********************************!*\
   !*** ./src/ui/errorboundary.js ***!
   \*********************************/
-/*! exports provided: default, WrapBoundary */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ErrorBoundary; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WrapBoundary", function() { return WrapBoundary; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ErrorBoundary),
+/* harmony export */   "WrapBoundary": () => (/* binding */ WrapBoundary)
+/* harmony export */ });
 /* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
 
 
@@ -7475,23 +4599,20 @@ function WrapBoundary(Original) {
 /*!*************************!*\
   !*** ./src/ui/icons.js ***!
   \*************************/
-/*! exports provided: IconError, IconInfo, IconSuccess, IconWarning */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "IconError": () => (/* reexport safe */ _icons_error__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   "IconInfo": () => (/* reexport safe */ _icons_info__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   "IconSuccess": () => (/* reexport safe */ _icons_success__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   "IconWarning": () => (/* reexport safe */ _icons_warning__WEBPACK_IMPORTED_MODULE_3__["default"])
+/* harmony export */ });
 /* harmony import */ var _icons_error__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./icons/error */ "./src/ui/icons/error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "IconError", function() { return _icons_error__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _icons_info__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icons/info */ "./src/ui/icons/info.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "IconInfo", function() { return _icons_info__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _icons_success__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./icons/success */ "./src/ui/icons/success.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "IconSuccess", function() { return _icons_success__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _icons_warning__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./icons/warning */ "./src/ui/icons/warning.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "IconWarning", function() { return _icons_warning__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 
 
 
@@ -7503,20 +4624,22 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************!*\
   !*** ./src/ui/icons/error.js ***!
   \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Error Icon
  * @param {number} size - Size of the icon.
  */
-/* harmony default export */ __webpack_exports__["default"] = (function(size) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(size) {
     return `<svg width="${size || 24}" height="${size || 24}" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
         </svg>`;
-});
+}
 
 /***/ }),
 
@@ -7524,21 +4647,23 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************!*\
   !*** ./src/ui/icons/info.js ***!
   \******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Info Icon
  * @param {number} size - Size of the icon.
  */
-/* harmony default export */ __webpack_exports__["default"] = (function(size) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(size) {
     return `<svg width="${size || 24}" height="${size || 24}" viewBox="0 0 24 24">
                 <path d="M0 0h24v24H0z" fill="none"/>
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
             </svg>`;
-});
+}
 
 /***/ }),
 
@@ -7546,21 +4671,23 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************!*\
   !*** ./src/ui/icons/success.js ***!
   \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Success Icon
  * @param {number} size - Size of the icon.
  */
-/* harmony default export */ __webpack_exports__["default"] = (function(size) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(size) {
     return `<svg width="${size || 24}" height="${size || 24}" viewBox="0 0 24 24">
                 <path d="M0 0h24v24H0z" fill="none"/>
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>`;
-});
+}
 
 /***/ }),
 
@@ -7568,21 +4695,23 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************!*\
   !*** ./src/ui/icons/warning.js ***!
   \*********************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* export default binding */ __WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /**
  * Warning Icon
  * @param {number} size - Size of the icon.
  */
-/* harmony default export */ __webpack_exports__["default"] = (function(size) {
+/* harmony default export */ function __WEBPACK_DEFAULT_EXPORT__(size) {
     return `<svg width="${size || 24}" height="${size || 24}" viewBox="0 0 24 24">
                 <path d="M0 0h24v24H0z" fill="none"/>
                 <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
             </svg>`;
-});
+}
 
 /***/ }),
 
@@ -7590,24 +4719,24 @@ __webpack_require__.r(__webpack_exports__);
 /*!**************************!*\
   !*** ./src/ui/modals.js ***!
   \**************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Modals; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Modals)
+/* harmony export */ });
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /**
  * Allows an easy way to create and show modals.
  * @module Modals
- * @version 0.0.1
  */
 
 
 
-const React = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].React;
+const React = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.React;
 const ce = React.createElement;
-const Markdown = modules__WEBPACK_IMPORTED_MODULE_0__["WebpackModules"].getModule(m => m.displayName == "Markdown" && m.rules);
+const Markdown = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.displayName == "Markdown" && m.rules);
 
 class Modals {
 
@@ -7619,7 +4748,7 @@ class Modals {
      * @param {string} userId - id of the user to show profile for
      */
     static showUserProfile(userId) {
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].UserProfileModal.open(userId);
+        return modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.UserProfileModal.open(userId);
     }
 
     /**
@@ -7655,10 +4784,10 @@ class Modals {
      */
     static showModal(title, children, options = {}) {
         const {danger = false, confirmText = "Okay", cancelText = "Cancel", onConfirm = () => {}, onCancel = () => {}} = options;
-        return modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ModalActions.openModal(props => {
-            return React.createElement(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ConfirmationModal, Object.assign({
+        return modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.ModalActions.openModal(props => {
+            return React.createElement(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.ConfirmationModal, Object.assign({
                 header: title,
-                confirmButtonColor: danger ? modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ButtonData.ButtonColors.RED : modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ButtonData.ButtonColors.BRAND,
+                confirmButtonColor: danger ? modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.ButtonData.ButtonColors.RED : modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.ButtonData.ButtonColors.BRAND,
                 confirmText: confirmText,
                 cancelText: cancelText,
                 onConfirm: onConfirm,
@@ -7683,21 +4812,21 @@ class Modals {
      * @param {string} footer - either an html element or text to show in the footer of the modal. Can use markdown.
      */
     static showChangelogModal(title, version, changelog, footer) {
-        const TextElement = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].TextElement;
+        const TextElement = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.TextElement;
         const changelogItems = [];
         for (let c = 0; c < changelog.length; c++) {
             const entry = changelog[c];
-            const type = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog[entry.type] ? modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog[entry.type] : modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog.added;
-            const margin = c == 0 ? modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog.marginTop : "";
+            const type = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog[entry.type] ? modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog[entry.type] : modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog.added;
+            const margin = c == 0 ? modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog.marginTop : "";
             changelogItems.push(ce("h1", {className: `${type} ${margin}`,}, entry.title));
             const list = ce("ul", null, entry.items.map(i => ce("li", null, ce(Markdown, null, i))));
             changelogItems.push(list);
         }
         const renderHeader = function() {
-            return ce(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].FlexChild.Child, {grow: 1, shrink: 1},
-                ce(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Titles.default, {tag: modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Titles.Tags.H4}, title),
+            return ce(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.FlexChild.Child, {grow: 1, shrink: 1},
+                ce(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.Titles["default"], {tag: modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.Titles.Tags.H4}, title),
                 ce(TextElement,
-                    {size: TextElement.Sizes.SMALL, color: TextElement.Colors.PRIMARY, className: modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog.date.toString()},
+                    {size: TextElement.Sizes.SMALL, color: TextElement.Colors.PRIMARY, className: modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog.date.toString()},
                     "Version " + version
                 )
             );
@@ -7705,16 +4834,16 @@ class Modals {
         const renderFooter = footer ? function() {
             return ce(Markdown, null, footer);
         } : null;
-        modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].ModalStack.push(function(props) {
-            return ce(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordModules"].Changelog, Object.assign({
-                className: modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Changelog.container.toString(),
+
+        return modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.ModalActions.openModal(props => {
+            return ce(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.Changelog, Object.assign({
+                className: modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Changelog.container.toString(),
                 selectable: true,
                 onScroll: _ => _,
                 onClose: _ => _,
                 renderHeader: renderHeader,
                 renderFooter: renderFooter,
-                children: changelogItems
-            }, props));
+            }, props), changelogItems);
         });
     }
 }
@@ -7725,24 +4854,98 @@ class Modals {
 /*!***************************!*\
   !*** ./src/ui/popouts.js ***!
   \***************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Popouts; });
-/* harmony import */ var structs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! structs */ "./src/structs/structs.js");
-/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Popouts)
+/* harmony export */ });
+/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /**
  * Allows an easy way to create and show popouts.
  * @module Popouts
- * @version 0.0.1
  */
 
 
 
+const {React, ReactDOM} = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules;
+const {useReducer, useEffect, useRef} = React;
+const AccessibilityProvider = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("AccessibilityPreferencesContext").AccessibilityPreferencesContext.Provider;
+const Layers = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("AppReferencePositionLayer");
+const PopoutCSSAnimator = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByDisplayName("PopoutCSSAnimator");
+const LayerProvider = Layers.AppLayerProvider().props.layerContext.Provider; // eslint-disable-line new-cap
+const LayerModule = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("LayerClassName");
+const {ComponentDispatch} = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("ComponentDispatch");
+const {ComponentActions} = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("ComponentActions");
+const AnalyticsTrackContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.find(m => m._currentValue && m._currentValue.toString && m._currentValue.toString().includes("AnalyticsTrackImpressionContext function unimplemented"));
+const AnalyticsTracker = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.find(m => m.toString && m.toString().includes("setDebugTrackedData"));
+const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByDisplayName("Popout");
+
+const createStore = state => {
+    const listeners = new Set();
+
+    const setState = function (getter = _ => _) {
+        const partial = getter(state);
+        if (partial === state) return;
+
+        state = partial;
+        
+        [...listeners].forEach(e => e());
+    };
+
+    setState.getState = () => state;
+
+    function storeListener(getter = _ => _) {
+        const [, forceUpdate] = useReducer(n => !n, true);
+
+        useEffect(() => {
+            const dispatch = () => {forceUpdate();};
+
+            listeners.add(dispatch);
+
+            return () => {listeners.delete(dispatch);};
+        });
+
+        return getter(state);
+    }
+
+    return [
+        setState,
+        storeListener
+    ];
+};
+
+const [setPopouts, usePopouts] = createStore([]);
+
+const AnimationTypes = {FADE: 3, SCALE: 2, TRANSLATE: 1};
 
 class Popouts {
+
+    static get AnimationTypes() {return AnimationTypes;}
+
+    static initialize() {
+        this.dispose();
+        this.popouts = 0;
+
+        this.container = Object.assign(document.createElement("div"), {
+            className: "ZeresPluginLibraryPopoutsRenderer",
+            style: "display: none;"
+        });
+    
+        this.layerContainer = Object.assign(document.createElement("div"), {
+            id: "ZeresPluginLibraryPopouts",
+            className: LayerModule.LayerClassName
+        });
+
+        document.body.append(this.container, this.layerContainer);
+        ReactDOM.render(React.createElement(PopoutsContainer), this.container);
+
+        modules__WEBPACK_IMPORTED_MODULE_0__.Patcher.before("Popouts", LayerModule, "getParentLayerContainer", (_, [element]) => {
+            if (element.parentElement === this.layerContainer) return this.layerContainer;
+        });
+    }
+
     /**
      * Shows the user popout for a user relative to a target element
      * @param {HTMLElement} target - Element to show the popout in relation to
@@ -7751,33 +4954,153 @@ class Popouts {
      * @param {string} [options.guild="currentGuildId"] - Id of the guild  (uses current if not specified)
      * @param {string} [options.channel="currentChannelId"] - Id of the channel (uses current if not specified)
      * @param {string} [options.position="right"] - Positioning relative to element
+     * @param {string} [options.align="top"] - Positioning relative to element
      */
     static showUserPopout(target, user, options = {}) {
-        const {guild = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].SelectedGuildStore.getGuildId(), channel = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].SelectedChannelStore.getChannelId()} = options;
-        let {position = "right"} = options;
-        target = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].resolveElement(target);
-        if (target.getBoundingClientRect().right + 250 >= structs__WEBPACK_IMPORTED_MODULE_0__["Screen"].width) position = "left";
-        modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].PopoutOpener.openPopout(target, {
+        const {position = "right", align = "top", guild = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.SelectedGuildStore.getGuildId(), channel = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.SelectedChannelStore.getChannelId()} = options;
+        target = modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.resolveElement(target);
+        // if (target.getBoundingClientRect().right + 250 >= DOMTools.screenWidth && options.autoInvert) position = "left";
+        // if (target.getBoundingClientRect().bottom + 400 >= DOMTools.screenHeight && options.autoInvert) align = "bottom";
+        // if (target.getBoundingClientRect().top - 400 >= DOMTools.screenHeight && options.autoInvert) align = "top";
+        this.openPopout(target, {
             position: position,
-            offsetX: 0,
-            offsetY: 0,
-            animationType: "default",
-            preventInvert: false,
-            zIndexBoost: 0,
-            closeOnScroll: false,
-            shadow: false,
-            backdrop: false,
-            toggleClose: true,
+            align: align,
+            animation: options.animation || Popouts.AnimationTypes.TRANSLATE,
+            autoInvert: options.autoInvert,
+            nudgeAlignIntoViewport: options.nudgeAlignIntoViewport,
+            spacing: options.spacing,
             render: (props) => {
-                return modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].UserPopout, Object.assign({}, props, {
+                return modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.React.createElement(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.UserPopout, Object.assign({}, props, {
                     userId: user.id,
                     guildId: guild,
                     channelId: channel
                 }));
             }
-        }, "ZeresLibrary");
+        });
+    }
+
+    /**
+     * Shows a react popout relative to a target element
+     * @param {HTMLElement} target - Element to show the popout in relation to
+     * @param {object} [options] - Options to modify the request
+     * @param {string} [options.position="right"] - General position relative to element
+     * @param {string} [options.align="top"] - Alignment relative to element
+     * @param {Popouts.AnimationTypes} [options.animation=Popouts.AnimationTypes.TRANSLATE] - Animation type to use
+     * @param {boolean} [options.autoInvert=true] - Try to automatically adjust the position if it overflows the screen
+     * @param {boolean} [options.nudgeAlignIntoViewport=true] - Try to automatically adjust the alignment if it overflows the screen
+     * @param {number} [options.spacing=8] - Spacing between target and popout
+     */
+    static openPopout(target, options) {
+        const id = this.popouts++;
+
+        setPopouts(popouts => popouts.concat({
+            id: id,
+            element: React.createElement(PopoutWrapper, Object.assign({}, Popout.defaultProps, {
+                reference: {current: target},
+                popoutId: id,
+                key: "popout_" + id,
+                spacing: 50
+            }, options))
+        }));
+
+        return id;
+    }
+
+    static closePopout(id) {
+        const popout = setPopouts.getState().find(e => e.id === id);
+
+        if (!popout) return null;
+
+        setPopouts(popouts => {
+            const clone = [...popouts];
+            clone.splice(clone.indexOf(popout), 1);
+            return clone;
+        });
+    }
+
+    static dispose() {
+        modules__WEBPACK_IMPORTED_MODULE_0__.Patcher.unpatchAll("Popouts");
+        const container = document.querySelector(".ZeresPluginLibraryPopoutsRenderer");
+        const layerContainer = document.querySelector("#ZeresPluginLibraryPopouts");
+        if (container) ReactDOM.unmountComponentAtNode(container);
+        if (container) container.remove();
+        if (layerContainer) layerContainer.remove();
     }
 }
+
+function DiscordProviders({children, container}) {
+    return React.createElement(AccessibilityProvider, {
+        value: {
+            reducedMotion: {enabled: false, rawValue: "auto"}
+        }
+    }, React.createElement(LayerProvider, {
+        value: [container]
+    }, React.createElement(AnalyticsTrackContext.Provider, {
+        value: AnalyticsTracker
+    }, children)));
+}
+
+function PopoutsContainer() {
+    const popouts = usePopouts();
+
+    return React.createElement(DiscordProviders,
+        {container: Popouts.layerContainer},
+        popouts.map((popout) => popout.element)
+    );
+}
+
+function PopoutWrapper({render, animation, popoutId, ...props}) {
+    const popoutRef = useRef();
+
+    useEffect(() => {
+        if (!popoutRef.current) return;
+
+        const node = ReactDOM.findDOMNode(popoutRef.current);
+
+        const handleClick = ({target}) => {
+            if (target === node || node.contains(target)) return;
+
+            Popouts.closePopout(popoutId);
+        };
+
+        document.addEventListener("click", handleClick);
+
+        return () => {
+            document.removeEventListener("click", handleClick);
+        };
+    }, [popoutRef]);
+
+    switch (animation) {
+        case PopoutCSSAnimator.Types.FADE:
+        case PopoutCSSAnimator.Types.SCALE:
+        case PopoutCSSAnimator.Types.TRANSLATE: {
+            const renderPopout = render;
+            render = (renderProps) => {
+                return React.createElement(PopoutCSSAnimator, {
+                    position: renderProps.position,
+                    type: animation
+                }, renderPopout(renderProps));
+            };
+        }
+    }
+
+    return React.createElement(Layers.AppReferencePositionLayer, Object.assign(props, {
+        ref: popoutRef,
+        positionKey: "0",
+        autoInvert: true,
+        id: "popout_" + popoutId,
+        onMount() {
+            ComponentDispatch.dispatch(ComponentActions.POPOUT_SHOW);
+        },
+        onUnmount() {
+            ComponentDispatch.dispatch(ComponentActions.POPOUT_HIDE);
+        },
+        children: render
+    }));
+}
+
+
+
 
 /***/ }),
 
@@ -7785,53 +5108,40 @@ class Popouts {
 /*!**********************************!*\
   !*** ./src/ui/settings/index.js ***!
   \**********************************/
-/*! exports provided: CSS, ReactSetting, SettingField, SettingGroup, SettingPanel, Textbox, ColorPicker, FilePicker, Slider, Switch, Dropdown, Keybind, RadioGroup */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CSS": () => (/* reexport safe */ _styles_settings_css__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   "ReactSetting": () => (/* reexport safe */ _settingfield__WEBPACK_IMPORTED_MODULE_1__.ReactSetting),
+/* harmony export */   "SettingField": () => (/* reexport safe */ _settingfield__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   "SettingGroup": () => (/* reexport safe */ _settinggroup__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   "SettingPanel": () => (/* reexport safe */ _settingpanel__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   "Textbox": () => (/* reexport safe */ _types_textbox__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   "ColorPicker": () => (/* reexport safe */ _types_color__WEBPACK_IMPORTED_MODULE_5__["default"]),
+/* harmony export */   "FilePicker": () => (/* reexport safe */ _types_file__WEBPACK_IMPORTED_MODULE_6__["default"]),
+/* harmony export */   "Slider": () => (/* reexport safe */ _types_slider__WEBPACK_IMPORTED_MODULE_7__["default"]),
+/* harmony export */   "Switch": () => (/* reexport safe */ _types_switch__WEBPACK_IMPORTED_MODULE_8__["default"]),
+/* harmony export */   "Dropdown": () => (/* reexport safe */ _types_dropdown__WEBPACK_IMPORTED_MODULE_9__["default"]),
+/* harmony export */   "Keybind": () => (/* reexport safe */ _types_keybind__WEBPACK_IMPORTED_MODULE_10__["default"]),
+/* harmony export */   "RadioGroup": () => (/* reexport safe */ _types_radiogroup__WEBPACK_IMPORTED_MODULE_11__["default"])
+/* harmony export */ });
 /* harmony import */ var _styles_settings_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../styles/settings.css */ "./src/styles/settings.css");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CSS", function() { return _styles_settings_css__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./settingfield */ "./src/ui/settings/settingfield.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ReactSetting", function() { return _settingfield__WEBPACK_IMPORTED_MODULE_1__["ReactSetting"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SettingField", function() { return _settingfield__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
 /* harmony import */ var _settinggroup__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./settinggroup */ "./src/ui/settings/settinggroup.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SettingGroup", function() { return _settinggroup__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
 /* harmony import */ var _settingpanel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./settingpanel */ "./src/ui/settings/settingpanel.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SettingPanel", function() { return _settingpanel__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
 /* harmony import */ var _types_textbox__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./types/textbox */ "./src/ui/settings/types/textbox.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Textbox", function() { return _types_textbox__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
 /* harmony import */ var _types_color__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./types/color */ "./src/ui/settings/types/color.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ColorPicker", function() { return _types_color__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
 /* harmony import */ var _types_file__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./types/file */ "./src/ui/settings/types/file.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FilePicker", function() { return _types_file__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
 /* harmony import */ var _types_slider__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./types/slider */ "./src/ui/settings/types/slider.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Slider", function() { return _types_slider__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
 /* harmony import */ var _types_switch__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./types/switch */ "./src/ui/settings/types/switch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Switch", function() { return _types_switch__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
 /* harmony import */ var _types_dropdown__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./types/dropdown */ "./src/ui/settings/types/dropdown.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Dropdown", function() { return _types_dropdown__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
 /* harmony import */ var _types_keybind__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./types/keybind */ "./src/ui/settings/types/keybind.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Keybind", function() { return _types_keybind__WEBPACK_IMPORTED_MODULE_10__["default"]; });
-
 /* harmony import */ var _types_radiogroup__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./types/radiogroup */ "./src/ui/settings/types/radiogroup.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RadioGroup", function() { return _types_radiogroup__WEBPACK_IMPORTED_MODULE_11__["default"]; });
-
 /**
  * An object that makes generating settings panel 10x easier.
  * @module Settings
- * @version 1.1.2
  */
 
 
@@ -7855,24 +5165,25 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************!*\
   !*** ./src/ui/settings/settingfield.js ***!
   \*****************************************/
-/*! exports provided: default, ReactSetting */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ReactSetting", function() { return ReactSetting; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   "ReactSetting": () => (/* binding */ ReactSetting)
+/* harmony export */ });
 /* harmony import */ var _structs_listenable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../structs/listenable */ "./src/structs/listenable.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
 
 
-const AccessibilityProvider = modules__WEBPACK_IMPORTED_MODULE_1__["WebpackModules"].getByProps("AccessibilityPreferencesContext").AccessibilityPreferencesContext.Provider;
-const LayerProvider = modules__WEBPACK_IMPORTED_MODULE_1__["WebpackModules"].getByProps("AppReferencePositionLayer").AppLayerProvider().props.layerContext.Provider; // eslint-disable-line new-cap
+const AccessibilityProvider = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("AccessibilityPreferencesContext").AccessibilityPreferencesContext.Provider;
+const LayerProvider = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("AppReferencePositionLayer").AppLayerProvider().props.layerContext.Provider; // eslint-disable-line new-cap
 
 /** 
  * Setting field to extend to create new settings
  * @memberof module:Settings
- * @version 1.0.1
  */
 class SettingField extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["default"] {
     /**
@@ -7888,11 +5199,11 @@ class SettingField extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
         this.name = name;
         this.note = note;
         if (typeof(onChange) == "function") this.addListener(onChange);
-        this.inputWrapper = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].parseHTML(`<div class="plugin-input-container"></div>`);
-        this.type = typeof(settingtype) == "function" ? settingtype : modules__WEBPACK_IMPORTED_MODULE_1__["ReactTools"].wrapElement(settingtype);
+        this.inputWrapper = modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.parseHTML(`<div class="plugin-input-container"></div>`);
+        this.type = typeof(settingtype) == "function" ? settingtype : modules__WEBPACK_IMPORTED_MODULE_1__.ReactTools.wrapElement(settingtype);
         this.props = props;
-        modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].onAdded(this.getElement(), () => {this.onAdded();});
-        modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].onRemoved(this.getElement(), () => {this.onRemoved();});
+        modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.onAdded(this.getElement(), () => {this.onAdded();});
+        modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.onRemoved(this.getElement(), () => {this.onRemoved();});
     }
 
     /** @returns {HTMLElement} - root element for setting */
@@ -7905,7 +5216,7 @@ class SettingField extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
 
     /** Fired when root node added to DOM */
     onAdded() {
-        const reactElement = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].ReactDOM.render(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement(ReactSetting, Object.assign({
+        const reactElement = modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.ReactDOM.render(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement(ReactSetting, Object.assign({
             title: this.name,
             type: this.type,
             note: this.note,
@@ -7917,27 +5228,27 @@ class SettingField extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
 
     /** Fired when root node removed from DOM */
     onRemoved() {
-        modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].ReactDOM.unmountComponentAtNode(this.getElement());
+        modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.ReactDOM.unmountComponentAtNode(this.getElement());
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (SettingField);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SettingField);
 
-class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.Component {
+class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.Component {
     get noteElement() {
-        const className = this.props.noteOnTop ? modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Margins.marginBottom8 : modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Margins.marginTop8;
-        return modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].SettingsNote, {children: this.props.note, type: "description", className: className.toString()});
+        const className = this.props.noteOnTop ? modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Margins.marginBottom8 : modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Margins.marginTop8;
+        return modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.SettingsNote, {children: this.props.note, type: "description", className: className.toString()});
     }
 
-    get dividerElement() {return modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement("div", {className: modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Dividers.divider.add(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Dividers.dividerDefault).toString()});}
+    get dividerElement() {return modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement("div", {className: modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Dividers.divider.add(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Dividers.dividerDefault).toString()});}
 
     render() {
-        const ce = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement;
+        const ce = modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement;
         const SettingElement = ce(this.props.type, this.props);
-        const Context = ce(AccessibilityProvider, {value: {reducedMotion: {enabled: false, rawValue: "no-preference"}}}, ce(LayerProvider, {value: [document.querySelector("#app-mount > .layerContainer-yqaFcK")]}, SettingElement));
+        const Context = ce(AccessibilityProvider, {value: {reducedMotion: {enabled: false, rawValue: "no-preference"}}}, ce(LayerProvider, {value: [document.querySelector("#app-mount > .layerContainer-2v_Sit")]}, SettingElement));
         if (this.props.inline) {
-            const Flex = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].FlexChild;
-            const titleDefault = modules__WEBPACK_IMPORTED_MODULE_1__["WebpackModules"].getByProps("titleDefault") ? modules__WEBPACK_IMPORTED_MODULE_1__["WebpackModules"].getByProps("titleDefault").title : "titleDefault-a8-ZSr title-31JmR4 da-titleDefault da-title";
+            const Flex = modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.FlexChild;
+            const titleDefault = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("titleDefault") ? modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("titleDefault").title : "titleDefault-a8-ZSr title-31JmR4 da-titleDefault da-title";
             return ce(Flex, {direction: Flex.Direction.VERTICAL},
             ce(Flex, {align: Flex.Align.START}, 
                 ce(Flex.Child, {wrap: !0},
@@ -7950,8 +5261,8 @@ class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"
             );
         }
         
-        return ce(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].SettingsWrapper, {
-            className: modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Margins.marginBottom20.toString(),
+        return ce(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.SettingsWrapper, {
+            className: modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Margins.marginBottom20.toString(),
             title: this.props.title,
             children: [
                 this.props.noteOnTop ? this.noteElement : Context,
@@ -7970,11 +5281,13 @@ class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"
 /*!*****************************************!*\
   !*** ./src/ui/settings/settinggroup.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _structs_listenable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../structs/listenable */ "./src/structs/listenable.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./settingfield */ "./src/ui/settings/settingfield.js");
@@ -7985,7 +5298,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Grouping of controls for easier management in settings panels.
  * @memberof module:Settings
- * @version 1.0.2
  */
 class SettingGroup extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["default"] {
     /**
@@ -8002,8 +5314,8 @@ class SettingGroup extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
         this.onChange = this.onChange.bind(this);
 
         const collapsed = shown || !collapsible ? "" : "collapsed";
-        const group = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].parseHTML(`<div class="plugin-input-group">
-                                            <h2 class="${modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Titles.h5} ${modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Titles.defaultMarginh5} ${modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].Titles.defaultColor}">
+        const group = modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.parseHTML(`<div class="plugin-input-group">
+                                            <h2 class="${modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Titles.h5} ${modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Titles.defaultMarginh5} ${modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Titles.defaultColor}">
                                             <span class="button-collapse ${collapsed}"></span> ${groupName}
                                             </h2>
                                             <div class="plugin-inputs collapsible ${collapsed}"></div>
@@ -8044,7 +5356,7 @@ class SettingGroup extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
      */
     append(...nodes) {
         for (let i = 0; i < nodes.length; i++) {
-            if (modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].resolveElement(nodes[i]) instanceof Element) this.controls.append(nodes[i]);
+            if (modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.resolveElement(nodes[i]) instanceof Element) this.controls.append(nodes[i]);
             else if (nodes[i] instanceof _settingfield__WEBPACK_IMPORTED_MODULE_2__["default"] || nodes[i] instanceof SettingGroup) this.controls.append(nodes[i].getElement());
             if (nodes[i] instanceof _settingfield__WEBPACK_IMPORTED_MODULE_2__["default"]) {
                 nodes[i].addListener(((node) => (value) => {
@@ -8076,7 +5388,7 @@ class SettingGroup extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (SettingGroup);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SettingGroup);
 
 /***/ }),
 
@@ -8084,11 +5396,13 @@ class SettingGroup extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
 /*!*****************************************!*\
   !*** ./src/ui/settings/settingpanel.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _structs_listenable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../structs/listenable */ "./src/structs/listenable.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./settingfield */ "./src/ui/settings/settingfield.js");
@@ -8101,7 +5415,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Grouping of controls for easier management in settings panels.
  * @memberof module:Settings
- * @version 1.0.2
  */
 class SettingPanel extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
@@ -8112,7 +5425,7 @@ class SettingPanel extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
      */
     constructor(onChange, ...nodes) {
         super();
-        this.element = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].parseHTML(`<div class="plugin-form-container"></div>`);
+        this.element = modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.parseHTML(`<div class="plugin-form-container"></div>`);
         if (typeof(onChange) == "function") this.addListener(onChange);
         this.onChange = this.onChange.bind(this);
         this.append(...nodes);
@@ -8138,7 +5451,7 @@ class SettingPanel extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
      */
     append(...nodes) {
         for (let i = 0; i < nodes.length; i++) {
-            if (modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].resolveElement(nodes[i]) instanceof Element) this.element.append(nodes[i]);
+            if (modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.resolveElement(nodes[i]) instanceof Element) this.element.append(nodes[i]);
             else if (nodes[i] instanceof _settingfield__WEBPACK_IMPORTED_MODULE_2__["default"] || nodes[i] instanceof _settinggroup__WEBPACK_IMPORTED_MODULE_3__["default"]) this.element.append(nodes[i].getElement());
             if (nodes[i] instanceof _settingfield__WEBPACK_IMPORTED_MODULE_2__["default"]) {
                 nodes[i].addListener(((node) => (value) => {
@@ -8160,7 +5473,7 @@ class SettingPanel extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (SettingPanel);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SettingPanel);
 
 /***/ }),
 
@@ -8168,13 +5481,18 @@ class SettingPanel extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
 /*!****************************************!*\
   !*** ./src/ui/settings/types/color.js ***!
   \****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
+/* harmony import */ var _colorpicker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../colorpicker */ "./src/ui/colorpicker.js");
+
+
 
 
 
@@ -8185,7 +5503,6 @@ const presetColors = [1752220, 3066993, 3447003, 10181046, 15277667, 15844367, 1
  * Creates a color picker using Discord's built in color picker
  * as a base. Input and output using hex strings.
  * @memberof module:Settings
- * @version 0.1.0
  * @extends module:Settings.SettingField
  */
 class ColorPicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8196,26 +5513,30 @@ class ColorPicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] 
      * @param {callable} onChange - callback to perform on setting change, callback receives hex string
      * @param {object} [options] - object of options to give to the setting
      * @param {boolean} [options.disabled=false] - should the setting be disabled
-     * @param {Array<number>} [options.colors=presetColors] - preset list of colors
+     * @param {string} [options.defaultColor] - default color to show as large option
+     * @param {Array<number>} [options.colors] - preset colors to show in swatch
      */
     constructor(name, note, value, onChange, options = {}) {
-        if (modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].ColorPicker) {
-            super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].ColorPicker, {
+        const ColorPickerComponents = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("CustomColorPicker");
+        if (ColorPickerComponents) {
+            const defaultColor = options.defaultColor;
+            super(name, note, onChange, _colorpicker__WEBPACK_IMPORTED_MODULE_2__["default"], {
                 disabled: !!options.disabled,
                 onChange: reactElement => color => {
                     reactElement.props.value = color;
                     reactElement.forceUpdate();
-                    this.onChange(modules__WEBPACK_IMPORTED_MODULE_1__["ColorConverter"].int2hex(color));
+                    this.onChange(modules__WEBPACK_IMPORTED_MODULE_1__.ColorConverter.int2hex(color));
                 },
                 colors: Array.isArray(options.colors) ? options.colors : presetColors,
-                defaultColor: typeof(value) == "number" ? value : modules__WEBPACK_IMPORTED_MODULE_1__["ColorConverter"].hex2int(value),
-                value: 0
+                defaultColor: defaultColor && typeof(defaultColor) !== "number" ? modules__WEBPACK_IMPORTED_MODULE_1__.ColorConverter.hex2int(defaultColor) : defaultColor,
+                value: typeof(value) == "number" ? value : modules__WEBPACK_IMPORTED_MODULE_1__.ColorConverter.hex2int(value),
+                customPickerPosition: "right"
             });
         }
         else {
             const classes = ["color-input"];
-            if (options.disabled) classes.push(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].BasicInputs.disabled);
-            const ReactColorPicker = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].parseHTML(`<input type="color" class="${classes.join(" ")}">`);
+            if (options.disabled) classes.push(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.BasicInputs.disabled);
+            const ReactColorPicker = modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.parseHTML(`<input type="color" class="${classes.join(" ")}">`);
             if (options.disabled) ReactColorPicker.setAttribute("disabled", "");
             if (value) ReactColorPicker.setAttribute("value", value);
             ReactColorPicker.addEventListener("change", (event) => {
@@ -8231,7 +5552,7 @@ class ColorPicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (ColorPicker);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ColorPicker);
 
 /***/ }),
 
@@ -8239,11 +5560,13 @@ class ColorPicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] 
 /*!*******************************************!*\
   !*** ./src/ui/settings/types/dropdown.js ***!
   \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
@@ -8259,7 +5582,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Creates a dropdown using discord's built in dropdown.
  * @memberof module:Settings
- * @version 0.0.1
  * @extends module:Settings.SettingField
  */
 class Dropdown extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8276,22 +5598,22 @@ class Dropdown extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
      */
     constructor(name, note, defaultValue, values, onChange, options = {}) {
         const {clearable = false, searchable = false, disabled = false} = options;
-        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].Dropdown, {
+        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.Dropdown, {
             clearable: clearable,
             searchable: searchable,
             disabled: disabled,
             options: values,
-            onChange: dropdown => opt => {
-                dropdown.props.value = opt && opt.value;
+            onChange: dropdown => value => {
+                dropdown.props.value = value;
                 dropdown.forceUpdate();
-                this.onChange(opt && opt.value);
+                this.onChange(value);
             },
             value: defaultValue
         });
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Dropdown);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Dropdown);
 
 /***/ }),
 
@@ -8299,11 +5621,13 @@ class Dropdown extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!***************************************!*\
   !*** ./src/ui/settings/types/file.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
@@ -8312,7 +5636,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Creates a file picker using chromium's default.
  * @memberof module:Settings
- * @version 0.0.1
  * @extends module:Settings.SettingField
  */
 class FilePicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8326,9 +5649,9 @@ class FilePicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
      * @param {boolean} [options.multiple=false] - should multiple files be accepted
      */
     constructor(name, note, onChange, options = {}) {
-        const classes = modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].BasicInputs.inputDefault.add("file-input");
-        if (options.disabled) classes.add(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordClasses"].BasicInputs.disabled);
-        const ReactFilePicker = modules__WEBPACK_IMPORTED_MODULE_1__["DOMTools"].parseHTML(`<input type="file" class="${classes}">`);
+        const classes = modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.BasicInputs.inputDefault.add("file-input");
+        if (options.disabled) classes.add(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.BasicInputs.disabled);
+        const ReactFilePicker = modules__WEBPACK_IMPORTED_MODULE_1__.DOMTools.parseHTML(`<input type="file" class="${classes}">`);
         if (options.disabled) ReactFilePicker.setAttribute("disabled", "");
         if (options.multiple) ReactFilePicker.setAttribute("multiple", "");
         if (options.accept) ReactFilePicker.setAttribute("accept", Array.isArray(options.accept) ? options.accept.join(",") : options.accept);
@@ -8339,7 +5662,7 @@ class FilePicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (FilePicker);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FilePicker);
 
 /***/ }),
 
@@ -8347,11 +5670,13 @@ class FilePicker extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!******************************************!*\
   !*** ./src/ui/settings/types/keybind.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
@@ -8359,8 +5684,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /** 
  * Creates a keybind setting using discord's built in keybind recorder.
- * @memberof module:Settings
- * @version 0.0.1
+ * @memberof module:Settings=
  * @extends module:Settings.SettingField
  */
 class Keybind extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8374,19 +5698,19 @@ class Keybind extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
      */    
     constructor(label, help, value, onChange, options = {}) {
         const {disabled = false} = options;
-        super(label, help, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].Keybind, {
+        super(label, help, onChange, modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.Keybind, {
             disabled: disabled,
-            defaultValue: value.map(a => [0, a]),
+            defaultValue: value.map(a => [0, a || 0, 1]),
             onChange: element => val => {
                 if (!Array.isArray(val)) return;
                 element.props.value = val;
-                this.onChange(value.map(a => a[1]));
+                this.onChange(val.map(a => a[1]));
             }
         });
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Keybind);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Keybind);
 
 /***/ }),
 
@@ -8394,11 +5718,13 @@ class Keybind extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!*********************************************!*\
   !*** ./src/ui/settings/types/radiogroup.js ***!
   \*********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
@@ -8416,7 +5742,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Creates a radio group using discord's built in radios.
  * @memberof module:Settings
- * @version 0.0.1
  * @extends module:Settings.SettingField
  */
 class RadioGroup extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8430,7 +5755,7 @@ class RadioGroup extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
      * @param {boolean} [options.disabled=false] - should the setting be disabled
      */
     constructor(name, note, defaultValue, values, onChange, options = {}) {
-        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].RadioGroup, {
+        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.RadioGroup, {
             noteOnTop: true,
             disabled: !!options.disabled,
             options: values,
@@ -8444,7 +5769,7 @@ class RadioGroup extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (RadioGroup);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RadioGroup);
 
 
 
@@ -8454,11 +5779,13 @@ class RadioGroup extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!*****************************************!*\
   !*** ./src/ui/settings/types/slider.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
@@ -8481,7 +5808,6 @@ __webpack_require__.r(__webpack_exports__);
 /** 
  * Creates a slider/range using discord's built in slider.
  * @memberof module:Settings
- * @version 0.1.0
  * @extends module:Settings.SettingField
  */
 class Slider extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8517,7 +5843,7 @@ class Slider extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
             handleSize: 10
         };
         if (options.fillStyles) props.fillStyles = options.fillStyles;
-        if (typeof(options.defaultValue) !== 'undefined') props.defaultValue = options.defaultValue;
+        if (typeof(options.defaultValue) !== "undefined") props.defaultValue = options.defaultValue;
         if (options.keyboardStep) props.keyboardStep = options.keyboardStep;
         if (options.markers) props.markers = options.markers;
         if (options.stickToMarkers) props.stickToMarkers = options.stickToMarkers;
@@ -8529,11 +5855,11 @@ class Slider extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         if (options.onMarkerRender || options.renderMarker) props.onMarkerRender = options.onMarkerRender || options.renderMarker;
         if (options.onValueRender || options.renderValue) props.onValueRender = options.onValueRender || options.renderValue;
-        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].Slider, Object.assign(props, {onValueChange: v => this.onChange(v)}));
+        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.Slider, Object.assign(props, {onValueChange: v => this.onChange(v)}));
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Slider);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Slider);
 
 /***/ }),
 
@@ -8541,24 +5867,26 @@ class Slider extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!*****************************************!*\
   !*** ./src/ui/settings/types/switch.js ***!
   \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
 
 
-class SwitchWrapper extends modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.Component {
+class SwitchWrapper extends modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.Component {
     constructor(props) {
         super(props);
         this.state = {enabled: this.props.value};
     }
 
     render() {
-        return modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].SwitchRow, Object.assign({}, this.props, {
+        return modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.SwitchRow, Object.assign({}, this.props, {
             value: this.state.enabled,
             onChange: e => {
                 this.props.onChange(e);
@@ -8571,7 +5899,6 @@ class SwitchWrapper extends modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules
 /** 
  * Creates a switch using discord's built in switch.
  * @memberof module:Settings
- * @version 0.1.0
  * @extends module:Settings.SettingField
  */
 class Switch extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8590,7 +5917,7 @@ class Switch extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     onAdded() {
-        modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].ReactDOM.render(modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].React.createElement(SwitchWrapper, {
+        modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.ReactDOM.render(modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.createElement(SwitchWrapper, {
             children: this.name,
             note: this.note,
             disabled: this.disabled,
@@ -8601,7 +5928,7 @@ class Switch extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Switch);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Switch);
 
 
 /***/ }),
@@ -8610,22 +5937,21 @@ class Switch extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!******************************************!*\
   !*** ./src/ui/settings/types/textbox.js ***!
   \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
 /* harmony import */ var _settingfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../settingfield */ "./src/ui/settings/settingfield.js");
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 
 
 
-// TODO: Documentation
-
 /** 
  * Creates a textbox using discord's built in textbox.
  * @memberof module:Settings
- * @version 0.1.0
  * @extends module:Settings.SettingField
  */
 class Textbox extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -8640,7 +5966,7 @@ class Textbox extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
      */
     constructor(name, note, value, onChange, options = {}) {
         const {placeholder = "", disabled = false} = options;
-        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__["DiscordModules"].Textbox, {
+        super(name, note, onChange, modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.Textbox, {
             onChange: textbox => val => {
                 textbox.props.value = val;
                 textbox.forceUpdate();
@@ -8653,7 +5979,7 @@ class Textbox extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Textbox);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Textbox);
 
 /***/ }),
 
@@ -8661,12 +5987,13 @@ class Textbox extends _settingfield__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!**************************!*\
   !*** ./src/ui/toasts.js ***!
   \**************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Toast; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Toast)
+/* harmony export */ });
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
 /* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
 /* harmony import */ var _styles_toasts_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../styles/toasts.css */ "./src/styles/toasts.css");
@@ -8674,7 +6001,6 @@ __webpack_require__.r(__webpack_exports__);
  * Toast maker similar to Android.
  * 
  * @module Toasts
- * @version 0.0.1
  */
 
 
@@ -8715,7 +6041,7 @@ class Toast {
     static async show(content, options = {}) {
         const {type = "", icon = "", timeout = 3000} = options;
         this.ensureContainer();
-        const toast = modules__WEBPACK_IMPORTED_MODULE_0__["DOMTools"].parseHTML(this.buildToast(content, this.parseType(type), icon));
+        const toast = modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.parseHTML(this.buildToast(content, this.parseType(type), icon));
         document.querySelector(".toasts").appendChild(toast);
         await new Promise(resolve => setTimeout(resolve, timeout));
         toast.classList.add("closing");
@@ -8728,7 +6054,7 @@ class Toast {
         const hasIcon = type || icon;
         const className = `toast ${hasIcon ? "toast-has-icon" : ""} ${type && type != "default" ? `toast-${type}` : ""}`;
         if (!icon && type) icon = type;
-        return modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].formatString(`<div class="{{className}}">{{icon}}<div class="toast-text">{{message}}</div></div>`, {
+        return modules__WEBPACK_IMPORTED_MODULE_0__.Utilities.formatString(`<div class="{{className}}">{{icon}}<div class="toast-text">{{message}}</div></div>`, {
             className: className,
             icon: hasIcon ? this.getIcon(icon) : "",
             message: message
@@ -8738,19 +6064,19 @@ class Toast {
     static getIcon(icon) {
         let iconInner = `<img src="${icon}" width="20" height="20" />`;
         switch (icon) {
-            case "success": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__["Icons"].IconSuccess(20); break; // eslint-disable-line new-cap
-            case "warning": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__["Icons"].IconWarning(20); break; // eslint-disable-line new-cap
-            case "info": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__["Icons"].IconInfo(20); break; // eslint-disable-line new-cap
-            case "error": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__["Icons"].IconError(20); // eslint-disable-line new-cap
+            case "success": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__.Icons.IconSuccess(20); break; // eslint-disable-line new-cap
+            case "warning": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__.Icons.IconWarning(20); break; // eslint-disable-line new-cap
+            case "info": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__.Icons.IconInfo(20); break; // eslint-disable-line new-cap
+            case "error": iconInner = ui__WEBPACK_IMPORTED_MODULE_1__.Icons.IconError(20); // eslint-disable-line new-cap
         }
-        return modules__WEBPACK_IMPORTED_MODULE_0__["Utilities"].formatString(`<div class="toast-icon">{{icon}}</div>`, {icon: iconInner});
+        return modules__WEBPACK_IMPORTED_MODULE_0__.Utilities.formatString(`<div class="toast-icon">{{icon}}</div>`, {icon: iconInner});
     }
 
     static ensureContainer() {
         if (document.querySelector(".toasts")) return;
-        const channelClass = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordSelectors"].ChannelList.sidebar;
-        const container = channelClass ? document.querySelector(channelClass.adjacent("div")) : null;
-        const memberlist = container ? container.querySelector(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordSelectors"].MemberList.membersWrap) : null;
+        const channelClass = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordSelectors.ChannelList.sidebar;
+        const container = channelClass ? document.querySelector(`${channelClass} ~ div:not([style])`) : null;
+        const memberlist = container ? container.querySelector(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordSelectors.MemberList.membersWrap) : null;
         const form = container ? container.querySelector("form") : null;
         const left = container ? container.getBoundingClientRect().left : 310;
         const right = memberlist ? memberlist.getBoundingClientRect().left : 0;
@@ -8788,14 +6114,14 @@ class Toast {
 /*!***************************!*\
   !*** ./src/ui/tooltip.js ***!
   \***************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tooltip; });
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Tooltip)
+/* harmony export */ });
 /* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
-/* harmony import */ var _structs_screen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../structs/screen */ "./src/structs/screen.js");
 /**
  * Tooltip that automatically show and hide themselves on mouseenter and mouseleave events.
  * Will also remove themselves if the node to watch is removed from DOM through
@@ -8805,15 +6131,13 @@ __webpack_require__.r(__webpack_exports__);
  * Discord's own tooltips as closely as possible.
  *
  * @module Tooltip
- * @version 1.0.0
  */
-
 
 
 
 const getClass = function(sideOrColor) {
     const upperCase = sideOrColor[0].toUpperCase() + sideOrColor.slice(1);
-    const tooltipClass = modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips[`tooltip${upperCase}`];
+    const tooltipClass = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips[`tooltip${upperCase}`];
     if (tooltipClass) return tooltipClass.value;
     return null;
 };
@@ -8849,7 +6173,7 @@ class Tooltip {
      */
     constructor(node, text, options = {}) {
         const {style = "black", side = "top", preventFlip = false, isTimestamp = false, disablePointerEvents = false, disabled = false} = options;
-        this.node = modules__WEBPACK_IMPORTED_MODULE_0__["DOMTools"].resolveElement(node);
+        this.node = modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.resolveElement(node);
         this.label = text;
         this.style = style.toLowerCase();
         this.side = side.toLowerCase();
@@ -8859,19 +6183,19 @@ class Tooltip {
         this.disabled = disabled;
         this.active = false;
 
-        if (!classExists(this.side)) return modules__WEBPACK_IMPORTED_MODULE_0__["Logger"].err("Tooltip", `Side ${this.side} does not exist.`);
-        if (!classExists(this.style)) return modules__WEBPACK_IMPORTED_MODULE_0__["Logger"].err("Tooltip", `Style ${this.style} does not exist.`);
+        if (!classExists(this.side)) return modules__WEBPACK_IMPORTED_MODULE_0__.Logger.err("Tooltip", `Side ${this.side} does not exist.`);
+        if (!classExists(this.style)) return modules__WEBPACK_IMPORTED_MODULE_0__.Logger.err("Tooltip", `Style ${this.style} does not exist.`);
 
-        this.element = modules__WEBPACK_IMPORTED_MODULE_0__["DOMTools"].createElement(`<div class="${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].TooltipLayers.layer}">`);
-        this.tooltipElement = modules__WEBPACK_IMPORTED_MODULE_0__["DOMTools"].createElement(`<div class="${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltip} ${getClass(this.style)}"><div class="${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltipPointer}"></div><div class="${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltipContent}">${this.label}</div></div>`);
+        this.element = modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.createElement(`<div class="${modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.TooltipLayers.layer}">`);
+        this.tooltipElement = modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.createElement(`<div class="${modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltip} ${getClass(this.style)}"><div class="${modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltipPointer}"></div><div class="${modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltipContent}">${this.label}</div></div>`);
         this.labelElement = this.tooltipElement.childNodes[1];
         this.element.append(this.tooltipElement);
 
         if (this.disablePointerEvents) {
-            this.element.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].TooltipLayers.disabledPointerEvents);
-            this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltipDisablePointerEvents);
+            this.element.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.TooltipLayers.disabledPointerEvents);
+            this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltipDisablePointerEvents);
         }
-        if (this.isTimestamp) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__["WebpackModules"].getByProps("timestampTooltip").timestampTooltip);
+        if (this.isTimestamp) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("timestampTooltip").timestampTooltip);
 
 
         this.node.addEventListener("mouseenter", () => {
@@ -8888,15 +6212,15 @@ class Tooltip {
     static create(node, text, options = {}) {return new Tooltip(node, text, options);}
 
     /** Container where the tooltip will be appended. */
-    get container() {return document.querySelector(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordSelectors"].App.app.sibling(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordSelectors"].TooltipLayers.layerContainer));}
+    get container() {return document.querySelector(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordSelectors.App.app.sibling(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordSelectors.TooltipLayers.layerContainer));}
     /** Boolean representing if the tooltip will fit on screen above the element */
     get canShowAbove() {return this.node.getBoundingClientRect().top - this.element.offsetHeight >= 0;}
     /** Boolean representing if the tooltip will fit on screen below the element */
-    get canShowBelow() {return this.node.getBoundingClientRect().top + this.node.offsetHeight + this.element.offsetHeight <= _structs_screen__WEBPACK_IMPORTED_MODULE_1__["default"].height;}
+    get canShowBelow() {return this.node.getBoundingClientRect().top + this.node.offsetHeight + this.element.offsetHeight <= modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.screenHeight;}
     /** Boolean representing if the tooltip will fit on screen to the left of the element */
     get canShowLeft() {return this.node.getBoundingClientRect().left - this.element.offsetWidth >= 0;}
     /** Boolean representing if the tooltip will fit on screen to the right of the element */
-    get canShowRight() {return this.node.getBoundingClientRect().left + this.node.offsetWidth + this.element.offsetWidth <= _structs_screen__WEBPACK_IMPORTED_MODULE_1__["default"].width;}
+    get canShowRight() {return this.node.getBoundingClientRect().left + this.node.offsetWidth + this.element.offsetWidth <= modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.screenWidth;}
 
     /** Hides the tooltip. Automatically called on mouseleave. */
     hide() {
@@ -8912,9 +6236,9 @@ class Tooltip {
         /** Don't reshow if already active */
         if (this.active) return;
         this.active = true;
-        this.tooltipElement.className = `${modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltip} ${getClass(this.style)}`;
-        if (this.disablePointerEvents) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__["DiscordClasses"].Tooltips.tooltipDisablePointerEvents);
-        if (this.isTimestamp) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__["WebpackModules"].getByProps("timestampTooltip").timestampTooltip);
+        this.tooltipElement.className = `${modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltip} ${getClass(this.style)}`;
+        if (this.disablePointerEvents) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__.DiscordClasses.Tooltips.tooltipDisablePointerEvents);
+        if (this.isTimestamp) this.tooltipElement.classList.add(modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getByProps("timestampTooltip").timestampTooltip);
         this.labelElement.textContent = this.label;
         this.container.append(this.element);
 
@@ -9001,35 +6325,30 @@ class Tooltip {
 /*!**********************!*\
   !*** ./src/ui/ui.js ***!
   \**********************/
-/*! exports provided: Tooltip, Toasts, Popouts, Modals, DiscordContextMenu, ErrorBoundary, Settings, ContextMenu, Icons */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Tooltip": () => (/* reexport safe */ _tooltip__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   "Toasts": () => (/* reexport safe */ _toasts__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   "Popouts": () => (/* reexport safe */ _popouts__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   "Modals": () => (/* reexport safe */ _modals__WEBPACK_IMPORTED_MODULE_5__["default"]),
+/* harmony export */   "DiscordContextMenu": () => (/* reexport safe */ _discordcontextmenu__WEBPACK_IMPORTED_MODULE_6__["default"]),
+/* harmony export */   "ErrorBoundary": () => (/* reexport safe */ _errorboundary__WEBPACK_IMPORTED_MODULE_7__["default"]),
+/* harmony export */   "ColorPicker": () => (/* reexport safe */ _colorpicker__WEBPACK_IMPORTED_MODULE_8__["default"]),
+/* harmony export */   "Settings": () => (/* reexport module object */ _settings__WEBPACK_IMPORTED_MODULE_0__),
+/* harmony export */   "Icons": () => (/* reexport module object */ _icons__WEBPACK_IMPORTED_MODULE_1__)
+/* harmony export */ });
 /* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./settings */ "./src/ui/settings/index.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Settings", function() { return _settings__WEBPACK_IMPORTED_MODULE_0__; });
-/* harmony import */ var _contextmenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./contextmenu */ "./src/ui/contextmenu.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "ContextMenu", function() { return _contextmenu__WEBPACK_IMPORTED_MODULE_1__; });
-/* harmony import */ var _icons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./icons */ "./src/ui/icons.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Icons", function() { return _icons__WEBPACK_IMPORTED_MODULE_2__; });
-/* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./tooltip */ "./src/ui/tooltip.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Tooltip", function() { return _tooltip__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-/* harmony import */ var _toasts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./toasts */ "./src/ui/toasts.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Toasts", function() { return _toasts__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
-/* harmony import */ var _popouts__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./popouts */ "./src/ui/popouts.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Popouts", function() { return _popouts__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
-/* harmony import */ var _modals__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modals */ "./src/ui/modals.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Modals", function() { return _modals__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
-/* harmony import */ var _discordcontextmenu__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./discordcontextmenu */ "./src/ui/discordcontextmenu.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DiscordContextMenu", function() { return _discordcontextmenu__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
-/* harmony import */ var _errorboundary__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./errorboundary */ "./src/ui/errorboundary.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ErrorBoundary", function() { return _errorboundary__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
+/* harmony import */ var _icons__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./icons */ "./src/ui/icons.js");
+/* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tooltip */ "./src/ui/tooltip.js");
+/* harmony import */ var _toasts__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./toasts */ "./src/ui/toasts.js");
+/* harmony import */ var _popouts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./popouts */ "./src/ui/popouts.js");
+/* harmony import */ var _modals__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./modals */ "./src/ui/modals.js");
+/* harmony import */ var _discordcontextmenu__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./discordcontextmenu */ "./src/ui/discordcontextmenu.js");
+/* harmony import */ var _errorboundary__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./errorboundary */ "./src/ui/errorboundary.js");
+/* harmony import */ var _colorpicker__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./colorpicker */ "./src/ui/colorpicker.js");
 
 
 
@@ -9044,5 +6363,125 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ })
 
-/******/ })["default"];
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var modules__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! modules */ "./src/modules/modules.js");
+/* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
+
+
+
+const Library = {};
+Library.DCM = ui__WEBPACK_IMPORTED_MODULE_1__.DiscordContextMenu;
+Library.ContextMenu = ui__WEBPACK_IMPORTED_MODULE_1__.DiscordContextMenu;
+Library.Tooltip = ui__WEBPACK_IMPORTED_MODULE_1__.Tooltip;
+Library.Toasts = ui__WEBPACK_IMPORTED_MODULE_1__.Toasts;
+Library.Settings = ui__WEBPACK_IMPORTED_MODULE_1__.Settings;
+Library.Popouts = ui__WEBPACK_IMPORTED_MODULE_1__.Popouts;
+Library.Modals = ui__WEBPACK_IMPORTED_MODULE_1__.Modals;
+for (const mod in modules__WEBPACK_IMPORTED_MODULE_0__) Library[mod] = modules__WEBPACK_IMPORTED_MODULE_0__[mod];
+
+Library.Components = {ErrorBoundary: ui__WEBPACK_IMPORTED_MODULE_1__.ErrorBoundary, ColorPicker: ui__WEBPACK_IMPORTED_MODULE_1__.ColorPicker};
+
+const config = __webpack_require__(/*! ./src/config.js */ "./src/config.js");
+const baseModule = __webpack_require__(/*! ./src/plugin.js */ "./src/plugin.js");
+const pluginFunction = baseModule.default ? baseModule.default : baseModule;
+
+const getBoundLibrary = () => {
+    const name = config.info.name;
+    const BoundAPI = {
+        Logger: {
+            stacktrace: (message, error) => Library.Logger.stacktrace(name, message, error),
+            log: (...message) => Library.Logger.log(name, ...message),
+            error: (...message) => Library.Logger.err(name, ...message),
+            err: (...message) => Library.Logger.err(name, ...message),
+            warn: (...message) => Library.Logger.warn(name, ...message),
+            info: (...message) => Library.Logger.info(name, ...message),
+            debug: (...message) => Library.Logger.debug(name, ...message)
+        },
+        Patcher: {
+            getPatchesByCaller: () => {return Library.Patcher.getPatchesByCaller(name);},
+            unpatchAll: () => {return Library.Patcher.unpatchAll(name);},
+            before: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.before(name, moduleToPatch, functionName, callback, options);},
+            instead: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.instead(name, moduleToPatch, functionName, callback, options);},
+            after: (moduleToPatch, functionName, callback, options = {}) => {return Library.Patcher.after(name, moduleToPatch, functionName, callback, options);}
+        }
+    };
+
+    const BoundLib = Object.assign({}, Library);
+    BoundLib.Logger = BoundAPI.Logger;
+    BoundLib.Patcher = BoundAPI.Patcher;
+    return BoundLib;
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (pluginFunction(Library.Structs.Plugin(config),  false ? 0 : Library)); // eslint-disable-line new-cap
+})();
+
+module.exports.ZeresPluginLibrary = __webpack_exports__["default"];
+/******/ })()
+;
 /*@end@*/
