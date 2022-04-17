@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.2
+ * @version 3.1.3
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "407348579376693260",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.2",
+            "version": "3.1.3",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -93,6 +93,7 @@ module.exports = (() => {
 					"ghostMode": true,
 					"freeStickersCompat": false,
                     "clientsidePfp": false,
+					"emojiBypassForValidEmoji": true,
                     "pfpUrl": "https://i.imgur.com/N6X1vzT.gif",
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
@@ -108,7 +109,8 @@ module.exports = (() => {
                         new Settings.SettingGroup("Emojis").append(
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the Nitro Emote bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
                             new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
-							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value)
+							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value),
+							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji. Currently this only applies to emotes that you have unlocked in all channels such as emotes from a connected Twitch account. Sorry!", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
                                 new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
@@ -154,6 +156,26 @@ module.exports = (() => {
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							if (msg.content.includes("stickers")) return;
                             msg.validNonShortcutEmojis.forEach(emoji => {
+							if (emoji.url.startsWith("/assets/")) return;
+							if(this.settings.emojiBypassForValidEmoji){
+							DiscordModules.UserStore.getCurrentUser().premiumType = 0
+							if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
+								console.log("Unlocked")
+								if(this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 1
+								}
+								if(!this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 2
+								}
+								return
+								}
+							}
+							if(this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 1
+							}
+							if(!this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 2
+							}
                                 if (emoji.url.startsWith("/assets/")) return;
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
