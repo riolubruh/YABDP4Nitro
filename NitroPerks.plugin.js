@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.3
+ * @version 3.1.4
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -34,10 +34,10 @@ module.exports = (() => {
             "name": "NitroPerks",
             "authors": [{
                 "name": "lemons & Riolubruh",
-                "discord_id": "407348579376693260",
+                "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.3",
+            "version": "3.1.4",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -80,11 +80,11 @@ module.exports = (() => {
             const {
                 Patcher,
                 DiscordModules,
-                DiscordAPI,
                 Settings,
                 Toasts,
                 PluginUtilities
             } = Api;
+			
             return class NitroPerks extends Plugin {
                 defaultSettings = {
                     "emojiSize": "48",
@@ -110,7 +110,7 @@ module.exports = (() => {
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the Nitro Emote bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
                             new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value),
-							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji. Currently this only applies to emotes that you have unlocked in all channels such as emotes from a connected Twitch account. Sorry!", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value)
+							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
                                 new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
@@ -133,55 +133,49 @@ module.exports = (() => {
                 saveAndUpdate() {
 					//console.log("saveAndUpdate")
                     PluginUtilities.saveSettings(this.getName(), this.settings)
-					
-					//This is where the old screensharing fix was, it no longer worked, and was not needed, so it has been removed.
                    
 					if(this.settings.freeStickersCompat){
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
-					//console.log("Sticker Compat Enabled")
 					}
 					else{
 						if(!this.settings.freeStickersCompat){
 				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
-					//console.log("Sticker Compat Disabled")
 						}
 					}
-					
-                   // if (this.settings.screenSharing) BdApi.clearCSS("screenShare") //Obsolete
 
                     if (this.settings.emojiBypass) {
 						if(this.settings.ghostMode) { //If Ghost Mode is enabled do this shit
 							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Ghost Mode enabled.")
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
-							if (msg.content.includes("stickers")) return;
+							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
 							if (emoji.url.startsWith("/assets/")) return;
-							if(this.settings.emojiBypassForValidEmoji){
-							DiscordModules.UserStore.getCurrentUser().premiumType = 0
-							if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
-								console.log("Unlocked")
+							if(this.settings.emojiBypassForValidEmoji){ //a bit messy but it works
+								DiscordModules.UserStore.getCurrentUser().premiumType = 0
+								if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
+									if(this.settings.freeStickersCompat){
+									DiscordModules.UserStore.getCurrentUser().premiumType = 1
+								}
+								if(!this.settings.freeStickersCompat){
+									DiscordModules.UserStore.getCurrentUser().premiumType = 2
+								}
+								return
+								}
 								if(this.settings.freeStickersCompat){
 								DiscordModules.UserStore.getCurrentUser().premiumType = 1
 								}
 								if(!this.settings.freeStickersCompat){
 								DiscordModules.UserStore.getCurrentUser().premiumType = 2
 								}
-								return
+								if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)){
+									return
 								}
 							}
-							if(this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 1
-							}
-							if(!this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 2
-							}
-                                if (emoji.url.startsWith("/assets/")) return;
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
 									//console.log("Message empty, no ghost mode needed");
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
-									//console.log(msg.content);
 									return;
 								}
 								let ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
@@ -206,9 +200,31 @@ module.exports = (() => {
 						if(!this.settings.ghostMode) { //If ghost mode is disabled do shitty original method
 						Patcher.unpatchAll(DiscordModules.MessageActions)
 						//console.log("Classic Method (No Ghost)")
-                        //fix emotes with bad method
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
+							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
+								if(this.settings.emojiBypassForValidEmoji){ //copied and messy
+								DiscordModules.UserStore.getCurrentUser().premiumType = 0
+								if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
+									if(this.settings.freeStickersCompat){
+									DiscordModules.UserStore.getCurrentUser().premiumType = 1
+								}
+								if(!this.settings.freeStickersCompat){
+									DiscordModules.UserStore.getCurrentUser().premiumType = 2
+								}
+								return
+								}
+								if(this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 1
+								}
+								if(!this.settings.freeStickersCompat){
+								DiscordModules.UserStore.getCurrentUser().premiumType = 2
+								}
+								if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)){
+									console.log("Emoji from this server and not animated")
+									return
+								}
+							}
 								if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))){//Duplicate emoji handling (second duplicate)
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 									return
@@ -252,7 +268,6 @@ module.exports = (() => {
 
                 onStop() {
 					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
-                    //this.removeClientsidePfp() //removed
                     Patcher.unpatchAll();
                 }
             };
