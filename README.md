@@ -1,5 +1,5 @@
 # NitroPerks
-A fork of the NitroPerks BetterDiscord plugin, *not* a mirror!
+A (basically rewritten) fork of the NitroPerks BetterDiscord plugin, *not* a mirror!
 
 *Probably* the best Nitro plugin out there.
 
