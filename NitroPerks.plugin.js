@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.4
+ * @version 3.1.5
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.4",
+            "version": "3.1.5",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -98,8 +98,6 @@ module.exports = (() => {
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
                 originalNitroStatus = 0;
-                clientsidePfp;
-                screenShareFix;
                 getSettingsPanel() {
                     return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
                         new Settings.SettingGroup("Features").append(...[
@@ -107,9 +105,9 @@ module.exports = (() => {
 							new Settings.Switch("FreeStickers Compatibility Mode", "Enable if you are using FreeStickers. This will lock Source resolution when screensharing, but FreeStickers will work.", this.settings.freeStickersCompat, value => this.settings.freeStickersCompat = value)
                         ]),
                         new Settings.SettingGroup("Emojis").append(
-                            new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the Nitro Emote bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
+                            new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
                             new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
-							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work on Android. Will lower your character limit by 1000.", this.settings.ghostMode, value => this.settings.ghostMode = value),
+							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
@@ -131,18 +129,7 @@ module.exports = (() => {
                 
 				
                 saveAndUpdate() {
-					//console.log("saveAndUpdate")
                     PluginUtilities.saveSettings(this.getName(), this.settings)
-                   
-					if(this.settings.freeStickersCompat){
-					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
-					}
-					else{
-						if(!this.settings.freeStickersCompat){
-				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
-						}
-					}
-
                     if (this.settings.emojiBypass) {
 						if(this.settings.ghostMode) { //If Ghost Mode is enabled do this shit
 							Patcher.unpatchAll(DiscordModules.MessageActions)
@@ -175,7 +162,7 @@ module.exports = (() => {
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
 									//console.log("Message empty, no ghost mode needed");
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)
 									return;
 								}
 								let ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
@@ -203,15 +190,16 @@ module.exports = (() => {
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
-								if(this.settings.emojiBypassForValidEmoji){ //copied and messy
+								if (emoji.url.startsWith("/assets/")) return;
+								if(this.settings.emojiBypassForValidEmoji){ //messy
 								DiscordModules.UserStore.getCurrentUser().premiumType = 0
 								if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
 									if(this.settings.freeStickersCompat){
 									DiscordModules.UserStore.getCurrentUser().premiumType = 1
-								}
+									}
 								if(!this.settings.freeStickersCompat){
 									DiscordModules.UserStore.getCurrentUser().premiumType = 2
-								}
+									}
 								return
 								}
 								if(this.settings.freeStickersCompat){
@@ -233,7 +221,6 @@ module.exports = (() => {
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 									return
 								}
-                                if (emoji.url.startsWith("/assets/")) return;
                                 msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
                             })
                         });
@@ -250,15 +237,21 @@ module.exports = (() => {
 				}
 
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
-					
-                }
+				
+					if(this.settings.freeStickersCompat){
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
+					}
+					if(!this.settings.freeStickersCompat){
+				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
+					}
+				}
                 onStart() {
 				   this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType; //new DiscordModules call
                     this.saveAndUpdate()
 					if(this.settings.freeStickersCompat){
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1 //new DiscordModules call
 					}
-					else{
+					if(!this.settings.freeStickersCompat){
 						if(!this.settings.freeStickersCompat){
 				   DiscordModules.UserStore.getCurrentUser().premiumType = 2 //new DiscordModules call
 						}
