@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.5
+ * @version 3.1.6
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.5",
+            "version": "3.1.6",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -94,6 +94,7 @@ module.exports = (() => {
 					"freeStickersCompat": false,
                     "clientsidePfp": false,
 					"emojiBypassForValidEmoji": true,
+					"PNGemote" : true,
                     "pfpUrl": "https://i.imgur.com/N6X1vzT.gif",
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
@@ -108,7 +109,8 @@ module.exports = (() => {
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
                             new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
-							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value)
+							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
+							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
                                 new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
@@ -137,6 +139,9 @@ module.exports = (() => {
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
+							if (this.settings.PNGemote){
+								emoji.url = emoji.url.replace('.webp', '.png')
+								}
 							if (emoji.url.startsWith("/assets/")) return;
 							if(this.settings.emojiBypassForValidEmoji){ //a bit messy but it works
 								DiscordModules.UserStore.getCurrentUser().premiumType = 0
@@ -190,6 +195,9 @@ module.exports = (() => {
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
+								if (this.settings.PNGemote){
+								emoji.url = emoji.url.replace('.webp', '.png')
+								}
 								if (emoji.url.startsWith("/assets/")) return;
 								if(this.settings.emojiBypassForValidEmoji){ //messy
 								DiscordModules.UserStore.getCurrentUser().premiumType = 0
