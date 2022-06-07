@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.7
+ * @version 3.1.8
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.7",
+            "version": "3.1.8",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -111,7 +111,7 @@ module.exports = (() => {
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. WORK IN PROGRESS (BUGGY)!!!!! (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
+							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
                                 new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
@@ -130,7 +130,7 @@ module.exports = (() => {
                 }
 				
 				
-				async UploadEmote(url, channelIdLmao, msg, emoji) {
+				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
 					const Uploader = BdApi.findModuleByProps('instantBatchUpload');
 					var extension = ".gif";
 					if(!emoji.animated){
@@ -141,33 +141,78 @@ module.exports = (() => {
 					}
 					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
 					if(file == undefined){alert("No file!! Contact Riolubruh#0301 cause he fucked up!")}
-					Uploader.upload({
+					
+					if(runs > 1){
+						await Uploader.upload({
 						channelId: channelIdLmao,
 						file: new File([file], emoji.name),
 						draftType: 0,
-						message: { content: "", invalidEmojis: [], tts: false, channel_id: channelIdLmao },
+						message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
+						hasSpoiler: false,
+						filename: emoji.name + extension
+					});
+					return
+					}
+					
+					await Uploader.upload({
+						channelId: channelIdLmao,
+						file: new File([file], emoji.name),
+						draftType: 0,
+						message: { content: msg.content, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
 						hasSpoiler: false,
 						filename: emoji.name + extension
 					});
 				}
 				
+				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
+					if(this.settings.emojiBypassForValidEmoji){
+						DiscordModules.UserStore.getCurrentUser().premiumType = 0
+						if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
+							if(this.settings.freeStickersCompat){
+							DiscordModules.UserStore.getCurrentUser().premiumType = 1
+						}
+						if(!this.settings.freeStickersCompat){
+							DiscordModules.UserStore.getCurrentUser().premiumType = 2
+						}
+						return true
+						}
+						if(this.settings.freeStickersCompat){
+							DiscordModules.UserStore.getCurrentUser().premiumType = 1
+						}
+						if(!this.settings.freeStickersCompat){
+							DiscordModules.UserStore.getCurrentUser().premiumType = 2
+						}
+						if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)){
+							return true
+						}
+					}
+				}
+				
+				
                 saveAndUpdate() {
                     PluginUtilities.saveSettings(this.getName(), this.settings)
                     if (this.settings.emojiBypass) {
 						if(this.settings.uploadEmotes){
-							Patcher.unpatchAll(DiscordModules.MessageActions)
-								Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => { //needs to be replaced with an Instead to fix the empty message issue, but I'm too tired at time of writing to rewrite this part to work correctly so be patient please
+								BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
+								BdApi.Patcher.instead("NitroPerks",DiscordModules.MessageActions, "sendMessage", (_, [, msg], send) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
+								var runs = 0;
 								msg.validNonShortcutEmojis.forEach(emoji => {
 								if (emoji.url.startsWith("/assets/")) return;
 								if (this.settings.PNGemote){
-										emoji.url = emoji.url.replace('.webp', '.png')
+										emoji.url = emoji.url.replace('.webp', '.png');
 								}
-								this.UploadEmote(emoji.url, currentChannelId, msg, emoji);
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "")
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
+								runs++;
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
+								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
 								});
+								if((msg.content != undefined || msg.content != "") && runs == 0){
+									send(currentChannelId, msg);
+									return
+								}
+							return	
 							});
-							return
 							}
 						if(this.settings.ghostMode && !this.settings.uploadEmotes) { //If Ghost Mode is enabled do this shit
 							Patcher.unpatchAll(DiscordModules.MessageActions)
@@ -179,30 +224,9 @@ module.exports = (() => {
 								emoji.url = emoji.url.replace('.webp', '.png')
 								}
 							if (emoji.url.startsWith("/assets/")) return;
-							if(this.settings.emojiBypassForValidEmoji){ //a bit messy but it works
-								DiscordModules.UserStore.getCurrentUser().premiumType = 0
-								if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
-									if(this.settings.freeStickersCompat){
-									DiscordModules.UserStore.getCurrentUser().premiumType = 1
-								}
-								if(!this.settings.freeStickersCompat){
-									DiscordModules.UserStore.getCurrentUser().premiumType = 2
-								}
-								return
-								}
-								if(this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 1
-								}
-								if(!this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 2
-								}
-								if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)){
-									return
-								}
-							}
+							if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
-									//console.log("Message empty, no ghost mode needed");
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)
 									return;
 								}
@@ -235,28 +259,7 @@ module.exports = (() => {
 								emoji.url = emoji.url.replace('.webp', '.png')
 								}
 								if (emoji.url.startsWith("/assets/")) return;
-								if(this.settings.emojiBypassForValidEmoji){ //messy
-								DiscordModules.UserStore.getCurrentUser().premiumType = 0
-								if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
-									if(this.settings.freeStickersCompat){
-									DiscordModules.UserStore.getCurrentUser().premiumType = 1
-									}
-								if(!this.settings.freeStickersCompat){
-									DiscordModules.UserStore.getCurrentUser().premiumType = 2
-									}
-								return
-								}
-								if(this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 1
-								}
-								if(!this.settings.freeStickersCompat){
-								DiscordModules.UserStore.getCurrentUser().premiumType = 2
-								}
-								if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)){
-									console.log("Emoji from this server and not animated")
-									return
-								}
-							}
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
 								if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))){//Duplicate emoji handling (second duplicate)
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 									return
@@ -302,6 +305,7 @@ module.exports = (() => {
                 onStop() {
 					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
                     Patcher.unpatchAll();
+					BdApi.Patcher.unpatchAll("NitroPerks");
                 }
             };
         };
