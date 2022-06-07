@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.8
+ * @version 3.1.9
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.8",
+            "version": "3.1.9",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -204,6 +204,7 @@ module.exports = (() => {
 								}
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
 								runs++;
+								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
 								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
 								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
 								});
@@ -215,6 +216,7 @@ module.exports = (() => {
 							});
 							}
 						if(this.settings.ghostMode && !this.settings.uploadEmotes) { //If Ghost Mode is enabled do this shit
+							BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
 							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Ghost Mode enabled.")
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
@@ -250,6 +252,7 @@ module.exports = (() => {
 						}
 						else
 						if(!this.settings.ghostMode && !this.settings.uploadEmotes) { //If ghost mode is disabled do shitty original method
+						BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
 						Patcher.unpatchAll(DiscordModules.MessageActions)
 						//console.log("Classic Method (No Ghost)")
                         Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
@@ -283,6 +286,7 @@ module.exports = (() => {
                     }
 					}
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
+					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
 				
 					if(this.settings.freeStickersCompat){
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
