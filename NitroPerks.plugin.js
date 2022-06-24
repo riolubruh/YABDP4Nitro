@@ -1,7 +1,7 @@
 /**
  * @name NitroPerks
  * @author Riolubruh
- * @version 3.1.9
+ * @version 3.1.10
  * @source https://github.com/riolubruh/NitroPerks
  * @updateUrl https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js
  */
@@ -37,7 +37,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "3.1.9",
+            "version": "3.1.10",
             "description": "Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)",
             "github": "https://github.com/riolubruh/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/NitroPerks/main/NitroPerks.plugin.js"
@@ -111,7 +111,7 @@ module.exports = (() => {
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
+							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
 						),
                             new Settings.SettingGroup("Profile Picture").append(...[
                                 new Settings.Switch("Clientsided Profile Picture", "**Has been removed; try EditUsers plugin.** (Enable or disable clientsided profile pictures.)", this.settings.clientsidePfp, value => this.settings.clientsidePfp = value),
@@ -140,7 +140,6 @@ module.exports = (() => {
 						extension = ".webp";
 					}
 					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
-					if(file == undefined){alert("No file!! Contact Riolubruh#0301 cause he fucked up!")}
 					
 					if(runs > 1){
 						await Uploader.upload({
@@ -166,16 +165,17 @@ module.exports = (() => {
 				
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
 					if(this.settings.emojiBypassForValidEmoji){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 0
-						if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){
+						/*DiscordModules.UserStore.getCurrentUser().premiumType = 0
+						if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){ //This part seemingly just broke for some reason, likely a Discord update.
 							if(this.settings.freeStickersCompat){
 							DiscordModules.UserStore.getCurrentUser().premiumType = 1
 						}
 						if(!this.settings.freeStickersCompat){
 							DiscordModules.UserStore.getCurrentUser().premiumType = 2
 						}
+						console.log("NOTFilteredOrLocked");
 						return true
-						}
+						}*/
 						if(this.settings.freeStickersCompat){
 							DiscordModules.UserStore.getCurrentUser().premiumType = 1
 						}
@@ -188,45 +188,53 @@ module.exports = (() => {
 					}
 				}
 				
-				
                 saveAndUpdate() {
                     PluginUtilities.saveSettings(this.getName(), this.settings)
                     if (this.settings.emojiBypass) {
 						if(this.settings.uploadEmotes){
-								BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
+								BdApi.Patcher.instead("NitroPerks",BdApi.findModuleByProps('deletePendingReply'),'deletePendingReply', (_, args, original) => this.onDeletePendingReply(args, original));
+								Patcher.unpatchAll(DiscordModules.MessageActions);
+								BdApi.Patcher.unpatchAll("NitroPerks", DiscordModules.MessageActions);
 								BdApi.Patcher.instead("NitroPerks",DiscordModules.MessageActions, "sendMessage", (_, [, msg], send) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
 								var runs = 0;
 								msg.validNonShortcutEmojis.forEach(emoji => {
+									console.log(emoji);
 								if (emoji.url.startsWith("/assets/")) return;
 								if (this.settings.PNGemote){
 										emoji.url = emoji.url.replace('.webp', '.png');
 								}
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
 								runs++;
+								this.pendingUpload = true;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
 								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
 								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
+								return
 								});
 								if((msg.content != undefined || msg.content != "") && runs == 0){
 									send(currentChannelId, msg);
-									return
 								}
+							this.pendingUpload = null;
 							return	
 							});
+							return
 							}
 						if(this.settings.ghostMode && !this.settings.uploadEmotes) { //If Ghost Mode is enabled do this shit
-							BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
+							BdApi.Patcher.unpatchAll("NitroPerks", DiscordModules.MessageActions)
 							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Ghost Mode enabled.")
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
+							console.log(emoji);
 							if (this.settings.PNGemote){
 								emoji.url = emoji.url.replace('.webp', '.png')
 								}
 							if (emoji.url.startsWith("/assets/")) return;
-							if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
+							if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+								return
+								}
 								//if no ghost mode required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == ""){
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)
@@ -289,20 +297,21 @@ module.exports = (() => {
 					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("NitroPerks",DiscordModules.MessageActions)
 				
 					if(this.settings.freeStickersCompat){
-					DiscordModules.UserStore.getCurrentUser().premiumType = 1; //new DiscordModules call
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
 					}
 					if(!this.settings.freeStickersCompat){
-				   DiscordModules.UserStore.getCurrentUser().premiumType = 2; //new DiscordModules call
+				   DiscordModules.UserStore.getCurrentUser().premiumType = 2;
 					}
 				}
                 onStart() {
-					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType; //new DiscordModules call
+					this.pendingUpload = null;
+					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate()
 					if(this.settings.freeStickersCompat){
-					DiscordModules.UserStore.getCurrentUser().premiumType = 1 //new DiscordModules call
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1
 					}
 					if(!this.settings.freeStickersCompat){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 2 //new DiscordModules call
+						DiscordModules.UserStore.getCurrentUser().premiumType = 2
 					}
                 }
 
