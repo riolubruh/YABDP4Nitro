@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.1
+ * @version 4.0.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.1",
+            "version": "4.0.2",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -170,7 +170,13 @@ module.exports = (() => {
 					x.guildPremiumTier = 0
 				}
 				
-				emojiPicker(){
+				emojiPicker(){ //code borrowed from Freemoji
+					const Emojis = BdApi.findModuleByProps(['getDisambiguatedEmojiContext', 'searchWithoutFetchingLatest']);
+					 Patcher.after(Emojis, 'searchWithoutFetchingLatest', (_, args, ret) => {
+                            ret.unlocked = ret.unlocked.concat(ret.locked);
+                            ret.locked.length = [];
+                            return ret;
+                        });
 					const EmojiPicker = BdApi.findModuleByProps(['useEmojiSelectHandler']);
 					Patcher.after(EmojiPicker, 'useEmojiSelectHandler', (_, args, ret) => {
                             const { onSelectEmoji, closePopout, selectedChannel } = args[0];
@@ -188,34 +194,7 @@ module.exports = (() => {
 				)};
 				
 				selectEmoji({ emoji, isFinalSelection, onSelectEmoji, closePopout, selectedChannel, disabled }) {
-                        if (disabled) {
-                            const perms = this.hasEmbedPerms(selectedChannel);
-                            if (!perms && this.settings.missingEmbedPerms == 'nothing') return;
-                            if (!perms && this.settings.missingEmbedPerms == 'showDialog') {
-                                BdApi.showConfirmationModal(
-                                    "Missing Image Embed Permissions",
-                                    [`It looks like you are trying to send an Emoji using Freemoji but you dont have the permissions to send embeded images in this channel. You can choose to send it anyway but it will only show as a link.`], {
-                                    confirmText: "Send Anyway",
-                                    cancelText: "Cancel",
-                                    onConfirm: () => {
-                                        if (this.settings.sendDirectly) {
-                                            MessageUtilities.sendMessage(selectedChannel.id, { content: this.getEmojiUrl(emoji) });
-                                        } else {
-                                            onSelectEmoji(emoji, isFinalSelection);
-                                        }
-                                    }
-                                });
-                                return;
-                            }
-                            if (this.settings.sendDirectly) {
-                                MessageUtilities.sendMessage(SelectedChannelStore.getChannelId(), { content: this.getEmojiUrl(emoji) });
-                            } else {
-                                onSelectEmoji(emoji, isFinalSelection);
-                            }
-                        } else {
-                            onSelectEmoji(emoji, isFinalSelection);
-                        }
-
+                        onSelectEmoji(emoji, isFinalSelection);
                         if (isFinalSelection) closePopout();
                     }
 				
@@ -327,7 +306,7 @@ module.exports = (() => {
 				}
                 onStart() {
 					this.saveAndUpdate()
-					console.log(DiscordModules.UserStore.getCurrentUser().premiumType)
+					if(DiscordModules.UserStore.getCurrentUser().premiumType == undefined) DiscordModules.UserStore.getCurrentUser().premiumType = 0
                 }
 
                 onStop() {
