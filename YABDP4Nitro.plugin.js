@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.0
+ * @version 4.0.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.0",
+            "version": "4.0.1",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -91,14 +91,11 @@ module.exports = (() => {
                     "screenSharing": true,
                     "emojiBypass": true,
 					"ghostMode": true,
-                    "clientsidePfp": false,
 					"emojiBypassForValidEmoji": true,
 					"PNGemote" : true,
-                    "pfpUrl": "https://i.imgur.com/N6X1vzT.gif",
 					"uploadEmotes": false,
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
-                originalNitroStatus = 0;
                 getSettingsPanel() {
                     return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
                         new Settings.SettingGroup("Features").append(...[
@@ -174,22 +171,53 @@ module.exports = (() => {
 				}
 				
 				emojiPicker(){
-					const emojiPickerModule = BdApi.findModuleByProps('useEmojiSelectHandler');
-					const original_useEmojiSelectHandler = emojiPickerModule.useEmojiSelectHandler;
-					emojiPickerModule.useEmojiSelectHandler = function(args) {
-					const { onSelectEmoji, closePopout } = args;
-					const originalHandler = original_useEmojiSelectHandler.apply(this, arguments);
-					return function(data, state) {
-						if(state.toggleFavorite)
-						return originalHandler.apply(this, arguments);
-						const emoji = data.emoji;
-						if(emoji != null) {
-							onSelectEmoji(emoji, state.isFinalSelection);
-							if(state.isFinalSelection) closePopout();
-						}
-					};
-					}
-				}
+					const EmojiPicker = BdApi.findModuleByProps(['useEmojiSelectHandler']);
+					Patcher.after(EmojiPicker, 'useEmojiSelectHandler', (_, args, ret) => {
+                            const { onSelectEmoji, closePopout, selectedChannel } = args[0];
+                            const self = this;
+
+                            return function (data, state) {
+                                if (state.toggleFavorite) return ret.apply(this, arguments);
+
+                                const emoji = data.emoji;
+                                const isFinalSelection = state.isFinalSelection;
+								
+                                   self.selectEmoji({ emoji, isFinalSelection, onSelectEmoji, closePopout, selectedChannel, disabled: false });
+                                }
+                            }
+				)};
+				
+				selectEmoji({ emoji, isFinalSelection, onSelectEmoji, closePopout, selectedChannel, disabled }) {
+                        if (disabled) {
+                            const perms = this.hasEmbedPerms(selectedChannel);
+                            if (!perms && this.settings.missingEmbedPerms == 'nothing') return;
+                            if (!perms && this.settings.missingEmbedPerms == 'showDialog') {
+                                BdApi.showConfirmationModal(
+                                    "Missing Image Embed Permissions",
+                                    [`It looks like you are trying to send an Emoji using Freemoji but you dont have the permissions to send embeded images in this channel. You can choose to send it anyway but it will only show as a link.`], {
+                                    confirmText: "Send Anyway",
+                                    cancelText: "Cancel",
+                                    onConfirm: () => {
+                                        if (this.settings.sendDirectly) {
+                                            MessageUtilities.sendMessage(selectedChannel.id, { content: this.getEmojiUrl(emoji) });
+                                        } else {
+                                            onSelectEmoji(emoji, isFinalSelection);
+                                        }
+                                    }
+                                });
+                                return;
+                            }
+                            if (this.settings.sendDirectly) {
+                                MessageUtilities.sendMessage(SelectedChannelStore.getChannelId(), { content: this.getEmojiUrl(emoji) });
+                            } else {
+                                onSelectEmoji(emoji, isFinalSelection);
+                            }
+                        } else {
+                            onSelectEmoji(emoji, isFinalSelection);
+                        }
+
+                        if (isFinalSelection) closePopout();
+                    }
 				
                 saveAndUpdate() {
                     PluginUtilities.saveSettings(this.getName(), this.settings)
@@ -197,7 +225,6 @@ module.exports = (() => {
                     if (this.settings.emojiBypass) {
 						this.emojiPicker();
 						if(this.settings.uploadEmotes){
-								BdApi.Patcher.instead("YABDP4Nitro",BdApi.findModuleByProps('deletePendingReply'),'deletePendingReply', (_, args, original) => this.onDeletePendingReply(args, original));
 								Patcher.unpatchAll(DiscordModules.MessageActions);
 								BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions);
 								BdApi.Patcher.instead("YABDP4Nitro",DiscordModules.MessageActions, "sendMessage", (_, [, msg], send) => {
@@ -210,7 +237,6 @@ module.exports = (() => {
 								}
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){return}
 								runs++;
-								this.pendingUpload = true;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
 								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
 								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
@@ -219,7 +245,6 @@ module.exports = (() => {
 								if((msg.content != undefined || msg.content != "") && runs == 0){
 									send(currentChannelId, msg);
 								}
-							this.pendingUpload = null;
 							return	
 							});
 							return
@@ -231,6 +256,7 @@ module.exports = (() => {
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
+								
 							if (this.settings.PNGemote){
 								emoji.url = emoji.url.replace('.webp', '.png')
 								}
@@ -297,29 +323,14 @@ module.exports = (() => {
                     }
 					}
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
-					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro",DiscordModules.MessageActions)
-				
-					if(this.settings.freeStickersCompat){
-					//DiscordModules.UserStore.getCurrentUser().premiumType = 1;
-					}
-					if(!this.settings.freeStickersCompat){
-				   //DiscordModules.UserStore.getCurrentUser().premiumType = 2;
-					}
+					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
 				}
-                async onStart() {
-					this.pendingUpload = null;
-					this.originalNitroStatus = //DiscordModules.UserStore.getCurrentUser().premiumType;
+                onStart() {
 					this.saveAndUpdate()
-					if(this.settings.freeStickersCompat){
-					//DiscordModules.UserStore.getCurrentUser().premiumType = 1
-					}
-					if(!this.settings.freeStickersCompat){
-						//DiscordModules.UserStore.getCurrentUser().premiumType = 2
-					}
+					console.log(DiscordModules.UserStore.getCurrentUser().premiumType)
                 }
 
                 onStop() {
-					//DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
                     Patcher.unpatchAll();
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
                 }
