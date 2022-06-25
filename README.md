@@ -1,5 +1,4 @@
-# NitroPerks
-**Not the same as the original NitroPerks plugin!** It is based on it, but the plugin has been almost entirely rewritten!
+# YABDP4Nitro
 
 *Probably* the best 'Nitro plugin' out there.
 
