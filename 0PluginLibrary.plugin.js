@@ -1,6 +1,6 @@
 /**
  * @name ZeresPluginLibrary
- * @version 2.0.2
+ * @version 2.0.3
  * @authorLink https://twitter.com/IAmZerebos
  * @website https://github.com/rauenzi/BDPluginLibrary
  * @source https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js
@@ -92,13 +92,13 @@ module.exports = {
             github_username: "rauenzi",
             twitter_username: "IAmZerebos"
         }],
-        version: "2.0.2",
+        version: "2.0.3",
         description: "Gives other plugins utility functions and the ability to emulate v2.",
         github: "https://github.com/rauenzi/BDPluginLibrary",
         github_raw: "https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js"
     },
     changelog: [
-        {title: "What's Fixed?", type: "improved", items: ["Fixed an issue causing crashes.", "Fixed an issue where popouts got placed incorrectly.", "File picker does not overlay the entire settings panel", "Fixed an issue with color picker."]},
+        {title: "What's Fixed?", type: "improved", items: ["Fixed crashing when trying to show changelogs."]},
     ],
     main: "plugin.js"
 };
@@ -513,7 +513,7 @@ __webpack_require__.r(__webpack_exports__);
 
     /* Misc */
     get ExternalLink() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByRegex(/trusted/);},
-    get TextElement() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("Text");},
+    get TextElement() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("LegacyText") || _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("Colors", "Sizes");},
     get Anchor() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("Anchor");},
     get Flex() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByDisplayName("Flex");},
     get FlexChild() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("Child");},
@@ -4813,6 +4813,7 @@ class Modals {
      */
     static showChangelogModal(title, version, changelog, footer) {
         const TextElement = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules.TextElement;
+        if (!TextElement) return modules__WEBPACK_IMPORTED_MODULE_0__.Logger.warn("Modals", "Unable to show changelog modal--TextElement not found.");
         const changelogItems = [];
         for (let c = 0; c < changelog.length; c++) {
             const entry = changelog[c];
