@@ -27,5 +27,5 @@ Hide the links to any emoji you send by automatically using a ghost message! It 
 ![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
 
 
-## Original README
-`Unlock all screensharing modes, and use cross-server emotes & gif emotes, Discord wide! (You CANNOT upload 100MB files though. :/)`
+## TLDR README
+`Unlock all screensharing modes, and use cross-server emotes & GIF emotes!`
