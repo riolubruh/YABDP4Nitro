@@ -3,7 +3,7 @@
 
 *Probably* the best 'Nitro plugin' out there.
 
-**Compatible with FreeStickers!**
+**Compatible with [FreeStickers by An0](https://github.com/An00nymushun/DiscordFreeStickers)**
 
 # Features
 
