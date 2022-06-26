@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.2
+ * @version 4.0.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.2",
+            "version": "4.0.3",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -178,6 +178,7 @@ module.exports = (() => {
                             return ret;
                         });
 					const EmojiPicker = BdApi.findModuleByProps(['useEmojiSelectHandler']);
+					//console.log(EmojiPicker);
 					Patcher.after(EmojiPicker, 'useEmojiSelectHandler', (_, args, ret) => {
                             const { onSelectEmoji, closePopout, selectedChannel } = args[0];
                             const self = this;
@@ -235,11 +236,10 @@ module.exports = (() => {
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
                             msg.validNonShortcutEmojis.forEach(emoji => {
-								
+							if (emoji.url.startsWith("/assets/")) return;
 							if (this.settings.PNGemote){
 								emoji.url = emoji.url.replace('.webp', '.png')
 								}
-							if (emoji.url.startsWith("/assets/")) return;
 							if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 								return
 								}
@@ -305,11 +305,13 @@ module.exports = (() => {
 					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
 				}
                 onStart() {
-					this.saveAndUpdate()
-					if(DiscordModules.UserStore.getCurrentUser().premiumType == undefined) DiscordModules.UserStore.getCurrentUser().premiumType = 0
+					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
+					this.saveAndUpdate();
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
                 }
 
                 onStop() {
+					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
                     Patcher.unpatchAll();
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
                 }
