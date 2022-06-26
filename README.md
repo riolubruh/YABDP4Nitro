@@ -14,7 +14,7 @@
 
 ## Emoji Bypass
 
-Use emoji from any of your servers by linking them!
+Use emoji from any of your servers by linking or uploading them!
 
 #### Ghost Mode
 
