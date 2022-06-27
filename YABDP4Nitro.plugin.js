@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.3
+ * @version 4.0.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.3",
+            "version": "4.0.4",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -94,16 +94,20 @@ module.exports = (() => {
 					"emojiBypassForValidEmoji": true,
 					"PNGemote" : true,
 					"uploadEmotes": false,
+					"CustomFPSEnabled": false,
+					"CustomFPS": 60
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
                 getSettingsPanel() {
                     return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
                         new Settings.SettingGroup("Features").append(...[
-                            new Settings.Switch("High Quality Screensharing", "1080p/source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value)
+                            new Settings.Switch("High Quality Screensharing", "1080p/source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
+							new Settings.Switch("Custom Screenshare FPS", "Choose your own screen share FPS!", this.settings.CustomFPSEnabled, value => this.settings.CustomFPSEnabled = value),
+							new Settings.Slider("FPS", "", 60, 420, this.settings.CustomFPS, value=>this.settings.CustomFPS = value, {markers:[60,90,120,150,180,210,240,270,300,330,360,390,420], stickToMarkers:true})
                         ]),
                         new Settings.SettingGroup("Emojis").append(
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-                            new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}), //made slider wider and have more options
+                            new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size=>this.settings.emojiSize = size, {markers:[16,32,48,64,80,96,112,128], stickToMarkers:true}),
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
@@ -146,6 +150,7 @@ module.exports = (() => {
 					});
 				}
 				
+				
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
 					if(this.settings.emojiBypassForValidEmoji){
 						/*
@@ -159,15 +164,47 @@ module.exports = (() => {
 					}
 				}
 				
-				async StreamFPSButtons() {
-					const StreamFPSButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					StreamFPSButtons.ApplicationStreamSettingRequirements.forEach(this.patchButtons);
+				StreamFPSButtons() {
+					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					StreamButtons.ApplicationStreamResolutions
+					if(this.settings.CustomFPSEnabled) this.customFPS();
+					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.patchFPSButtons);
+					//console.log(StreamButtons);
 				}
 				
-				patchButtons(x){
+				customFPS() {
+					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					StreamButtons.ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
+					StreamButtons.ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
+					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
+					StreamButtons.ApplicationStreamFPSButtons[2].label = this.settings.CustomFPS;
+					StreamButtons.ApplicationStreamFPSButtonsWithSuffixLabel[2].value = this.settings.CustomFPS;
+					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.replace60FPSRequirements);
+					console.log(StreamButtons);
+				}
+				
+				replace60FPSRequirements(x){
+					if(x.fps >= 60) x.fps = BdApi.findModuleByProps("ApplicationStreamFPSButtons").ApplicationStreamFPS.FPS_60;
+				}
+				
+				restoreFPS() {
+					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					StreamButtons.ApplicationStreamFPS.FPS_60 = 60;
+					StreamButtons.ApplicationStreamFPSButtons[2].value = 60;
+					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
+					StreamButtons.ApplicationStreamFPSButtons[2].label = 60;
+					StreamButtons.ApplicationStreamFPSButtonsWithSuffixLabel[2].value = 60;
+					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.restore60FPSRequirements);
+				}
+				
+				restore60FPSRequirements(x){
+					if(x.fps >= 60) x.fps = 60;
+				}
+				
+				patchFPSButtons(x){
 					//console.log(x);
 					x.userPremiumType = 0;
-					x.guildPremiumTier = 0
+					x.guildPremiumTier = 0;
 				}
 				
 				emojiPicker(){ //code borrowed from Freemoji
@@ -304,7 +341,8 @@ module.exports = (() => {
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
 					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
 				}
-                onStart() {
+			
+                onStart() {	
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
@@ -314,6 +352,7 @@ module.exports = (() => {
 					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
                     Patcher.unpatchAll();
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
+					this.restoreFPS();
                 }
             };
         };
