@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.4
+ * @version 4.0.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.4",
+            "version": "4.0.5",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -95,7 +95,9 @@ module.exports = (() => {
 					"PNGemote" : true,
 					"uploadEmotes": false,
 					"CustomFPSEnabled": false,
-					"CustomFPS": 60
+					"CustomFPS": 60,
+					"ResolutionEnabled": false,
+					"CustomResolution": 0
                 };
                 settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
                 getSettingsPanel() {
@@ -103,7 +105,17 @@ module.exports = (() => {
                         new Settings.SettingGroup("Features").append(...[
                             new Settings.Switch("High Quality Screensharing", "1080p/source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
 							new Settings.Switch("Custom Screenshare FPS", "Choose your own screen share FPS!", this.settings.CustomFPSEnabled, value => this.settings.CustomFPSEnabled = value),
-							new Settings.Slider("FPS", "", 60, 420, this.settings.CustomFPS, value=>this.settings.CustomFPS = value, {markers:[60,90,120,150,180,210,240,270,300,330,360,390,420], stickToMarkers:true})
+							new Settings.Textbox("FPS", "", this.settings.CustomFPS, 
+							value => {
+								value = parseInt(value, 10);
+								this.settings.CustomFPS = value;
+							}),
+							new Settings.Switch("Custom Screenshare Resolution", "Choose your own screen share resolution!", this.settings.ResolutionEnabled, value => this.settings.ResolutionEnabled = value),
+							new Settings.Textbox("Resolution", "The custom resolution you want (in pixels)", this.settings.CustomResolution, 
+							value => {
+								value = parseInt(value, 10);
+								this.settings.CustomResolution = value;
+							})
                         ]),
                         new Settings.SettingGroup("Emojis").append(
                             new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
@@ -180,11 +192,11 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamFPSButtons[2].label = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtonsWithSuffixLabel[2].value = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.replace60FPSRequirements);
-					console.log(StreamButtons);
+					//console.log(StreamButtons);
 				}
 				
 				replace60FPSRequirements(x){
-					if(x.fps >= 60) x.fps = BdApi.findModuleByProps("ApplicationStreamFPSButtons").ApplicationStreamFPS.FPS_60;
+					if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.findModuleByProps("ApplicationStreamFPSButtons").ApplicationStreamFPS.FPS_60;
 				}
 				
 				restoreFPS() {
@@ -198,7 +210,7 @@ module.exports = (() => {
 				}
 				
 				restore60FPSRequirements(x){
-					if(x.fps >= 60) x.fps = 60;
+					if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
 				}
 				
 				patchFPSButtons(x){
@@ -206,6 +218,41 @@ module.exports = (() => {
 					x.userPremiumType = 0;
 					x.guildPremiumTier = 0;
 				}
+				
+				customResolution(){
+					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					//console.log(StreamButtons);
+					console.log(StreamButtons);
+					
+					
+					//ResolutionButtons
+					StreamButtons.ApplicationStreamResolutionButtons[3].value = this.settings.CustomResolution;
+					delete StreamButtons.ApplicationStreamResolutionButtons[3].label;
+					StreamButtons.ApplicationStreamResolutionButtons[3].label = this.settings.CustomResolution;
+					if(this.settings.CustomResolution == 0) StreamButtons.ApplicationStreamResolutionButtons[3].label = "Source";
+					
+					//ResolutionButtonsExtended
+					StreamButtons.ApplicationStreamResolutionButtonsExtended[2].value = this.settings.CustomResolution;
+					delete StreamButtons.ApplicationStreamResolutionButtonsExtended[2].label;
+					StreamButtons.ApplicationStreamResolutionButtonsExtended[2].label = this.settings.CustomResolution;
+					if(this.settings.CustomResolution == 0) StreamButtons.ApplicationStreamResolutionButtonsExtended[2].label = "Source";
+					
+					//ResolutionButtonsWithSuffixLabel
+					StreamButtons.ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = this.settings.CustomResolution;
+					delete StreamButtons.ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
+					StreamButtons.ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = (this.settings.CustomResolution + 'p');
+					if(this.settings.CustomResolution == 0) StreamButtons.ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = "Source";
+					
+					//ApplicationStreamResolutions
+					StreamButtons.ApplicationStreamResolutions.RESOLUTION_SOURCE = this.settings.CustomResolution;
+					
+					//SettingRequirements
+					StreamButtons.ApplicationStreamSettingRequirements[0].resolution = this.settings.CustomResolution;
+					StreamButtons.ApplicationStreamSettingRequirements[1].resolution = this.settings.CustomResolution;
+					StreamButtons.ApplicationStreamSettingRequirements[2].resolution = this.settings.CustomResolution;
+					StreamButtons.ApplicationStreamSettingRequirements[3].resolution = this.settings.CustomResolution;
+				}
+				
 				
 				emojiPicker(){ //code borrowed from Freemoji
 					const Emojis = BdApi.findModuleByProps(['getDisambiguatedEmojiContext', 'searchWithoutFetchingLatest']);
@@ -238,7 +285,6 @@ module.exports = (() => {
 				
                 saveAndUpdate() {
                     PluginUtilities.saveSettings(this.getName(), this.settings)
-					if(this.settings.screenSharing) this.StreamFPSButtons();
                     if (this.settings.emojiBypass) {
 						this.emojiPicker();
 						if(this.settings.uploadEmotes){
@@ -340,9 +386,26 @@ module.exports = (() => {
 					}
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
 					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
+						
+					if((this.settings.CustomResolution / 0) != Infinity || this.settings.CustomResolution == undefined || this.settings.CustomResolution < 0) this.settings.CustomResolution = 0;
+					if(((this.settings.CustomFPS / 0) != Infinity || this.settings.CustomFPS == undefined || this.settings.CustomFPS <= -1) && this.settings.CustomFPS != 0) this.settings.CustomFPS = 60;
+					if(this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
+					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
+					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
+					
+					if(this.settings.screenSharing) this.StreamFPSButtons();
+					if(this.settings.ResolutionEnabled) this.customResolution();
+					if(!this.settings.ResolutionEnabled){
+						this.settings.CustomResolution = 0;
+						this.customResolution();
+					}
+					if(!this.settings.CustomFPSEnabled){
+						this.restoreFPS();
+					}
 				}
 			
                 onStart() {	
+					//console.log(Settings);
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
