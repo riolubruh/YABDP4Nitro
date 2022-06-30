@@ -12,6 +12,13 @@
 
 ![Screensharing Options Menu](https://user-images.githubusercontent.com/54255074/166120652-b7cc6a10-ea2e-4ad8-975f-6c8d4aabdc5e.png)
 
+## Fully Customizable Screensharing Quality and FPS
+![Choosing Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584683-efe8eac3-8c6c-4100-9b98-0b2592fbb86f.png)
+
+![Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584759-847ea486-e2ac-48dd-987a-baef9ec1e179.png)
+
+![Another Image](https://user-images.githubusercontent.com/54255074/176585007-9206a8eb-8d60-4263-a6ea-048a89879c10.png)
+
 ## Emoji Bypass
 
 Use emoji from any of your servers by linking or uploading them!
