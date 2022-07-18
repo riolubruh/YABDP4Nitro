@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.5
+ * @version 4.0.6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
                 "discord_id": "359063827091816448",
                 "github_username": "riolubruh"
             }],
-            "version": "4.0.5",
+            "version": "4.0.6",
             "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
             "github": "https://github.com/riolubruh/YABDP4Nitro",
             "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -134,10 +134,9 @@ module.exports = (() => {
 					var extension = ".gif";
 					if(!emoji.animated){
 						extension = ".png";
-					}
 					if(!this.settings.PNGemote){
 						extension = ".webp";
-					}
+					}}
 					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
 					
 					if(runs > 1){
@@ -181,18 +180,17 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamResolutions
 					if(this.settings.CustomFPSEnabled) this.customFPS();
 					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.patchFPSButtons);
-					//console.log(StreamButtons);
 				}
 				
 				customFPS() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					console.log(StreamButtons);
 					StreamButtons.ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
 					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
 					StreamButtons.ApplicationStreamFPSButtons[2].label = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtonsWithSuffixLabel[2].value = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamSettingRequirements.forEach(this.replace60FPSRequirements);
-					//console.log(StreamButtons);
 				}
 				
 				replace60FPSRequirements(x){
@@ -215,16 +213,12 @@ module.exports = (() => {
 				
 				patchFPSButtons(x){
 					//console.log(x);
-					x.userPremiumType = 0;
-					x.guildPremiumTier = 0;
+					x.userPremiumType = undefined;
+					x.guildPremiumTier = undefined;
 				}
 				
 				customResolution(){
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					//console.log(StreamButtons);
-					console.log(StreamButtons);
-					
-					
 					//ResolutionButtons
 					StreamButtons.ApplicationStreamResolutionButtons[3].value = this.settings.CustomResolution;
 					delete StreamButtons.ApplicationStreamResolutionButtons[3].label;
@@ -251,6 +245,7 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamSettingRequirements[1].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[2].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[3].resolution = this.settings.CustomResolution;
+					console.log(StreamButtons);
 				}
 				
 				
@@ -386,15 +381,19 @@ module.exports = (() => {
 					}
                     if(!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
 					if(!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
-						
+					
+					//Stupid Settings Prevention (TM) (Copyright 2069 Riolubruh)
 					if((this.settings.CustomResolution / 0) != Infinity || this.settings.CustomResolution == undefined || this.settings.CustomResolution < 0) this.settings.CustomResolution = 0;
 					if(((this.settings.CustomFPS / 0) != Infinity || this.settings.CustomFPS == undefined || this.settings.CustomFPS <= -1) && this.settings.CustomFPS != 0) this.settings.CustomFPS = 60;
 					if(this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
 					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
 					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
+					//Apply screen share options
 					if(this.settings.screenSharing) this.StreamFPSButtons();
 					if(this.settings.ResolutionEnabled) this.customResolution();
+					
+					//Restore screen share options to default
 					if(!this.settings.ResolutionEnabled){
 						this.settings.CustomResolution = 0;
 						this.customResolution();
@@ -405,7 +404,6 @@ module.exports = (() => {
 				}
 			
                 onStart() {	
-					//console.log(Settings);
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
