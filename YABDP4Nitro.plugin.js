@@ -184,7 +184,7 @@ module.exports = (() => {
 				
 				customFPS() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					console.log(StreamButtons);
+					//console.log(StreamButtons);
 					StreamButtons.ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
 					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
@@ -245,7 +245,7 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamSettingRequirements[1].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[2].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[3].resolution = this.settings.CustomResolution;
-					console.log(StreamButtons);
+					//console.log(StreamButtons);
 				}
 				
 				
