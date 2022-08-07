@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.8
+ * @version 4.0.9
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.0.8",
+			"version": "4.0.9",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -144,7 +144,7 @@ module.exports = (() => {
 						channelId: channelIdLmao,
 						file: new File([file], emoji.name),
 						draftType: 0,
-						message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
+						message: { content: msg[1].content, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
 						hasSpoiler: false,
 						filename: emoji.name + extension
 					});
