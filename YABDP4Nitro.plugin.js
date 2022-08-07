@@ -173,7 +173,6 @@ module.exports = (() => {
 
 				customFPS() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					console.log(StreamButtons);
 					StreamButtons.ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
 					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
