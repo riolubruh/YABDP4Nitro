@@ -139,7 +139,19 @@ module.exports = (() => {
 						}
 					}
 					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
-
+					
+					if(runs > 1){
+						await Uploader.upload({
+						channelId: channelIdLmao,
+						file: new File([file], emoji.name),
+						draftType: 0,
+						message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
+						hasSpoiler: false,
+						filename: emoji.name + extension
+					});
+					return
+					}
+					
 					await Uploader.upload({
 						channelId: channelIdLmao,
 						file: new File([file], emoji.name),
