@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.7
+ * @version 4.0.8
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.0.7",
+			"version": "4.0.8",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -173,7 +173,7 @@ module.exports = (() => {
 
 				customFPS() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					//console.log(StreamButtons);
+					console.log(StreamButtons);
 					StreamButtons.ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
 					StreamButtons.ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
 					delete StreamButtons.ApplicationStreamFPSButtons[2].label;
@@ -262,7 +262,6 @@ module.exports = (() => {
 								}
 								return
 							});
-							return
 						}
 						//If Ghost Mode is enabled do this shit
 						if (this.settings.ghostMode && !this.settings.uploadEmotes) {
@@ -360,25 +359,11 @@ module.exports = (() => {
 						this.restoreFPS();
 					}
 				}
-
-				permissionsModule(){
-					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					Patcher.instead(permissions, "canUseAnimatedEmojis", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "canUseEmojisEverywhere", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "isPremium", (a,b,c) => {
-						return true;
-					});
-				}
 				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
-					this.permissionsModule();
 				}
 
 				onStop() {
