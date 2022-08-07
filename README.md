@@ -17,7 +17,8 @@
 
 ![Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584759-847ea486-e2ac-48dd-987a-baef9ec1e179.png)
 
-![Another Image](https://user-images.githubusercontent.com/54255074/176585007-9206a8eb-8d60-4263-a6ea-048a89879c10.png)
+![Another Image](https://user-images.githubusercontent.com/54255074/183275106-cbee28e6-d550-4637-ab06-0cb065c81283.png)
+
 
 ## Emoji Bypass
 
