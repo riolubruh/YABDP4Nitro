@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.6
+ * @version 4.0.7
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.0.6",
+			"version": "4.0.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -140,23 +140,11 @@ module.exports = (() => {
 					}
 					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
 
-					if (runs > 1) {
-						await Uploader.upload({
-							channelId: channelIdLmao,
-							file: new File([file], emoji.name),
-							draftType: 0,
-							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
-							hasSpoiler: false,
-							filename: emoji.name + extension
-						});
-						return
-					}
-
 					await Uploader.upload({
 						channelId: channelIdLmao,
 						file: new File([file], emoji.name),
 						draftType: 0,
-						message: { content: msg.content, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
+						message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
 						hasSpoiler: false,
 						filename: emoji.name + extension
 					});
@@ -213,7 +201,6 @@ module.exports = (() => {
 				}
 
 				patchFPSButtons(x) {
-					//console.log(x);
 					x.userPremiumType = undefined;
 					x.guildPremiumTier = undefined;
 				}
@@ -246,51 +233,19 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamSettingRequirements[1].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[2].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[3].resolution = this.settings.CustomResolution;
-					//console.log(StreamButtons);
-				}
-
-
-				emojiPicker() { //code borrowed from Freemoji
-					const Emojis = BdApi.findModuleByProps(['getDisambiguatedEmojiContext', 'searchWithoutFetchingLatest']);
-					Patcher.after(Emojis, 'searchWithoutFetchingLatest', (_, args, ret) => {
-						ret.unlocked = ret.unlocked.concat(ret.locked);
-						ret.locked.length = [];
-						return ret;
-					});
-					const EmojiPicker = BdApi.findModuleByProps(['useEmojiSelectHandler']);
-					//console.log(EmojiPicker);
-					Patcher.after(EmojiPicker, 'useEmojiSelectHandler', (_, args, ret) => {
-						const { onSelectEmoji, closePopout, selectedChannel } = args[0];
-						const self = this;
-
-						return function (data, state) {
-							if (state.toggleFavorite) return ret.apply(this, arguments);
-
-							const emoji = data.emoji;
-							const isFinalSelection = state.isFinalSelection;
-
-							self.selectEmoji({ emoji, isFinalSelection, onSelectEmoji, closePopout, selectedChannel, disabled: false });
-						}
-					}
-					)
-				};
-
-				selectEmoji({ emoji, isFinalSelection, onSelectEmoji, closePopout, selectedChannel, disabled }) {
-					onSelectEmoji(emoji, isFinalSelection);
-					if (isFinalSelection) closePopout();
 				}
 
 				saveAndUpdate() {
 					PluginUtilities.saveSettings(this.getName(), this.settings)
 					if (this.settings.emojiBypass) {
-						this.emojiPicker();
+						//Upload Emotes
 						if (this.settings.uploadEmotes) {
 							Patcher.unpatchAll(DiscordModules.MessageActions);
 							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions);
-							BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg], send) => {
-								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
+							BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
+								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								var runs = 0;
-								msg.validNonShortcutEmojis.forEach(emoji => {
+								b[1].validNonShortcutEmojis.forEach(emoji => {
 									if (emoji.url.startsWith("/assets/")) return;
 									if (this.settings.PNGemote) {
 										emoji.url = emoji.url.replace('.webp', '.png');
@@ -298,21 +253,21 @@ module.exports = (() => {
 									if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) { return }
 									runs++;
 									emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
-									this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
+									b[1].content = b[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
+									this.UploadEmote(emoji.url, currentChannelId, b, emoji, runs);
 									return
 								});
-								if ((msg.content != undefined || msg.content != "") && runs == 0) {
-									send(currentChannelId, msg);
+								if ((b[1].content != undefined || b[1].content != "") && runs == 0) {
+									send(currentChannelId, b[1], _, b[3]);
 								}
 								return
 							});
 							return
 						}
-						if (this.settings.ghostMode && !this.settings.uploadEmotes) { //If Ghost Mode is enabled do this shit
-							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
-							Patcher.unpatchAll(DiscordModules.MessageActions)
-							//console.log("Ghost Mode enabled.")
+						//If Ghost Mode is enabled do this shit
+						if (this.settings.ghostMode && !this.settings.uploadEmotes) {
+							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions);
+							Patcher.unpatchAll(DiscordModules.MessageActions);
 							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
 								msg.validNonShortcutEmojis.forEach(emoji => {
@@ -347,39 +302,40 @@ module.exports = (() => {
 							});
 						}
 						else
-							if (!this.settings.ghostMode && !this.settings.uploadEmotes) { //If ghost mode is disabled do shitty original method
-								BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
-								Patcher.unpatchAll(DiscordModules.MessageActions)
-								//console.log("Classic Method (No Ghost)")
-								Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
-									var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
-									msg.validNonShortcutEmojis.forEach(emoji => {
-										if (this.settings.PNGemote) {
-											emoji.url = emoji.url.replace('.webp', '.png')
-										}
-										if (emoji.url.startsWith("/assets/")) return;
-										if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) { return }
-										if (msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
-											msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
-											return
-										}
-										if (msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
-											msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
-											return
-										}
-										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
-									})
-								});
-								//for editing message also
-								Patcher.before(DiscordModules.MessageActions, "editMessage", (_, obj) => {
-									let msg = obj[2].content
-									if (msg.search(/\d{18}/g) == -1) return;
-									if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
-									msg.match(/<a:.+?:\d{18}>|<:.+?:\d{18}>/g).forEach(idfkAnymore => {
-										obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
-									})
-								});
-							}
+						//Original method
+						if (!this.settings.ghostMode && !this.settings.uploadEmotes) {
+							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
+							Patcher.unpatchAll(DiscordModules.MessageActions)
+							//console.log("Classic Method (No Ghost)")
+							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
+								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId()
+								msg.validNonShortcutEmojis.forEach(emoji => {
+									if (this.settings.PNGemote) {
+										emoji.url = emoji.url.replace('.webp', '.png')
+									}
+									if (emoji.url.startsWith("/assets/")) return;
+									if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) { return }
+									if (msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
+										return
+									}
+									if (msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
+										return
+									}
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)//, console.log(msg.content), console.log("no ghost")
+								})
+							});
+							//editing message (in classic mode)
+							Patcher.before(DiscordModules.MessageActions, "editMessage", (_, obj) => {
+								let msg = obj[2].content
+								if (msg.search(/\d{18}/g) == -1) return;
+								if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
+								msg.match(/<a:.+?:\d{18}>|<:.+?:\d{18}>/g).forEach(idfkAnymore => {
+									obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
+								})
+							});
+						}
 					}
 					if (!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions)
 					if (!this.settings.uploadEmotes) BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
@@ -405,10 +361,24 @@ module.exports = (() => {
 					}
 				}
 
+				permissionsModule(){
+					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					Patcher.instead(permissions, "canUseAnimatedEmojis", (a,b,c) => {
+						return true;
+					});
+					Patcher.instead(permissions, "canUseEmojisEverywhere", (a,b,c) => {
+						return true;
+					});
+					Patcher.instead(permissions, "isPremium", (a,b,c) => {
+						return true;
+					});
+				}
+				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
 					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					this.permissionsModule();
 				}
 
 				onStop() {
