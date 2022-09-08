@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.0.9
+ * @version 4.1.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.0.9",
+			"version": "4.1.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -97,7 +97,12 @@ module.exports = (() => {
 					"CustomFPSEnabled": false,
 					"CustomFPS": 60,
 					"ResolutionEnabled": false,
-					"CustomResolution": 0
+					"CustomResolution": 0,
+					"CustomBitrateEnabled": false,
+					"minBitrate": -1,
+					"maxBitrate": -1,
+					"targetBitrate": -1,
+					"voiceBitrate": 192
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -115,6 +120,27 @@ module.exports = (() => {
 								value => {
 									value = parseInt(value, 10);
 									this.settings.CustomResolution = value;
+								}),
+								new Settings.Switch("Custom Bitrate", "Choose the bitrate for your streams!", this.settings.CustomBitrateEnabled, value => this.settings.CustomBitrateEnabled = value),
+								new Settings.Textbox("Minimum Bitrate", "The minimum bitrate (in kbps).", this.settings.minBitrate,
+								value => {
+									value = parseFloat(value);
+									this.settings.minBitrate = value;
+								}),
+								new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps).", this.settings.maxBitrate,
+								value => {
+									value = parseFloat(value);
+									this.settings.maxBitrate = value;
+								}),
+								new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps).", this.settings.targetBitrate,
+								value => {
+									value = parseFloat(value);
+									this.settings.targetBitrate = value;
+								}),
+								new Settings.Textbox("Voice Audio Bitrate", "I'm not sure if this does anything honestly so it's bonus right now (bitrate in kbps).", this.settings.voiceBitrate,
+								value => {
+									value = parseFloat(value);
+									this.settings.voiceBitrate = value;
 								})
 						]),
 						new Settings.SettingGroup("Emojis").append(
@@ -218,6 +244,7 @@ module.exports = (() => {
 
 				customResolution() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
+					Patcher.before()
 					//ResolutionButtons
 					StreamButtons.ApplicationStreamResolutionButtons[3].value = this.settings.CustomResolution;
 					delete StreamButtons.ApplicationStreamResolutionButtons[3].label;
@@ -247,7 +274,7 @@ module.exports = (() => {
 				}
 
 				saveAndUpdate() {
-					PluginUtilities.saveSettings(this.getName(), this.settings)
+					PluginUtilities.saveSettings(this.getName(), this.settings);
 					if (this.settings.emojiBypass) {
 						//Upload Emotes
 						if (this.settings.uploadEmotes) {
@@ -356,7 +383,7 @@ module.exports = (() => {
 					if (this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
 					if (this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
 					if (this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
-
+					
 					//Apply screen share options
 					if (this.settings.screenSharing) this.StreamFPSButtons();
 					if (this.settings.ResolutionEnabled) this.customResolution();
@@ -368,6 +395,34 @@ module.exports = (() => {
 					}
 					if (!this.settings.CustomFPSEnabled) {
 						this.restoreFPS();
+					}
+					this.videoQualityModule();
+				}
+				
+				videoQualityModule(){ //Custom Bitrates!
+					let getBitrateLimit = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byProps("BaseConnectionEvent"))), first: false});
+					let videoOptionFunctions = getBitrateLimit[0][1].default.prototype;
+					BdApi.Patcher.unpatchAll("YABDP4Nitro", videoOptionFunctions)
+					if(this.settings.CustomBitrateEnabled){
+						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							//Minimum Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
+							
+							
+							//Maximum Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
+							
+							
+							//Target Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
+							
+							//bonus Audio Bitrate
+							e.voiceBitrate = (this.settings.voiceBitrate * 1000);
+							//console.log(e);
+						});
 					}
 				}
 				
