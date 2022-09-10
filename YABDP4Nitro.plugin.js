@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.1.1
+ * @version 4.1.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.1.1",
+			"version": "4.1.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -408,9 +408,11 @@ module.exports = (() => {
 				audioShare(){
 					let a = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("setSoundshareSource"))), first: false});
 					let shareModule = a[0][0].prototype;
-					BdApi.Patcher.unpatchAll("YABDP4Nitro", shareModule);
 					if(this.settings.audioSourcePID != 0){
 					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
+						console.log(a);
+						console.log(b);
+						console.log("asdf");
 						if(this.settings.audioSourcePID == 0){
 							return
 						}
