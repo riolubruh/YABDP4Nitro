@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.1.0
+ * @version 4.1.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.1.0",
+			"version": "4.1.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -102,7 +102,8 @@ module.exports = (() => {
 					"minBitrate": -1,
 					"maxBitrate": -1,
 					"targetBitrate": -1,
-					"voiceBitrate": 192
+					"voiceBitrate": 128,
+					"audioSourcePID": 0
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -137,10 +138,15 @@ module.exports = (() => {
 									value = parseFloat(value);
 									this.settings.targetBitrate = value;
 								}),
-								new Settings.Textbox("Voice Audio Bitrate", "I'm not sure if this does anything honestly so it's bonus right now (bitrate in kbps).", this.settings.voiceBitrate,
+								new Settings.Textbox("Voice Audio Bitrate", "Allows you to change the bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps).", this.settings.voiceBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.voiceBitrate = value;
+								}),
+								new Settings.Textbox("Screen Share Audio Source", "[Advanced] Set this number to the PID of an application to stream that application's audio! Applies upon updating the screen share quality/window. (Set to 0 to disable)", this.settings.audioSourcePID,
+								value => {
+									value = parseInt(value);
+									this.settings.audioSourcePID = value;
 								})
 						]),
 						new Settings.SettingGroup("Emojis").append(
@@ -244,7 +250,6 @@ module.exports = (() => {
 
 				customResolution() {
 					const StreamButtons = BdApi.findModuleByProps("ApplicationStreamFPSButtons");
-					Patcher.before()
 					//ResolutionButtons
 					StreamButtons.ApplicationStreamResolutionButtons[3].value = this.settings.CustomResolution;
 					delete StreamButtons.ApplicationStreamResolutionButtons[3].label;
@@ -397,14 +402,30 @@ module.exports = (() => {
 						this.restoreFPS();
 					}
 					this.videoQualityModule();
+					this.audioShare();
 				}
 				
-				videoQualityModule(){ //Custom Bitrates!
-					let getBitrateLimit = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byProps("BaseConnectionEvent"))), first: false});
-					let videoOptionFunctions = getBitrateLimit[0][1].default.prototype;
-					BdApi.Patcher.unpatchAll("YABDP4Nitro", videoOptionFunctions)
+				audioShare(){
+					let a = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("setSoundshareSource"))), first: false});
+					let shareModule = a[0][0].prototype;
+					BdApi.Patcher.unpatchAll("YABDP4Nitro", shareModule);
+					if(this.settings.audioSourcePID != 0){
+					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
+						if(this.settings.audioSourcePID == 0){
+							return
+						}
+						b[0] = this.settings.audioSourcePID;
+					});
+					}
+				}
+				
+				videoQualityModule(){ //Custom Bitrates
+					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byProps("BaseConnectionEvent"))), first: false});
+					let videoOptionFunctions = b[0][1].default.prototype;
+					BdApi.Patcher.unpatchAll("YABDP4Nitro", videoOptionFunctions);
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							
 							//Minimum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
@@ -419,13 +440,12 @@ module.exports = (() => {
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
 							
-							//bonus Audio Bitrate
+							//Bonus: Audio Bitrate
 							e.voiceBitrate = (this.settings.voiceBitrate * 1000);
-							//console.log(e);
 						});
 					}
 				}
-				
+
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
