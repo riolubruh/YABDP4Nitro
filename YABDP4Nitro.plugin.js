@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.1.2
+ * @version 4.1.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.1.2",
+			"version": "4.1.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -103,12 +103,16 @@ module.exports = (() => {
 					"maxBitrate": -1,
 					"targetBitrate": -1,
 					"voiceBitrate": 128,
-					"audioSourcePID": 0
+					"audioSourcePID": 0,
+					"CameraSettingsEnabled": false,
+					"CameraWidth": 1920,
+					"CameraHeight": 1080,
+					"CameraFPS": 60
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
 					return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
-						new Settings.SettingGroup("Features").append(...[
+						new Settings.SettingGroup("Screen Share Features").append(...[
 							new Settings.Switch("High Quality Screensharing", "1080p/source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
 							new Settings.Switch("Custom Screenshare FPS", "Choose your own screen share FPS!", this.settings.CustomFPSEnabled, value => this.settings.CustomFPSEnabled = value),
 							new Settings.Textbox("FPS", "", this.settings.CustomFPS,
@@ -156,6 +160,24 @@ module.exports = (() => {
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
 							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
+						),
+						new Settings.SettingGroup("Camera [Beta]").append(
+						new Settings.Switch("Enabled", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
+						new Settings.Textbox("Camera Resolution Width", "Camera Resolution Width in pixels. (Set to -1 to disable)", this.settings.CameraWidth,
+								value => {
+									value = parseInt(value);
+									this.settings.CameraWidth = value;
+								}),
+						new Settings.Textbox("Camera Resolution Height", "Camera Resolution Height in pixels. (Set to -1 to disable)", this.settings.CameraHeight,
+							value => {
+								value = parseInt(value);
+								this.settings.CameraHeight = value;
+							}),
+						new Settings.Textbox("Camera FPS", "", this.settings.CameraFPS,
+							value => {
+								value = parseInt(value);
+								this.settings.CameraFPS = value;
+							})
 						)
 					])
 				}
@@ -276,6 +298,13 @@ module.exports = (() => {
 					StreamButtons.ApplicationStreamSettingRequirements[1].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[2].resolution = this.settings.CustomResolution;
 					StreamButtons.ApplicationStreamSettingRequirements[3].resolution = this.settings.CustomResolution;
+					
+					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byProps("BaseConnectionEvent"))), first: false});
+					let videoOptionFunctions = b[0][1].default.prototype;
+					BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+						e.videoQualityManager.options.videoCapture.height = this.settings.customResolution;
+						e.videoQualityManager.options.videoBudget.height = this.settings.customResolution;
+					});
 				}
 
 				saveAndUpdate() {
@@ -405,14 +434,12 @@ module.exports = (() => {
 					this.audioShare();
 				}
 				
+				
 				audioShare(){
 					let a = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("setSoundshareSource"))), first: false});
 					let shareModule = a[0][0].prototype;
 					if(this.settings.audioSourcePID != 0){
 					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
-						console.log(a);
-						console.log(b);
-						console.log("asdf");
 						if(this.settings.audioSourcePID == 0){
 							return
 						}
@@ -427,7 +454,7 @@ module.exports = (() => {
 					BdApi.Patcher.unpatchAll("YABDP4Nitro", videoOptionFunctions);
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-							
+							//console.log(e);
 							//Minimum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
@@ -446,7 +473,65 @@ module.exports = (() => {
 							e.voiceBitrate = (this.settings.voiceBitrate * 1000);
 						});
 					}
+					if(this.settings.CustomFPSEnabled){
+						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
+							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
+						});
+					}
+					if(this.settings.CameraSettingsEnabled){ //If Camera Patching On
+						
+						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							
+							//Is the camera active and screen share disabled?
+							if(e.mediaEngineConnectionId == "Native-0" && !(e.stats.camera != undefined) && (e.stats.rtp.outbound.length < 3)){
+								
+							if(!((e.videoStreamParameters[0] == undefined) || (e.videoStreamParameters[1] == undefined))){ //Error stopper
+							e.videoStreamParameters[0].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+							e.videoStreamParameters[1].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+							}
+							
+								let c = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("applyQualityConstraints"))), first: false});
+								let qualityModule2 = c[0][1].prototype;
+								BdApi.Patcher.unpatchAll("YABDP4Nitro", qualityModule2);
+								BdApi.Patcher.after("YABDP4Nitro", qualityModule2, "applyQualityConstraints", (_,Arguments) => {
+								var e = new Array;
+								//console.log(Arguments);
+								e.remoteSinkWantsPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+								e.remoteSinkWantsMaxFramerate = this.settings.CameraFPS;
+								return {constraints: e}
+								});
+						
+								if(this.settings.CameraHeight >= 0){ //Height in pixels
+									e.videoStreamParameters[0].maxResolution.height = this.settings.CameraHeight;
+									e.videoStreamParameters[1].maxResolution.height = this.settings.CameraHeight;
+								}
+								if(this.settings.CameraWidth >= 0){ //Width in pixels
+									e.videoStreamParameters[0].maxResolution.width = this.settings.CameraWidth;
+									e.videoStreamParameters[1].maxResolution.width = this.settings.CameraWidth;
+								}
+								if(this.settings.CameraFPS >= 0){ //FPS
+									e.videoStreamParameters[0].maxFrameRate = this.settings.CameraFPS;
+									e.videoStreamParameters[1].maxFrameRate = this.settings.CameraFPS;
+								}
+								
+								//---- VQM Bypasses ----//
+								if(this.settings.CameraWidth >= 0){
+									e.videoQualityManager.options.videoCapture.width = this.settings.CameraWidth;
+									e.videoQualityManager.options.videoBudget.width = this.settings.CameraWidth;
+								}
+								if(this.settings.CameraHeight >= 0){
+									e.videoQualityManager.options.videoCapture.height = this.settings.CameraHeight;
+									e.videoQualityManager.options.videoBudget.height = this.settings.CameraHeight;
+								}
+								e.videoQualityManager.ladder.pixelBudget = (this.settings.CameraHeight * this.settings.CameraWidth);
+								 
+							}
+						});	
+					}
 				}
+				
+				
 
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
