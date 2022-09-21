@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.1.3
+ * @version 4.1.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.1.3",
+			"version": "4.1.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -219,11 +219,6 @@ module.exports = (() => {
 
 				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
 					if (this.settings.emojiBypassForValidEmoji) {
-						/*
-						if(!DiscordModules.EmojiInfo.isEmojiFilteredOrLocked(emoji)){ //This part seemingly just broke for some reason, likely a Discord update.
-						console.log("NOTFilteredOrLocked");
-						return true
-						}*/
 						if ((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)) {
 							return true
 						}
@@ -434,7 +429,6 @@ module.exports = (() => {
 					this.audioShare();
 				}
 				
-				
 				audioShare(){
 					let a = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("setSoundshareSource"))), first: false});
 					let shareModule = a[0][0].prototype;
@@ -451,7 +445,6 @@ module.exports = (() => {
 				videoQualityModule(){ //Custom Bitrates
 					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byProps("BaseConnectionEvent"))), first: false});
 					let videoOptionFunctions = b[0][1].default.prototype;
-					BdApi.Patcher.unpatchAll("YABDP4Nitro", videoOptionFunctions);
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							//console.log(e);
@@ -483,7 +476,7 @@ module.exports = (() => {
 						
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							
-							//Is the camera active and screen share disabled?
+							//Is the camera active and screen share not enabled?
 							if(e.mediaEngineConnectionId == "Native-0" && !(e.stats.camera != undefined) && (e.stats.rtp.outbound.length < 3)){
 								
 							if(!((e.videoStreamParameters[0] == undefined) || (e.videoStreamParameters[1] == undefined))){ //Error stopper
@@ -493,7 +486,6 @@ module.exports = (() => {
 							
 								let c = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byPrototypeFields("applyQualityConstraints"))), first: false});
 								let qualityModule2 = c[0][1].prototype;
-								BdApi.Patcher.unpatchAll("YABDP4Nitro", qualityModule2);
 								BdApi.Patcher.after("YABDP4Nitro", qualityModule2, "applyQualityConstraints", (_,Arguments) => {
 								var e = new Array;
 								//console.log(Arguments);
@@ -531,8 +523,6 @@ module.exports = (() => {
 					}
 				}
 				
-				
-
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
 					this.saveAndUpdate();
