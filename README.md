@@ -48,6 +48,6 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 ##### Note: This feature is currently in beta
 
-#### Change the resolution and FPS of your camera!
+#### Change the resolution of your camera past 720p!
 
-![Camera Options](https://user-images.githubusercontent.com/54255074/191621204-d37e52b5-3309-4c4d-bdac-ade6e72450ee.png)
+![Camera Options](https://user-images.githubusercontent.com/54255074/193709954-8a2c4130-31c8-4672-958f-796845808e18.png)
