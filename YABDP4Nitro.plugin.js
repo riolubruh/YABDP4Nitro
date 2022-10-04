@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.2.0
+ * @version 4.2.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.2.0",
+			"version": "4.2.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -226,9 +226,9 @@ module.exports = (() => {
 					let videoOptionFunctions = b[0].prototype;
 					
 					BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-						if(e.videoQualityManager.options.videoCapture.height){ //If user is streaming
 						//console.log(e);
 						if(this.settings.ResolutionEnabled){ //If Custom Resolution is enabled.
+						if(e.videoQualityManager.qualityOverwrite.capture != undefined){
 						e.videoQualityManager.options.videoCapture.height = this.settings.CustomResolution;
 						e.videoQualityManager.options.videoBudget.height = this.settings.CustomResolution;
 						e.videoQualityManager.qualityOverwrite.capture.height = this.settings.CustomResolution;
@@ -239,12 +239,12 @@ module.exports = (() => {
 						e.videoQualityManager.options.videoCapture.width = (this.settings.CustomResolution * (16/9));
 						e.videoQualityManager.options.videoBudget.height = this.settings.CustomResolution;
 						e.videoQualityManager.options.videoBudget.width = (this.settings.CustomResolution * (16/9));
-						}
+						
 						if(this.settings.CustomFPSEnabled){ //If Custom FPS is enabled.
 							e.videoStreamParameters[0].maxFrameRate = this.settings.CustomFPS;
 							e.videoQualityManager.qualityOverwrite.capture.framerate = this.settings.CustomFPS;
-						}
-					}});
+						}}}
+					});
 					let L = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate")).prototype;
 					if(L){
 					BdApi.Patcher.instead("YABDP4Nitro", L, "updateRemoteWantsFramerate", () => {
@@ -436,28 +436,35 @@ module.exports = (() => {
 					}
 					if(this.settings.CameraSettingsEnabled){ //If Camera Patching On
 						
-						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+						BdApi.Patcher.after("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							
 							//Is the camera active and screen share not enabled?
-							if(e){
-							if(e.stats.camera != undefined){
-								
-							if(!((e.videoStreamParameters[0] == undefined) || (e.videoStreamParameters[1] == undefined))){
+							if(e.stats !== undefined){ //Error prevention
+							if(e.stats.camera !== undefined){
+							if(e.videoStreamParameters[0] !== undefined){
+							
 							e.videoStreamParameters[0].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
-							e.videoStreamParameters[1].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
-							}
+							
 							
 							if(e.videoStreamParameters[0].maxResolution.height){
 							if(this.settings.CameraHeight >= 0){ //Height in pixels
 								e.videoStreamParameters[0].maxResolution.height = this.settings.CameraHeight;
-								e.videoStreamParameters[1].maxResolution.height = this.settings.CameraHeight;
 							}}
 							if(e.videoStreamParameters[0].maxResolution.width){
 							if(this.settings.CameraWidth >= 0){ //Width in pixels
 								e.videoStreamParameters[0].maxResolution.width = this.settings.CameraWidth;
-								e.videoStreamParameters[1].maxResolution.width = this.settings.CameraWidth;
 							}}
+							}
+							if(e.videoStreamParameters[1] !== undefined){
+								if(this.settings.CameraHeight >= 0){ //Height in pixels
+									e.videoStreamParameters[1].maxResolution.height = this.settings.CameraHeight;
+								}
 								
+								if(this.settings.CameraWidth >= 0){ //Width in pixels
+									e.videoStreamParameters[1].maxResolution.width = this.settings.CameraWidth;
+								}
+							e.videoStreamParameters[1].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+							}
 							//---- VQM Bypasses ----//
 							if(this.settings.CameraWidth >= 0){
 								e.videoQualityManager.options.videoCapture.width = this.settings.CameraWidth;
