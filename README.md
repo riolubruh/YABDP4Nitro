@@ -55,4 +55,4 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 ### Note for developers and other users
 
-Please DO NOT sell my plugins, steal code and use it as your own without permission, etc. You may make forks if you want to. If you wish to make a pull request, you MAY do so; if you make a pull request do NOT change the authors or version number. 
+Please DO NOT sell my plugins, steal code, or use it as your own without permission. You may make forks if you want to. If you wish to make a pull request, you MAY do so; if you make a pull request do NOT change the authors or version number. 
