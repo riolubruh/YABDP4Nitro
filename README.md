@@ -6,7 +6,6 @@
 
 # Features
 
-## Unlock all Screensharing Quality and FPS Options
 
 ## Fully Customizable Screensharing Quality, FPS, and Bitrate
 ![Choosing Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584683-efe8eac3-8c6c-4100-9b98-0b2592fbb86f.png)
