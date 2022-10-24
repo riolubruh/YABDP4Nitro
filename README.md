@@ -2,26 +2,18 @@
 
 *Probably* the best 'Nitro plugin' out there.
 
-**Compatible with [FreeStickers by An0](https://github.com/An00nymushun/DiscordFreeStickers)**
+## Thank you all for 100+ Stars!! :D
 
 # Features
 
 ## Unlock all Screensharing Quality and FPS Options
 
-**All screensharing modes are unlocked!**
-
-![Screensharing Options Menu](https://user-images.githubusercontent.com/54255074/166120652-b7cc6a10-ea2e-4ad8-975f-6c8d4aabdc5e.png)
-
 ## Fully Customizable Screensharing Quality, FPS, and Bitrate
 ![Choosing Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584683-efe8eac3-8c6c-4100-9b98-0b2592fbb86f.png)
-
-![Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584759-847ea486-e2ac-48dd-987a-baef9ec1e179.png)
 
 ![Another Image](https://user-images.githubusercontent.com/54255074/183275106-cbee28e6-d550-4637-ab06-0cb065c81283.png)
 
 ![Bitrate Options](https://user-images.githubusercontent.com/54255074/191619975-64c61dc5-152a-4bec-995c-98661f823b53.png)
-
-
 
 ## Emoji Bypass
 
@@ -46,8 +38,6 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 ## Camera Options
 
-##### Note: This feature is currently in beta
-
 #### Change the resolution of your camera past 720p!
 
 ![Camera Options](https://user-images.githubusercontent.com/54255074/193709954-8a2c4130-31c8-4672-958f-796845808e18.png)
@@ -55,4 +45,4 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 ### Note for developers and other users
 
-Please DO NOT sell my plugins, steal code, or use it as your own without permission. You may make forks if you want to. If you wish to make a pull request, you MAY do so; if you make a pull request do NOT change the authors or version number. 
+Please DO NOT sell my plugins, steal my code, or use it as your own without permission. You can make forks if you want to. If you wish to make a pull request, go ahead and do so, you do not need permission, just keep my name in the credits.
