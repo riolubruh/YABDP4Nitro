@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.2.1
+ * @version 4.2.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.2.1",
+			"version": "4.2.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -107,7 +107,8 @@ module.exports = (() => {
 					"CameraSettingsEnabled": false,
 					"CameraWidth": 1920,
 					"CameraHeight": 1080,
-					"ResolutionSwapper": false
+					"ResolutionSwapper": false,
+					"stickerBypass": true
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -160,7 +161,8 @@ module.exports = (() => {
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value)
+							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
+							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass.", this.settings.stickerBypass, value => this.settings.stickerBypass = value)
 						),
 						new Settings.SettingGroup("Camera [Beta]").append(
 						new Settings.Switch("Enabled", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
@@ -181,35 +183,61 @@ module.exports = (() => {
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
 					const Uploader = BdApi.findModuleByProps('instantBatchUpload');
+					if(url.includes("stickers")){
+							const fetchoptions = {
+							  method: 'GET',
+							  mode: 'cors',
+							   headers: {
+								'origin':'discord.com'
+							  }
+							};
+							let blob = await fetch(("https://cors-anywhere.riolubruh.repl.co/" + url),fetchoptions).then(r => r.blob());
+							var imagecontainer = document.createElement("canvas");
+							await blob;
+							//var imageBlobURL = URL.createObjectURL(blob);
+							//imagecontainer.src = imageBlobURL;
+							
+							await Uploader.upload({
+							channelId: channelIdLmao,
+							file: new File([blob], "sticker", {type: "image/png"}),
+							draftType: 0,
+							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
+							hasSpoiler: false,
+							filename: "sticker.png"
+						});
+					}
+				
 					var extension = ".gif";
-					if (!emoji.animated) {
-						extension = ".png";
-						if (!this.settings.PNGemote) {
-							extension = ".webp";
+					if(!url.includes("stickers")){
+						if (!emoji.animated) {
+							extension = ".png";
+							if (!this.settings.PNGemote) {
+								extension = ".webp";
+							}
 						}
-					}
-					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
-					
-					if(runs > 1){
-						await Uploader.upload({
-						channelId: channelIdLmao,
-						file: new File([file], emoji.name),
-						draftType: 0,
-						message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
-						hasSpoiler: false,
-						filename: emoji.name + extension
-					});
-					return
-					}
+						let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
+						
+						if(runs > 1){
+							await Uploader.upload({
+							channelId: channelIdLmao,
+							file: new File([file], emoji.name),
+							draftType: 0,
+							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
+							hasSpoiler: false,
+							filename: emoji.name + extension
+						});
+						return
+						}
 					
 					await Uploader.upload({
-						channelId: channelIdLmao,
-						file: new File([file], emoji.name),
-						draftType: 0,
-						message: { content: msg[1].content, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
-						hasSpoiler: false,
-						filename: emoji.name + extension
-					});
+							channelId: channelIdLmao,
+							file: new File([file], emoji.name),
+							draftType: 0,
+							message: { content: msg[1].content, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
+							hasSpoiler: false,
+							filename: emoji.name + extension
+						})
+					};
 				}
 
 				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
@@ -220,7 +248,7 @@ module.exports = (() => {
 					}
 				}
 
-				customVideoSettings() {
+				async customVideoSettings() {
 					const StreamButtons = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("RESOLUTION_SOURCE"));
 					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byStrings("audioSSRC"))), first: true});
 					let videoOptionFunctions = b[0].prototype;
@@ -245,11 +273,23 @@ module.exports = (() => {
 							e.videoQualityManager.qualityOverwrite.capture.framerate = this.settings.CustomFPS;
 						}}}
 					});
-					let L = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate")).prototype;
-					if(L){
-					BdApi.Patcher.instead("YABDP4Nitro", L, "updateRemoteWantsFramerate", () => {
+					
+					if(BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate"))){
+						let L = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate")).prototype;
+						//console.log(L);
+						if(L){
+							BdApi.Patcher.instead("YABDP4Nitro", L, "updateRemoteWantsFramerate", () => {
+							return
+						});
+						}
 						return
-					});
+					}else{
+						let R = await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate"));
+						if(R){
+							BdApi.Patcher.instead("YABDP4Nitro", R, "updateRemoteWantsFramerate", () => {
+							return
+						});
+						}
 					}
 				}
 
@@ -359,20 +399,12 @@ module.exports = (() => {
 						}
 					}
 					if (!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions);
-
-					//Stupid Settings Prevention (TM) (Copyright 2069 Riolubruh)
-					if ((this.settings.CustomResolution / 0) != Infinity || this.settings.CustomResolution == undefined || this.settings.CustomResolution < 0) this.settings.CustomResolution = 0;
-					if (((this.settings.CustomFPS / 0) != Infinity || this.settings.CustomFPS == undefined || this.settings.CustomFPS <= -1) && this.settings.CustomFPS != 0) this.settings.CustomFPS = 60;
-					if (this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
-					if (this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
-					if (this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
 					//Apply custom screen share options
 					if (this.settings.ResolutionEnabled) this.customVideoSettings();
 					
 					this.videoQualityModule(); //Bitrate Module
 					this.audioShare(); //Audio PID module
-					this.permissionsModule(); //Redundancy Module
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
@@ -380,9 +412,11 @@ module.exports = (() => {
 					document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
 					document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
 					if(!this.settings.ResolutionSwapper){
-					if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none'
-					if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
+						if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none'
+						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
 					}
+					
+					if(this.settings.stickerBypass) this.stickerSending();
 				}
 				
 				updateQuick(){
@@ -482,31 +516,12 @@ module.exports = (() => {
 					}
 				}
 				
-				permissionsModule(){
-					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					Patcher.instead(permissions, "canUseAnimatedEmojis", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "canUseEmojisEverywhere", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "canUseHighVideoQuality", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "canUseHigherFramerate", (a,b,c) => {
-						return true;
-					});
-					Patcher.instead(permissions, "canUseFancyVoiceChannelReactions", (a,b,c) => {
-						return true;
-					});
-				}
-				
 				buttonCreate(){
 					var qualityButton = document.createElement('button');
 					qualityButton.id = 'qualityButton';
 					qualityButton.innerHTML = 'Quality';
 					qualityButton.style.zIndex = "2";
-					qualityButton.style.top = "98.3vh";
+					qualityButton.style.top = "98vh";
 					qualityButton.style.left = "170px";
 					qualityButton.style.height = "13px";
 					qualityButton.style.width = "50px";
@@ -553,9 +568,17 @@ module.exports = (() => {
 					}
 				}
 				
+				async stickerSending(){
+					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
+						let stickerID = b[1][0];
+						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&size=4096"
+						this.UploadEmote(stickerURL, b[0]);
+					});
+				}
+				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					DiscordModules.UserStore.getCurrentUser().premiumType = 2;
 					this.saveAndUpdate();
 				}
 
