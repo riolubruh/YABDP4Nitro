@@ -41,7 +41,19 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 ![Camera Options](https://user-images.githubusercontent.com/54255074/193709954-8a2c4130-31c8-4672-958f-796845808e18.png)
 
+## Miscellaneous
 
-### Note for developers and other users
+### Profile Accents for All Users
+##### (aka Profile V2 according to nobody but me)
+
+
+![rip rythm fr tho](https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png)
+<<--- New Look vs. Original Look --->>
+![shitty normal profile look](https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png)
+
+
+
+
+## Note for developers and other users
 
 Please DO NOT sell my plugins, steal my code, or use it as your own without permission. You can make forks if you want to. If you wish to make a pull request, go ahead and do so, you do not need permission, just keep my name in the credits.
