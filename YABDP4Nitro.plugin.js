@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.2.2
+ * @version 4.2.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.2.2",
+			"version": "4.2.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -108,7 +108,8 @@ module.exports = (() => {
 					"CameraWidth": 1920,
 					"CameraHeight": 1080,
 					"ResolutionSwapper": false,
-					"stickerBypass": true
+					"stickerBypass": true,
+					"profileV2": true
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -158,7 +159,7 @@ module.exports = (() => {
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
 							new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size => this.settings.emojiSize = size, { markers: [16, 32, 48, 64, 80, 96, 112, 128], stickToMarkers: true }),
-							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url. Will not appear to work to those on the Android app.", this.settings.ghostMode, value => this.settings.ghostMode = value),
+							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
 							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
@@ -176,6 +177,9 @@ module.exports = (() => {
 								value = parseInt(value);
 								this.settings.CameraHeight = value;
 							})
+						),
+						new Settings.SettingGroup("Miscellaneous").append(
+							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value)
 						)
 					])
 				}
@@ -184,20 +188,18 @@ module.exports = (() => {
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
 					const Uploader = BdApi.findModuleByProps('instantBatchUpload');
 					if(url.includes("stickers")){
-							const fetchoptions = {
-							  method: 'GET',
-							  mode: 'cors',
-							   headers: {
-								'origin':'discord.com'
-							  }
-							};
-							let blob = await fetch(("https://cors-anywhere.riolubruh.repl.co/" + url),fetchoptions).then(r => r.blob());
-							var imagecontainer = document.createElement("canvas");
-							await blob;
-							//var imageBlobURL = URL.createObjectURL(blob);
-							//imagecontainer.src = imageBlobURL;
+
+						const fetchoptions = {
+							method: 'GET',
+							mode: 'cors',
+							headers: {
+							'origin':'discord.com'
+							}
+						};
+						let blob = await fetch(("https://cors-anywhere.riolubruh.repl.co/" + url),fetchoptions).then(r => r.blob());
+						await blob;
 							
-							await Uploader.upload({
+						await Uploader.upload({
 							channelId: channelIdLmao,
 							file: new File([blob], "sticker", {type: "image/png"}),
 							draftType: 0,
@@ -296,7 +298,6 @@ module.exports = (() => {
 				saveAndUpdate() {
 					PluginUtilities.saveSettings(this.getName(), this.settings);
 					//console.log("saveAndUpdate running");
-					//console.log(this.settings);
 					if (this.settings.emojiBypass) {
 						//Upload Emotes
 						if (this.settings.uploadEmotes) {
@@ -368,7 +369,7 @@ module.exports = (() => {
 							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
 							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Classic Method (No Ghost)")
-							Patcher.before(DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
+							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								msg.validNonShortcutEmojis.forEach(emoji => {
 									if (this.settings.PNGemote) {
@@ -388,7 +389,7 @@ module.exports = (() => {
 								})
 							});
 							//editing message (in classic mode)
-							Patcher.before(DiscordModules.MessageActions, "editMessage", (_, obj) => {
+							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "editMessage", (_, obj) => {
 								let msg = obj[2].content
 								if (msg.search(/\d{18}/g) == -1) return;
 								if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
@@ -416,8 +417,24 @@ module.exports = (() => {
 						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
 					}
 					
-					if(this.settings.stickerBypass) this.stickerSending();
-				}
+					if(this.settings.stickerBypass){
+						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+						this.stickerSending();
+					}
+					if(!this.settings.stickerBypass && this.settings.emojiBypass){
+						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					}
+					if(!this.settings.emojiBypass && !this.settings.stickerBypass){
+						DiscordModules.UserStore.getCurrentUser().premiumType = undefined;
+					}
+					
+					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					if(this.settings.profileV2 == true){
+					BdApi.Patcher.instead("YABDP4Nitro", permissions, "isPremiumAtLeast", () => {
+						return true;
+					})};
+					
+				} //End of saveAndUpdate
 				
 				updateQuick(){
 					parseInt(document.getElementById("qualityInput").value);
@@ -521,23 +538,29 @@ module.exports = (() => {
 					qualityButton.id = 'qualityButton';
 					qualityButton.innerHTML = 'Quality';
 					qualityButton.style.zIndex = "2";
-					qualityButton.style.top = "98vh";
-					qualityButton.style.left = "170px";
-					qualityButton.style.height = "13px";
+					qualityButton.style.bottom = "-30%";
+					qualityButton.style.left = "-60%";
+					qualityButton.style.height = "14px";
 					qualityButton.style.width = "50px";
 					qualityButton.className = "buttonColor-3bP3fX button-f2h6uQ lookFilled-yCfaCM colorBrand-I6CyqQ"
-					document.body.appendChild(qualityButton);
+					try{
+						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton)
+						}catch(err){
+						console.warn("YABDP4Nitro: What the fuck happened? During buttonCreate()");
+						console.log(err);
+					};
+					//document.body.appendChild(qualityButton);
 
 					var qualityMenu = document.createElement('div');
 					qualityMenu.id = 'qualityMenu';
 					qualityMenu.style.display = 'none';
 					qualityMenu.style.position = "absolute";
 					qualityMenu.style.zIndex = "1";
-					qualityMenu.style.top = "96vh";
-					qualityMenu.style.left = "158px";
+					qualityMenu.style.bottom = "140%";
+					qualityMenu.style.left = "-45%";
 					qualityMenu.style.height = "20px";
 					qualityMenu.style.width = "100px";
-					document.body.appendChild(qualityMenu);
+					document.getElementById("qualityButton").appendChild(qualityMenu);
 
 					var qualityInput = document.createElement('input');
 					qualityInput.id = 'qualityInput';
@@ -546,7 +569,6 @@ module.exports = (() => {
 					qualityInput.style.width = "33%";
 					qualityInput.style.zIndex = "1";
 					qualityInput.value = this.settings.CustomResolution;
-					//qualityInput.oninput = (this.settings.CustomResolution = qualityInput.value);
 					qualityMenu.appendChild(qualityInput);
 					
 					var qualityInputFPS = document.createElement('input');
@@ -556,7 +578,6 @@ module.exports = (() => {
 					qualityInputFPS.style.width = "33%";
 					qualityInputFPS.style.zIndex = "1";
 					qualityInputFPS.value = this.settings.CustomFPS;
-					//qualityInputFPS.oninput = (this.settings.CustomFPS = parseInt(qualityInputFPS.value));
 					qualityMenu.appendChild(qualityInputFPS);
 					
 					qualityButton.onclick = function() {
