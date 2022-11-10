@@ -48,11 +48,8 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 
 ![rip rythm fr tho](https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png)
-<<-- New Look vs. Original Look -->>
+<--[New Look] [Original Look]-->
 ![shitty normal profile look](https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png)
-
-
-
 
 ## Note for developers and other users
 
