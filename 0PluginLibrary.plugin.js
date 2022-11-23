@@ -44,7 +44,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".plugin-input-group {\r\n    margin-top: 5px;\r\n}\r\n\r\n.plugin-input-group .button-collapse {\r\n    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FscXVlXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSItOTUwIDUzMiAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAtOTUwIDUzMiAxOCAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6bm9uZTt9DQoJLnN0MXtmaWxsOm5vbmU7c3Ryb2tlOiNGRkZGRkY7c3Ryb2tlLXdpZHRoOjEuNTtzdHJva2UtbWl0ZXJsaW1pdDoxMDt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTS05MzIsNTMydjE4aC0xOHYtMThILTkzMnoiLz4NCjxwb2x5bGluZSBjbGFzcz0ic3QxIiBwb2ludHM9Ii05MzYuNiw1MzguOCAtOTQxLDU0My4yIC05NDUuNCw1MzguOCAiLz4NCjwvc3ZnPg0K);\r\n    height: 16px;\r\n    width: 16px;\r\n    display: inline-block;\r\n    vertical-align: bottom;\r\n    transition: transform .3s ease;\r\n    transform: rotate(0);\r\n}\r\n\r\n.plugin-input-group .button-collapse.collapsed {\r\n    transition: transform .3s ease;\r\n    transform: rotate(-90deg);\r\n}\r\n\r\n.plugin-input-group h2 {\r\n    font-size: 14px;\r\n}\r\n\r\n.plugin-input-group .plugin-input-group h2 {\r\n    margin-left: 16px;\r\n}\r\n\r\n.plugin-inputs {\r\n    height: auto;\r\n    overflow: hidden;\r\n    transition: height 300ms cubic-bezier(0.47, 0, 0.745, 0.715);\r\n}\r\n\r\n.plugin-inputs.collapsed {\r\n    height: 0px;\r\n}\r\n\r\n.file-input {\r\n    color: var(--text-normal);\r\n    background-color: var(--input-background);\r\n    width: 100%;\r\n    border-radius: 5px;\r\n    padding: 10px;\r\n    height: 40px;\r\n    box-sizing: border-box;\r\n    overflow: hidden;\r\n  }\r\n  \r\n  .file-input::-webkit-file-upload-button {\r\n    color: white;\r\n    background: #7289DA;\r\n    outline: 0;\r\n    border: 0;\r\n    padding: 12px!important;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    margin-right: 10px;\r\n    bottom: 0;\r\n    border-radius: 3px 0 0 3px;\r\n    font-size: 14px;\r\n    font-weight: 500;\r\n    font-family: Whitney,Helvetica Neue,Helvetica,Arial,sans-serif;\r\n    cursor: pointer;\r\n  }\r\n\r\n.color-input {\r\n    background: none;\r\n    padding: 0;\r\n    border: none;\r\n}\r\n\r\n.color-input:hover {\r\n    opacity: 0.8;\r\n}\r\n\r\n\r\n.z-select {\r\n    position: relative;\r\n    cursor: pointer;\r\n    color: var(--text-normal);\r\n    font-size: 14px;\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: space-between;\r\n    background-color: var(--deprecated-text-input-bg);\r\n    border: 1px solid var(--deprecated-text-input-border);\r\n    border-radius: 3px;\r\n    padding: 8px 8px 8px 12px;\r\n    transition: 150ms ease border-color;\r\n  }\r\n  \r\n  .z-select:hover,\r\n  .z-select.menu-open {\r\n    border-color: var(--background-tertiary);\r\n  }\r\n  \r\n  .z-select.z-select-transparent {\r\n    align-items: flex-start;\r\n    background: none;\r\n    border: none;\r\n    padding: 0;\r\n  }\r\n  \r\n  .z-select-icons {\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n  }\r\n  \r\n  .z-select-clear,\r\n  .z-select-arrow {\r\n    margin-left: 5px;\r\n    fill: var(--interactive-normal);\r\n  }\r\n  \r\n  .z-select .z-select-options {\r\n    position: absolute;\r\n    background: var(--background-secondary);\r\n    border-radius: 0 0 3px 3px;\r\n    max-height: 300px;\r\n    min-width: 100%;\r\n    overflow-y: auto;\r\n    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 5px 0;\r\n    border: 1px solid rgba(0, 0, 0, 0.3);\r\n    border-top: 0;\r\n    margin-top: -1px;\r\n    margin-left: -13px;\r\n    z-index: 2;\r\n    top: 100%;\r\n  }\r\n  \r\n  .z-select-transparent .z-select-options {\r\n    border: 1px solid rgba(0, 0, 0, 0.3);\r\n    margin-top: 3px;\r\n    border-radius: 3px;\r\n  }\r\n  \r\n  .z-select .z-select-option {\r\n    padding: 8px 12px;\r\n    cursor: pointer;\r\n    white-space: pre;\r\n  }\r\n  \r\n  .z-select .z-select-option:hover {\r\n    background: rgba(0, 0, 0, 0.1);\r\n  }\r\n  \r\n  .z-select .z-select-option.selected {\r\n    background: rgba(0, 0, 0, 0.2);\r\n  }\r\n\r\n\r\n\r\n  .z-keybind-wrapper {\r\n    display: flex;\r\n    justify-content: space-between;\r\n    align-items: center;\r\n  }\r\n  \r\n  .z-keybind-wrapper > :first-child {\r\n    flex-grow: 1;\r\n  }\r\n  \r\n  .z-keybind-clear {\r\n    margin-left: 5px;\r\n    fill: var(--interactive-normal);\r\n    cursor: pointer;\r\n  }");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".plugin-input-group {\n    margin-top: 5px;\n}\n\n.plugin-input-group .button-collapse {\n    background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOS4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FscXVlXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB2aWV3Qm94PSItOTUwIDUzMiAxOCAxOCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAtOTUwIDUzMiAxOCAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6bm9uZTt9DQoJLnN0MXtmaWxsOm5vbmU7c3Ryb2tlOiNGRkZGRkY7c3Ryb2tlLXdpZHRoOjEuNTtzdHJva2UtbWl0ZXJsaW1pdDoxMDt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTS05MzIsNTMydjE4aC0xOHYtMThILTkzMnoiLz4NCjxwb2x5bGluZSBjbGFzcz0ic3QxIiBwb2ludHM9Ii05MzYuNiw1MzguOCAtOTQxLDU0My4yIC05NDUuNCw1MzguOCAiLz4NCjwvc3ZnPg0K);\n    height: 16px;\n    width: 16px;\n    display: inline-block;\n    vertical-align: bottom;\n    transition: transform .3s ease;\n    transform: rotate(0);\n}\n\n.plugin-input-group .button-collapse.collapsed {\n    transition: transform .3s ease;\n    transform: rotate(-90deg);\n}\n\n.plugin-input-group h2 {\n    font-size: 14px;\n}\n\n.plugin-input-group .plugin-input-group h2 {\n    margin-left: 16px;\n}\n\n.plugin-inputs {\n    height: auto;\n    overflow: hidden;\n    transition: height 300ms cubic-bezier(0.47, 0, 0.745, 0.715);\n}\n\n.plugin-inputs.collapsed {\n    height: 0px;\n}\n\n.file-input {\n    color: var(--text-normal);\n    background-color: var(--input-background);\n    width: 100%;\n    border-radius: 5px;\n    padding: 10px;\n    height: 40px;\n    box-sizing: border-box;\n    overflow: hidden;\n  }\n  \n  .file-input::-webkit-file-upload-button {\n    color: white;\n    background: #7289DA;\n    outline: 0;\n    border: 0;\n    padding: 12px!important;\n    margin-top: -10px;\n    margin-left: -10px;\n    margin-right: 10px;\n    bottom: 0;\n    border-radius: 3px 0 0 3px;\n    font-size: 14px;\n    font-weight: 500;\n    font-family: Whitney,Helvetica Neue,Helvetica,Arial,sans-serif;\n    cursor: pointer;\n  }\n\n.color-input {\n    background: none;\n    padding: 0;\n    border: none;\n}\n\n.color-input:hover {\n    opacity: 0.8;\n}\n\n\n.z-select {\n    position: relative;\n    cursor: pointer;\n    color: var(--text-normal);\n    font-size: 14px;\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    background-color: var(--deprecated-text-input-bg);\n    border: 1px solid var(--deprecated-text-input-border);\n    border-radius: 3px;\n    padding: 8px 8px 8px 12px;\n    transition: 150ms ease border-color;\n  }\n  \n  .z-select:hover,\n  .z-select.menu-open {\n    border-color: var(--background-tertiary);\n  }\n  \n  .z-select.z-select-transparent {\n    align-items: flex-start;\n    background: none;\n    border: none;\n    padding: 0;\n  }\n  \n  .z-select-icons {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n  }\n  \n  .z-select-clear,\n  .z-select-arrow {\n    margin-left: 5px;\n    fill: var(--interactive-normal);\n  }\n  \n  .z-select .z-select-options {\n    position: absolute;\n    background: var(--background-secondary);\n    border-radius: 0 0 3px 3px;\n    max-height: 300px;\n    min-width: 100%;\n    overflow-y: auto;\n    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 5px 0;\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-top: 0;\n    margin-top: -1px;\n    margin-left: -13px;\n    z-index: 2;\n    top: 100%;\n  }\n  \n  .z-select-transparent .z-select-options {\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    margin-top: 3px;\n    border-radius: 3px;\n  }\n  \n  .z-select .z-select-option {\n    padding: 8px 12px;\n    cursor: pointer;\n    white-space: pre;\n  }\n  \n  .z-select .z-select-option:hover {\n    background: rgba(0, 0, 0, 0.1);\n  }\n  \n  .z-select .z-select-option.selected {\n    background: rgba(0, 0, 0, 0.2);\n  }\n\n\n\n  .z-keybind-wrapper {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n  }\n  \n  .z-keybind-wrapper > :first-child {\n    flex-grow: 1;\n  }\n  \n  .z-keybind-clear {\n    margin-left: 5px;\n    fill: var(--interactive-normal);\n    cursor: pointer;\n  }");
 
 /***/ }),
 
@@ -59,7 +59,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".toasts {\r\n    position: fixed;\r\n    display: flex;\r\n    top: 0;\r\n    flex-direction: column;\r\n    align-items: center;\r\n    justify-content: flex-end;\r\n    pointer-events: none;\r\n    z-index: 4000;\r\n}\r\n\r\n@keyframes toast-up {\r\n    from {\r\n        transform: translateY(0);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast {\r\n    animation: toast-up 300ms ease;\r\n    transform: translateY(-10px);\r\n    background: #36393F;\r\n    padding: 10px;\r\n    border-radius: 5px;\r\n    box-shadow: 0 0 0 1px rgba(32,34,37,.6), 0 2px 10px 0 rgba(0,0,0,.2);\r\n    font-weight: 500;\r\n    color: #fff;\r\n    user-select: text;\r\n    font-size: 14px;\r\n    opacity: 1;\r\n    margin-top: 10px;\r\n    display: flex;\r\n    justify-content: center;\r\n    align-items: center;\r\n}\r\n\r\n@keyframes toast-down {\r\n    to {\r\n        transform: translateY(0px);\r\n        opacity: 0;\r\n    }\r\n}\r\n\r\n.toast.closing {\r\n    animation: toast-down 200ms ease;\r\n    animation-fill-mode: forwards;\r\n    opacity: 1;\r\n    transform: translateY(-10px);\r\n}\r\n\r\n.toast.toast-info {\r\n    background-color: #4a90e2;\r\n}\r\n\r\n.toast.toast-success {\r\n    background-color: #43b581;\r\n}\r\n\r\n.toast.toast-danger,\r\n.toast.toast-error {\r\n    background-color: #f04747;\r\n}\r\n\r\n.toast.toast-warning,\r\n.toast.toast-warn {\r\n    background-color: #FFA600;\r\n}\r\n\r\n.toast-icon {\r\n    margin-right: 5px;\r\n    fill: white;\r\n    border-radius: 50%;\r\n    overflow: hidden;\r\n    height: 20px;\r\n    width: 20px;\r\n}\r\n\r\n.toast-text {\r\n    line-height: 20px;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".toasts {\n    position: fixed;\n    display: flex;\n    top: 0;\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-end;\n    pointer-events: none;\n    z-index: 4000;\n}\n\n@keyframes toast-up {\n    from {\n        transform: translateY(0);\n        opacity: 0;\n    }\n}\n\n.toast {\n    animation: toast-up 300ms ease;\n    transform: translateY(-10px);\n    background: #36393F;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 0 1px rgba(32,34,37,.6), 0 2px 10px 0 rgba(0,0,0,.2);\n    font-weight: 500;\n    color: #fff;\n    user-select: text;\n    font-size: 14px;\n    opacity: 1;\n    margin-top: 10px;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n}\n\n@keyframes toast-down {\n    to {\n        transform: translateY(0px);\n        opacity: 0;\n    }\n}\n\n.toast.closing {\n    animation: toast-down 200ms ease;\n    animation-fill-mode: forwards;\n    opacity: 1;\n    transform: translateY(-10px);\n}\n\n.toast.toast-info {\n    background-color: #4a90e2;\n}\n\n.toast.toast-success {\n    background-color: #43b581;\n}\n\n.toast.toast-danger,\n.toast.toast-error {\n    background-color: #f04747;\n}\n\n.toast.toast-warning,\n.toast.toast-warn {\n    background-color: #FFA600;\n}\n\n.toast-icon {\n    margin-right: 5px;\n    fill: white;\n    border-radius: 50%;\n    overflow: hidden;\n    height: 20px;\n    width: 20px;\n}\n\n.toast-text {\n    line-height: 20px;\n}");
 
 /***/ }),
 
@@ -74,7 +74,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("#outdated-plugins {\r\n    font-weight: 700;\r\n}\r\n\r\n#outdated-plugins > span {\r\n    -webkit-app-region: no-drag;\r\n    color: #fff;\r\n    cursor: pointer;\r\n}\r\n\r\n#outdated-plugins > span:hover {\r\n    text-decoration: underline;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("#outdated-plugins {\n    font-weight: 700;\n}\n\n#outdated-plugins > span {\n    -webkit-app-region: no-drag;\n    color: #fff;\n    cursor: pointer;\n}\n\n#outdated-plugins > span:hover {\n    text-decoration: underline;\n}");
 
 /***/ }),
 
@@ -530,7 +530,7 @@ __webpack_require__.r(__webpack_exports__);
     /* Popouts */
     get PopoutStack() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "close", "closeAll");},
     get PopoutOpener() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openPopout");},
-    get UserPopout() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m?.toString && m.toString().includes("().canViewThemes"));},
+    get UserPopout() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.toString?.().includes("().canViewThemes?"));},
 
     /* Context Menus */
     get ContextMenuActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openContextMenu");},
@@ -563,7 +563,7 @@ __webpack_require__.r(__webpack_exports__);
     get AdvancedScrollerNone() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("AdvancedScrollerNone").AdvancedScrollerNone;},
 
     /* Settings */
-    get SettingsWrapper() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.Tags && m?.toString().includes("required") && m?.toString().includes("titleClassName"));},
+    get SettingsWrapper() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m?.render?.toString().includes("required") && m?.render?.toString().includes("titleClassName"));},
     get SettingsNote() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.Types && m?.toString().includes("selectable"));},
     get SettingsDivider() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => !m.defaultProps && m.prototype && m.prototype.render && m.prototype.render.toString().includes("default.divider"));},
 
@@ -3095,9 +3095,9 @@ class WebpackModules {
      */
     static get require() {
         if (this._require) return this._require;
-        const __nested_webpack_require_9242__ = window.webpackChunkdiscord_app.push([[Symbol()], {}, r=> r]);
+        const __nested_webpack_require_8993__ = window.webpackChunkdiscord_app.push([[Symbol()], {}, r=> r]);
         window.webpackChunkdiscord_app.pop();
-        return this._require = __nested_webpack_require_9242__;
+        return this._require = __nested_webpack_require_8993__;
     }
 
     /**
@@ -4514,9 +4514,12 @@ const AppLayer = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m
 const ReferencePositionLayer = Object.values(AppLayer).find(m => m.prototype?.render);
 // const PopoutCSSAnimator = WebpackModules.getByDisplayName("PopoutCSSAnimator");
 const LayerProvider = Object.values(AppLayer).find(m => m.displayName === "AppLayerProvider")?.().props.layerContext.Provider; // eslint-disable-line new-cap
-const ComponentDispatch = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString && m.toString().includes("useContext(c).windowDispatch"), {searchExports: true});
+const ComponentDispatch = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes("useContext") && m.toString?.().includes("windowDispatch"), {searchExports: true});
 const ComponentActions = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.POPOUT_SHOW, {searchExports: true});
 const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.defaultProps && m?.Animation);
+const ThemeContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m._currentValue === 'dark');
+const useStateFromStores = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes('useStateFromStores'));
+const ThemeStore = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.theme);
 
 const createStore = state => {
     const listeners = new Set();
@@ -4661,9 +4664,13 @@ class Popouts {
 }
 
 function DiscordProviders({children, container}) {
+    const theme = useStateFromStores([ThemeStore], () => ThemeStore.theme);
+
     return React.createElement(LayerProvider, {
         value: [container]
-    }, children);
+    }, React.createElement(ThemeContext.Provider, {
+        value: theme
+    }, children));
 }
 
 function PopoutsContainer() {
@@ -4717,9 +4724,6 @@ function PopoutWrapper({render, popoutId, ...props}) {
     const ComponentDispatcher = ComponentDispatch();
 
     return React.createElement(ReferencePositionLayer, Object.assign(props, {
-        style: {
-            transform: "translateZ(0)"
-        },
         ref: popoutRef,
         positionKey: "0",
         autoInvert: true,
@@ -4735,7 +4739,7 @@ function PopoutWrapper({render, popoutId, ...props}) {
         children: (props, ...p) => React.createElement(
             "div",
             {
-                style: {transform: "translateZ(0)"} // for z-index to work properly for sub-popouts
+                style: {transform: "translateZ(0)"}, // for z-index to work properly for sub-popouts
             },
             render({popoutId, ...props}, ...p)
         )
