@@ -2,7 +2,7 @@
 
 *Probably* the best 'Nitro plugin' out there.
 
-## Thank you all for 100+ Stars!! :D
+## Happy Thanksgiving!
 
 # Features
 
