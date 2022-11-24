@@ -48,6 +48,6 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 <img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="rip rythm fr tho" width="35%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="shitty normal profile look" width="35%"></img>
 
-## Note for developers and other users
+## License
 
-Please DO NOT sell my plugins, steal my code, or use it as your own without permission. You can make forks if you want to. If you wish to make a pull request, go ahead and do so, you do not need permission, just keep my name in the credits.
+The plugin is licensed under the NPOSL Version 3 License.
