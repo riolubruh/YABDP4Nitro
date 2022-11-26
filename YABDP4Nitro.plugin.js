@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.2.3
+ * @version 4.3.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.2.3",
+			"version": "4.3.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -109,7 +109,11 @@ module.exports = (() => {
 					"CameraHeight": 1080,
 					"ResolutionSwapper": false,
 					"stickerBypass": true,
-					"profileV2": true
+					"profileV2": true,
+					"activityJoiningMode": false,
+					"activityBypass": true,
+					"customActivityURL": "",
+					"customActivity": false
 				};
 				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -179,7 +183,10 @@ module.exports = (() => {
 							})
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
-							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value)
+							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
+							new Settings.Switch("Activity Bypass", "Use this to play Activities! (All users must be running the plugin for it to work correctly!)", this.settings.activityBypass, value => this.settings.activityBypass = value),
+							new Settings.Switch("Custom Activity", "Enable this to use a custom URL for an Activity!", this.settings.customActivity, value => this.settings.customActivity = value),
+							new Settings.Textbox("Custom Activity URL", "", this.settings.customActivityURL, value => this.settings.customActivityURL = value)
 						)
 					])
 				}
@@ -188,15 +195,14 @@ module.exports = (() => {
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
 					const Uploader = BdApi.findModuleByProps('instantBatchUpload');
 					if(url.includes("stickers")){
-
 						const fetchoptions = {
-							method: 'GET',
-							mode: 'cors',
-							headers: {
-							'origin':'discord.com'
+								method: 'GET',
+								mode: 'cors',
+								headers: {
+								'origin':'discord.com'
 							}
 						};
-						let blob = await fetch(("https://cors-anywhere.riolubruh.repl.co/" + url),fetchoptions).then(r => r.blob());
+						let blob = await fetch(('https://cors-anywhere.riolubruh.repl.co/' + url),fetchoptions).then(r => r.blob());
 						await blob;
 							
 						await Uploader.upload({
@@ -252,8 +258,8 @@ module.exports = (() => {
 
 				async customVideoSettings() {
 					const StreamButtons = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("RESOLUTION_SOURCE"));
-					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byStrings("audioSSRC"))), first: true});
-					let videoOptionFunctions = b[0].prototype;
+					let b = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("audioSSRC"));
+					let videoOptionFunctions = b.prototype;
 					
 					BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 						//console.log(e);
@@ -262,13 +268,13 @@ module.exports = (() => {
 						e.videoQualityManager.options.videoCapture.height = this.settings.CustomResolution;
 						e.videoQualityManager.options.videoBudget.height = this.settings.CustomResolution;
 						e.videoQualityManager.qualityOverwrite.capture.height = this.settings.CustomResolution;
-						e.videoQualityManager.qualityOverwrite.capture.width = (this.settings.CustomResolution * (16/9));
+						e.videoQualityManager.qualityOverwrite.capture.width = parseInt(this.settings.CustomResolution * (16/9));
 						e.videoStreamParameters[0].maxResolution.height = this.settings.CustomResolution;
-						e.videoStreamParameters[0].maxResolution.width = (this.settings.CustomResolution * (16/9));
+						e.videoStreamParameters[0].maxResolution.width = parseInt(this.settings.CustomResolution * (16/9));
 						e.videoQualityManager.options.videoCapture.height = this.settings.CustomResolution;
-						e.videoQualityManager.options.videoCapture.width = (this.settings.CustomResolution * (16/9));
+						e.videoQualityManager.options.videoCapture.width = parseInt(this.settings.CustomResolution * (16/9));
 						e.videoQualityManager.options.videoBudget.height = this.settings.CustomResolution;
-						e.videoQualityManager.options.videoBudget.width = (this.settings.CustomResolution * (16/9));
+						e.videoQualityManager.options.videoBudget.width = parseInt(this.settings.CustomResolution * (16/9));
 						
 						if(this.settings.CustomFPSEnabled){ //If Custom FPS is enabled.
 							e.videoStreamParameters[0].maxFrameRate = this.settings.CustomFPS;
@@ -302,7 +308,7 @@ module.exports = (() => {
 						//Upload Emotes
 						if (this.settings.uploadEmotes) {
 							Patcher.unpatchAll(DiscordModules.MessageActions);
-							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions);
+							BdApi.Patcher.unpatchAll("YABDP4Nitro");
 							BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								var runs = 0;
@@ -318,8 +324,8 @@ module.exports = (() => {
 									this.UploadEmote(emoji.url, currentChannelId, b, emoji, runs);
 									return
 								});
-								if ((b[1].content != undefined || b[1].content != "") && runs == 0) {
-									send(currentChannelId, b[1], _, b[3]);
+								if ((b[1].content !== undefined && b[1].content != "") && runs == 0) {
+									send(b[0], b[1], b[2], b[3]);
 								}
 								return
 							});
@@ -399,7 +405,6 @@ module.exports = (() => {
 							});
 						}
 					}
-					if (!this.settings.emojiBypass) Patcher.unpatchAll(DiscordModules.MessageActions);
 					
 					//Apply custom screen share options
 					if (this.settings.ResolutionEnabled) this.customVideoSettings();
@@ -429,10 +434,13 @@ module.exports = (() => {
 					}
 					
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					//console.log(permissions);
 					if(this.settings.profileV2 == true){
 					BdApi.Patcher.instead("YABDP4Nitro", permissions, "isPremiumAtLeast", () => {
 						return true;
 					})};
+					
+					if(this.settings.activityBypass) this.activities();
 					
 				} //End of saveAndUpdate
 				
@@ -457,8 +465,8 @@ module.exports = (() => {
 				}
 				
 				videoQualityModule(){ //Custom Bitrates
-					let b = BdApi.Webpack.getBulk({filter: ((BdApi.Webpack.Filters.byStrings("audioSSRC"))), first: true});
-					let videoOptionFunctions = b[0].prototype;
+					let b = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("audioSSRC"));
+					let videoOptionFunctions = b.prototype;
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							//Minimum Bitrate
@@ -549,7 +557,6 @@ module.exports = (() => {
 						console.warn("YABDP4Nitro: What the fuck happened? During buttonCreate()");
 						console.log(err);
 					};
-					//document.body.appendChild(qualityButton);
 
 					var qualityMenu = document.createElement('div');
 					qualityMenu.id = 'qualityMenu';
@@ -560,6 +567,10 @@ module.exports = (() => {
 					qualityMenu.style.left = "-45%";
 					qualityMenu.style.height = "20px";
 					qualityMenu.style.width = "100px";
+					qualityMenu.onclick = function(event){
+						event.stopPropagation();
+					}
+					
 					document.getElementById("qualityButton").appendChild(qualityMenu);
 
 					var qualityInput = document.createElement('input');
@@ -594,6 +605,124 @@ module.exports = (() => {
 						let stickerID = b[1][0];
 						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&size=4096"
 						this.UploadEmote(stickerURL, b[0]);
+					});
+				}
+				
+				activities(){
+					let b = ZLibrary.WebpackModules.getByIndex(331792);
+					let d = ZLibrary.WebpackModules.getByIndex(124581);
+					let c = b.Z._dispatcher;
+					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
+						if(h[1]) if (h[1].className) if(h[1].className == "activityItem-1Z9CTr"){
+							let test = document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO");
+							let textField = test[0].firstChild;
+							if(textField) if(textField.innerText === "Have feedback? Take the survey"){
+								BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
+								let test = document.getElementsByClassName("defaultColor-24IHKz text-sm-normal-3Zj3Iv");
+								let togglerElement = textField;
+								togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
+								let asdf = function(){
+									let test = document.getElementsByClassName("defaultColor-24IHKz text-sm-normal-3Zj3Iv");
+									let togglerElement = textField;
+									if(togglerElement.innerHTML == `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`){
+										BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
+										togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
+										ZLibrary.Toasts.info("Cancelled", {timeout: 1000});
+										return
+									}
+									BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = true;
+									togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`;
+									ZLibrary.Toasts.info("First, pick the activity that the host is running", {timeout: 3000});
+									if(!this.settings.customActivity && (this.settings.customActivityURL != "")) ZLibrary.Toasts.info("Custom URL Enabled: Click any activity", {timeout: 3000});
+								}
+								textField.onclick = asdf;
+							}
+						}
+					});
+					BdApi.Patcher.instead("YABDP4Nitro", d, "Z", (_,N,f) => {
+						if(N !== undefined){
+							if(N[0].inflatedBundleItem.application.id){
+								if(this.settings.activityJoiningMode){ //Join mode enabled
+									//First, pick the host's activity (just ask them)
+									var intendedActivityId = N[0].inflatedBundleItem.application.id;
+									//console.log(N);
+									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
+										c.dispatch({
+											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
+											applicationId: "880218394199220334",
+											originURL: "https://" + intendedActivityId + ".discordsays.com"
+										});
+									}
+									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
+										c.dispatch({
+											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
+											applicationId: "880218394199220334",
+											originURL: this.settings.customActivityURL
+										});
+									}
+									//Then, alert the user to hit the join button
+									ZLibrary.Toasts.info(`Now hit Join Activity on the host's activity`, {timeout: 3000});
+									//Finally, disable join mode
+									this.settings.activityJoiningMode = false;
+									return
+								}
+								if(!this.settings.activityJoiningMode){ //Join mode disabled
+									var intendedActivityId = N[0].inflatedBundleItem.application.id;
+									//console.log(N);
+									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
+										c.dispatch({
+											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
+											applicationId: "880218394199220334",
+											originURL: "https://" + intendedActivityId + ".discordsays.com"
+										});
+									}
+									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
+										c.dispatch({
+											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
+											applicationId: "880218394199220334",
+											originURL: this.settings.customActivityURL
+										});
+									}
+									let Activity = new Array();
+									Activity.channelId = BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId();
+									if(Activity.channelId === null){
+										console.warn("Voice Channel was null. Are you not in a voice channel?");
+										return
+									}
+									Activity.application_id = "880218394199220334";
+									Activity.always_free = true;
+									Activity.nitro_requirement = false;
+									Activity.details = "Test"
+									c.dispatch({
+										type: "LOCAL_ACTIVITY_UPDATE",
+										activity: Activity
+									});
+									const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
+									function simulateMouseClick(element){
+									  mouseClickEvents.forEach(mouseEventType =>
+										element.dispatchEvent(
+										  new MouseEvent(mouseEventType, {
+											  view: window,
+											  bubbles: true,
+											  cancelable: true,
+											  buttons: 1
+										  })
+										)
+									  );
+									}
+									var element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-f2h6uQ lookBlank-21BCro colorBrand-I6CyqQ grow-2sR_-F')[0];
+									simulateMouseClick(element); //Close activity menu
+									c.dispatch({
+										type: "EMBEDDED_ACTIVITY_OPEN",
+										channelId: BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId(),
+										embeddedActivity: Activity
+									});
+									setTimeout(function(){document.getElementsByClassName("notice-2HEN-u colorWarning-3oV0Ge")[0].firstChild.children[1].click()},1000);
+									//Close test mode banner (also disables test mode)
+									ZLibrary.Toasts.info("All clients must be running the plugin for this to work!", {timeout: 5000});
+									}
+								}
+							}
 					});
 				}
 				
