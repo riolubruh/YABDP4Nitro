@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.0
+ * @version 4.3.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.0",
+			"version": "4.3.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -109,7 +109,7 @@ module.exports = (() => {
 					"CameraHeight": 1080,
 					"ResolutionSwapper": false,
 					"stickerBypass": true,
-					"profileV2": true,
+					"profileV2": false,
 					"activityJoiningMode": false,
 					"activityBypass": true,
 					"customActivityURL": "",
@@ -303,10 +303,11 @@ module.exports = (() => {
 
 				saveAndUpdate() {
 					PluginUtilities.saveSettings(this.getName(), this.settings);
+					BdApi.Patcher.unpatchAll("YABDP4Nitro");
 					//console.log("saveAndUpdate running");
 					if (this.settings.emojiBypass) {
-						//Upload Emotes
-						if (this.settings.uploadEmotes) {
+						
+						if (this.settings.uploadEmotes) { //Upload Emotes
 							Patcher.unpatchAll(DiscordModules.MessageActions);
 							BdApi.Patcher.unpatchAll("YABDP4Nitro");
 							BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
@@ -422,25 +423,62 @@ module.exports = (() => {
 						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
 					}
 					
-					if(this.settings.stickerBypass){
+					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					if(this.settings.stickerBypass && this.settings.screenSharing){
 						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+					}
+					
+					if(this.settings.stickerBypass){
 						this.stickerSending();
 					}
+					
+					if(!this.settings.stickerBypass && this.settings.screenSharing){
+						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					}
+					
 					if(!this.settings.stickerBypass && this.settings.emojiBypass){
 						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
 					}
-					if(!this.settings.emojiBypass && !this.settings.stickerBypass){
-						DiscordModules.UserStore.getCurrentUser().premiumType = undefined;
+					
+					if(this.settings.profileV2 == true){
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "isPremiumAtLeast", () => {
+							return true;
+						});
+					}
+					if(!this.settings.emojiBypass){
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
+							return false;
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
+							return false;
+						});
+					}
+					if(this.settings.screenSharing){
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamHighQuality", () => {
+							return true;
+						});
 					}
 					
-					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					//console.log(permissions);
-					if(this.settings.profileV2 == true){
-					BdApi.Patcher.instead("YABDP4Nitro", permissions, "isPremiumAtLeast", () => {
-						return true;
-					})};
+					if(!this.settings.emojiBypass && !this.settings.stickerBypass && !this.settings.screenSharing){
+						DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+						if(this.originalNitroStatus >= 0){
+							return
+						}else{
+							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
+									return false;
+							});
+						}
+					}
 					
-					if(this.settings.activityBypass) this.activities();
+					if(this.settings.activityBypass){
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseActivities", () => {
+							return true;
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUsePremiumActivities", () => {
+							return true;
+						});
+						this.activities();
+					}
 					
 				} //End of saveAndUpdate
 				
@@ -601,6 +639,10 @@ module.exports = (() => {
 				}
 				
 				async stickerSending(){
+					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
+						return true;
+					});
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
 						let stickerID = b[1][0];
 						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&size=4096"
@@ -728,7 +770,7 @@ module.exports = (() => {
 				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+					setTimeout(function(){DiscordModules.UserStore.getCurrentUser().premiumType = 2},5000);
 					this.saveAndUpdate();
 				}
 
