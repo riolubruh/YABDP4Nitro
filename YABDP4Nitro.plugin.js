@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.1
+ * @version 4.3.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.1",
+			"version": "4.3.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -83,7 +83,7 @@ module.exports = (() => {
 				DiscordModules,
 				Settings,
 				Toasts,
-				PluginUtilities
+				Utilities
 			} = Api;
 			return class YABDP4Nitro extends Plugin {
 				defaultSettings = {
@@ -115,7 +115,7 @@ module.exports = (() => {
 					"customActivityURL": "",
 					"customActivity": false
 				};
-				settings = PluginUtilities.loadSettings(this.getName(), this.defaultSettings);
+				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
 					return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
 						new Settings.SettingGroup("Screen Share Features").append(...[
@@ -249,6 +249,14 @@ module.exports = (() => {
 				}
 
 				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
+					var tempStoreCurrentPremiumType = DiscordModules.UserStore.getCurrentUser().premiumType;
+					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+					var isThisEmojiFilteredOrLocked = BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji);
+					if(!isThisEmojiFilteredOrLocked){
+						DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
+						return true
+					}
+					DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
 					if (this.settings.emojiBypassForValidEmoji) {
 						if ((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)) {
 							return true
@@ -302,7 +310,7 @@ module.exports = (() => {
 				}
 
 				saveAndUpdate() {
-					PluginUtilities.saveSettings(this.getName(), this.settings);
+					Utilities.saveSettings(this.getName(), this.settings);
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
 					//console.log("saveAndUpdate running");
 					if (this.settings.emojiBypass) {
@@ -445,7 +453,7 @@ module.exports = (() => {
 							return true;
 						});
 					}
-					if(!this.settings.emojiBypass){
+					if(!this.settings.emojiBypass && (this.originalNitroStatus == (null || undefined))){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
 							return false;
 						});
@@ -457,15 +465,16 @@ module.exports = (() => {
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamHighQuality", () => {
 							return true;
 						});
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamMedQuality", () => {
+							return true;
+						});
 					}
 					
 					if(!this.settings.emojiBypass && !this.settings.stickerBypass && !this.settings.screenSharing){
 						DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
-						if(this.originalNitroStatus >= 0){
-							return
-						}else{
+						if(this.originalNitroStatus == (null || undefined)){
 							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
-									return false;
+								return false;
 							});
 						}
 					}
@@ -532,54 +541,48 @@ module.exports = (() => {
 						});
 					}
 					if(this.settings.CameraSettingsEnabled){ //If Camera Patching On
-						
 						BdApi.Patcher.after("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-							
-							//Is the camera active and screen share not enabled?
 							if(e.stats !== undefined){ //Error prevention
-							if(e.stats.camera !== undefined){
-							if(e.videoStreamParameters[0] !== undefined){
-							
-							e.videoStreamParameters[0].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
-							
-							
-							if(e.videoStreamParameters[0].maxResolution.height){
-							if(this.settings.CameraHeight >= 0){ //Height in pixels
-								e.videoStreamParameters[0].maxResolution.height = this.settings.CameraHeight;
-							}}
-							if(e.videoStreamParameters[0].maxResolution.width){
-							if(this.settings.CameraWidth >= 0){ //Width in pixels
-								e.videoStreamParameters[0].maxResolution.width = this.settings.CameraWidth;
-							}}
-							}
-							if(e.videoStreamParameters[1] !== undefined){
-								if(this.settings.CameraHeight >= 0){ //Height in pixels
-									e.videoStreamParameters[1].maxResolution.height = this.settings.CameraHeight;
+								if(e.stats.camera !== undefined){ //Is camera enabled?
+									if(e.videoStreamParameters[0] !== undefined){
+										e.videoStreamParameters[0].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+										if(e.videoStreamParameters[0].maxResolution.height){
+										if(this.settings.CameraHeight >= 0){ //Height in pixels
+											e.videoStreamParameters[0].maxResolution.height = this.settings.CameraHeight;
+										}}
+										if(e.videoStreamParameters[0].maxResolution.width){
+										if(this.settings.CameraWidth >= 0){ //Width in pixels
+											e.videoStreamParameters[0].maxResolution.width = this.settings.CameraWidth;
+										}}
+									}
+									if(e.videoStreamParameters[1] !== undefined){
+										if(this.settings.CameraHeight >= 0){ //Height in pixels
+											e.videoStreamParameters[1].maxResolution.height = this.settings.CameraHeight;
+										}
+										
+										if(this.settings.CameraWidth >= 0){ //Width in pixels
+											e.videoStreamParameters[1].maxResolution.width = this.settings.CameraWidth;
+										}
+									e.videoStreamParameters[1].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
+									}
+									//---- VQM Bypasses ----//
+									if(this.settings.CameraWidth >= 0){
+										e.videoQualityManager.options.videoCapture.width = this.settings.CameraWidth;
+										e.videoQualityManager.options.videoBudget.width = this.settings.CameraWidth;
+									}
+									if(this.settings.CameraHeight >= 0){
+										e.videoQualityManager.options.videoCapture.height = this.settings.CameraHeight;
+										e.videoQualityManager.options.videoBudget.height = this.settings.CameraHeight;
+									}
+									e.videoQualityManager.ladder.pixelBudget = (this.settings.CameraHeight * this.settings.CameraWidth);
+									 
 								}
-								
-								if(this.settings.CameraWidth >= 0){ //Width in pixels
-									e.videoStreamParameters[1].maxResolution.width = this.settings.CameraWidth;
-								}
-							e.videoStreamParameters[1].maxPixelCount = (this.settings.CameraHeight * this.settings.CameraWidth);
-							}
-							//---- VQM Bypasses ----//
-							if(this.settings.CameraWidth >= 0){
-								e.videoQualityManager.options.videoCapture.width = this.settings.CameraWidth;
-								e.videoQualityManager.options.videoBudget.width = this.settings.CameraWidth;
-							}
-							if(this.settings.CameraHeight >= 0){
-								e.videoQualityManager.options.videoCapture.height = this.settings.CameraHeight;
-								e.videoQualityManager.options.videoBudget.height = this.settings.CameraHeight;
-							}
-							e.videoQualityManager.ladder.pixelBudget = (this.settings.CameraHeight * this.settings.CameraWidth);
-							 
-							}
 							}
 						});	
 					}
 				}
 				
-				buttonCreate(){
+				buttonCreate(){ //Creates the FPS and Resolution Swapper
 					var qualityButton = document.createElement('button');
 					qualityButton.id = 'qualityButton';
 					qualityButton.innerHTML = 'Quality';
@@ -636,7 +639,7 @@ module.exports = (() => {
 						qualityMenu.style.display = 'none';
 					  }
 					}
-				}
+				} //End of buttonCreate()
 				
 				async stickerSending(){
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
@@ -708,9 +711,8 @@ module.exports = (() => {
 									this.settings.activityJoiningMode = false;
 									return
 								}
-								if(!this.settings.activityJoiningMode){ //Join mode disabled
+								if(!this.settings.activityJoiningMode){ //Join mode disabled (hosting)
 									var intendedActivityId = N[0].inflatedBundleItem.application.id;
-									//console.log(N);
 									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
 										c.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
@@ -759,18 +761,17 @@ module.exports = (() => {
 										channelId: BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId(),
 										embeddedActivity: Activity
 									});
-									setTimeout(function(){document.getElementsByClassName("notice-2HEN-u colorWarning-3oV0Ge")[0].firstChild.children[1].click()},1000);
-									//Close test mode banner (also disables test mode)
+										
 									ZLibrary.Toasts.info("All clients must be running the plugin for this to work!", {timeout: 5000});
-									}
-								}
+
+								} //End hosting mode code
 							}
+						}
 					});
-				}
+				} //End of activities()
 				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-					setTimeout(function(){DiscordModules.UserStore.getCurrentUser().premiumType = 2},5000);
 					this.saveAndUpdate();
 				}
 
