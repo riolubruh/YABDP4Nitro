@@ -777,6 +777,7 @@ module.exports = (() => {
 				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
+					DiscordModules.UserStore.getCurrentUser().premiumType = 2;
 					this.saveAndUpdate();
 				}
 
