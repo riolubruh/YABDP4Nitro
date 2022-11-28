@@ -250,7 +250,7 @@ module.exports = (() => {
 
 				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
 					var tempStoreCurrentPremiumType = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+					DiscordModules.UserStore.getCurrentUser().premiumType = null;
 					var isThisEmojiFilteredOrLocked = BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji);
 					if(!isThisEmojiFilteredOrLocked){
 						DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
@@ -262,6 +262,7 @@ module.exports = (() => {
 							return true
 						}
 					}
+					return false
 				}
 
 				async customVideoSettings() {
@@ -437,9 +438,17 @@ module.exports = (() => {
 						this.stickerSending();
 					}
 					
+					if(this.settings.emojiBypass){
+							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
+								return true
+							});
+							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
+								return true
+							});
+						}
+					
 					if(this.settings.stickerBypass || this.settings.emojiBypass || this.settings.screenSharing){
 						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
-						setTimeout(function(){DiscordModules.UserStore.getCurrentUser().premiumType = 2}, 3000);
 					}
 					
 					if(this.settings.profileV2 == true){
@@ -447,6 +456,7 @@ module.exports = (() => {
 							return true;
 						});
 					}
+					
 					if(!this.settings.emojiBypass && (this.originalNitroStatus == (null || undefined))){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
 							return false;
@@ -455,6 +465,7 @@ module.exports = (() => {
 							return false;
 						});
 					}
+					
 					if(this.settings.screenSharing){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamHighQuality", () => {
 							return true;
