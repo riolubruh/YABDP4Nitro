@@ -432,20 +432,14 @@ module.exports = (() => {
 					}
 					
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					if(this.settings.stickerBypass && this.settings.screenSharing){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
-					}
 					
 					if(this.settings.stickerBypass){
 						this.stickerSending();
 					}
 					
-					if(!this.settings.stickerBypass && this.settings.screenSharing){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
-					}
-					
-					if(!this.settings.stickerBypass && this.settings.emojiBypass){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					if(this.settings.stickerBypass || this.settings.emojiBypass || this.settings.screenSharing){
+						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+						setTimeout(function(){DiscordModules.UserStore.getCurrentUser().premiumType = 2}, 3000);
 					}
 					
 					if(this.settings.profileV2 == true){
