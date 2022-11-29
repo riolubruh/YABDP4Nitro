@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.4
+ * @version 4.3.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.4",
+			"version": "4.3.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -108,7 +108,7 @@ module.exports = (() => {
 					"CameraWidth": 1920,
 					"CameraHeight": 1080,
 					"ResolutionSwapper": false,
-					"stickerBypass": true,
+					"stickerBypass": false,
 					"profileV2": false,
 					"activityJoiningMode": false,
 					"activityBypass": true,
@@ -230,7 +230,7 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.stickerBypass || this.settings.emojiBypass || this.settings.screenSharing){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
 					}
 					
 					if(this.settings.profileV2 == true){
@@ -337,20 +337,19 @@ module.exports = (() => {
 				}
 
 				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
-					var tempStoreCurrentPremiumType = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = null;
-					var isThisEmojiFilteredOrLocked = BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji);
-					if(!isThisEmojiFilteredOrLocked){
-						DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
-						return true
-					}
-					DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
 					if (this.settings.emojiBypassForValidEmoji) {
+						console.log(emoji);
+						var tempStoreCurrentPremiumType = DiscordModules.UserStore.getCurrentUser().premiumType;
+						DiscordModules.UserStore.getCurrentUser().premiumType = null;
+						if(BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji)){
+							DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
+							return true
+						}
+						DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
 						if ((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)) {
 							return true
 						}
 					}
-					return false
 				}
 				
 				async customVideoSettings() {
@@ -446,7 +445,9 @@ module.exports = (() => {
 								if (this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png');
 								}
-								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) { return }
+								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+									return
+								}
 								runs++;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
 								b[1].content = b[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
@@ -470,7 +471,7 @@ module.exports = (() => {
 								if (this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png')
 								}
-								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) {
+								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
 								}
 								//if ghost mode is not required
@@ -508,7 +509,9 @@ module.exports = (() => {
 										emoji.url = emoji.url.replace('.webp', '.png')
 									}
 									if (emoji.url.startsWith("/assets/")) return;
-									if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) { return }
+									if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+										return
+									}
 									if (msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 										return
@@ -877,7 +880,7 @@ module.exports = (() => {
 				
 				onStart() {
 					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = 2;
+					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
 					this.saveAndUpdate();
 				}
 
