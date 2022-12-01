@@ -1,12 +1,12 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.5
+ * @version 4.3.6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
 /*@cc_on
-@if (@_jscript)
+@if(@_jscript)
 	
 	// Offer to self-install for clueless users that try to run this directly.
 	var shell = WScript.CreateObject("WScript.Shell");
@@ -15,11 +15,11 @@
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
 	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
-	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
+	if(fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
 		shell.Popup("I'm in the correct folder already.", 0, "I'm already installed", 0x40);
-	} else if (!fs.FolderExists(pathPlugins)) {
+	} else if(!fs.FolderExists(pathPlugins)) {
 		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
-	} else if (shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
+	} else if(shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
 		fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
 		// Show the user where to put plugins in the future
 		shell.Exec("explorer " + pathPlugins);
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.5",
+			"version": "4.3.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -68,7 +68,7 @@ module.exports = (() => {
 				cancelText: "Cancel",
 				onConfirm: () => {
 					require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
-						if (error) return require("electron").shell.openExternal("https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+						if(error) return require("electron").shell.openExternal("https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
 						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
 					});
 				}
@@ -194,10 +194,11 @@ module.exports = (() => {
 				saveAndUpdate(){ //Saves and updates settings and runs functions
 					Utilities.saveSettings(this.getName(), this.settings);
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
+					Patcher.unpatchAll();
 					
-					if (this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
-					if (this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
-					if (this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
+					if(this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
+					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
+					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
 					this.videoQualityModule(); //Bitrate Module
 					this.audioShare(); //Audio PID module
@@ -230,7 +231,7 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.stickerBypass || this.settings.emojiBypass || this.settings.screenSharing){
-						DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					}
 					
 					if(this.settings.profileV2 == true){
@@ -261,7 +262,7 @@ module.exports = (() => {
 					}
 					
 					if(!this.settings.emojiBypass && !this.settings.stickerBypass && !this.settings.screenSharing){
-						DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
 						if(this.originalNitroStatus == (null || undefined)){
 							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
 								return false;
@@ -305,9 +306,9 @@ module.exports = (() => {
 				
 					var extension = ".gif";
 					if(!url.includes("stickers")){
-						if (!emoji.animated) {
+						if(!emoji.animated) {
 							extension = ".png";
-							if (!this.settings.PNGemote) {
+							if(!this.settings.PNGemote) {
 								extension = ".webp";
 							}
 						}
@@ -336,20 +337,24 @@ module.exports = (() => {
 					};
 				}
 
-				emojiBypassForValidEmoji(emoji, currentChannelId) { //Made into a function to save space and clean up
-					if (this.settings.emojiBypassForValidEmoji) {
-						console.log(emoji);
-						var tempStoreCurrentPremiumType = DiscordModules.UserStore.getCurrentUser().premiumType;
-						DiscordModules.UserStore.getCurrentUser().premiumType = null;
-						if(BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji)){
-							DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
-							return true
+				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
+					if(this.settings.emojiBypassForValidEmoji){
+						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
+						
+						let emojiLocked = BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji);
+						
+						if(!emojiLocked){ //If emoji NOT locked, cancel emoji bypass
+							BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							return true //Returning true cancels emoji bypass
 						}
-						DiscordModules.UserStore.getCurrentUser().premiumType = tempStoreCurrentPremiumType;
-						if ((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && ((DiscordModules.ChannelStore.getChannel(currentChannelId).type <= 0) == true)) {
-							return true
+						if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0)) {
+						//If emoji is from current guild, not animated, and we are actually in a guild channel, cancel emoji bypass
+							BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							return true //Returning true cancels emoji bypass
 						}
+						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					}
+					return false
 				}
 				
 				async customVideoSettings() {
@@ -384,10 +389,10 @@ module.exports = (() => {
 					}
 					
 					function replace60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro","settings").CustomFPS;
+						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro","settings").CustomFPS;
 					}
 					function restore60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
+						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
 					}
 					
 					if(this.settings.CustomFPSEnabled){
@@ -434,19 +439,19 @@ module.exports = (() => {
 
 				async emojiBypass(){ //Moved to a function to declutter saveAndUpdate
 					//Upload Emotes
-					if(this.settings.uploadEmotes) { 
-						Patcher.unpatchAll(DiscordModules.MessageActions);
-						BdApi.Patcher.unpatchAll("YABDP4Nitro");
+					if(this.settings.uploadEmotes) {
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							var runs = 0;
 							b[1].validNonShortcutEmojis.forEach(emoji => {
-								if (emoji.url.startsWith("/assets/")) return;
-								if (this.settings.PNGemote) {
-									emoji.url = emoji.url.replace('.webp', '.png');
-								}
-								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
+								}
+								if(emoji.url.startsWith("/assets/")){
+									return
+								}
+								if(this.settings.PNGemote) {
+									emoji.url = emoji.url.replace('.webp', '.png');
 								}
 								runs++;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize}`
@@ -454,7 +459,7 @@ module.exports = (() => {
 								this.UploadEmote(emoji.url, currentChannelId, b, emoji, runs);
 								return
 							});
-							if ((b[1].content !== undefined && b[1].content != "") && runs == 0) {
+							if((b[1].content !== undefined && b[1].content != "") && runs == 0) {
 								send(b[0], b[1], b[2], b[3]);
 							}
 							return
@@ -462,30 +467,30 @@ module.exports = (() => {
 					}
 					//Emoji bypass with ghost mode
 					if(this.settings.ghostMode && !this.settings.uploadEmotes) {
-						BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions);
-						Patcher.unpatchAll(DiscordModules.MessageActions);
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							msg.validNonShortcutEmojis.forEach(emoji => {
-								if (emoji.url.startsWith("/assets/")) return;
-								if (this.settings.PNGemote) {
+								if(emoji.url.startsWith("/assets/")){
+									return
+								}
+								if(this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png')
 								}
-								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
 								}
 								//if ghost mode is not required
-								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == "") {
+								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == "") {
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `)
 									return;
 								}
 								let ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
-								if (msg.content.includes(ghostmodetext)) {
-									if (msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
+								if(msg.content.includes(ghostmodetext)) {
+									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 										return
 									}
-									if (msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
+									if(msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 										return
 									}
@@ -499,24 +504,24 @@ module.exports = (() => {
 					}else
 						//Original method
 						if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
-							BdApi.Patcher.unpatchAll("YABDP4Nitro", DiscordModules.MessageActions)
-							Patcher.unpatchAll(DiscordModules.MessageActions)
 							//console.log("Classic Method (No Ghost)")
 							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								msg.validNonShortcutEmojis.forEach(emoji => {
-									if (this.settings.PNGemote) {
+									if(this.settings.PNGemote) {
 										emoji.url = emoji.url.replace('.webp', '.png')
 									}
-									if (emoji.url.startsWith("/assets/")) return;
-									if (this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+									if(emoji.url.startsWith("/assets/")){
 										return
 									}
-									if (msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
+									if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+										return
+									}
+									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 										return
 									}
-									if (msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
+									if(msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&size=${this.settings.emojiSize} `
 										return
 									}
@@ -526,8 +531,8 @@ module.exports = (() => {
 							//editing message (in classic mode)
 							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "editMessage", (_, obj) => {
 								let msg = obj[2].content
-								if (msg.search(/\d{18}/g) == -1) return;
-								if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
+								if(msg.search(/\d{18}/g) == -1) return;
+								if(msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
 								msg.match(/<a:.+?:\d{18}>|<:.+?:\d{18}>/g).forEach(idfkAnymore => {
 									obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
 								})
@@ -575,10 +580,10 @@ module.exports = (() => {
 					}
 					
 					function replace60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
+						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
 					}
 					function restore60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
+						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
 					}
 
 					
@@ -741,7 +746,7 @@ module.exports = (() => {
 					qualityMenu.appendChild(qualityInputFPS);
 					
 					qualityButton.onclick = function() {
-					  if (qualityMenu.style.display === 'none') {
+					  if(qualityMenu.style.display === 'none') {
 						qualityMenu.style.display = 'block';
 					  } else {
 						qualityMenu.style.display = 'none';
@@ -766,7 +771,7 @@ module.exports = (() => {
 					let d = ZLibrary.WebpackModules.getByIndex(124581);
 					let c = b.Z._dispatcher;
 					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
-						if(h[1]) if (h[1].className) if(h[1].className == "activityItem-1Z9CTr"){
+						if(h[1]) if(h[1].className) if(h[1].className == "activityItem-1Z9CTr"){
 							let test = document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO");
 							let textField = test[0].firstChild;
 							if(textField) if(textField.innerText === "Have feedback? Take the survey"){
@@ -879,13 +884,13 @@ module.exports = (() => {
 				} //End of activities()
 				
 				onStart() {
-					this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-					DiscordModules.UserStore.getCurrentUser().premiumType = 1;
+					this.originalNitroStatus = BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType;
+					BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					this.saveAndUpdate();
 				}
 
 				onStop() {
-					DiscordModules.UserStore.getCurrentUser().premiumType = this.originalNitroStatus;
+					BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
 					Patcher.unpatchAll();
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
