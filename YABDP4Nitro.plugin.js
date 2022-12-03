@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.6
+ * @version 4.3.7
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.6",
+			"version": "4.3.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -339,20 +339,10 @@ module.exports = (() => {
 
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
 					if(this.settings.emojiBypassForValidEmoji){
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
-						
-						let emojiLocked = BdApi.findModuleByProps("isEmojiFilteredOrLocked").isEmojiFilteredOrLocked(emoji);
-						
-						if(!emojiLocked){ //If emoji NOT locked, cancel emoji bypass
-							BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-							return true //Returning true cancels emoji bypass
-						}
 						if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0)) {
 						//If emoji is from current guild, not animated, and we are actually in a guild channel, cancel emoji bypass
-							BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 							return true //Returning true cancels emoji bypass
 						}
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					}
 					return false
 				}
@@ -444,6 +434,7 @@ module.exports = (() => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							var runs = 0;
 							b[1].validNonShortcutEmojis.forEach(emoji => {
+								BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = null;
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
 								}
