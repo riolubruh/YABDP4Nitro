@@ -56,3 +56,11 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 ## License
 
 The plugin is licensed under the NPOSL Version 3 License.
+
+## Recommended additional plugins for more Nitro features
+
+[FreeStickers by An00nymushun](https://github.com/An00nymushun/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF.
+
+[SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
+
+[SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 8 megabyte chunks! YABDP4Nitro-compatible fork created by me.
