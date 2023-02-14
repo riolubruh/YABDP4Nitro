@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.3.9
+ * @version 4.4.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.3.9",
+			"version": "4.4.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -166,8 +166,8 @@ module.exports = (() => {
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [Warning: this breaks shit currently, such as replies. Use at your own risk.]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
-							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this unless it isn't working for some reason.", this.settings.stickerBypass, value => this.settings.stickerBypass = value)
+							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [This is currently broken. Sorry about that!]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
+							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. [This is currently broken. Sorry about that!]", this.settings.stickerBypass, value => this.settings.stickerBypass = value)
 						),
 						new Settings.SettingGroup("Camera [Beta]").append(
 						new Settings.Switch("Enabled", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
@@ -301,60 +301,40 @@ module.exports = (() => {
 					}
 				} //End of saveAndUpdate
 
-				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
-					const Uploader = BdApi.findModuleByProps('instantBatchUpload');
-					if(url.includes("stickers")){
-						const fetchoptions = {
-								method: 'GET',
-								mode: 'cors',
-								headers: {
-								'origin':'discord.com'
-							}
-						};
-						let blob = await fetch(('https://cors-anywhere.riolubruh.repl.co/' + url),fetchoptions).then(r => r.blob());
-						await blob;
-							
-						await Uploader.upload({
-							channelId: channelIdLmao,
-							file: new File([blob], "sticker", {type: "image/png"}),
-							draftType: 0,
-							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
-							hasSpoiler: false,
-							filename: "sticker.png"
-						});
-					}
+				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
+					const Uploader = ZLibrary.WebpackModules.getByProps("uploadFiles");
 				
 					var extension = ".gif";
-					if(!url.includes("stickers")){
-						if(!emoji.animated) {
-							extension = ".png";
-							if(!this.settings.PNGemote) {
-								extension = ".webp";
-							}
+					if(!emoji.animated) {
+						extension = ".png";
+						if(!this.settings.PNGemote) {
+							extension = ".webp";
 						}
-						let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
-						
-						if(runs > 1){
-							await Uploader.upload({
-							channelId: channelIdLmao,
-							file: new File([file], emoji.name),
-							draftType: 0,
-							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: channelIdLmao },
-							hasSpoiler: false,
-							filename: emoji.name + extension
-						});
-						return
-						}
+					}
 					
-					await Uploader.upload({
-							channelId: channelIdLmao,
-							file: new File([file], emoji.name),
+					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
+					if(runs > 1){
+						await Uploader.upload({
+							channelId: msg[0],
+							fileData: file,
 							draftType: 0,
-							message: { content: msg[1].content, invalidEmojis: [], tts: false, channel_id: channelIdLmao},
-							hasSpoiler: false,
-							filename: emoji.name + extension
-						})
-					};
+							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: msg[0] }
+						});
+					return
+					}
+					await Uploader.uploadFiles({
+						channelId: (msg[0].toString()),
+						draftType: 0,
+						options: {stickerIds: []},
+						parsedMessage: { content: msg[1].content, tts:false, invalidEmojis: [] },
+						uploads: [{
+							item: {file: new File([file]), platform: 1},
+							channelId: (msg[0].toString()),
+							filename: (emoji.name + extension)
+						}]
+					}
+					)
+					return
 				}
 
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
@@ -709,15 +689,31 @@ module.exports = (() => {
 				buttonCreate(){ //Creates the FPS and Resolution Swapper
 					var qualityButton = document.createElement('button');
 					qualityButton.id = 'qualityButton';
-					qualityButton.innerHTML = 'Quality';
+					qualityButton.className = "lookFilled-1H2Jvj colorBrand-2M3O3N";
+					qualityButton.innerHTML = '<p style="display: block-inline; margin-left: -6%; margin-top: -4.5%;">Quality</p>';
+					qualityButton.style.position = "relative";
 					qualityButton.style.zIndex = "2";
-					qualityButton.style.bottom = "-30%";
-					qualityButton.style.left = "-60%";
-					qualityButton.style.height = "14px";
-					qualityButton.style.width = "50px";
-					qualityButton.className = "buttonColor-3bP3fX button-f2h6uQ lookFilled-yCfaCM colorBrand-I6CyqQ"
+					qualityButton.style.bottom = "-33%";
+					qualityButton.style.left = "-50%";
+					qualityButton.style.height = "15px";
+					qualityButton.style.width = "48px";
+					qualityButton.style.verticalAlign = "middle";
+					qualityButton.style.textAlign = "left";
+					qualityButton.style.borderTopLeftRadius = "5px";
+					qualityButton.style.borderTopRightRadius = "4px";
+					qualityButton.style.borderBottomLeftRadius = "4px";
+					qualityButton.style.borderBottomRightRadius = "4px";
+					
+					qualityButton.onclick = function(){
+					  if(qualityMenu.style.visibility == "hidden") {
+						qualityMenu.style.visibility = "visible";
+					  }else {
+						qualityMenu.style.visibility = "hidden";
+					  }
+					}
+					
 					try{
-						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton)
+						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton);
 						}catch(err){
 						console.warn("YABDP4Nitro: What the fuck happened? During buttonCreate()");
 						console.log(err);
@@ -725,11 +721,11 @@ module.exports = (() => {
 
 					var qualityMenu = document.createElement('div');
 					qualityMenu.id = 'qualityMenu';
-					qualityMenu.style.display = 'none';
-					qualityMenu.style.position = "absolute";
+					qualityMenu.style.visibility = 'hidden';
+					qualityMenu.style.position = "relative";
 					qualityMenu.style.zIndex = "1";
-					qualityMenu.style.bottom = "140%";
-					qualityMenu.style.left = "-45%";
+					qualityMenu.style.bottom = "410%";
+					qualityMenu.style.left = "-59%";
 					qualityMenu.style.height = "20px";
 					qualityMenu.style.width = "100px";
 					qualityMenu.onclick = function(event){
@@ -755,14 +751,6 @@ module.exports = (() => {
 					qualityInputFPS.style.zIndex = "1";
 					qualityInputFPS.value = this.settings.CustomFPS;
 					qualityMenu.appendChild(qualityInputFPS);
-					
-					qualityButton.onclick = function() {
-					  if(qualityMenu.style.display === 'none') {
-						qualityMenu.style.display = 'block';
-					  } else {
-						qualityMenu.style.display = 'none';
-					  }
-					}
 				} //End of buttonCreate()
 				
 				async stickerSending(){
@@ -772,7 +760,7 @@ module.exports = (() => {
 					});
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
 						let stickerID = b[1][0];
-						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&size=4096"
+						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&quality=lossless"
 						this.UploadEmote(stickerURL, b[0]);
 					});
 				}
@@ -782,9 +770,17 @@ module.exports = (() => {
 					let d = ZLibrary.WebpackModules.getByIndex(124581);
 					let c = b.Z._dispatcher;
 					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
-						if(h[1]) if(h[1].className) if(h[1].className == "activityItem-1Z9CTr"){
-							let test = document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO");
-							let textField = test[0].firstChild;
+						if(h[1]) if(h[1].className) if(h[1].className.includes("activityItem")){
+							let test;
+							if((document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO")) != undefined){
+								test = document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO");
+							}
+							let textField;
+							try{
+								textField = test[0].firstChild;
+							}catch(err){
+								//console.warn(err);
+							}
 							if(textField) if(textField.innerText === "Have feedback? Take the survey"){
 								BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
 								let test = document.getElementsByClassName("defaultColor-24IHKz text-sm-normal-3Zj3Iv");
@@ -809,7 +805,7 @@ module.exports = (() => {
 						}
 					});
 					BdApi.Patcher.instead("YABDP4Nitro", d, "Z", (_,N,f) => {
-						if(N !== undefined){
+						if(N != undefined){
 							if(N[0].inflatedBundleItem.application.id){
 								if(this.settings.activityJoiningMode){ //Join mode enabled
 									//First, pick the host's activity (just ask them)
@@ -851,7 +847,7 @@ module.exports = (() => {
 											originURL: this.settings.customActivityURL
 										});
 									}
-									let Activity = new Array();
+									var Activity = new Array();
 									Activity.channelId = BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId();
 									if(Activity.channelId === null){
 										console.warn("Voice Channel was null. Are you not in a voice channel?");
@@ -860,7 +856,6 @@ module.exports = (() => {
 									Activity.application_id = "880218394199220334";
 									Activity.always_free = true;
 									Activity.nitro_requirement = false;
-									Activity.details = "Test"
 									c.dispatch({
 										type: "LOCAL_ACTIVITY_UPDATE",
 										activity: Activity
@@ -878,11 +873,16 @@ module.exports = (() => {
 										)
 									  );
 									}
-									var element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-f2h6uQ lookBlank-21BCro colorBrand-I6CyqQ grow-2sR_-F')[0];
-									simulateMouseClick(element); //Close activity menu
+									var element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-ejjZWC lookBlank-FgPMy6 colorBrand-2M3O3N grow-2T4nbg')[0];
+									try{
+										simulateMouseClick(element); //Close activity menu
+									}catch(err){
+										console.warn("[YABDP4Nitro] An error occurred while trying to close the Activity menu!");
+										console.error(err);
+									}
 									c.dispatch({
 										type: "EMBEDDED_ACTIVITY_OPEN",
-										channelId: BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId(),
+										channelId: (BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId()),
 										embeddedActivity: Activity
 									});
 										
