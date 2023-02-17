@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.0
+ * @version 4.4.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.0",
+			"version": "4.4.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -113,13 +113,15 @@ module.exports = (() => {
 					"activityJoiningMode": false,
 					"activityBypass": true,
 					"customActivityURL": "",
-					"customActivity": false
+					"customActivity": false,
+					"forceStickersUnlocked": false,
+					"changePremiumType": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
 					return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
 						new Settings.SettingGroup("Screen Share Features").append(...[
-							new Settings.Switch("High Quality Screensharing", "1080p/source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
+							new Settings.Switch("High Quality Screensharing", "1080p/Source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
 							new Settings.Switch("Custom Screenshare Resolution", "Choose your own screen share resolution!", this.settings.ResolutionEnabled, value => this.settings.ResolutionEnabled = value),
 							new Settings.Textbox("Resolution", "The custom resolution you want (in pixels)", this.settings.CustomResolution,
 								value => {
@@ -167,10 +169,12 @@ module.exports = (() => {
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
 							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [This is currently broken. Sorry about that!]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
-							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. [This is currently broken. Sorry about that!]", this.settings.stickerBypass, value => this.settings.stickerBypass = value)
+							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. [This is currently broken. Sorry about that!]", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
+							new Settings.Switch("Force Stickers Unlocked", "", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
+							
 						),
 						new Settings.SettingGroup("Camera [Beta]").append(
-						new Settings.Switch("Enabled", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
+						new Settings.Switch("Enabled", "", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
 						new Settings.Textbox("Camera Resolution Width", "Camera Resolution Width in pixels. (Set to -1 to disable)", this.settings.CameraWidth,
 								value => {
 									value = parseInt(value);
@@ -186,13 +190,17 @@ module.exports = (() => {
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
 							new Settings.Switch("Activity Bypass", "Use this to play Activities! (All users must be running the plugin for it to work correctly!)", this.settings.activityBypass, value => this.settings.activityBypass = value),
 							new Settings.Switch("Custom Activity", "Enable this to use a custom URL for an Activity!", this.settings.customActivity, value => this.settings.customActivity = value),
-							new Settings.Textbox("Custom Activity URL", "", this.settings.customActivityURL, value => this.settings.customActivityURL = value)
+							new Settings.Textbox("Custom Activity URL", "", this.settings.customActivityURL, value => this.settings.customActivityURL = value),
+							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value)
 						)
 					])
 				}
 
 				saveAndUpdate(){ //Saves and updates settings and runs functions
-					const filesizemodule = BdApi.Webpack.getModule((m) => Object.values(m).filter((v) => v?.toString).map((v) => v.toString()).some((v) => v.includes("getCurrentUser();") && v.includes("getUserMaxFileSize")));
+					Utilities.saveSettings(this.getName(), this.settings);
+					BdApi.Patcher.unpatchAll("YABDP4Nitro");
+					Patcher.unpatchAll();
+					
 					function getFunctionNameFromString(obj, search) {
 						for (const [k, v] of Object.entries(obj)) {
 						  if (search.every((str) => v?.toString().match(str))) {
@@ -201,23 +209,21 @@ module.exports = (() => {
 						}
 						return null;
 					}
-					let maxFileSizeFunctionName = getFunctionNameFromString(filesizemodule, ["getUserMaxFileSize", /getCurrentUser\(\);/]);
-					BdApi.Patcher.before("YABDP4Nitro", filesizemodule, maxFileSizeFunctionName, () => {
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
-					});
-					BdApi.Patcher.after("YABDP4Nitro", filesizemodule, maxFileSizeFunctionName, () => {
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-					});
 					
-					Utilities.saveSettings(this.getName(), this.settings);
-					BdApi.Patcher.unpatchAll("YABDP4Nitro");
-					Patcher.unpatchAll();
+					if(this.settings.changePremiumType){
+						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+						setTimeout(() => {
+							if(this.settings.changePremiumType){
+								BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							}
+						}, 10000);
+					}
 					
 					if(this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
 					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
 					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
-					this.videoQualityModule(); //Bitrate Module
+					this.videoQualityModule(); //Quality Module
 					this.audioShare(); //Audio PID module
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
@@ -232,22 +238,22 @@ module.exports = (() => {
 					
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
 					
+					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
+							return true
+					});
+					
 					if(this.settings.stickerBypass){
 						this.stickerSending();
 					}
 					
 					if(this.settings.emojiBypass){
-						this.emojiBypass()
+						this.emojiBypass();
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
 							return true
 						});
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
 							return true
 						});
-					}
-					
-					if(this.settings.stickerBypass || this.settings.emojiBypass || this.settings.screenSharing){
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					}
 					
 					if(this.settings.profileV2 == true){
@@ -281,15 +287,6 @@ module.exports = (() => {
 						
 					}
 					
-					if(!this.settings.emojiBypass && !this.settings.stickerBypass && !this.settings.screenSharing){
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
-						if(this.originalNitroStatus == (null || undefined)){
-							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
-								return false;
-							});
-						}
-					}
-					
 					if(this.settings.activityBypass){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseActivities", () => {
 							return true;
@@ -299,6 +296,13 @@ module.exports = (() => {
 						});
 						this.activities();
 					}
+					
+					if(this.settings.forceStickersUnlocked){
+						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
+							return true
+						});
+					}
+					
 				} //End of saveAndUpdate
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
@@ -434,7 +438,6 @@ module.exports = (() => {
 							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							var runs = 0;
 							b[1].validNonShortcutEmojis.forEach(emoji => {
-								BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = null;
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
 								}
@@ -603,8 +606,7 @@ module.exports = (() => {
 				}
 				
 				audioShare(){
-					let shareModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byPrototypeFields("setSoundshareSource")).prototype;
-					//console.log(shareModule);
+					let shareModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("handleVoiceActivity")).prototype;
 					if(this.settings.audioSourcePID != 0){
 					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
 						if(this.settings.audioSourcePID == 0){
@@ -640,8 +642,29 @@ module.exports = (() => {
 					}
 					if(this.settings.CustomFPSEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
-							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
+							console.log(e);
+							e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
+							e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
+							for(const ladder in e.videoQualityManager.ladder.ladder) {
+								e.videoQualityManager.ladder.ladder[ladder].framerate = e.videoStreamParameters[0].maxFrameRate;
+								e.videoQualityManager.ladder.ladder[ladder].mutedFramerate = parseInt(e.videoStreamParameters[0].maxFrameRate / 2);
+							}
+							for(const ladder of e.videoQualityManager.ladder.orderedLadder){
+								  ladder.framerate = e.videoStreamParameters[0].maxFrameRate;
+								  ladder.mutedFramerate = parseInt(e.videoStreamParameters[0].maxFrameRate / 2);
+							}
+						});
+					}
+					if(this.settings.ResolutionEnabled || this.settings.CustomFPSEnabled){
+						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							const videoQuality = new Object({
+								width: e.videoStreamParameters[0].maxResolution.width,
+								height: e.videoStreamParameters[0].maxResolution.height,
+								framerate: e.videoStreamParameters[0].maxFrameRate,
+							});
+							e.videoQualityManager.options.videoBudget = videoQuality;
+							e.videoQualityManager.options.videoCapture = videoQuality;
+							e.videoQualityManager.ladder.pixelBudget = (e.videoStreamParameters[0].maxResolution.height * e.videoStreamParameters[0].maxResolution.width);
 						});
 					}
 					if(this.settings.CameraSettingsEnabled){ //If Camera Patching On
@@ -896,11 +919,7 @@ module.exports = (() => {
 				
 				onStart() {
 					this.originalNitroStatus = BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType;
-					BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
 					this.saveAndUpdate();
-					setTimeout(() => {
-						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-					}, 10000);
 				}
 
 				onStop() {
