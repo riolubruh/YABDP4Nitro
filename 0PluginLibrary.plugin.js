@@ -1,7 +1,7 @@
 /**
  * @name ZeresPluginLibrary
- * @description This update is mainly a hotfix for crashing issues.
- * @version 2.0.12
+ * @description Gives other plugins utility functions.
+ * @version 2.0.13
  * @author Zerebos
  * @source https://github.com/rauenzi/BDPluginLibrary
  */
@@ -63,6 +63,21 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/styles/updates.css":
+/*!********************************!*\
+  !*** ./src/styles/updates.css ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("#outdated-plugins {\r\n    font-weight: 700;\r\n}\r\n#outdated-plugins > span {\r\n    -webkit-app-region: no-drag;\r\n    color: #fff;\r\n    cursor: pointer;\r\n}\r\n#outdated-plugins > span:hover {\r\n    text-decoration: underline;\r\n}");
+
+/***/ }),
+
 /***/ "./src/config.js":
 /*!***********************!*\
   !*** ./src/config.js ***!
@@ -75,12 +90,19 @@ module.exports = {
     id: "9",
     name: "ZeresPluginLibrary",
     author: "Zerebos",
-    version: "2.0.12",
-    description: "This update is mainly a hotfix for crashing issues.",
+    version: "2.0.13",
+    description: "Gives other plugins utility functions.",
     source: "https://github.com/rauenzi/BDPluginLibrary",
     changelog: [
-        {title: "Fixed", type: "added", items: ["Crashing from a various number of modals including changelogs."]},
-        {title: "Removed", type: "removed", items: ["Removed plugin updater as BD's is good enough and only uses official updates."]}
+        {title: "Fixed", type: "added", items: ["Fixed popouts. (Thanks @arg0NNY)"]},
+        {
+            title: "Notice To Developers",
+            type: "removed",
+            items: [
+                "The updater has been temporarily reenabled due to multiple developers missing the announcements in Discord.",
+                "A new timeline for removal will be announced in a future release."
+            ]
+        }
     ],
     main: "index.js"
 };
@@ -516,7 +538,7 @@ __webpack_require__.r(__webpack_exports__);
     /* Popouts */
     get PopoutStack() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("open", "close", "closeAll");},
     get PopoutOpener() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openPopout");},
-    get UserPopout() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m.toString?.().includes("().canViewThemes?"));},
+    get UserPopout() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getModule(m => m?.type?.toString?.().includes('Unexpected missing user'), {searchExports: true});},
 
     /* Context Menus */
     get ContextMenuActions() {return _webpackmodules__WEBPACK_IMPORTED_MODULE_1__["default"].getByProps("openContextMenu");},
@@ -1687,28 +1709,246 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ PluginUpdater)
 /* harmony export */ });
+/* harmony import */ var _domtools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./domtools */ "./src/modules/domtools.js");
+/* harmony import */ var ui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ui */ "./src/ui/ui.js");
+/* harmony import */ var _styles_updates_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../styles/updates.css */ "./src/styles/updates.css");
+
+
+
+
+
+const fileSystem = require("fs");
+const path = require("path");
+const request = require("request");
+
+/**
+ * Comparator that takes the current version and the remote version,
+ * then compares them returning `true` if there is an update and `false` otherwise.
+ * @param {string} currentVersion - the current version of the plugin
+ * @param {string} remoteVersion - the remote version of the plugin
+ * @returns {boolean} - whether the plugin has an update or not
+ * @callback module:PluginUpdater~comparator
+ */
+
+const splitRegex = /[^\S\r\n]*?\r?(?:\r\n|\n)[^\S\r\n]*?\*[^\S\r\n]?/;
+const escapedAtRegex = /^\\@/;
+const HOUR_IN_MILLISECONDS = 1000 * 60 * 60;
+const pluginId = name => name + "-update-notice";
+const pending = [];
+const banner = {};
+
+
 /**
  * Functions that check for and update existing plugins.
  * @module PluginUpdater
+ * @deprecated It is recommended to go through the approval process instead.
  */
-
-
-// Keep this here to not break plugins that may be calling functions directly
 class PluginUpdater {
 
-    static get CSS() {return "";}
-    static get state() {return {};}
-    static getPlugin() {return {};}
-    static setPlugin() {}
-    static clearPending() {}
-    static async checkForUpdate() {}
-    static async checkAllPlugins() {}
-    static async hasUpdate() {return Promise.resolve(false);}
-    static async updatePlugin() {}
-    static showUpdateNotice() {}
-    static removeUpdateNotice() {}
-    static parseMeta() {return "";}
-    static defaultComparator() {return false;}
+    static get CSS() {return _styles_updates_css__WEBPACK_IMPORTED_MODULE_2__["default"];}
+    static get state() {return window.__PLUGIN_UPDATES__;}
+    static getPlugin(link) {return this.state.plugins[link];}
+    static setPlugin(name, raw, version, comparator) {this.state.plugins[raw] = {name, raw, version, comparator};}
+    static clearPending() {
+        delete banner.close;
+        delete banner.notice;
+        pending.splice(0, pending.length);
+    }
+
+    /**
+     * Checks for updates for the specified plugin at the specified link. The final
+     * parameter should link to the raw text of the plugin and will compare semantic
+     * versions.
+     * @param {string} pluginName - name of the plugin
+     * @param {string} currentVersion - current version (semantic versioning only)
+     * @param {string} updateURL - url to check for update
+     * @param {module:PluginUpdater~comparator} [comparator] - comparator that determines if there is an update. If not provided uses {@link module:PluginUpdater.defaultComparator}.
+     */
+    static async checkForUpdate(pluginName, currentVersion, addonId, comparator) {
+        if (!pluginName || !currentVersion || !addonId) return;
+        let isUrl = false;
+        try {
+            // eslint-disable-next-line no-new
+            new URL(addonId);
+            isUrl = true;
+        }
+        catch {
+            isUrl = false;
+        }
+        let updateLink = `https://betterdiscord.app/gh-redirect?id=${addonId}`;
+        if (isUrl) updateLink = addonId;
+        if (typeof(comparator) != "function") comparator = this.defaultComparator;
+        this.setPlugin(pluginName, updateLink, currentVersion, comparator);
+
+        const hasUpdate = await this.hasUpdate(updateLink);
+        if (!hasUpdate) return;
+        pending.push(updateLink);
+        this.showUpdateNotice(updateLink);
+    }
+
+    static async checkAllPlugins() {
+        for (const link in this.state.plugins) {
+            const hasUpdate = await this.hasUpdate(link);
+            if (!hasUpdate) return;
+            pending.push(link);
+            this.showUpdateNotice(link);
+        }
+    }
+
+    /**
+     * Will check for updates and automatically show or remove the update notice
+     * bar based on the internal result. Better not to call this directly and to
+     * instead use {@link module:PluginUpdater.checkForUpdate}.
+     * @param {string} pluginName - name of the plugin to check
+     * @param {string} updateLink - link to the raw text version of the plugin
+     */
+    static async hasUpdate(updateLink) {
+        const doit = (resolve, result) => {
+            try {
+                const plugin = this.getPlugin(updateLink);
+                const meta = this.parseMeta(result);
+                plugin.remoteVersion = meta.version;
+                const hasUpdate = plugin.comparator(plugin.version, plugin.remoteVersion);
+                if (hasUpdate) plugin.remote = result;
+                resolve(hasUpdate);
+            }
+            catch (err) {
+                resolve(false);
+            }
+        };
+        return new Promise(resolve => {
+            request(updateLink, (err, resp, result) => {
+                if (err) return resolve(false);
+
+                // If a direct url was used
+                if (resp.statusCode === 200) return doit(resolve, result);
+
+                // If an addon id and redirect was used
+                if (resp.statusCode === 302) {
+                    request(resp.headers.location, (error, response, body) => {
+                        if (error || response.statusCode !== 200) return resolve(false);
+                        return doit(resolve, body);
+                    });
+                }
+            });
+        });
+    }
+
+    /**
+     * @param {string} pluginName - name of the plugin to download
+     * @param {string} updateLink - link to the raw text version of the plugin
+     */
+    static async updatePlugin(updateLink) {
+        const plugin = this.getPlugin(updateLink);
+
+        let filename = updateLink.split("/");
+        filename = filename[filename.length - 1];
+        const file = path.join(BdApi.Plugins.folder, filename);
+        await new Promise(r => fileSystem.writeFile(file, plugin.remote, r));
+        ui__WEBPACK_IMPORTED_MODULE_1__.Toasts.success(`${plugin.name} ${plugin.version} has been replaced by ${plugin.name} ${plugin.remoteVersion}`);
+    }
+
+    /**
+     * Will show the update notice top bar seen in Discord. Better not to call
+     * this directly and to instead use {@link module:PluginUpdater.checkForUpdate}.
+     * @param {string} pluginName - name of the plugin
+     * @param {string} updateLink - link to the raw text version of the plugin
+     */
+    static showUpdateNotice(updateLink) {
+        const plugin = this.getPlugin(updateLink);
+        const pluginNoticeID = pluginId(plugin.name);
+        if (document.getElementById(pluginNoticeID)) return; // This plugin already shown
+        if (!document.getElementById("plugin-update-notice-message")) {
+            banner.notice = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<span id="plugin-update-notice-message" class="notice-message">The following plugins have updates:&nbsp;&nbsp;<strong id="outdated-plugins"></strong></span>`);
+            banner.close = BdApi.showNotice(banner.notice, {
+                timeout: 0,
+                buttons: [{
+                    label: "Update All",
+                    onClick: async () => {
+                        for (const link of pending) await this.updatePlugin(link);
+                        banner.close();
+                    }
+                }]
+            });
+            _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].onRemoved(banner.notice, this.clearPending);
+        }
+
+        const outdatedPlugins = document.getElementById("outdated-plugins");
+        const pluginNoticeElement = _domtools__WEBPACK_IMPORTED_MODULE_0__["default"].parseHTML(`<span id="${pluginNoticeID}">${plugin.name}</span>`);
+        pluginNoticeElement.addEventListener("click", async () => {
+            await this.updatePlugin(updateLink);
+            this.removeUpdateNotice(updateLink);
+        });
+        if (outdatedPlugins.querySelectorAll("span").length) outdatedPlugins.append(_domtools__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("<span class='separator'>, </span>"));
+        outdatedPlugins.append(pluginNoticeElement);
+        ui__WEBPACK_IMPORTED_MODULE_1__.Tooltip.create(pluginNoticeElement, "Click To Update!", {side: "bottom"});
+    }
+
+    /**
+     * Will remove the plugin from the update notice top bar seen in Discord.
+     * Better not to call this directly and to instead use {@link module:PluginUpdater.checkForUpdate}.
+     * @param {string} pluginName - name of the plugin
+     */
+    static removeUpdateNotice(updateLink) {
+        const plugin = this.getPlugin(updateLink);
+        if (!document.getElementById("outdated-plugins")) return;
+        const notice = document.getElementById(pluginId(plugin.name));
+        if (notice) {
+            if (notice.nextElementSibling && notice.nextElementSibling.matches(".separator")) notice.nextElementSibling.remove();
+            else if (notice.previousElementSibling && notice.previousElementSibling.matches(".separator")) notice.previousElementSibling.remove();
+            notice.remove();
+        }
+
+        if (!document.getElementById("outdated-plugins").querySelectorAll("span").length) {
+            banner?.close();
+        }
+    }
+
+    static parseMeta(fileContent) {
+        const block = fileContent.split("/**", 2)[1].split("*/", 1)[0];
+        const out = {};
+        let field = "";
+        let accum = "";
+        for (const line of block.split(splitRegex)) {
+            if (line.length === 0) continue;
+            if (line.charAt(0) === "@" && line.charAt(1) !== " ") {
+                out[field] = accum;
+                const l = line.indexOf(" ");
+                field = line.substring(1, l);
+                accum = line.substring(l + 1);
+            }
+            else {
+                accum += " " + line.replace("\\n", "\n").replace(escapedAtRegex, "@");
+            }
+        }
+        out[field] = accum.trim();
+        delete out[""];
+        out.format = "jsdoc";
+        return out;
+    }
+
+    /**
+     * The default comparator used as {@link module:PluginUpdater~comparator} for {@link module:PluginUpdater.checkForUpdate}.
+     * This solely compares remote > local. You do not need to provide this as a comparator if your plugin adheres
+     * to this style as this will be used as default.
+     * @param {string} currentVersion
+     * @param {string} content
+     */
+     static defaultComparator(currentVersion, remoteVersion) {
+        return remoteVersion > currentVersion;
+    }
+}
+
+if (typeof(window.__PLUGIN_UPDATES__) === "undefined") window.__PLUGIN_UPDATES__ = {plugins: {}};
+if (window.__PLUGIN_UPDATES__.interval) clearInterval(window.__PLUGIN_UPDATES__.interval);
+
+window.__PLUGIN_UPDATES__.interval = setInterval(PluginUpdater.checkAllPlugins.bind(PluginUpdater), HOUR_IN_MILLISECONDS * 2);
+
+// Transition
+if (window.PluginUpdates) {
+    if (window.PluginUpdates.interval) clearInterval(window.PluginUpdates.interval);
+    Object.assign(window.__PLUGIN_UPDATES__.plugins, window.PluginUpdates.plugins);
+    delete window.PluginUpdates;
 }
 
 /***/ }),
@@ -3343,12 +3583,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ Plugin),
 /* harmony export */   "wrapPluginBase": () => (/* binding */ wrapPluginBase)
 /* harmony export */ });
-/* harmony import */ var _modules_logger__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/logger */ "./src/modules/logger.js");
-/* harmony import */ var _modules_reacttools__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/reacttools */ "./src/modules/reacttools.js");
-/* harmony import */ var _ui_modals__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ui/modals */ "./src/ui/modals.js");
-/* harmony import */ var _modules_utilities__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../modules/utilities */ "./src/modules/utilities.js");
-/* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
-/* harmony import */ var _ui_settings__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../ui/settings */ "./src/ui/settings/index.js");
+/* harmony import */ var _modules_pluginupdater__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../modules/pluginupdater */ "./src/modules/pluginupdater.js");
+/* harmony import */ var _modules_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../modules/logger */ "./src/modules/logger.js");
+/* harmony import */ var _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../modules/reacttools */ "./src/modules/reacttools.js");
+/* harmony import */ var _ui_modals__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../ui/modals */ "./src/ui/modals.js");
+/* harmony import */ var _modules_utilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../modules/utilities */ "./src/modules/utilities.js");
+/* harmony import */ var _modules_discordmodules__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../modules/discordmodules */ "./src/modules/discordmodules.js");
+/* harmony import */ var _ui_settings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../ui/settings */ "./src/ui/settings/index.js");
+
 
 
 
@@ -3370,7 +3612,7 @@ class Plugin {
 
     get strings() {
         if (!this._config.strings) return {};
-        const locale = _modules_discordmodules__WEBPACK_IMPORTED_MODULE_4__["default"].LocaleManager?.getLocale().split("-")[0] ?? "en";
+        const locale = _modules_discordmodules__WEBPACK_IMPORTED_MODULE_5__["default"].LocaleManager?.getLocale().split("-")[0] ?? "en";
         if (this._config.strings.hasOwnProperty(locale)) return this._config.strings[locale];
         if (this._config.strings.hasOwnProperty("en")) return this._config.strings.en;
         return this._config.strings;
@@ -3400,64 +3642,65 @@ class Plugin {
             }
 
             // Clone the default settings to the current ones
-            this.settings = _modules_utilities__WEBPACK_IMPORTED_MODULE_3__["default"].deepclone(this.defaultSettings);
+            this.settings = _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].deepclone(this.defaultSettings);
         }
 
         // Load previously stored info to check if changelog is needed then check for update
-        const currentVersionInfo = _modules_utilities__WEBPACK_IMPORTED_MODULE_3__["default"].loadData(this.name, "currentVersionInfo", {version: this.version, hasShownChangelog: false});
+        const currentVersionInfo = _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadData(this.name, "currentVersionInfo", {version: this.version, hasShownChangelog: false});
         if (currentVersionInfo.version != this.version || !currentVersionInfo.hasShownChangelog) {
             this.showChangelog();
-            _modules_utilities__WEBPACK_IMPORTED_MODULE_3__["default"].saveData(this.name, "currentVersionInfo", {version: this.version, hasShownChangelog: true});
+            _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveData(this.name, "currentVersionInfo", {version: this.version, hasShownChangelog: true});
         }
+        _modules_pluginupdater__WEBPACK_IMPORTED_MODULE_0__["default"].checkForUpdate(this.name, this.version, this._config.id ?? this._config.github_raw ?? this._config.info.github_raw);
     }
 
     async start() {
-        _modules_logger__WEBPACK_IMPORTED_MODULE_0__["default"].info(this.name, `version ${this.version} has started.`);
+        _modules_logger__WEBPACK_IMPORTED_MODULE_1__["default"].info(this.name, `version ${this.version} has started.`);
         if (this.defaultSettings) this.settings = this.loadSettings();
         this._enabled = true;
         if (typeof(this.onStart) == "function") this.onStart();
     }
 
     stop() {
-        _modules_logger__WEBPACK_IMPORTED_MODULE_0__["default"].info(this.name, `version ${this.version} has stopped.`);
+        _modules_logger__WEBPACK_IMPORTED_MODULE_1__["default"].info(this.name, `version ${this.version} has stopped.`);
         this._enabled = false;
         if (typeof(this.onStop) == "function") this.onStop();
     }
 
     showSettingsModal() {
         if (typeof(this.getSettingsPanel) != "function") return;
-        _ui_modals__WEBPACK_IMPORTED_MODULE_2__["default"].showModal(this.name + " Settings", _modules_reacttools__WEBPACK_IMPORTED_MODULE_1__["default"].createWrappedElement(this.getSettingsPanel()), {
+        _ui_modals__WEBPACK_IMPORTED_MODULE_3__["default"].showModal(this.name + " Settings", _modules_reacttools__WEBPACK_IMPORTED_MODULE_2__["default"].createWrappedElement(this.getSettingsPanel()), {
             cancelText: "",
             confirmText: "Done",
-            size: _ui_modals__WEBPACK_IMPORTED_MODULE_2__["default"].ModalSizes.MEDIUM
+            size: _ui_modals__WEBPACK_IMPORTED_MODULE_3__["default"].ModalSizes.MEDIUM
         });
     }
 
     showChangelog(footer) {
         if (typeof(this._config.changelog) == "undefined") return;
-        _ui_modals__WEBPACK_IMPORTED_MODULE_2__["default"].showChangelogModal(this.name + " Changelog", this.version, this._config.changelog, footer);
+        _ui_modals__WEBPACK_IMPORTED_MODULE_3__["default"].showChangelogModal(this.name + " Changelog", this.version, this._config.changelog, footer);
     }
 
     saveSettings(settings) {
-        _modules_utilities__WEBPACK_IMPORTED_MODULE_3__["default"].saveSettings(this.name, this.settings ? this.settings : settings);
+        _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].saveSettings(this.name, this.settings ? this.settings : settings);
     }
 
     loadSettings(defaultSettings) {
         // loadSettings -> loadData -> defaultSettings gets deep cloned
-        return _modules_utilities__WEBPACK_IMPORTED_MODULE_3__["default"].loadSettings(this.name, this.defaultSettings ? this.defaultSettings : defaultSettings);
+        return _modules_utilities__WEBPACK_IMPORTED_MODULE_4__["default"].loadSettings(this.name, this.defaultSettings ? this.defaultSettings : defaultSettings);
     }
 
     buildSetting(data) {
         const {name, note, type, value, onChange, id} = data;
         let setting = null;
-        if (type == "color") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.ColorPicker(name, note, value, onChange, {disabled: data.disabled, presetColors: data.presetColors});
-        else if (type == "dropdown") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.Dropdown(name, note, value, data.options, onChange);
-        else if (type == "file") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.FilePicker(name, note, onChange);
-        else if (type == "keybind") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.Keybind(name, note, value, onChange);
-        else if (type == "radio") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.RadioGroup(name, note, value, data.options, onChange, {disabled: data.disabled});
-        else if (type == "slider") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.Slider(name, note, data.min, data.max, value, onChange, data);
-        else if (type == "switch") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.Switch(name, note, value, onChange, {disabled: data.disabled});
-        else if (type == "textbox") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.Textbox(name, note, value, onChange, {placeholder: data.placeholder || ""});
+        if (type == "color") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.ColorPicker(name, note, value, onChange, {disabled: data.disabled, presetColors: data.presetColors});
+        else if (type == "dropdown") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Dropdown(name, note, value, data.options, onChange);
+        else if (type == "file") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.FilePicker(name, note, onChange);
+        else if (type == "keybind") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Keybind(name, note, value, onChange);
+        else if (type == "radio") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.RadioGroup(name, note, value, data.options, onChange, {disabled: data.disabled});
+        else if (type == "slider") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Slider(name, note, data.min, data.max, value, onChange, data);
+        else if (type == "switch") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Switch(name, note, value, onChange, {disabled: data.disabled});
+        else if (type == "textbox") setting = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.Textbox(name, note, value, onChange, {placeholder: data.placeholder || ""});
         if (id) setting.id = id;
         return setting;
     }
@@ -3483,7 +3726,7 @@ class Plugin {
                 list.push(this.buildSetting(current));
             }
             
-            const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.SettingGroup(name, {shown, collapsible}).append(...list);
+            const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingGroup(name, {shown, collapsible}).append(...list);
             settingGroup.id = id;
             return settingGroup;
         };
@@ -3507,7 +3750,7 @@ class Plugin {
             }
         }
 
-        return new _ui_settings__WEBPACK_IMPORTED_MODULE_5__.SettingPanel(this.saveSettings.bind(this), ...list);
+        return new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingPanel(this.saveSettings.bind(this), ...list);
     }
 }
 
@@ -4277,12 +4520,12 @@ __webpack_require__.r(__webpack_exports__);
 const {React, ReactDOM} = modules__WEBPACK_IMPORTED_MODULE_0__.DiscordModules;
 const {useReducer, useEffect, useRef} = React;
 const AppLayer = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => Object.values(m).some(m => m?.displayName === "AppLayer"));
-const ReferencePositionLayer = Object.values(AppLayer).find(m => m.prototype?.render);
+const ReferencePositionLayer = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.prototype?.calculatePositionStyle, {searchExports: true});
 // const PopoutCSSAnimator = WebpackModules.getByDisplayName("PopoutCSSAnimator");
 const LayerProvider = Object.values(AppLayer).find(m => m.displayName === "AppLayerProvider")?.().props.layerContext.Provider; // eslint-disable-line new-cap
 const ComponentDispatch = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes("useContext") && m.toString?.().includes("windowDispatch"), {searchExports: true});
 const ComponentActions = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.POPOUT_SHOW, {searchExports: true});
-const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.defaultProps && m?.Animation);
+const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.defaultProps && m?.Animation, {searchExports: true});
 const ThemeContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m._currentValue === 'dark');
 const useStateFromStores = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes('useStateFromStores'));
 const ThemeStore = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.theme);
@@ -4344,7 +4587,7 @@ class Popouts {
         });
 
         document.body.append(this.container, this.layerContainer);
-        ReactDOM.render(React.createElement(PopoutsContainer), this.container);
+        ReactDOM.render(React.createElement(PopoutsContainer), this.layerContainer);
     }
 
     /**
@@ -5997,7 +6240,7 @@ class PluginLibrary extends _structs_plugin__WEBPACK_IMPORTED_MODULE_2__["defaul
         const wasLibLoaded = !!document.getElementById("ZLibraryCSS");
         const isBDLoading = document.getElementById("bd-loading-icon");
         modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.removeStyle("ZLibraryCSS");
-        modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.addStyle("ZLibraryCSS", ui__WEBPACK_IMPORTED_MODULE_1__.Settings.CSS + ui__WEBPACK_IMPORTED_MODULE_1__.Toasts.CSS);
+        modules__WEBPACK_IMPORTED_MODULE_0__.DOMTools.addStyle("ZLibraryCSS", ui__WEBPACK_IMPORTED_MODULE_1__.Settings.CSS + ui__WEBPACK_IMPORTED_MODULE_1__.Toasts.CSS + modules__WEBPACK_IMPORTED_MODULE_0__.PluginUpdater.CSS);
         ui__WEBPACK_IMPORTED_MODULE_1__.Popouts.initialize();
 
         /**
