@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.1
+ * @version 4.4.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.1",
+			"version": "4.4.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -83,7 +83,8 @@ module.exports = (() => {
 				DiscordModules,
 				Settings,
 				Toasts,
-				Utilities
+				Utilities,
+				WebpackModules
 			} = Api;
 			return class YABDP4Nitro extends Plugin {
 				defaultSettings = {
@@ -306,7 +307,7 @@ module.exports = (() => {
 				} //End of saveAndUpdate
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
-					const Uploader = ZLibrary.WebpackModules.getByProps("uploadFiles");
+					const Uploader = WebpackModules.getByProps("uploadFiles");
 				
 					var extension = ".gif";
 					if(!emoji.animated) {
@@ -352,7 +353,7 @@ module.exports = (() => {
 				}
 				
 				async customVideoSettings() {
-					const StreamButtons = ZLibrary.WebpackModules.getByIndex(664637);
+					const StreamButtons = WebpackModules.getByIndex(664637);
 					if(this.settings.ResolutionEnabled){
 						if(this.settings.CustomResolution != 0){
 							StreamButtons.LY.RESOLUTION_SOURCE = this.settings.CustomResolution;
@@ -449,7 +450,7 @@ module.exports = (() => {
 								}
 								runs++;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`
-								b[1].content = b[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "");
+								b[1].content = b[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
 								this.UploadEmote(emoji.url, currentChannelId, b, emoji, runs);
 								return
 							});
@@ -474,24 +475,24 @@ module.exports = (() => {
 									return
 								}
 								//if ghost mode is not required
-								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
+								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
 									return;
 								}
 								let ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
 								if(msg.content.includes(ghostmodetext)) {
 									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
-										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
 									if(msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
-										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("Multiple emojis")
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("Multiple emojis")
 									return
 								}
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("First emoji code ran")
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("First emoji code ran")
 								return
 							})
 						});
@@ -512,14 +513,14 @@ module.exports = (() => {
 										return
 									}
 									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
-										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
 									if(msg.content.includes(emoji.url.split("?")[0])) { //Duplicate emoji handling (first duplicate)
-										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
+										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\d/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)//, console.log(msg.content), console.log("no ghost")
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)//, console.log(msg.content), console.log("no ghost")
 								})
 							});
 							//editing message (in classic mode)
@@ -543,7 +544,7 @@ module.exports = (() => {
 					if(parseInt(document.getElementById("qualityInputFPS").value) == 30) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 31;
 					if(parseInt(document.getElementById("qualityInputFPS").value) == 5) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 6;
 					
-					const StreamButtons = ZLibrary.WebpackModules.getByIndex(664637);
+					const StreamButtons = WebpackModules.getByIndex(664637);
 					if(BdApi.getData("YABDP4Nitro", "settings").ResolutionEnabled){
 						if(BdApi.getData("YABDP4Nitro", "settings").CustomResolution != 0){
 							StreamButtons.LY.RESOLUTION_SOURCE = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
@@ -642,7 +643,7 @@ module.exports = (() => {
 					}
 					if(this.settings.CustomFPSEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-							console.log(e);
+							//console.log(e);
 							e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
 							e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
 							for(const ladder in e.videoQualityManager.ladder.ladder) {
@@ -789,8 +790,8 @@ module.exports = (() => {
 				}
 				
 				activities(){
-					let b = ZLibrary.WebpackModules.getByIndex(331792);
-					let d = ZLibrary.WebpackModules.getByIndex(124581);
+					let b = WebpackModules.getByIndex(331792);
+					let d = WebpackModules.getByIndex(124581);
 					let c = b.Z._dispatcher;
 					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
 						if(h[1]) if(h[1].className) if(h[1].className.includes("activityItem")){
@@ -815,13 +816,13 @@ module.exports = (() => {
 									if(togglerElement.innerHTML == `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`){
 										BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
 										togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
-										ZLibrary.Toasts.info("Cancelled", {timeout: 1000});
+										Toasts.info("Cancelled", {timeout: 1000});
 										return
 									}
 									BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = true;
 									togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`;
-									ZLibrary.Toasts.info("First, pick the activity that the host is running", {timeout: 3000});
-									if(!this.settings.customActivity && (this.settings.customActivityURL != "")) ZLibrary.Toasts.info("Custom URL Enabled: Click any activity", {timeout: 3000});
+									Toasts.info("First, pick the activity that the host is running", {timeout: 3000});
+									if(!this.settings.customActivity && (this.settings.customActivityURL != "")) Toasts.info("Custom URL Enabled: Click any activity", {timeout: 3000});
 								}
 								textField.onclick = asdf;
 							}
@@ -849,7 +850,7 @@ module.exports = (() => {
 										});
 									}
 									//Then, alert the user to hit the join button
-									ZLibrary.Toasts.info(`Now hit Join Activity on the host's activity`, {timeout: 3000});
+									Toasts.info(`Now hit Join Activity on the host's activity`, {timeout: 3000});
 									//Finally, disable join mode
 									this.settings.activityJoiningMode = false;
 									return
@@ -909,7 +910,7 @@ module.exports = (() => {
 										embeddedActivity: Activity
 									});
 										
-									ZLibrary.Toasts.info("All clients must be running the plugin for this to work!", {timeout: 5000});
+									Toasts.info("All clients must be running the plugin for this to work!", {timeout: 5000});
 
 								} //End hosting mode code
 							}
