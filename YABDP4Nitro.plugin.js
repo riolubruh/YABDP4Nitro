@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.2
+ * @version 4.4.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.2",
+			"version": "4.4.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -238,10 +238,10 @@ module.exports = (() => {
 					}
 					
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					
 					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
-							return true
+						return true
 					});
+					BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview = false;
 					
 					if(this.settings.stickerBypass){
 						this.stickerSending();
@@ -920,6 +920,7 @@ module.exports = (() => {
 				
 				onStart() {
 					this.originalNitroStatus = BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType;
+					this.previewInitial = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview;
 					this.saveAndUpdate();
 				}
 
@@ -930,6 +931,7 @@ module.exports = (() => {
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
+					BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview = this.previewInitial;
 				}
 			};
 		};
