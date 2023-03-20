@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.4
+ * @version 4.4.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.4",
+			"version": "4.4.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -196,20 +196,11 @@ module.exports = (() => {
 						)
 					])
 				}
-
+				
 				saveAndUpdate(){ //Saves and updates settings and runs functions
 					Utilities.saveSettings(this.getName(), this.settings);
 					BdApi.Patcher.unpatchAll("YABDP4Nitro");
 					Patcher.unpatchAll();
-					
-					function getFunctionNameFromString(obj, search) {
-						for (const [k, v] of Object.entries(obj)) {
-						  if (search.every((str) => v?.toString().match(str))) {
-							return k;
-						  }
-						}
-						return null;
-					}
 					
 					if(this.settings.changePremiumType){
 						BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType = 1;
@@ -303,7 +294,14 @@ module.exports = (() => {
 						});
 					}
 					try{
-						BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview = false;
+						let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
+						delete clientthemesmodule.isPreview;
+						Object.defineProperty(clientthemesmodule, "isPreview", {
+							value: false,
+							configurable: true,
+							enumerable: true,
+							writable: true,
+						})
 						}catch(err){
 							console.warn(err)
 						}
@@ -312,7 +310,7 @@ module.exports = (() => {
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
 					const Uploader = WebpackModules.getByProps("uploadFiles");
 				
-					var extension = ".gif";
+					let extension = ".gif";
 					if(!emoji.animated) {
 						extension = ".png";
 						if(!this.settings.PNGemote) {
@@ -356,7 +354,7 @@ module.exports = (() => {
 				}
 				
 				async customVideoSettings() {
-					const StreamButtons = WebpackModules.getByIndex(664637);
+					const StreamButtons = WebpackModules.getByIndex(165586);
 					if(this.settings.ResolutionEnabled){
 						if(this.settings.CustomResolution != 0){
 							StreamButtons.LY.RESOLUTION_SOURCE = this.settings.CustomResolution;
@@ -439,8 +437,8 @@ module.exports = (() => {
 					//Upload Emotes
 					if(this.settings.uploadEmotes) {
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
-							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
-							var runs = 0;
+							let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
+							let runs = 0;
 							b[1].validNonShortcutEmojis.forEach(emoji => {
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
@@ -466,7 +464,7 @@ module.exports = (() => {
 					//Emoji bypass with ghost mode
 					if(this.settings.ghostMode && !this.settings.uploadEmotes) {
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
-							var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
+							let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							msg.validNonShortcutEmojis.forEach(emoji => {
 								if(emoji.url.startsWith("/assets/")){
 									return
@@ -504,7 +502,7 @@ module.exports = (() => {
 						if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
 							//console.log("Classic Method (No Ghost)")
 							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
-								var currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
+								let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								msg.validNonShortcutEmojis.forEach(emoji => {
 									if(this.settings.PNGemote) {
 										emoji.url = emoji.url.replace('.webp', '.png')
@@ -714,7 +712,7 @@ module.exports = (() => {
 				}
 				
 				buttonCreate(){ //Creates the FPS and Resolution Swapper
-					var qualityButton = document.createElement('button');
+					let qualityButton = document.createElement('button');
 					qualityButton.id = 'qualityButton';
 					qualityButton.className = "lookFilled-1H2Jvj colorBrand-2M3O3N";
 					qualityButton.innerHTML = '<p style="display: block-inline; margin-left: -6%; margin-top: -4.5%;">Quality</p>';
@@ -746,7 +744,7 @@ module.exports = (() => {
 						console.log(err);
 					};
 
-					var qualityMenu = document.createElement('div');
+					let qualityMenu = document.createElement('div');
 					qualityMenu.id = 'qualityMenu';
 					qualityMenu.style.visibility = 'hidden';
 					qualityMenu.style.position = "relative";
@@ -761,7 +759,7 @@ module.exports = (() => {
 					
 					document.getElementById("qualityButton").appendChild(qualityMenu);
 
-					var qualityInput = document.createElement('input');
+					let qualityInput = document.createElement('input');
 					qualityInput.id = 'qualityInput';
 					qualityInput.type = 'text';
 					qualityInput.placeholder = 'Resolution';
@@ -770,7 +768,7 @@ module.exports = (() => {
 					qualityInput.value = this.settings.CustomResolution;
 					qualityMenu.appendChild(qualityInput);
 					
-					var qualityInputFPS = document.createElement('input');
+					let qualityInputFPS = document.createElement('input');
 					qualityInputFPS.id = 'qualityInputFPS';
 					qualityInputFPS.type = 'text';
 					qualityInputFPS.placeholder = 'FPS';
@@ -793,9 +791,7 @@ module.exports = (() => {
 				}
 				
 				activities(){
-					let b = WebpackModules.getByIndex(331792);
-					let d = WebpackModules.getByIndex(124581);
-					let c = b.Z._dispatcher;
+					let dispatcher = WebpackModules.getModule(BdApi.Webpack.Filters.byProps("dispatch", "subscribe"));
 					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
 						if(h[1]) if(h[1].className) if(h[1].className.includes("activityItem")){
 							let test;
@@ -831,22 +827,32 @@ module.exports = (() => {
 							}
 						}
 					});
-					BdApi.Patcher.instead("YABDP4Nitro", d, "Z", (_,N,f) => {
+					let activityMod = WebpackModules.getByIndex(456826);
+					function getFunctionNameFromString(obj, search) {
+						for (const [k, v] of Object.entries(obj)) {
+						  if (search.every((str) => v?.toString().match(str))) {
+							return k;
+						  }
+						}
+						return null;
+					}
+					let functionName = getFunctionNameFromString(activityMod, ["getSelfEmbeddedActivityForChannel"]);
+					BdApi.Patcher.instead("YABDP4Nitro", activityMod, functionName, (_,N,f) => {
 						if(N != undefined){
 							if(N[0].inflatedBundleItem.application.id){
 								if(this.settings.activityJoiningMode){ //Join mode enabled
 									//First, pick the host's activity (just ask them)
-									var intendedActivityId = N[0].inflatedBundleItem.application.id;
+									let intendedActivityId = N[0].inflatedBundleItem.application.id;
 									//console.log(N);
 									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
-										c.dispatch({
+										dispatcher.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
 											applicationId: "880218394199220334",
 											originURL: "https://" + intendedActivityId + ".discordsays.com"
 										});
 									}
 									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
-										c.dispatch({
+										dispatcher.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
 											applicationId: "880218394199220334",
 											originURL: this.settings.customActivityURL
@@ -859,22 +865,22 @@ module.exports = (() => {
 									return
 								}
 								if(!this.settings.activityJoiningMode){ //Join mode disabled (hosting)
-									var intendedActivityId = N[0].inflatedBundleItem.application.id;
+									let intendedActivityId = N[0].inflatedBundleItem.application.id;
 									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
-										c.dispatch({
+										dispatcher.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
 											applicationId: "880218394199220334",
 											originURL: "https://" + intendedActivityId + ".discordsays.com"
 										});
 									}
 									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
-										c.dispatch({
+										dispatcher.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
 											applicationId: "880218394199220334",
 											originURL: this.settings.customActivityURL
 										});
 									}
-									var Activity = new Array();
+									let Activity = new Array();
 									Activity.channelId = BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId();
 									if(Activity.channelId === null){
 										console.warn("Voice Channel was null. Are you not in a voice channel?");
@@ -883,7 +889,7 @@ module.exports = (() => {
 									Activity.application_id = "880218394199220334";
 									Activity.always_free = true;
 									Activity.nitro_requirement = false;
-									c.dispatch({
+									dispatcher.dispatch({
 										type: "LOCAL_ACTIVITY_UPDATE",
 										activity: Activity
 									});
@@ -900,14 +906,14 @@ module.exports = (() => {
 										)
 									  );
 									}
-									var element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-ejjZWC lookBlank-FgPMy6 colorBrand-2M3O3N grow-2T4nbg')[0];
+									let element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-ejjZWC lookBlank-FgPMy6 colorBrand-2M3O3N grow-2T4nbg')[0];
 									try{
 										simulateMouseClick(element); //Close activity menu
 									}catch(err){
 										console.warn("[YABDP4Nitro] An error occurred while trying to close the Activity menu!");
 										console.error(err);
 									}
-									c.dispatch({
+									dispatcher.dispatch({
 										type: "EMBEDDED_ACTIVITY_OPEN",
 										channelId: (BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId()),
 										embeddedActivity: Activity
