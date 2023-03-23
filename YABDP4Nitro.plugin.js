@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.5
+ * @version 4.4.6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.5",
+			"version": "4.4.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -165,14 +165,20 @@ module.exports = (() => {
 						]),
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-							new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default.", 16, 128, this.settings.emojiSize, size => this.settings.emojiSize = size, { markers: [16, 32, 48, 64, 80, 96, 112, 128], stickToMarkers: true }),
+							//new Settings.Slider("Size", "The size of the emoji in pixels. 64 is the default.", 16, 128, this.settings.emojiSize, size => this.settings.emojiSize = size, { markers: [16, 32, 48, 64, 80, 96, 112, 128], stickToMarkers: true, equidistant: true }),
+							new Settings.Textbox("Size", "The size of the emoji in pixels. 64 is the default. Rounds to the nearest power of 2.", this.settings.emojiSize,
+								value => {
+									value = parseInt(value);
+									value = Math.pow(2, Math.round(Math.log(value) / Math.log(2))); 
+									this.settings.emojiSize = value;
+								}
+							),
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
 							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [This is currently broken. Sorry about that!]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
 							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. [This is currently broken. Sorry about that!]", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
-							new Settings.Switch("Force Stickers Unlocked", "", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
-							
+							new Settings.Switch("Force Stickers Unlocked", "Enable to cause Stickers to be unlocked.", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
 						),
 						new Settings.SettingGroup("Camera [Beta]").append(
 						new Settings.Switch("Enabled", "", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
@@ -354,7 +360,7 @@ module.exports = (() => {
 				}
 				
 				async customVideoSettings() {
-					const StreamButtons = WebpackModules.getByIndex(165586);
+					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
 					if(this.settings.ResolutionEnabled){
 						if(this.settings.CustomResolution != 0){
 							StreamButtons.LY.RESOLUTION_SOURCE = this.settings.CustomResolution;
@@ -545,7 +551,7 @@ module.exports = (() => {
 					if(parseInt(document.getElementById("qualityInputFPS").value) == 30) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 31;
 					if(parseInt(document.getElementById("qualityInputFPS").value) == 5) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 6;
 					
-					const StreamButtons = WebpackModules.getByIndex(664637);
+					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
 					if(BdApi.getData("YABDP4Nitro", "settings").ResolutionEnabled){
 						if(BdApi.getData("YABDP4Nitro", "settings").CustomResolution != 0){
 							StreamButtons.LY.RESOLUTION_SOURCE = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
@@ -827,7 +833,7 @@ module.exports = (() => {
 							}
 						}
 					});
-					let activityMod = WebpackModules.getByIndex(456826);
+					let activityMod = WebpackModules.getByProps("$h", "J$", "W5");
 					function getFunctionNameFromString(obj, search) {
 						for (const [k, v] of Object.entries(obj)) {
 						  if (search.every((str) => v?.toString().match(str))) {
