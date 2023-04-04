@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.6
+ * @version 4.4.7
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.6",
+			"version": "4.4.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -95,6 +95,7 @@ module.exports = (() => {
 					"emojiBypassForValidEmoji": true,
 					"PNGemote": true,
 					"uploadEmotes": false,
+					"uploadStickers": true,
 					"CustomFPSEnabled": false,
 					"CustomFPS": 75,
 					"ResolutionEnabled": false,
@@ -165,19 +166,25 @@ module.exports = (() => {
 						]),
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-							//new Settings.Slider("Size", "The size of the emoji in pixels. 64 is the default.", 16, 128, this.settings.emojiSize, size => this.settings.emojiSize = size, { markers: [16, 32, 48, 64, 80, 96, 112, 128], stickToMarkers: true, equidistant: true }),
-							new Settings.Textbox("Size", "The size of the emoji in pixels. 64 is the default. Rounds to the nearest power of 2.", this.settings.emojiSize,
+							new Settings.Textbox("Size", "The size of the emoji in pixels. Valid values: 16, 32, 48, 64, 80, 96, 112, 128, or powers of 2.", this.settings.emojiSize,
 								value => {
 									value = parseInt(value);
-									value = Math.pow(2, Math.round(Math.log(value) / Math.log(2))); 
+									if (isNaN(value)) {
+										value = 64;
+									} else if (value > 128) {
+										value = Math.pow(2, Math.round(Math.log(value) / Math.log(2))); 
+									} else if (![16, 32, 48, 64, 80, 96, 112, 128].includes(value)) {
+										value = Math.min.apply(Math, [16, 32, 48, 64, 80, 96, 112, 128].filter(function(x) { return x > value }));
+									}
 									this.settings.emojiSize = value;
 								}
 							),
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes) [This is currently broken. Sorry about that!]", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
-							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. [This is currently broken. Sorry about that!]", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
+							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
+							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. Animated APNG/WEBP/Lottie Stickers will not animate.", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
+							new Settings.Switch("Upload Stickers", "Upload stickers in the same way as emotes.", this.settings.uploadStickers, value => this.settings.uploadStickers = value),
 							new Settings.Switch("Force Stickers Unlocked", "Enable to cause Stickers to be unlocked.", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
 						),
 						new Settings.SettingGroup("Camera [Beta]").append(
@@ -314,8 +321,13 @@ module.exports = (() => {
 				} //End of saveAndUpdate
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
-					const Uploader = WebpackModules.getByProps("uploadFiles");
-				
+					const Uploader = WebpackModules.getByProps("uploadFiles", "upload");
+					if(emoji === undefined){
+						let emoji;
+					}
+					if(msg === undefined){
+						let msg;
+					}
 					let extension = ".gif";
 					if(!emoji.animated) {
 						extension = ".png";
@@ -324,29 +336,30 @@ module.exports = (() => {
 						}
 					}
 					
-					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], "emote"))
+					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)))
+					file.platform = 1;
+					file.spoiler = false;
+					
+					const CloudUploader = WebpackModules.getByProps("m","n");
+					
+					let fileUp = new CloudUploader.n({file:file,platform:1}, channelIdLmao);
+					fileUp.isImage = true;
+					
+					let uploadOptions = new Object();
+					uploadOptions.channelId = channelIdLmao;
+					uploadOptions.uploads = [fileUp];
+					uploadOptions.draftType = 0;
+					uploadOptions.options = { stickerIds: [] };
+					uploadOptions.parsedMessage = { channelId: channelIdLmao, content: msg[1].content, tts: false, invalidEmojis:[] }
 					if(runs > 1){
-						await Uploader.upload({
-							channelId: msg[0],
-							fileData: file,
-							draftType: 0,
-							message: { content: undefined, invalidEmojis: [], tts: false, channel_id: msg[0] }
-						});
-					return
+						uploadOptions.parsedMessage = { channelId: channelIdLmao, content: "", tts: false, invalidEmojis:[] }
 					}
-					await Uploader.uploadFiles({
-						channelId: (msg[0].toString()),
-						draftType: 0,
-						options: {stickerIds: []},
-						parsedMessage: { content: msg[1].content, tts:false, invalidEmojis: [] },
-						uploads: [{
-							item: {file: new File([file]), platform: 1},
-							channelId: (msg[0].toString()),
-							filename: (emoji.name + extension)
-						}]
+					
+					try{
+						await Uploader.uploadFiles(uploadOptions);
+					}catch(err){
+						console.error(err);
 					}
-					)
-					return
 				}
 
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
@@ -786,13 +799,29 @@ module.exports = (() => {
 				
 				async stickerSending(){
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					console.log(permissions);
 					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
 						return true;
 					});
+					
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
+						console.log(b);
 						let stickerID = b[1][0];
-						let stickerURL = "cdn.discordapp.com/stickers/" + stickerID + ".png?size=4096&quality=lossless"
-						this.UploadEmote(stickerURL, b[0]);
+						let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless"
+						let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
+						
+						if(this.settings.uploadStickers){
+							let emoji = new Object();
+							emoji.animated = false;
+							emoji.name = b[0];
+							let msg = [undefined,{content: ""}]
+							this.UploadEmote(stickerURL, currentChannelId, [undefined,{content:""}], emoji)
+							return
+						}
+						if(!this.settings.uploadStickers){
+							let messageContent = {content: stickerURL, tts: false, invalidEmojis:[], validNonShortcutEmojis:[]}
+							DiscordModules.MessageActions.sendMessage(currentChannelId, messageContent, undefined, {})
+						}
 					});
 				}
 				
