@@ -1,6 +1,8 @@
 # Thanks for over 200 Stars !!!
 
-Seriously, you guys are crazy
+Seriously, you guys are crazy !
+
+Thank you all for helping in keeping this plugin awesome! <3
 
 ___
 
