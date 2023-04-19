@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.4.7
+ * @version 4.5.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.4.7",
+			"version": "4.5.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -112,12 +112,9 @@ module.exports = (() => {
 					"ResolutionSwapper": false,
 					"stickerBypass": false,
 					"profileV2": false,
-					"activityJoiningMode": false,
-					"activityBypass": true,
-					"customActivityURL": "",
-					"customActivity": false,
 					"forceStickersUnlocked": false,
-					"changePremiumType": false
+					"changePremiumType": false,
+					"videoCodec": 0
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -158,7 +155,14 @@ module.exports = (() => {
 									value = parseFloat(value);
 									this.settings.voiceBitrate = value;
 								}),
-								new Settings.Textbox("Screen Share Audio Source", "[Advanced] Set this number to the PID of an application to stream that application's audio! Applies upon updating the screen share quality/window. (Set to 0 to disable)", this.settings.audioSourcePID,
+								new Settings.Dropdown("Preferred Video Codec", "Changes the screen share video codec to the one set.", this.settings.videoCodec, [
+									{label: "Default/Disabled", value: 0},
+									{label: "H.264", value: 1},
+									{label: "AV1", value: 2},
+									{label: "VP8", value: 3},
+									{label: "VP9", value: 4}], value => this.settings.videoCodec = value, {searchable: true}
+								),
+								new Settings.Textbox("Screen Share Audio Source", "[Advanced] Set this number to the PID of an application to stream that application's audio. Applies upon updating the screen share quality/window. (Set to 0 to disable)", this.settings.audioSourcePID,
 								value => {
 									value = parseInt(value);
 									this.settings.audioSourcePID = value;
@@ -183,11 +187,11 @@ module.exports = (() => {
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
 							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
-							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers. Animated APNG/WEBP/Lottie Stickers will not animate.", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
+							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers will not animate.", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
 							new Settings.Switch("Upload Stickers", "Upload stickers in the same way as emotes.", this.settings.uploadStickers, value => this.settings.uploadStickers = value),
 							new Settings.Switch("Force Stickers Unlocked", "Enable to cause Stickers to be unlocked.", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
 						),
-						new Settings.SettingGroup("Camera [Beta]").append(
+						new Settings.SettingGroup("Camera").append(
 						new Settings.Switch("Enabled", "", this.settings.CameraSettingsEnabled, value => this.settings.CameraSettingsEnabled = value),
 						new Settings.Textbox("Camera Resolution Width", "Camera Resolution Width in pixels. (Set to -1 to disable)", this.settings.CameraWidth,
 								value => {
@@ -202,9 +206,6 @@ module.exports = (() => {
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
-							new Settings.Switch("Activity Bypass", "Use this to play Activities! (All users must be running the plugin for it to work correctly!)", this.settings.activityBypass, value => this.settings.activityBypass = value),
-							new Settings.Switch("Custom Activity", "Enable this to use a custom URL for an Activity!", this.settings.customActivity, value => this.settings.customActivity = value),
-							new Settings.Textbox("Custom Activity URL", "", this.settings.customActivityURL, value => this.settings.customActivityURL = value),
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value)
 						)
 					])
@@ -289,16 +290,6 @@ module.exports = (() => {
 							return true;
 						});
 						
-					}
-					
-					if(this.settings.activityBypass){
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseActivities", () => {
-							return true;
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUsePremiumActivities", () => {
-							return true;
-						});
-						this.activities();
 					}
 					
 					if(this.settings.forceStickersUnlocked){
@@ -627,9 +618,10 @@ module.exports = (() => {
 				}
 				
 				audioShare(){
-					let shareModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("handleVoiceActivity")).prototype;
+					const shareModule = WebpackModules.getByPrototypes("setSoundshareSource").prototype
 					if(this.settings.audioSourcePID != 0){
 					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
+						console.log(b);
 						if(this.settings.audioSourcePID == 0){
 							return
 						}
@@ -639,8 +631,8 @@ module.exports = (() => {
 				}
 				
 				videoQualityModule(){ //Custom Bitrates
-					let b = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("audioSSRC"));
-					let videoOptionFunctions = b.prototype;
+					const b = ZLibrary.WebpackModules.getByProps("S", "Z")
+					const videoOptionFunctions = b.Z.prototype;
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							//Minimum Bitrate
@@ -728,6 +720,96 @@ module.exports = (() => {
 							}
 						});	
 					}
+					if(this.settings.videoCodec > 0){ // Video codecs
+						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
+							let isCodecH264 = false;
+							let isCodecAV1  = false;
+							let isCodecVP8  = false;
+							let isCodecVP9  = false;
+							switch(this.settings.videoCodec){
+								case 1:
+									//console.log("case 1 -> isCodecH264");
+									isCodecH264 = true;
+									break;
+								case 2:
+									//console.log("case 2 -> isCodecAV1");
+									isCodecAV1 = true;
+									break;
+								case 3:
+									//console.log("case 3 -> isCodecVP8");
+									isCodecVP8 = true;
+									break;
+								case 4:
+									//console.log("case 4 -> isCodecVP9");
+									isCodecVP9 = true;
+									break;
+							}
+							
+							let currentHighestNum = 1;
+							function setPriority(codec){
+								switch(codec){
+									case 0:
+									if(isCodecH264){
+										return 1;
+										break;
+									}else{
+										currentHighestNum += 1;
+										return currentHighestNum;
+									}
+									break;
+									
+								case 1:
+									if(isCodecAV1){
+										return 1;
+										break;
+									}else{
+										currentHighestNum += 1;
+										return currentHighestNum;
+									}
+									break;
+								case 2:
+									if(isCodecVP8){
+										return 1;
+										break;
+									}else{
+										currentHighestNum += 1;
+										return currentHighestNum;
+									}
+									break;
+								case 3:
+									if(isCodecVP9){
+										return 1;
+										break;
+									}else{
+										currentHighestNum += 1;
+										return currentHighestNum;
+									}
+									break;
+								}
+								
+							}
+							
+							if(e.codecs != undefined && e.codecs[1]?.decode != undefined){
+								e.codecs[2].decode = isCodecH264; //H.264
+								e.codecs[2].encode = isCodecH264;
+								e.codecs[2].priority = parseInt(setPriority(0));
+								
+								e.codecs[1].decode = isCodecAV1; //AV1
+								e.codecs[1].encode = isCodecAV1;
+								e.codecs[1].priority = parseInt(setPriority(1));
+								
+								e.codecs[3].decode = isCodecVP8; //VP8
+								e.codecs[3].encode = isCodecVP8;
+								e.codecs[3].priority = parseInt(setPriority(2));
+								
+								e.codecs[4].decode = isCodecVP9; //VP9
+								e.codecs[4].encode = isCodecVP9;
+								e.codecs[4].priority = parseInt(setPriority(3));
+							}
+							
+							
+						});
+					}
 				}
 				
 				buttonCreate(){ //Creates the FPS and Resolution Swapper
@@ -759,7 +841,7 @@ module.exports = (() => {
 					try{
 						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton);
 						}catch(err){
-						console.warn("YABDP4Nitro: What the fuck happened? During buttonCreate()");
+						console.warn("YABDP4Nitro: What the fuck happened	? During buttonCreate()");
 						console.log(err);
 					};
 
@@ -798,14 +880,12 @@ module.exports = (() => {
 				} //End of buttonCreate()
 				
 				async stickerSending(){
-					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					console.log(permissions);
+					const permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
 					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
 						return true;
 					});
 					
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
-						console.log(b);
 						let stickerID = b[1][0];
 						let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless"
 						let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
@@ -825,27 +905,33 @@ module.exports = (() => {
 					});
 				}
 				
-				activities(){
-					let dispatcher = WebpackModules.getModule(BdApi.Webpack.Filters.byProps("dispatch", "subscribe"));
+				/*activities(){
+					const dispatcher = WebpackModules.getModule(BdApi.Webpack.Filters.byProps("dispatch", "subscribe"));
 					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
 						if(h[1]) if(h[1].className) if(h[1].className.includes("activityItem")){
 							let test;
-							if((document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO")) != undefined){
-								test = document.getElementsByClassName("flex-2S1XBF flex-3BkGQD horizontalReverse-60Katr horizontalReverse-2QssvL flex-3BkGQD directionRowReverse-HZatnx justifyStart-2Mwniq alignStretch-Uwowzr noWrap-hBpHBz footer-31IekZ footer-yVEuwO");
+							try{
+								function contains(selector, text) {
+								  var elements = document.querySelectorAll(selector);
+								  return Array.prototype.filter.call(elements, function(element){
+									return RegExp(text).test(element.textContent);
+								  });
+								}
+								test = contains("div", "Have feedback?");
+							}catch(err){
+								console.warn(err)
 							}
 							let textField;
+							let lastChild = (test.length - 1);
 							try{
-								textField = test[0].firstChild;
+								textField = test[lastChild];
 							}catch(err){
-								//console.warn(err);
 							}
 							if(textField) if(textField.innerText === "Have feedback? Take the survey"){
 								BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
-								let test = document.getElementsByClassName("defaultColor-24IHKz text-sm-normal-3Zj3Iv");
 								let togglerElement = textField;
 								togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
 								let asdf = function(){
-									let test = document.getElementsByClassName("defaultColor-24IHKz text-sm-normal-3Zj3Iv");
 									let togglerElement = textField;
 									if(togglerElement.innerHTML == `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`){
 										BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
@@ -874,10 +960,11 @@ module.exports = (() => {
 					let functionName = getFunctionNameFromString(activityMod, ["getSelfEmbeddedActivityForChannel"]);
 					BdApi.Patcher.instead("YABDP4Nitro", activityMod, functionName, (_,N,f) => {
 						if(N != undefined){
-							if(N[0].inflatedBundleItem.application.id){
+							console.log(N);
+							if(N[1].application_id){
 								if(this.settings.activityJoiningMode){ //Join mode enabled
 									//First, pick the host's activity (just ask them)
-									let intendedActivityId = N[0].inflatedBundleItem.application.id;
+									let intendedActivityId = N[1].application_id;
 									//console.log(N);
 									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
 										dispatcher.dispatch({
@@ -900,7 +987,7 @@ module.exports = (() => {
 									return
 								}
 								if(!this.settings.activityJoiningMode){ //Join mode disabled (hosting)
-									let intendedActivityId = N[0].inflatedBundleItem.application.id;
+									let intendedActivityId = N[1].application_id;
 									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
 										dispatcher.dispatch({
 											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
@@ -928,26 +1015,6 @@ module.exports = (() => {
 										type: "LOCAL_ACTIVITY_UPDATE",
 										activity: Activity
 									});
-									const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
-									function simulateMouseClick(element){
-									  mouseClickEvents.forEach(mouseEventType =>
-										element.dispatchEvent(
-										  new MouseEvent(mouseEventType, {
-											  view: window,
-											  bubbles: true,
-											  cancelable: true,
-											  buttons: 1
-										  })
-										)
-									  );
-									}
-									let element = document.getElementsByClassName('modalCloseButton-35fetH close-1mLglB button-ejjZWC lookBlank-FgPMy6 colorBrand-2M3O3N grow-2T4nbg')[0];
-									try{
-										simulateMouseClick(element); //Close activity menu
-									}catch(err){
-										console.warn("[YABDP4Nitro] An error occurred while trying to close the Activity menu!");
-										console.error(err);
-									}
 									dispatcher.dispatch({
 										type: "EMBEDDED_ACTIVITY_OPEN",
 										channelId: (BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId()),
@@ -960,7 +1027,25 @@ module.exports = (() => {
 							}
 						}
 					});
-				} //End of activities()
+					let activityMod2 = WebpackModules.getAllByProps("J", "Z")[2];
+					//console.log(activityMod2);
+					BdApi.Patcher.before("YABDP4Nitro", activityMod2, "Z", (_,Arguments) => {
+						console.log(Arguments);
+						Arguments[0].activityItem.application.hook = false
+						
+						Arguments[0].activityItem.activity.premium_tier_requirement = null;
+						Arguments[0].activityItem.activity.free_period_ends_at = null;
+						Arguments[0].activityItem.activity.free_period_starts_at = null;
+						Arguments[0].activityItem.activity.requires_age_gate = false
+						
+						Arguments[0].activityItem.application.embeddedActivityConfig.premium_tier_requirement = null;
+						Arguments[0].activityItem.application.embeddedActivityConfig.free_period_starts_at = null;
+						Arguments[0].activityItem.application.embeddedActivityConfig.free_period_ends_at = null;
+						Arguments[0].activityItem.application.embeddedActivityConfig.requires_age_gate = null
+						
+					})
+				}*/ //End of activities()
+				//Activities has been removed. The code where I fixed the bypass is above, but **it will be removed soon**.
 				
 				onStart() {
 					this.originalNitroStatus = BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType;
