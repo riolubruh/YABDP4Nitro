@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.0
+ * @version 4.5.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.0",
+			"version": "4.5.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -114,7 +114,8 @@ module.exports = (() => {
 					"profileV2": false,
 					"forceStickersUnlocked": false,
 					"changePremiumType": false,
-					"videoCodec": 0
+					"videoCodec": 0,
+					"clientThemes": true,
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -206,7 +207,8 @@ module.exports = (() => {
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
-							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value)
+							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
+							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value)
 						)
 					])
 				}
@@ -297,18 +299,30 @@ module.exports = (() => {
 							return true
 						});
 					}
-					try{
-						let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
-						delete clientthemesmodule.isPreview;
-						Object.defineProperty(clientthemesmodule, "isPreview", {
-							value: false,
-							configurable: true,
-							enumerable: true,
-							writable: true,
-						})
+					if(this.settings.clientThemes){
+						try{
+							let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
+							delete clientthemesmodule.isPreview;
+							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
+								value: false,
+								configurable: true,
+								enumerable: true,
+								writable: true,
+							});
+							const shouldSync = WebpackModules.getByProps("shouldSync"); //Disabling syncing the profile theme
+							Patcher.instead(shouldSync, "shouldSync", (callback, arg) => {
+								console.log(arg);
+								if(arg[0] = "appearance"){
+									return false
+								}else{
+									callback.shouldSync(arg);
+								}
+							});
 						}catch(err){
 							console.warn(err)
 						}
+					}
+					
 				} //End of saveAndUpdate
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
