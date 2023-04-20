@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.0
+ * @version 4.5.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.0",
+			"version": "4.5.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -114,7 +114,8 @@ module.exports = (() => {
 					"profileV2": false,
 					"forceStickersUnlocked": false,
 					"changePremiumType": false,
-					"videoCodec": 0
+					"videoCodec": 0,
+					"clientThemes": true,
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -206,7 +207,8 @@ module.exports = (() => {
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
-							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value)
+							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
+							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value)
 						)
 					])
 				}
@@ -297,18 +299,30 @@ module.exports = (() => {
 							return true
 						});
 					}
-					try{
-						let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
-						delete clientthemesmodule.isPreview;
-						Object.defineProperty(clientthemesmodule, "isPreview", {
-							value: false,
-							configurable: true,
-							enumerable: true,
-							writable: true,
-						})
+					if(this.settings.clientThemes){
+						try{
+							let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
+							delete clientthemesmodule.isPreview;
+							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
+								value: false,
+								configurable: true,
+								enumerable: true,
+								writable: true,
+							});
+							const shouldSync = WebpackModules.getByProps("shouldSync"); //Disabling syncing the profile theme
+							Patcher.instead(shouldSync, "shouldSync", (callback, arg) => {
+								console.log(arg);
+								if(arg[0] = "appearance"){
+									return false
+								}else{
+									callback.shouldSync(arg);
+								}
+							});
 						}catch(err){
 							console.warn(err)
 						}
+					}
+					
 				} //End of saveAndUpdate
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
@@ -904,148 +918,6 @@ module.exports = (() => {
 						}
 					});
 				}
-				
-				/*activities(){
-					const dispatcher = WebpackModules.getModule(BdApi.Webpack.Filters.byProps("dispatch", "subscribe"));
-					BdApi.Patcher.before("YABDP4Nitro", BdApi.React, "createElement", (_,h) => {
-						if(h[1]) if(h[1].className) if(h[1].className.includes("activityItem")){
-							let test;
-							try{
-								function contains(selector, text) {
-								  var elements = document.querySelectorAll(selector);
-								  return Array.prototype.filter.call(elements, function(element){
-									return RegExp(text).test(element.textContent);
-								  });
-								}
-								test = contains("div", "Have feedback?");
-							}catch(err){
-								console.warn(err)
-							}
-							let textField;
-							let lastChild = (test.length - 1);
-							try{
-								textField = test[lastChild];
-							}catch(err){
-							}
-							if(textField) if(textField.innerText === "Have feedback? Take the survey"){
-								BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
-								let togglerElement = textField;
-								togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
-								let asdf = function(){
-									let togglerElement = textField;
-									if(togglerElement.innerHTML == `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`){
-										BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = false;
-										togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Enable joining mode</a>`;
-										Toasts.info("Cancelled", {timeout: 1000});
-										return
-									}
-									BdApi.getData("YABDP4Nitro", "settings").activityJoiningMode = true;
-									togglerElement.innerHTML = `<a class="anchor-1MIwyf anchorUnderlineOnHover-2qPutX">Disable joining mode</a>`;
-									Toasts.info("First, pick the activity that the host is running", {timeout: 3000});
-									if(!this.settings.customActivity && (this.settings.customActivityURL != "")) Toasts.info("Custom URL Enabled: Click any activity", {timeout: 3000});
-								}
-								textField.onclick = asdf;
-							}
-						}
-					});
-					let activityMod = WebpackModules.getByProps("$h", "J$", "W5");
-					function getFunctionNameFromString(obj, search) {
-						for (const [k, v] of Object.entries(obj)) {
-						  if (search.every((str) => v?.toString().match(str))) {
-							return k;
-						  }
-						}
-						return null;
-					}
-					let functionName = getFunctionNameFromString(activityMod, ["getSelfEmbeddedActivityForChannel"]);
-					BdApi.Patcher.instead("YABDP4Nitro", activityMod, functionName, (_,N,f) => {
-						if(N != undefined){
-							console.log(N);
-							if(N[1].application_id){
-								if(this.settings.activityJoiningMode){ //Join mode enabled
-									//First, pick the host's activity (just ask them)
-									let intendedActivityId = N[1].application_id;
-									//console.log(N);
-									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
-										dispatcher.dispatch({
-											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
-											applicationId: "880218394199220334",
-											originURL: "https://" + intendedActivityId + ".discordsays.com"
-										});
-									}
-									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
-										dispatcher.dispatch({
-											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
-											applicationId: "880218394199220334",
-											originURL: this.settings.customActivityURL
-										});
-									}
-									//Then, alert the user to hit the join button
-									Toasts.info(`Now hit Join Activity on the host's activity`, {timeout: 3000});
-									//Finally, disable join mode
-									this.settings.activityJoiningMode = false;
-									return
-								}
-								if(!this.settings.activityJoiningMode){ //Join mode disabled (hosting)
-									let intendedActivityId = N[1].application_id;
-									if(!this.settings.customActivity || (this.settings.customActivityURL == "")){
-										dispatcher.dispatch({
-											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
-											applicationId: "880218394199220334",
-											originURL: "https://" + intendedActivityId + ".discordsays.com"
-										});
-									}
-									if(this.settings.customActivity && (this.settings.customActivityURL != "")){
-										dispatcher.dispatch({
-											type: "DEVELOPER_TEST_MODE_AUTHORIZATION_SUCCESS",
-											applicationId: "880218394199220334",
-											originURL: this.settings.customActivityURL
-										});
-									}
-									let Activity = new Array();
-									Activity.channelId = BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId();
-									if(Activity.channelId === null){
-										console.warn("Voice Channel was null. Are you not in a voice channel?");
-										return
-									}
-									Activity.application_id = "880218394199220334";
-									Activity.always_free = true;
-									Activity.nitro_requirement = false;
-									dispatcher.dispatch({
-										type: "LOCAL_ACTIVITY_UPDATE",
-										activity: Activity
-									});
-									dispatcher.dispatch({
-										type: "EMBEDDED_ACTIVITY_OPEN",
-										channelId: (BdApi.findModuleByProps('getVoiceChannelId').getVoiceChannelId()),
-										embeddedActivity: Activity
-									});
-										
-									Toasts.info("All clients must be running the plugin for this to work!", {timeout: 5000});
-
-								} //End hosting mode code
-							}
-						}
-					});
-					let activityMod2 = WebpackModules.getAllByProps("J", "Z")[2];
-					//console.log(activityMod2);
-					BdApi.Patcher.before("YABDP4Nitro", activityMod2, "Z", (_,Arguments) => {
-						console.log(Arguments);
-						Arguments[0].activityItem.application.hook = false
-						
-						Arguments[0].activityItem.activity.premium_tier_requirement = null;
-						Arguments[0].activityItem.activity.free_period_ends_at = null;
-						Arguments[0].activityItem.activity.free_period_starts_at = null;
-						Arguments[0].activityItem.activity.requires_age_gate = false
-						
-						Arguments[0].activityItem.application.embeddedActivityConfig.premium_tier_requirement = null;
-						Arguments[0].activityItem.application.embeddedActivityConfig.free_period_starts_at = null;
-						Arguments[0].activityItem.application.embeddedActivityConfig.free_period_ends_at = null;
-						Arguments[0].activityItem.application.embeddedActivityConfig.requires_age_gate = null
-						
-					})
-				}*/ //End of activities()
-				//Activities has been removed. The code where I fixed the bypass is above, but **it will be removed soon**.
 				
 				onStart() {
 					this.originalNitroStatus = BdApi.findModuleByProps("getCurrentUser").getCurrentUser().premiumType;

@@ -12,7 +12,6 @@ ___
 
 # Features
 
-
 ## Fully Customizable Screensharing Quality, FPS, and Bitrate
 ![Choosing Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584683-efe8eac3-8c6c-4100-9b98-0b2592fbb86f.png)
 
@@ -53,13 +52,12 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 
 <img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="rip rythm fr tho" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="shitty normal profile look" width="30%"></img>
 
-### Activity Bypass
+### Nitro Client Themes
 
-![gaming](https://user-images.githubusercontent.com/54255074/204072341-e99273aa-f8fb-4c61-8817-3f5182b09164.gif)
+![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
 
-### Custom Activities
+![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
 
-![Custom URL Activity Demonstration](https://user-images.githubusercontent.com/54255074/204072446-64923c26-69e7-42e6-9ac3-1f19edbf3b48.gif)
 
 ## License
 
