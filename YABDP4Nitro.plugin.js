@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.1
+ * @version 4.5.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.1",
+			"version": "4.5.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -381,11 +381,10 @@ module.exports = (() => {
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
 					if(this.settings.ResolutionEnabled){
 						if(this.settings.CustomResolution != 0){
-							StreamButtons.LY.RESOLUTION_SOURCE = this.settings.CustomResolution;
-							StreamButtons.ND[0].resolution = this.settings.CustomResolution;
-							StreamButtons.ND[1].resolution = this.settings.CustomResolution;
-							StreamButtons.ND[2].resolution = this.settings.CustomResolution;
-							StreamButtons.ND[3].resolution = this.settings.CustomResolution;
+							StreamButtons.LY.RESOLUTION_1440 = this.settings.CustomResolution;
+							StreamButtons.ND[4].resolution = this.settings.CustomResolution;
+							StreamButtons.ND[5].resolution = this.settings.CustomResolution;
+							StreamButtons.ND[6].resolution = this.settings.CustomResolution;
 							StreamButtons.WC[2].value = this.settings.CustomResolution;
 							delete StreamButtons.WC[2].label;
 							StreamButtons.WC[2].label = this.settings.CustomResolution.toString();
@@ -395,17 +394,16 @@ module.exports = (() => {
 						}
 					}
 					if(!this.settings.ResolutionEnabled || (this.settings.CustomResolution == 0)){
-						StreamButtons.LY.RESOLUTION_SOURCE = 0;
-						StreamButtons.ND[0].resolution = 0;
-						StreamButtons.ND[1].resolution = 0;
-						StreamButtons.ND[2].resolution = 0;
-						StreamButtons.ND[3].resolution = 0;
-						StreamButtons.WC[2].value = 0;
+						StreamButtons.LY.RESOLUTION_1440 = 1440;
+						StreamButtons.ND[4].resolution = 1440;
+						StreamButtons.ND[5].resolution = 1440;
+						StreamButtons.ND[6].resolution = 1440;
+						StreamButtons.WC[2].value = 1440;
 						delete StreamButtons.WC[2].label;
-						StreamButtons.WC[2].label = "Source";
-						StreamButtons.km[3].value = 0;
+						StreamButtons.WC[2].label = "1440p";
+						StreamButtons.km[3].value = 1440;
 						delete StreamButtons.km[3].label;
-						StreamButtons.km[3].label = "Source";
+						StreamButtons.km[3].label = "1440p";
 					}
 					
 					function replace60FPSRequirements(x) {
