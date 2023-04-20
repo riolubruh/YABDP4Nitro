@@ -121,7 +121,7 @@ module.exports = (() => {
 				getSettingsPanel() {
 					return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
 						new Settings.SettingGroup("Screen Share Features").append(...[
-							new Settings.Switch("High Quality Screensharing", "1080p/Source @ 60fps screensharing. There is no reason to disable this.", this.settings.screenSharing, value => this.settings.screenSharing = value),
+							new Settings.Switch("High Quality Screensharing", "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.", this.settings.screenSharing, value => this.settings.screenSharing = value),
 							new Settings.Switch("Custom Screenshare Resolution", "Choose your own screen share resolution!", this.settings.ResolutionEnabled, value => this.settings.ResolutionEnabled = value),
 							new Settings.Textbox("Resolution", "The custom resolution you want (in pixels)", this.settings.CustomResolution,
 								value => {
