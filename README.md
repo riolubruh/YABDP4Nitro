@@ -1,4 +1,4 @@
-# Thanks for over <i>250</i> Stars !!! <i>(wtf!?!)</i>
+# Thanks for over *250* Stars !!! *(wtf!?!)*
 
 You guys are absolutely insane !
 
@@ -7,7 +7,7 @@ ___
 
 # YABDP4Nitro
 
-*Probably* the best 'Nitro plugin' out there.
+*Probably* the best "Nitro plugin" out there.
 
 # Features
 
@@ -59,6 +59,20 @@ ___
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
 
+# Contributing and Reporting Issues
+I welcome contributions of any kind, including bug reports, feature requests, pull requests, and feedback. If you encounter any issues while using YABDP4Nitro, or if you have any suggestions for improvement, please let me know!
+
+## Reporting Issues
+To report an issue, please open a new issue on the [Issues page](https://github.com/YABDP4Nitro/YABDP4Nitro/issues)
+of this GitHub repository with a clear description of the problem and any steps to reproduce it.
+
+## Contributing
+If you would like to contribute to the project, there are several ways to do so. You can:
+- Submit a bug report or feature request
+- Fork the repository and make changes
+- Submit a pull request to merge your changes back into the main branch
+
+Thank you for your interest in contributing to YABDP4Nitro!
 
 ## License
 
@@ -70,6 +84,6 @@ The plugin is licensed under the NPOSL Version 3 License.
 
 [SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
 
-[SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 8 megabyte chunks! YABDP4Nitro-compatible fork created by me.
+[SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 25 megabyte chunks! YABDP4Nitro-compatible fork created by me.
 
 [DiscordBypasses by Ahlawat](https://github.com/Tharki-God/BetterDiscordPlugins#discordbypasses) - A mixture of different Discord bypasses, including unlocking Experiments.
