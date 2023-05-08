@@ -42,7 +42,7 @@ ___
 
 ## Camera Options
 
-#### Change the resolution of your camera past 720p!
+### Change the resolution of your camera past 720p!
 
 ![Camera Options](https://user-images.githubusercontent.com/54255074/193709954-8a2c4130-31c8-4672-958f-796845808e18.png)
 
@@ -50,7 +50,7 @@ ___
 
 ### Profile Accents for All Users
 
-<img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="rip rythm fr tho" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="shitty normal profile look" width="30%"></img>
+<img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="visual difference with it on" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="visual difference with it off" width="30%"></img>
 ___
 
 ### Nitro Client Themes
