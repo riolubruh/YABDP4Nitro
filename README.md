@@ -1,9 +1,8 @@
-# Thanks for over 200 Stars !!!
+# Thanks for over <i>250</i> Stars !!! <i>(wtf!?!)</i>
 
-Seriously, you guys are crazy !
+You guys are absolutely insane !
 
 Thank you all for helping in keeping this plugin awesome! <3
-
 ___
 
 # YABDP4Nitro
@@ -23,19 +22,21 @@ ___
 
 Use emoji from any of your servers by linking or uploading them!
 
-#### Ghost Mode
+### Ghost Mode
 
 Hide the links to any emoji you send by automatically using a ghost message! It even works mid-sentence *and* when sending multiple emoji at once!
 
 ![Ghost Mode Image Demonstration](https://user-images.githubusercontent.com/54255074/166120840-50bd98c7-48d0-4772-8d9b-17280e247a02.png)
+___
 
-#### Upload Emotes
+### Upload Emotes
 
 Don't like abusing bugs? You can always upload the emojis as a file, if you want to.
 
 ![Uploading Demonstration](https://user-images.githubusercontent.com/54255074/191621033-da0db3f6-c5f6-4ba7-9c99-0c8ccf7ed864.gif)
+___
 
-#### Usage of the Emoji Bypass
+### Usage of the Emoji Bypass
 
 ![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
 
@@ -48,9 +49,9 @@ Don't like abusing bugs? You can always upload the emojis as a file, if you want
 ## Miscellaneous
 
 ### Profile Accents for All Users
-##### (aka Profile V2 according to nobody but me)
 
 <img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="rip rythm fr tho" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="shitty normal profile look" width="30%"></img>
+___
 
 ### Nitro Client Themes
 
