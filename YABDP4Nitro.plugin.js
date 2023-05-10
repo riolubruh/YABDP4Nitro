@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.2
+ * @version 4.5.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.2",
+			"version": "4.5.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -116,6 +116,7 @@ module.exports = (() => {
 					"changePremiumType": false,
 					"videoCodec": 0,
 					"clientThemes": true,
+					"lastGradientSettingStore": -1
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -301,7 +302,7 @@ module.exports = (() => {
 					}
 					if(this.settings.clientThemes){
 						try{
-							let clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
+							const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
 							delete clientthemesmodule.isPreview;
 							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
 								value: false,
@@ -309,15 +310,43 @@ module.exports = (() => {
 								enumerable: true,
 								writable: true,
 							});
+							
 							const shouldSync = WebpackModules.getByProps("shouldSync"); //Disabling syncing the profile theme
 							Patcher.instead(shouldSync, "shouldSync", (callback, arg) => {
-								console.log(arg);
+								//console.log(arg);
 								if(arg[0] = "appearance"){
 									return false
 								}else{
 									callback.shouldSync(arg);
 								}
 							});
+							
+							const themesModule = ZLibrary.WebpackModules.getByProps("V1", "ZI");
+							const gradientSettingModule = ZLibrary.WebpackModules.getByProps("Bf", "X9", "zO");
+							
+							BdApi.Patcher.before("YABDP4Nitro", themesModule, "ZI", (_,args) => {
+								
+								if(args[0].backgroundGradientPresetId != undefined){ //If appearance is changed to a nitro client theme
+									this.settings.lastGradientSettingStore = parseInt(args[0].backgroundGradientPresetId); //Store the gradient value
+									Utilities.saveSettings(this.getName(), this.settings); //Save the gradient value to file
+								}
+								if(args[0].backgroundGradientPresetId == undefined){ //If appearance is changed to a non-nitro client theme
+									this.settings.lastGradientSettingStore = -1; //Set the gradient value to -1 (disabled)
+									Utilities.saveSettings(this.getName(), this.settings); //Save that value to file
+								}
+								
+								themesModule.ZP.updateTheme(args[0].theme); //Change from light to dark theme. It was having issues due to shouldSync being false so we just set it manually if the user changes the Appearance
+								
+								if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
+									gradientSettingModule.zO(this.settings.lastGradientSettingStore); //Apply nitro client theme
+								}
+								//console.log(this.settings.lastGradientSettingStore);
+							});
+							
+							if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
+								gradientSettingModule.zO(this.settings.lastGradientSettingStore); //Restore gradient on plugin load/save if it is set
+							}
+							
 						}catch(err){
 							console.warn(err)
 						}
@@ -436,22 +465,21 @@ module.exports = (() => {
 						StreamButtons.ws.FPS_60 = 60;
 					}
 					
-					if(BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate"))){
-						let L = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate")).prototype;
-						//console.log(L);
-						if(L){
-							BdApi.Patcher.instead("YABDP4Nitro", L, "updateRemoteWantsFramerate", () => {
+					const updateRemoteWantsFramerate = ZLibrary.WebpackModules.getByPrototypes("updateRemoteWantsFramerate");
+					if(updateRemoteWantsFramerate != undefined){
+						let L = updateRemoteWantsFramerate.prototype;
+						BdApi.Patcher.instead("YABDP4Nitro", L, "updateRemoteWantsFramerate", () => {
 							return
 						});
-						}
 						return
-					}else{
-						let R = await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("updateRemoteWantsFramerate"));
-						if(R){
-							BdApi.Patcher.instead("YABDP4Nitro", R, "updateRemoteWantsFramerate", () => {
+					}
+					if(updateRemoteWantsFramerate == undefined){
+						await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byPrototypeFields("updateRemoteWantsFramerate"));
+						const updateRemoteWantsFramerateMod = ZLibrary.WebpackModules.getByPrototypes("updateRemoteWantsFramerate").prototype;
+						BdApi.Patcher.instead("YABDP4Nitro", updateRemoteWantsFramerateMod, "updateRemoteWantsFramerate", () => {
 							return
 						});
-						}
+						
 					}
 				}
 
@@ -633,7 +661,7 @@ module.exports = (() => {
 					const shareModule = WebpackModules.getByPrototypes("setSoundshareSource").prototype
 					if(this.settings.audioSourcePID != 0){
 					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
-						console.log(b);
+						//console.log(b);
 						if(this.settings.audioSourcePID == 0){
 							return
 						}
