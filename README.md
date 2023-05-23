@@ -1,10 +1,3 @@
-# Thanks for over *250* Stars !!! *(wtf!?!)*
-
-You guys are absolutely insane !
-
-Thank you all for helping in keeping this plugin awesome! <3
-___
-
 # YABDP4Nitro
 
 *Probably* the best "Nitro plugin" out there.
