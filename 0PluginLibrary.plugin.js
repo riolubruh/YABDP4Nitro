@@ -1,7 +1,7 @@
 /**
  * @name ZeresPluginLibrary
  * @description Gives other plugins utility functions.
- * @version 2.0.15
+ * @version 2.0.16
  * @author Zerebos
  * @source https://github.com/rauenzi/BDPluginLibrary
  */
@@ -90,11 +90,11 @@ module.exports = {
     id: "9",
     name: "ZeresPluginLibrary",
     author: "Zerebos",
-    version: "2.0.15",
+    version: "2.0.16",
     description: "Gives other plugins utility functions.",
     source: "https://github.com/rauenzi/BDPluginLibrary",
     changelog: [
-        {title: "Fixed", type: "added", items: ["Fixed compilation issue due to Discord's changes.", "Fixed an issue with keybind settings not using the correct values."]},
+        {title: "Fixed", type: "added", items: ["Fixed compilation issue due to Discord's changes."]},
     ],
     main: "index.js"
 };
@@ -4518,7 +4518,7 @@ const LayerProvider = Object.values(AppLayer).find(m => m.displayName === "AppLa
 const ComponentDispatch = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes("useContext") && m.toString?.().includes("windowDispatch"), {searchExports: true});
 const ComponentActions = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.POPOUT_SHOW, {searchExports: true});
 const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.defaultProps && m?.Animation, {searchExports: true});
-const ThemeContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m._currentValue === "dark", {searchExports: true});
+const ThemeContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.toString?.().includes("amoled:") && m?.toString?.().includes("Provider"), {searchExports: true});
 const useStateFromStores = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.toString?.().includes("useStateFromStores"));
 const ThemeStore = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.theme);
 
@@ -4667,11 +4667,9 @@ class Popouts {
 function DiscordProviders({children, container}) {
     const theme = useStateFromStores([ThemeStore], () => ThemeStore.theme);
 
-    return React.createElement(LayerProvider, {
-        value: [container]
-    }, React.createElement(ThemeContext.Provider, {
-        value: theme
-    }, children));
+    return React.createElement(LayerProvider, {value: [container]},
+                React.createElement(ThemeContext, {theme}, children)
+            );
 }
 
 function PopoutsContainer() {
