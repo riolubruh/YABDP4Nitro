@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.3
+ * @version 4.5.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.3",
+			"version": "4.5.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -105,7 +105,6 @@ module.exports = (() => {
 					"maxBitrate": -1,
 					"targetBitrate": -1,
 					"voiceBitrate": 128,
-					"audioSourcePID": 0,
 					"CameraSettingsEnabled": false,
 					"CameraWidth": 1920,
 					"CameraHeight": 1080,
@@ -152,7 +151,7 @@ module.exports = (() => {
 									value = parseFloat(value);
 									this.settings.targetBitrate = value;
 								}),
-								new Settings.Textbox("Voice Audio Bitrate", "Allows you to change the bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps).", this.settings.voiceBitrate,
+								new Settings.Textbox("Voice Audio Bitrate", "Allows you to change the voice bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps).", this.settings.voiceBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.voiceBitrate = value;
@@ -163,12 +162,7 @@ module.exports = (() => {
 									{label: "AV1", value: 2},
 									{label: "VP8", value: 3},
 									{label: "VP9", value: 4}], value => this.settings.videoCodec = value, {searchable: true}
-								),
-								new Settings.Textbox("Screen Share Audio Source", "[Advanced] Set this number to the PID of an application to stream that application's audio. Applies upon updating the screen share quality/window. (Set to 0 to disable)", this.settings.audioSourcePID,
-								value => {
-									value = parseInt(value);
-									this.settings.audioSourcePID = value;
-								})
+								)
 						]),
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
@@ -233,7 +227,7 @@ module.exports = (() => {
 					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
 					this.videoQualityModule(); //Quality Module
-					this.audioShare(); //Audio PID module
+					
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
@@ -246,9 +240,6 @@ module.exports = (() => {
 					}
 					
 					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
-						return true
-					});
 					
 					if(this.settings.stickerBypass){
 						this.stickerSending();
@@ -302,6 +293,9 @@ module.exports = (() => {
 					}
 					if(this.settings.clientThemes){
 						try{
+							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
+								return true
+							});
 							const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
 							delete clientthemesmodule.isPreview;
 							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
@@ -516,14 +510,14 @@ module.exports = (() => {
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							msg.validNonShortcutEmojis.forEach(emoji => {
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+									return
+								}
 								if(emoji.url.startsWith("/assets/")){
 									return
 								}
 								if(this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png')
-								}
-								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
-									return
 								}
 								//if ghost mode is not required
 								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
@@ -554,13 +548,13 @@ module.exports = (() => {
 							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 								let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								msg.validNonShortcutEmojis.forEach(emoji => {
+									if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
+										return
+									}
 									if(this.settings.PNGemote) {
 										emoji.url = emoji.url.replace('.webp', '.png')
 									}
 									if(emoji.url.startsWith("/assets/")){
-										return
-									}
-									if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 										return
 									}
 									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
@@ -657,19 +651,6 @@ module.exports = (() => {
 					}
 				}
 				
-				audioShare(){
-					const shareModule = WebpackModules.getByPrototypes("setSoundshareSource").prototype
-					if(this.settings.audioSourcePID != 0){
-					BdApi.Patcher.before("YABDP4Nitro", shareModule, "setSoundshareSource", (a,b) => {
-						//console.log(b);
-						if(this.settings.audioSourcePID == 0){
-							return
-						}
-						b[0] = this.settings.audioSourcePID;
-					});
-					}
-				}
-				
 				videoQualityModule(){ //Custom Bitrates
 					const b = ZLibrary.WebpackModules.getByProps("S", "Z")
 					const videoOptionFunctions = b.Z.prototype;
@@ -696,6 +677,7 @@ module.exports = (() => {
 					if(this.settings.CustomFPSEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							//console.log(e);
+							if(e.stats.camera !== undefined) return
 							e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
 							e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
 							for(const ladder in e.videoQualityManager.ladder.ladder) {
