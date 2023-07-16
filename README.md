@@ -73,7 +73,7 @@ The plugin is licensed under the NPOSL Version 3 License.
 
 ## Recommended additional plugins for more Nitro features
 
-[FreeStickers by An00nymushun](https://github.com/An00nymushun/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF.
+[FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked until the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is fixed)
 
 [SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
 
