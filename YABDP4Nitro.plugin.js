@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.4
+ * @version 4.5.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.4",
+			"version": "4.5.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -477,30 +477,32 @@ module.exports = (() => {
 					}
 				}
 
-				async emojiBypass(){ //Moved to a function to declutter saveAndUpdate
+				emojiBypass(){ //Moved to a function to declutter saveAndUpdate
 					//Upload Emotes
 					if(this.settings.uploadEmotes) {
-						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, b, send) => {
+						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, msg, send) => {
 							let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 							let runs = 0;
-							b[1].validNonShortcutEmojis.forEach(emoji => {
-								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
-									return
-								}
-								if(emoji.url.startsWith("/assets/")){
-									return
-								}
+							msg[1].validNonShortcutEmojis.forEach(emoji => {
+								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
+								if(emoji.type == "UNICODE") return;
+								if(emoji.url.startsWith("/assets/")) return;
 								if(this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png');
 								}
+								if(msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
+									msg[1].content = msg[1].content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+									return //If there is a backslash (\) before the emoji, skip it.
+								} 
+								
 								runs++;
 								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`
-								b[1].content = b[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
-								this.UploadEmote(emoji.url, currentChannelId, b, emoji, runs);
+								msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
+								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
 								return
 							});
-							if((b[1].content !== undefined && b[1].content != "") && runs == 0) {
-								send(b[0], b[1], b[2], b[3]);
+							if((msg[1].content !== undefined && msg[1].content != "") && runs == 0) {
+								send(msg[0], msg[1], msg[2], msg[3]);
 							}
 							return
 						});
@@ -513,12 +515,18 @@ module.exports = (() => {
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
 									return
 								}
+								if(emoji.type == "UNICODE") return;
 								if(emoji.url.startsWith("/assets/")){
 									return
 								}
 								if(this.settings.PNGemote) {
 									emoji.url = emoji.url.replace('.webp', '.png')
 								}
+								if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
+									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+									return //If there is a backslash before the emoji, skip it.
+								} 
+								
 								//if ghost mode is not required
 								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
@@ -548,15 +556,17 @@ module.exports = (() => {
 							BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 								let currentChannelId = BdApi.findModuleByProps("getLastChannelFollowingDestination").getChannelId();
 								msg.validNonShortcutEmojis.forEach(emoji => {
-									if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
-										return
-									}
+									if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
+									if(emoji.type == "UNICODE") return;
+									if(emoji.url.startsWith("/assets/")) return;
 									if(this.settings.PNGemote) {
 										emoji.url = emoji.url.replace('.webp', '.png')
 									}
-									if(emoji.url.startsWith("/assets/")){
-										return
-									}
+									
+									if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
+										msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+										return //If there is a backslash before the emoji, skip it.
+									} 
 									if(msg.content.includes(("https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0]))) {//Duplicate emoji handling (second duplicate)
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://test.rauf.workers.dev/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
@@ -863,8 +873,8 @@ module.exports = (() => {
 					try{
 						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton);
 						}catch(err){
-						console.warn("YABDP4Nitro: What the fuck happened	? During buttonCreate()");
-						console.log(err);
+						console.log("YABDP4Nitro: What the fuck happened..? During buttonCreate()");
+						console.warn(err);
 					};
 
 					let qualityMenu = document.createElement('div');
