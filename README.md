@@ -17,7 +17,7 @@ Use emoji from any of your servers by linking or uploading them!
 
 ### Ghost Mode
 
-Hide the links to any emoji you send by automatically using a ghost message! It even works mid-sentence *and* when sending multiple emoji at once!
+Hide the links to any emoji you send by automatically using a "ghost message"! Works mid-sentence and when sending multiple emoji at once, though it is a bit more laggy.
 
 ![Ghost Mode Image Demonstration](https://user-images.githubusercontent.com/54255074/166120840-50bd98c7-48d0-4772-8d9b-17280e247a02.png)
 ___
@@ -44,6 +44,8 @@ ___
 ### Profile Accents for All Users
 
 <img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="visual difference with it on" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="visual difference with it off" width="30%"></img>
+
+To clarify: What this does is make all profiles render with the gradient on the **client-side**. Other users will not see this.
 ___
 
 ### Nitro Client Themes
@@ -51,9 +53,11 @@ ___
 ![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
+___
 
 # Contributing and Reporting Issues
-I welcome contributions of any kind, including bug reports, feature requests, pull requests, and feedback. If you encounter any issues while using YABDP4Nitro, or if you have any suggestions for improvement, please let me know!
+I welcome contributions of any kind, including bug reports, feature requests, pull requests, and feedback. 
+If you encounter any issues while using YABDP4Nitro, or if you have any suggestions for improvement, please let me know!
 
 ## Reporting Issues
 To report an issue, please open a new issue on the [Issues page](https://github.com/YABDP4Nitro/YABDP4Nitro/issues)
