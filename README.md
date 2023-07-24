@@ -33,12 +33,6 @@ ___
 
 ![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
 
-## Camera Options
-
-### Change the resolution of your camera past 720p!
-
-![Camera Options](https://user-images.githubusercontent.com/54255074/193709954-8a2c4130-31c8-4672-958f-796845808e18.png)
-
 ## Miscellaneous
 
 ### Profile Accents for All Users
