@@ -290,7 +290,6 @@ module.exports = (() => {
 							
 							const shouldSync = WebpackModules.getByProps("shouldSync"); //Disabling syncing the profile theme
 							Patcher.instead(shouldSync, "shouldSync", (callback, arg) => {
-								//console.log(arg);
 								if(arg[0] = "appearance"){
 									return false
 								}else{
@@ -385,7 +384,6 @@ module.exports = (() => {
 				
 				async customVideoSettings() {
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
-					console.log(StreamButtons);
 					if(this.settings.ResolutionEnabled && this.settings.CustomResolution != 0){
 						StreamButtons.LY.RESOLUTION_1440 = this.settings.CustomResolution;
 						StreamButtons.ND[4].resolution = this.settings.CustomResolution;
@@ -524,10 +522,10 @@ module.exports = (() => {
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("Multiple emojis")
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 									return
 								}
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `//, console.log(msg.content), console.log("First emoji code ran")
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 								return
 							})
 						});
@@ -557,7 +555,7 @@ module.exports = (() => {
 										msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += " " + "https://embed.rauf.wtf/?&image=" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 										return
 									}
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)//, console.log(msg.content), console.log("no ghost")
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
 								})
 							});
 							//editing message (in classic mode)
@@ -665,7 +663,6 @@ module.exports = (() => {
 					}
 					if(this.settings.CustomFPSEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
-							console.log(e);
 							if(e.stats?.camera !== undefined) return;
 							e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
 							e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
