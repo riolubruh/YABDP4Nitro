@@ -575,31 +575,32 @@ module.exports = (() => {
 					}
 				
 				updateQuick(){ //Function that runs when the resolution/fps quick menu is changed
+					let settings = BdApi.getData("YABDP4Nitro", "settings");
 					parseInt(document.getElementById("qualityInput").value);
-					BdApi.getData("YABDP4Nitro", "settings").CustomResolution = parseInt(document.getElementById("qualityInput").value);
+					settings.CustomResolution = parseInt(document.getElementById("qualityInput").value);
 					parseInt(document.getElementById("qualityInputFPS").value);
-					BdApi.getData("YABDP4Nitro", "settings").CustomFPS = parseInt(document.getElementById("qualityInputFPS").value);
-					if(parseInt(document.getElementById("qualityInputFPS").value) == 15) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 16;
-					if(parseInt(document.getElementById("qualityInputFPS").value) == 30) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 31;
-					if(parseInt(document.getElementById("qualityInputFPS").value) == 5) BdApi.getData("YABDP4Nitro", "settings").CustomFPS = 6;
+					settings.CustomFPS = parseInt(document.getElementById("qualityInputFPS").value);
+					if(parseInt(document.getElementById("qualityInputFPS").value) == 15) settings.CustomFPS = 16;
+					if(parseInt(document.getElementById("qualityInputFPS").value) == 30) settings.CustomFPS = 31;
+					if(parseInt(document.getElementById("qualityInputFPS").value) == 5) settings.CustomFPS = 6;
 					
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
-					if(BdApi.getData("YABDP4Nitro", "settings").ResolutionEnabled){
-						if(BdApi.getData("YABDP4Nitro", "settings").CustomResolution != 0){
-							StreamButtons.LY.RESOLUTION_SOURCE = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
-							StreamButtons.ND[0].resolution = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
-							StreamButtons.ND[1].resolution = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
-							StreamButtons.ND[2].resolution = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
-							StreamButtons.ND[3].resolution = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
-							StreamButtons.WC[2].value = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
+					if(settings.ResolutionEnabled){
+						if(settings.CustomResolution != 0){
+							StreamButtons.LY.RESOLUTION_SOURCE = settings.CustomResolution;
+							StreamButtons.ND[0].resolution = settings.CustomResolution;
+							StreamButtons.ND[1].resolution = settings.CustomResolution;
+							StreamButtons.ND[2].resolution = settings.CustomResolution;
+							StreamButtons.ND[3].resolution = settings.CustomResolution;
+							StreamButtons.WC[2].value = settings.CustomResolution;
 							delete StreamButtons.WC[2].label;
-							StreamButtons.WC[2].label = BdApi.getData("YABDP4Nitro", "settings").CustomResolution.toString();
-							StreamButtons.km[3].value = BdApi.getData("YABDP4Nitro", "settings").CustomResolution;
+							StreamButtons.WC[2].label = settings.CustomResolution.toString();
+							StreamButtons.km[3].value = settings.CustomResolution;
 							delete StreamButtons.km[3].label;
-							StreamButtons.km[3].label = BdApi.getData("YABDP4Nitro", "settings").CustomResolution + "p";
+							StreamButtons.km[3].label = settings.CustomResolution + "p";
 						}
 					}
-					if(!BdApi.getData("YABDP4Nitro", "settings").ResolutionEnabled || (BdApi.getData("YABDP4Nitro", "settings").CustomResolution == 0)){
+					if(!settings.ResolutionEnabled || (settings.CustomResolution == 0)){
 						StreamButtons.LY.RESOLUTION_SOURCE = 0;
 						StreamButtons.ND[0].resolution = 0;
 						StreamButtons.ND[1].resolution = 0;
@@ -614,26 +615,26 @@ module.exports = (() => {
 					}
 					
 					function replace60FPSRequirements(x) {
-						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
+						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = settings.CustomFPS;
 					}
 					function restore60FPSRequirements(x) {
 						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
 					}
 
 					
-					if(BdApi.getData("YABDP4Nitro", "settings").CustomFPSEnabled){
+					if(settings.CustomFPSEnabled){
 						if(this.CustomFPS != 60){
 							StreamButtons.ND.forEach(replace60FPSRequirements);
-							StreamButtons.af[2].value = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
+							StreamButtons.af[2].value = settings.CustomFPS;
 							delete StreamButtons.af[2].label;
-							StreamButtons.af[2].label = BdApi.getData("YABDP4Nitro", "settings").CustomFPS + " FPS";
-							StreamButtons.k0[2].value = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
+							StreamButtons.af[2].label = settings.CustomFPS + " FPS";
+							StreamButtons.k0[2].value = settings.CustomFPS;
 							delete StreamButtons.k0[2].label;
-							StreamButtons.k0[2].label = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
-							StreamButtons.ws.FPS_60 = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
+							StreamButtons.k0[2].label = settings.CustomFPS;
+							StreamButtons.ws.FPS_60 = settings.CustomFPS;
 						}
 					}
-					if(!(BdApi.getData("YABDP4Nitro", "settings").CustomFPSEnabled)){
+					if(!(settings.CustomFPSEnabled)){
 						StreamButtons.ND.forEach(restore60FPSRequirements);
 						StreamButtons.af[2].value = 60;
 						delete StreamButtons.af[2].label;
