@@ -267,7 +267,6 @@ module.exports = (() => {
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamHighQuality", () => {
 							return true;
 						});
-						
 					}
 					
 					if(this.settings.forceStickersUnlocked){
@@ -386,19 +385,18 @@ module.exports = (() => {
 				
 				async customVideoSettings() {
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
-					if(this.settings.ResolutionEnabled){
-						if(this.settings.CustomResolution != 0){
-							StreamButtons.LY.RESOLUTION_1440 = this.settings.CustomResolution;
-							StreamButtons.ND[4].resolution = this.settings.CustomResolution;
-							StreamButtons.ND[5].resolution = this.settings.CustomResolution;
-							StreamButtons.ND[6].resolution = this.settings.CustomResolution;
-							StreamButtons.WC[2].value = this.settings.CustomResolution;
-							delete StreamButtons.WC[2].label;
-							StreamButtons.WC[2].label = this.settings.CustomResolution.toString();
-							StreamButtons.km[3].value = this.settings.CustomResolution;
-							delete StreamButtons.km[3].label;
-							StreamButtons.km[3].label = this.settings.CustomResolution + "p";
-						}
+					console.log(StreamButtons);
+					if(this.settings.ResolutionEnabled && this.settings.CustomResolution != 0){
+						StreamButtons.LY.RESOLUTION_1440 = this.settings.CustomResolution;
+						StreamButtons.ND[4].resolution = this.settings.CustomResolution;
+						StreamButtons.ND[5].resolution = this.settings.CustomResolution;
+						StreamButtons.ND[6].resolution = this.settings.CustomResolution;
+						StreamButtons.WC[2].value = this.settings.CustomResolution;
+						delete StreamButtons.WC[2].label;
+						StreamButtons.WC[2].label = this.settings.CustomResolution.toString();
+						StreamButtons.km[3].value = this.settings.CustomResolution;
+						delete StreamButtons.km[3].label;
+						StreamButtons.km[3].label = this.settings.CustomResolution + "p";
 					}
 					if(!this.settings.ResolutionEnabled || (this.settings.CustomResolution == 0)){
 						StreamButtons.LY.RESOLUTION_1440 = 1440;
@@ -585,33 +583,29 @@ module.exports = (() => {
 					if(parseInt(document.getElementById("qualityInputFPS").value) == 5) settings.CustomFPS = 6;
 					
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
-					if(settings.ResolutionEnabled){
-						if(settings.CustomResolution != 0){
-							StreamButtons.LY.RESOLUTION_SOURCE = settings.CustomResolution;
-							StreamButtons.ND[0].resolution = settings.CustomResolution;
-							StreamButtons.ND[1].resolution = settings.CustomResolution;
-							StreamButtons.ND[2].resolution = settings.CustomResolution;
-							StreamButtons.ND[3].resolution = settings.CustomResolution;
-							StreamButtons.WC[2].value = settings.CustomResolution;
-							delete StreamButtons.WC[2].label;
-							StreamButtons.WC[2].label = settings.CustomResolution.toString();
-							StreamButtons.km[3].value = settings.CustomResolution;
-							delete StreamButtons.km[3].label;
-							StreamButtons.km[3].label = settings.CustomResolution + "p";
-						}
+					if(settings.ResolutionEnabled && settings.CustomResolution != 0){
+						StreamButtons.LY.RESOLUTION_1440 = settings.CustomResolution;
+						StreamButtons.ND[4].resolution = settings.CustomResolution;
+						StreamButtons.ND[5].resolution = settings.CustomResolution;
+						StreamButtons.ND[6].resolution = settings.CustomResolution;
+						StreamButtons.WC[2].value = settings.CustomResolution;
+						delete StreamButtons.WC[2].label;
+						StreamButtons.WC[2].label = settings.CustomResolution.toString();
+						StreamButtons.km[3].value = settings.CustomResolution;
+						delete StreamButtons.km[3].label;
+						StreamButtons.km[3].label = settings.CustomResolution + "p";
 					}
 					if(!settings.ResolutionEnabled || (settings.CustomResolution == 0)){
-						StreamButtons.LY.RESOLUTION_SOURCE = 0;
-						StreamButtons.ND[0].resolution = 0;
-						StreamButtons.ND[1].resolution = 0;
-						StreamButtons.ND[2].resolution = 0;
-						StreamButtons.ND[3].resolution = 0;
-						StreamButtons.WC[2].value = 0;
+						StreamButtons.LY.RESOLUTION_1440 = 1440;
+						StreamButtons.ND[4].resolution = 1440;
+						StreamButtons.ND[5].resolution = 1440;
+						StreamButtons.ND[6].resolution = 1440;
+						StreamButtons.WC[2].value = 1440;
 						delete StreamButtons.WC[2].label;
-						StreamButtons.WC[2].label = "Source";
-						StreamButtons.km[3].value = 0;
+						StreamButtons.WC[2].label = "1440p";
+						StreamButtons.km[3].value = 1440;
 						delete StreamButtons.km[3].label;
-						StreamButtons.km[3].label = "Source";
+						StreamButtons.km[3].label = "1440p";
 					}
 					
 					function replace60FPSRequirements(x) {
