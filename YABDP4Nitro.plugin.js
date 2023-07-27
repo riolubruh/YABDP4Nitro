@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.5.6
+ * @version 4.6.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.5.6",
+			"version": "4.6.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -112,7 +112,8 @@ module.exports = (() => {
 					"changePremiumType": false,
 					"videoCodec": 0,
 					"clientThemes": true,
-					"lastGradientSettingStore": -1
+					"lastGradientSettingStore": -1,
+					"fakeProfileThemes": true
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -187,7 +188,8 @@ module.exports = (() => {
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
-							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value)
+							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
+							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value)
 						)
 					])
 				}
@@ -316,7 +318,7 @@ module.exports = (() => {
 								if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
 									gradientSettingModule.zO(this.settings.lastGradientSettingStore); //Apply nitro client theme
 								}
-								//console.log(this.settings.lastGradientSettingStore);
+								
 							});
 							
 							if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
@@ -326,6 +328,11 @@ module.exports = (() => {
 						}catch(err){
 							console.warn(err)
 						}
+					}
+					
+					if(this.settings.fakeProfileThemes){
+						this.decodeAndApplyProfileColors();
+						this.encodeProfileColors();
 					}
 					
 				} //End of saveAndUpdate
@@ -647,11 +654,9 @@ module.exports = (() => {
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
 							
-							
 							//Maximum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
-							
 							
 							//Target Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
@@ -671,8 +676,8 @@ module.exports = (() => {
 								e.videoQualityManager.ladder.ladder[ladder].mutedFramerate = parseInt(e.videoStreamParameters[0].maxFrameRate / 2);
 							}
 							for(const ladder of e.videoQualityManager.ladder.orderedLadder){
-								  ladder.framerate = e.videoStreamParameters[0].maxFrameRate;
-								  ladder.mutedFramerate = parseInt(e.videoStreamParameters[0].maxFrameRate / 2);
+								ladder.framerate = e.videoStreamParameters[0].maxFrameRate;
+								ladder.mutedFramerate = parseInt(e.videoStreamParameters[0].maxFrameRate / 2);
 							}
 						});
 					}
@@ -691,9 +696,9 @@ module.exports = (() => {
 					if(this.settings.videoCodec > 0){ // Video codecs
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							let isCodecH264 = false;
-							let isCodecAV1  = false;
-							let isCodecVP8  = false;
-							let isCodecVP9  = false;
+							let isCodecAV1 = false;
+							let isCodecVP8 = false;
+							let isCodecVP9 = false;
 							switch(this.settings.videoCodec){
 								case 1:
 									//console.log("case 1 -> isCodecH264");
@@ -799,11 +804,11 @@ module.exports = (() => {
 					qualityButton.style.borderBottomRightRadius = "4px";
 					
 					qualityButton.onclick = function(){
-					  if(qualityMenu.style.visibility == "hidden") {
-						qualityMenu.style.visibility = "visible";
-					  }else {
-						qualityMenu.style.visibility = "hidden";
-					  }
+						if(qualityMenu.style.visibility == "hidden") {
+							qualityMenu.style.visibility = "visible";
+						}else{
+							qualityMenu.style.visibility = "hidden";
+						}
 					}
 					
 					try{
@@ -870,6 +875,65 @@ module.exports = (() => {
 							let messageContent = {content: stickerURL, tts: false, invalidEmojis:[], validNonShortcutEmojis:[]}
 							DiscordModules.MessageActions.sendMessage(currentChannelId, messageContent, undefined, {})
 						}
+					});
+				}
+				
+				decodeAndApplyProfileColors(){
+					const userProfileMod = WebpackModules.getByProps("getUserProfile");
+					BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+						if(ret == undefined) return;
+						if(ret.bio == null) return;
+						const colorString = ret.bio.match(
+							/\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
+						);
+						if(colorString == null) return;
+						let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
+						let colors = parsed
+							.substring(1, parsed.length - 1)
+							.split(",")
+							.map(x => parseInt(x.replace("#", "0x"), 16));
+						ret.themeColors = colors;
+						ret.premiumType = 2;
+					});
+				}
+				
+				encodeProfileColors(primary, accent) {
+					const themeColorsPickerModule = WebpackModules.getByProps("getTryItOutThemeColors");
+					BdApi.Patcher.after("YABDP4Nitro", themeColorsPickerModule, "getAllTryItOut", () => {
+						const profileThemeSection = document.getElementsByClassName("sectionContainer-3y2cvf");
+						let copyButton = document.createElement("button");
+						copyButton.innerText = "Copy 3y3";
+						copyButton.className = "button-ejjZWC lookFilled-1H2Jvj colorBrand-2M3O3N sizeSmall-3R2P2p grow-2T4nbg"
+						copyButton.onclick = function(){
+							let themeColors = themeColorsPickerModule.getTryItOutThemeColors()
+							let primary = themeColors[0];
+							let accent = themeColors[1];
+							let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+							let padding = "";
+							let encoded = Array.from(message)
+								.map(x => x.codePointAt(0))
+								.filter(x => x >= 0x20 && x <= 0x7f)
+								.map(x => String.fromCodePoint(x + 0xe0000))
+								.join("");
+
+							let encodedStr = ((padding || "") + " " + encoded);
+							//console.log("3y3: " + encodedStr);
+							const clipboardTextElem = document.createElement("textarea");
+							clipboardTextElem.style.position = 'fixed';
+							clipboardTextElem.value = encodedStr;
+							document.body.appendChild(clipboardTextElem);
+							clipboardTextElem.select();
+							clipboardTextElem.setSelectionRange(0, 99999);
+							document.execCommand('copy');
+							document.body.removeChild(clipboardTextElem);	
+						}
+						copyButton.style = "margin-left: 10px;"
+						if(profileThemeSection[0] != undefined){
+							if(profileThemeSection[0].children.length == 2){
+								profileThemeSection[0].appendChild(copyButton);
+							}
+						}
+						
 					});
 				}
 				
