@@ -39,7 +39,9 @@ ___
 
 <img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="visual difference with it on" width="30%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="visual difference with it off" width="30%"></img>
 
-To clarify: What this does is make all profiles render with the gradient on the **client-side**. Other users will not see this.
+To clarify: What this does is make **all profiles** render with the gradient on the **client-side**.
+
+We'll get into profile accents that other users can see in a bit.
 ___
 
 ### Nitro Client Themes
@@ -47,6 +49,17 @@ ___
 ![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
+___
+
+### Fake Profile Themes
+
+Allows profile theming by hiding color information in your bio using invisible 3y3 encoding!
+
+Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!
+
+![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
+
+Happy theming!
 ___
 
 # Contributing and Reporting Issues
