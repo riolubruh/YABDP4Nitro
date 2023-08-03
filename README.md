@@ -62,6 +62,13 @@ Works effectively exactly the same as FakeProfileThemes on Vencord, but on Bette
 Happy theming!
 ___
 
+# Frequently Asked Questions
+Click [here](https://github.com/riolubruh/YABDP4Nitro/issues/76) for the FAQ. 
+If your question isn't in there **and you think it should be there,** write a comment below that issue. 
+
+If you have any other questions, you may DM me directly if you wish, otherwise you can [make a new Issue](https://github.com/riolubruh/YABDP4Nitro/issues/new) 
+with your question, and I'll try to answer it to the best of my abilities.
+
 # Contributing and Reporting Issues
 I welcome contributions of any kind, including bug reports, feature requests, pull requests, and feedback. 
 If you encounter any issues while using YABDP4Nitro, or if you have any suggestions for improvement, please let me know!
