@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.6.2
+ * @version 4.7.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.6.2",
+			"version": "4.7.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -114,7 +114,7 @@ module.exports = (() => {
 					"clientThemes": true,
 					"lastGradientSettingStore": -1,
 					"fakeProfileThemes": true,
-					"removeProfileUpsell": true,
+					//"removeProfileUpsell": true,
 					"removeScreenshareUpsell": true
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
@@ -192,9 +192,8 @@ module.exports = (() => {
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
 							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
-							new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
+							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value)
-							
 						)
 					])
 				}
@@ -230,34 +229,44 @@ module.exports = (() => {
 						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
 					}
 					
-					let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					
+					//let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+
 					if(this.settings.stickerBypass){
 						this.stickerSending();
 					}
 					
 					if(this.settings.emojiBypass){
 						this.emojiBypass();
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
+						/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
 							return true
 						});
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
 							return true
+						});*/
+						let emojiMods = WebpackModules.getByProps("B6", "ZP", "qc");
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFilteredOrLocked", () => {
+							return false
 						});
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiDisabled", () => {
+							return false
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFiltered", () => {
+							return false
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiPremiumLocked", () => {
+							return false
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "getEmojiUnavailableReason", () => {
+							return 3
+						});
+						
 					}
 					
 					if(this.settings.profileV2 == true){
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "isPremiumAtLeast", () => {
-							return true;
-						});
-					}
-					
-					if(!this.settings.emojiBypass && (this.originalNitroStatus == (null || undefined))){
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
-							return false;
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
-							return false;
+						const userProfileMod = WebpackModules.getByProps("getUserProfile");
+						BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+							if(ret == undefined) return;
+							ret.premiumType = 2;
 						});
 					}
 					
@@ -265,27 +274,18 @@ module.exports = (() => {
 						if(this.settings.ResolutionEnabled || this.settings.CustomFPSEnabled){
 							this.customVideoSettings(); //Apply custom screen share options
 						}
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamMidQuality", () => {
-							return true;
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamMedQuality", () => {
-							return true;
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canStreamHighQuality", () => {
-							return true;
-						});
 					}
 					
 					if(this.settings.forceStickersUnlocked){
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
+						/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
 							return true
-						});
+						});*/
 					}
 					if(this.settings.clientThemes){
 						try{
-							BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
+							/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
 								return true
-							});
+							});*/
 							const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
 							delete clientthemesmodule.isPreview;
 							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
@@ -340,14 +340,14 @@ module.exports = (() => {
 						this.encodeProfileColors();
 					}
 					
-					if(this.settings.removeProfileUpsell){
+					/*if(this.settings.removeProfileUpsell){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUsePremiumProfileCustomization", () => {
 							return true
 						});
-					}
+					}*/
 					
+					try{BdApi.DOM.removeStyle("YABDP4Nitro")}catch(err){console.log(err)}
 					if(this.settings.removeScreenshareUpsell){
-						BdApi.DOM.removeStyle("YABDP4Nitro");
 						BdApi.DOM.addStyle("YABDP4Nitro",`
 						[class*="upsellBanner"] {
 						  display: none;
@@ -379,7 +379,7 @@ module.exports = (() => {
 					
 					const CloudUploader = WebpackModules.getByProps("m","n");
 					
-					let fileUp = new CloudUploader.n({file:file,platform:1}, channelIdLmao);
+					let fileUp = new CloudUploader.n({file:file,isClip:false,isThumbnail:false,platform:1}, channelIdLmao, false, 0);
 					fileUp.isImage = true;
 					
 					let uploadOptions = new Object();
@@ -437,7 +437,17 @@ module.exports = (() => {
 						delete StreamButtons.km[3].label;
 						StreamButtons.km[3].label = "1440p";
 					}
-					
+					function removeQualityParameters(x){
+						try{
+							delete x.quality
+						}catch(err){	
+						}
+						try{
+							delete x.guildPremiumTier
+						}catch(err){	
+						}
+					}
+					StreamButtons.ND.forEach(removeQualityParameters)
 					function replace60FPSRequirements(x) {
 						if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro","settings").CustomFPS;
 					}
@@ -868,10 +878,20 @@ module.exports = (() => {
 				} //End of buttonCreate()
 				
 				async stickerSending(){
-					const permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
+					
+					const stickerSendabilityModule = WebpackModules.getByProps("cO","eb","kl");
+					BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "cO", () => {
+						return 0
+					});
+					BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "kl", (_,args) => {
+						return true
+					});
+
+					/*const permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
 					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
 						return true;
-					});
+					});*/
+					
 					
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
 						let stickerID = b[1][0];
