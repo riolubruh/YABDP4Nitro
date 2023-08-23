@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.7.0
+ * @version 4.7.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.7.0",
+			"version": "4.7.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -256,10 +256,6 @@ module.exports = (() => {
 						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiPremiumLocked", () => {
 							return false
 						});
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "getEmojiUnavailableReason", () => {
-							return 3
-						});
-						
 					}
 					
 					if(this.settings.profileV2 == true){
@@ -940,10 +936,18 @@ module.exports = (() => {
 						copyButton.innerText = "Copy 3y3";
 						copyButton.className = "button-ejjZWC lookFilled-1H2Jvj colorBrand-2M3O3N sizeSmall-3R2P2p grow-2T4nbg"
 						copyButton.id = "copy3y3button"
+						themeColorsPickerModule.getTryItOutThemeColors();
 						copyButton.onclick = function(){
-							let themeColors = themeColorsPickerModule.getTryItOutThemeColors()
-							let primary = themeColors[0];
-							let accent = themeColors[1];
+							let themeColors = ZLibrary.WebpackModules.getByProps("getTryItOutThemeColors").getAllTryItOut()
+							if(themeColors == undefined){
+								try{
+									themeColors = themeColorsPickerModule.getAllPending().pendingThemeColors;
+								}catch(err){
+									console.error(err);
+								}
+							}
+							let primary = themeColors.tryItOutThemeColors[0];
+							let accent = themeColors.tryItOutThemeColors[1];
 							let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
 							let padding = "";
 							let encoded = Array.from(message)
@@ -979,6 +983,13 @@ module.exports = (() => {
 							copyButton.id = "copy3y3button"
 							copyButton.onclick = function(){
 								let themeColors = themeColorsPickerModule.getAllPending().pendingThemeColors
+								if(themeColors == undefined){
+									try{
+										themeColors = themeColorsPickerModule.getTryItOutThemeColors();
+									}catch(err){
+										console.error(err);
+									}
+								}
 								let primary = themeColors[0];
 								let accent = themeColors[1];
 								let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
@@ -1023,6 +1034,7 @@ module.exports = (() => {
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
+					if(document.getElementById("copy3y3button")) document.getElementById("copy3y3button").remove();
 				}
 			};
 		};
