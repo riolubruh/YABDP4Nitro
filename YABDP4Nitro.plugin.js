@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.7.1
+ * @version 4.7.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.7.1",
+			"version": "4.7.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -228,8 +228,6 @@ module.exports = (() => {
 						if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none'
 						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
 					}
-					
-					//let permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
 
 					if(this.settings.stickerBypass){
 						this.stickerSending();
@@ -237,12 +235,6 @@ module.exports = (() => {
 					
 					if(this.settings.emojiBypass){
 						this.emojiBypass();
-						/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseAnimatedEmojis", () => {
-							return true
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseEmojisEverywhere", () => {
-							return true
-						});*/
 						let emojiMods = WebpackModules.getByProps("B6", "ZP", "qc");
 						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFilteredOrLocked", () => {
 							return false
@@ -255,6 +247,9 @@ module.exports = (() => {
 						});
 						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiPremiumLocked", () => {
 							return false
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "getEmojiUnavailableReason", () => {
+							return
 						});
 					}
 					
@@ -273,15 +268,17 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.forceStickersUnlocked){
-						/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
+						const stickerSendabilityModule = WebpackModules.getByProps("cO","eb","kl");
+						BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "cO", () => {
+							return 0
+						});
+						BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "kl", () => {
 							return true
-						});*/
+						});
 					}
+					
 					if(this.settings.clientThemes){
 						try{
-							/*BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseClientThemes", () => {
-								return true
-							});*/
 							const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
 							delete clientthemesmodule.isPreview;
 							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
@@ -304,7 +301,6 @@ module.exports = (() => {
 							const gradientSettingModule = ZLibrary.WebpackModules.getByProps("Bf", "X9", "zO");
 							
 							BdApi.Patcher.before("YABDP4Nitro", themesModule, "ZI", (_,args) => {
-								
 								if(args[0].backgroundGradientPresetId != undefined){ //If appearance is changed to a nitro client theme
 									this.settings.lastGradientSettingStore = parseInt(args[0].backgroundGradientPresetId); //Store the gradient value
 									Utilities.saveSettings(this.getName(), this.settings); //Save the gradient value to file
@@ -879,15 +875,9 @@ module.exports = (() => {
 					BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "cO", () => {
 						return 0
 					});
-					BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "kl", (_,args) => {
+					BdApi.Patcher.instead("YABDP4Nitro", stickerSendabilityModule, "kl", () => {
 						return true
 					});
-
-					/*const permissions = BdApi.findModuleByProps("canUseCustomBackgrounds");
-					BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUseStickersEverywhere", () => {
-						return true;
-					});*/
-					
 					
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
 						let stickerID = b[1][0];
@@ -957,7 +947,7 @@ module.exports = (() => {
 								.join("");
 
 							let encodedStr = ((padding || "") + " " + encoded);
-							//console.log("3y3: " + encodedStr);
+							
 							const clipboardTextElem = document.createElement("textarea");
 							clipboardTextElem.style.position = 'fixed';
 							clipboardTextElem.value = encodedStr;
@@ -1001,7 +991,7 @@ module.exports = (() => {
 									.join("");
 
 								let encodedStr = ((padding || "") + " " + encoded);
-								//console.log("3y3: " + encodedStr);
+								
 								const clipboardTextElem = document.createElement("textarea");
 								clipboardTextElem.style.position = 'fixed';
 								clipboardTextElem.value = encodedStr;
