@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.7.2
+ * @version 4.7.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.7.2",
+			"version": "4.7.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -262,9 +262,7 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.screenSharing){
-						if(this.settings.ResolutionEnabled || this.settings.CustomFPSEnabled){
-							this.customVideoSettings(); //Apply custom screen share options
-						}
+						this.customVideoSettings();
 					}
 					
 					if(this.settings.forceStickersUnlocked){
@@ -401,7 +399,7 @@ module.exports = (() => {
 					return false
 				}
 				
-				async customVideoSettings() {
+				async customVideoSettings() { //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
 					const StreamButtons = WebpackModules.getByProps("LY", "aW", "ws");
 					if(this.settings.ResolutionEnabled && this.settings.CustomResolution != 0){
 						delete StreamButtons.LY.RESOLUTION_1440
@@ -424,7 +422,7 @@ module.exports = (() => {
 						StreamButtons.ND[6].resolution = 1440;
 						StreamButtons.WC[2].value = 1440;
 						delete StreamButtons.WC[2].label;
-						StreamButtons.WC[2].label = "1440p";
+						StreamButtons.WC[2].label = "1440";
 						StreamButtons.km[3].value = 1440;
 						delete StreamButtons.km[3].label;
 						StreamButtons.km[3].label = "1440p";
