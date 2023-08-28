@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.1
+ * @version 4.8.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.1",
+			"version": "4.8.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -1020,8 +1020,8 @@ module.exports = (() => {
 						let user = args[0].user;
 						let profile = args[0].displayProfile;
 						if(profile == undefined) return;
+						if(profile._userProfile.banner != undefined) return
 						if(profile.bio == undefined) return;
-						args[0].displayProfile.banner = "funky_kong_is_epic" //this can be literally any string, i just like funky kong
 						if(ret.props?.children?.props?.style == undefined) return;
 						
 						function secondsightify(t) {
@@ -1041,7 +1041,8 @@ module.exports = (() => {
 						if(matches == undefined) return;
 						if(matches == "") return;
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
-						ret.props.children.props.style.backgroundImage = `url(https://i.imgur.com/${matchedText})`
+						ret.props.children.props.style.backgroundImage = `url(https://i.imgur.com/${matchedText})` 
+						args[0].displayProfile.banner = "funky_kong_is_epic" //this can be literally any string, i just like funky kong
 					});
 				}
 				
