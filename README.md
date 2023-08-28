@@ -8,7 +8,7 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
 
 Seriously, thank you all so much! I'm super happy that you're enjoying this little project.
 
-<sub>I always appreciate more stars though because I am a greedy mofo so keep 'em coming >:D</sub>
+<sub>I always appreciate more stars though because I am a greedy mofo so keep 'em coming >:D (/j)</sub>
 
 ## Table of Contents:
 - [Features](#features)
