@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.0
+ * @version 4.8.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.0",
+			"version": "4.8.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -363,6 +363,7 @@ module.exports = (() => {
 					if(this.settings.fakeProfileBanners){
 						this.bannerUrlDecoding();
 						this.bannerUrlEncoding();
+						this.bannerUrlDecodingPreview();
 					}
 					
 				} //End of saveAndUpdate
@@ -987,6 +988,7 @@ module.exports = (() => {
 							clipboardTextElem.select();
 							clipboardTextElem.setSelectionRange(0, 99999);
 							document.execCommand('copy');
+							Toasts.info("Copied to clipboard");
 							document.body.removeChild(clipboardTextElem);	
 						}
 						copyButton.style = "margin-left: 10px;"
@@ -1045,7 +1047,6 @@ module.exports = (() => {
 				
 				
 				bannerUrlEncoding(){
-					
 					function makeBannerEncodingShit(){
 						if(document.getElementById("profileBannerButton") != undefined) return;
 						const profileThemeSection = document.getElementsByClassName("buttonsContainer-5mLFN9");
@@ -1088,10 +1089,10 @@ module.exports = (() => {
 							stringToEncode = String(stringToEncode);
 							if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 								stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
-								encodedStr = secondsightify(stringToEncode) + " ";
-								Toasts.info("Copied to clipboard!")
+								encodedStr = " " + secondsightify(stringToEncode);
+								Toasts.info("Copied to clipboard");
 							}else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-								Toasts.warning("Please use Imgur!")
+								Toasts.warning("Please use Imgur!");
 								return
 							}
 							
@@ -1107,7 +1108,7 @@ module.exports = (() => {
 						}
 						
 						if(profileThemeSection[0] != undefined){
-							if(profileThemeSection[0].children.length == 1){
+							if(profileThemeSection[0].children.length < 3){
 								profileThemeSection[0].appendChild(profileBannerUrlInput);
 								profileThemeSection[0].appendChild(profileBannerButton);
 							}
@@ -1128,6 +1129,34 @@ module.exports = (() => {
 						}catch(err){
 							console.error(err);
 						}
+					});
+				} //End of bannerUrlEncoding()
+				
+				
+				bannerUrlDecodingPreview(){
+					const profileCustomizationModule = WebpackModules.getByProps("getTryItOutBanner");
+					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllPending", (_, args, ret) => {
+						let user = WebpackModules.getByProps("getCurrentUser").getCurrentUser();
+						let userProfile = WebpackModules.getByProps("getUserProfile").getUserProfile(user.id);
+						if(userProfile == undefined) return;
+						function secondsightify(t) {
+							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+								// 3y3 text detected. Revealing...
+								return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
+							}else {
+								//console.log("no encoded text found");
+								return
+							}
+						}
+						let parsed = secondsightify(userProfile.bio);
+						if(parsed == undefined) return;
+						
+						let regex = /B\{[^}]*\}/i;
+						let matches = parsed.toString().match(regex);
+						if(matches == undefined) return;
+						if(matches == "") return;
+						let matchedText = matches[0].replace("B{", "").replace("}", "");
+						ret.pendingBanner = `https://i.imgur.com/${matchedText}`;
 					});
 				}
 				
