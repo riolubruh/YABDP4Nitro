@@ -15,6 +15,7 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
      + [Profile Accents for All Users](#profile-accents-for-all-users)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Fake Profile Themes](#fake-profile-themes)
+     + [Fake Profile Banners](#fake-profile-banners)
 - [FAQ (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -82,13 +83,30 @@ ___
 
 ### Fake Profile Themes
 
-Allows profile theming by hiding color information in your bio using invisible 3y3 encoding!
-
-Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!
-
+Allows profile theming by hiding color information in your bio using invisible 3y3 encoding!<br>
+Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!<br>
 ![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
 
 Happy theming!
+___
+
+### Fake Profile Banners
+
+Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio.<br>
+Only supports Imgur URLs for security reasons.
+
+![Fake Profile Banners Big Yosher](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/f7edda1f-531b-45b8-bc8b-ee50d5c5cfdb)
+
+To use Fake Profile Banners, go to Settings>Profiles. You should see a new text input and 
+"Copy 3y3" button under the Profile Banners section:
+
+![Profile Settings](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/facc8c27-5353-4205-b001-5b9c62375d6e)
+
+<br>
+Simply type/paste in an Imgur URL into the input area<br>
+(`https://i.imgur.com/bYGGXnq.gif`, `https://imgur.com/bYGGXnq.gif`, `i.imgur.com/bYGGXnq.gif`, and `imgur.com/bYGGXnq.gif` are all acceptable formats. **The file extension is required!**)
+
+Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
 ___
 
 # Frequently Asked Questions
