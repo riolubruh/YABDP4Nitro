@@ -109,7 +109,7 @@ Simply type/paste in an Imgur URL into the input area
 
 Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
 
-Note: the banner currently does not appear in the profile customization preview and will currently only appear in the profile popout.
+The banner should appear in the "Try It Out" preview to let you know that it is working correctly.
 ___
 
 # Frequently Asked Questions
