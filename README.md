@@ -108,6 +108,8 @@ Simply type/paste in an Imgur URL into the input area
 (ex: **`https://i.imgur.com/bYGGXnq.gif`**. **The file extension is required!**)
 
 Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
+
+Note: the banner currently does not appear in the profile customization preview and will currently only appear in the profile popout.
 ___
 
 # Frequently Asked Questions
