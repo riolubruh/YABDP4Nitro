@@ -88,6 +88,8 @@ Works effectively exactly the same as FakeProfileThemes on Vencord, but on Bette
 ![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
 
 Happy theming!
+
+**Note that only users that have either YABDP4Nitro, FakeProfileThemes (Vencord), UnrealProfileThemes (Enmity), or a similar plugin (that decodes 3y3-encoded profile colors) installed will be able to see the profile colors.**
 ___
 
 ### Fake Profile Banners
@@ -110,6 +112,8 @@ Simply type/paste in an Imgur URL into the input area
 Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
 
 The banner should appear in the "Try It Out" preview to let you know that it is working correctly.
+
+**Note that only other users with YABDP4Nitro installed and enabled will be able to see this.**
 ___
 
 # Frequently Asked Questions
