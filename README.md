@@ -11,11 +11,14 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
      + [Upload Emotes](#upload-emotes)
      + [Ghost Mode](#ghost-mode)
      + [Classic Mode](#classic-mode)
-   * [Miscellaneous](#miscellaneous)
+   * [Profile](#profile)
      + [Profile Accents for All Users](#profile-accents-for-all-users)
-     + [Nitro Client Themes](#nitro-client-themes)
      + [Fake Profile Themes](#fake-profile-themes)
      + [Fake Profile Banners](#fake-profile-banners)
+     + [Fake Avatar Decorations](#fake-avatar-decorations)
+   * [Miscellaneous](#miscellaneous)
+     + [Nitro Client Themes](#nitro-client-themes)
+     + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
 - [FAQ (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -61,7 +64,7 @@ ___
 
 ![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
 
-## Miscellaneous
+## Profile
 
 ### Profile Accents for All Users
 
@@ -70,15 +73,6 @@ ___
 To clarify: What this does is make **all profiles** render with the gradient accent on the **client-side**.
 
 We'll get into profile accents that other users can see in a second.
-___
-
-### Nitro Client Themes
-
-Allows you to use the Nitro-exclusive gradient client themes by Discord.
-
-![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
-
-![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
 ___
 
 ### Fake Profile Themes
@@ -115,6 +109,45 @@ The banner should appear in the "Try It Out" preview to let you know that it is 
 
 **Note that only other users with YABDP4Nitro installed and enabled will be able to see this.**
 ___
+
+### Fake Avatar Decorations
+
+Uses invisible 3y3 encoding to allow setting avatar decorations by hiding IDs in your bio.
+
+![avatar decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/005379d8-5d6f-43e9-8735-b44788560831)
+
+To use Fake Avatar Decorations, go to Settings>Profiles you should see a new button under Avatar Decoration.
+
+![deco-button](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/0b5547e0-2947-4628-a3da-a91f9ee1c933)
+
+Clicking this button will reveal a menu with each of the avatar decorations in a 4x5 grid.
+
+![avatar decorations](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/54597f3e-b115-44dd-9804-3aee5d9c99b3)
+
+Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
+<br>Now simply paste your clipboard into the "About Me" section of your profile and save your changes!
+
+![decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/b91fcd6e-389f-4adf-aa92-054d3e18d524)
+
+Now you should see the avatar decoration appear around your profile picture!
+
+But of course, this wouldn't be very useful if only _you_ could see it!
+<br>So, of course, I've made it so that any other user of YABDP4Nitro with Fake Avatar Decorations enabled will also be able to see your avatar decoration after they have opened your profile.
+
+## Miscellaneous
+
+### Nitro Client Themes
+
+Allows you to use the Nitro-exclusive gradient client themes by Discord.
+
+![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
+
+![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
+___
+
+### Remove Screenshare Nitro Upsell
+
+Removes the annoying Nitro upsell in the screen share quality menu.
 
 # Frequently Asked Questions
 [Go here for the FAQ!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
