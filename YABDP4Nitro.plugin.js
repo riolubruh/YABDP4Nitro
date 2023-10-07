@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.2
+ * @version 4.8.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.2",
+			"version": "4.8.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -94,8 +94,8 @@ module.exports = (() => {
 					"ghostMode": true,
 					"emojiBypassForValidEmoji": true,
 					"PNGemote": true,
-					"uploadEmotes": false,
-					"uploadStickers": true,
+					"uploadEmotes": true,
+					"uploadStickers": false,
 					"CustomFPSEnabled": false,
 					"CustomFPS": 75,
 					"ResolutionEnabled": false,
@@ -116,7 +116,8 @@ module.exports = (() => {
 					"fakeProfileThemes": true,
 					//"removeProfileUpsell": true,
 					"removeScreenshareUpsell": true,
-					"fakeProfileBanners": true
+					"fakeProfileBanners": true,
+					"fakeAvatarDecorations": true
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -188,14 +189,18 @@ module.exports = (() => {
 							new Settings.Switch("Upload Stickers", "Upload stickers in the same way as emotes.", this.settings.uploadStickers, value => this.settings.uploadStickers = value),
 							new Settings.Switch("Force Stickers Unlocked", "Enable to cause Stickers to be unlocked.", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
 						),
-						new Settings.SettingGroup("Miscellaneous").append(
+						new Settings.SettingGroup("Profile").append(
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
+							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
+							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value),
+							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio. Note: ONLY UPDATES WHEN YOU OPEN A USER'S PROFILE. This is due to restrictions with reading the bio.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value)
+						),
+						new Settings.SettingGroup("Miscellaneous").append(
+							
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
-							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
-							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
-							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value)
+							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value)
 						)
 					])
 				}
@@ -340,7 +345,10 @@ module.exports = (() => {
 						this.encodeProfileColors();
 					}
 					
-					/*if(this.settings.removeProfileUpsell){
+					/*
+					TODO: find a different way to do this
+					
+					if(this.settings.removeProfileUpsell){
 						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUsePremiumProfileCustomization", () => {
 							return true
 						});
@@ -366,7 +374,161 @@ module.exports = (() => {
 						this.bannerUrlDecodingPreview();
 					}
 					
+					if(this.settings.fakeAvatarDecorations){
+						this.fakeAvatarDecorations();
+					}
+					
 				} //End of saveAndUpdate
+				
+				fakeAvatarDecorations(){
+					let downloadedUserProfiles = [];
+					const userProfileMod = WebpackModules.getByProps("getUserProfile");
+					BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+						if(ret == undefined) return;
+						if(ret.userId == undefined) return;
+						if(downloadedUserProfiles.includes(args[0])) return;
+						downloadedUserProfiles.push(ret.userId);
+					});
+					
+					BdApi.Patcher.after("YABDP4Nitro", DiscordModules.UserStore, "getUser", (_,args,ret) => {
+						if(args == undefined) return;
+						if(args[0] == undefined) return;
+						if(ret == undefined) return;
+						if(!downloadedUserProfiles.includes(args[0])) return;
+						let userProfile = userProfileMod.getUserProfile(args[0]);
+						if(userProfile == undefined) return;
+						if(userProfile.bio == undefined) return;
+						if(userProfile.bio == "") return;
+						if(!userProfile.bio.includes("󠀯󠁡")) return;
+						function secondsightify(t) {
+							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+								// 3y3 text detected. Revealing...
+								return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
+							}else {
+								//console.log("no encoded text found");
+								return
+							}
+						}
+						let revealedText = secondsightify(userProfile.bio);
+						if(revealedText == undefined) return;
+						let position = revealedText.indexOf("/a");
+						let assetIndex = parseInt(revealedText.slice(position+2, position+4));
+						if(isNaN(assetIndex)) return;
+						if(assetIndex > 19) return;
+						
+						const avatarDecorations = [
+							'a_0f5d6c4dd8ae74662ee9c40722a56cbd', //a0 (flaming sword)
+							'a_1dbc603c181999b9815cb426dfec71a6', //a1 (potion)
+							'a_fe3c76cac2adf426832a7e495e8329d3', //a2 (fairy sprites)
+							'a_db9baf0ba7cf449d2b027c06309dbe8d', //a3 (wizard staff)
+							'a_d650e22f6c4bab4fc0969e9d35edbcb0', //a4 (glowing runes)
+							'a_29a0533cb3de61aa8179810188f3830d', //a5 (shield)
+							'a_9d67a1cbf81fe7197c871e94f619b04b', //a6 (skull medal)
+							'a_4c9f2ec29c05755456dbce45d8190ed4', //a7 (treasure and key)
+							'a_c7e1751e8122f1b475cb3006966fb28c', //a8 (radiating energy)
+							'a_c3c09bd122898be35093d0d59850f627', //a9 (soul leaving body)
+							'a_55c9d0354290afa8b7fe47ea9bd7dbcf', //a10 (sweat drops)
+							'a_8ffa2ba9bff18e96b76c2e66fd0d7fa3', //a11 (in love)
+							'a_f1b2fd4706ab02b54d3a58f84b3ef564', //a12 (shocked)
+							'a_3c97a2d37f433a7913a1c7b7a735d000', //a13 (angry)
+							'a_911e48f3a695c7f6c267843ab6a96f2f', //a14 (toast)
+							'a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc', //a15 (morning coffee)
+							'a_9b7b74e72efe1bc5a6beddced3da3c0f', //a16 (fried egg)
+							'a_faaa56d945e2d0f6c41cf940d122cb9e', //a17 (blueberry jam)
+							'a_8b0d858b65a81ea0c537091a4650a6d4', //a18 (donut)
+							'a_950aea7686c5674b4e2f5df0830d153b'  //a19 (pancakes)
+						];
+						//console.log(ret.avatarDecorationData);
+						if(ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetIndex]){
+							ret.avatarDecorationData = {
+								asset: avatarDecorations[assetIndex],
+								sku_id: "1144003461608906824"
+							}
+						}
+					});
+					
+					function makeAvatarDecorationShit(){
+						let profileCustomizationSection = document.getElementsByClassName("profileCustomizationSection-53kreU")[0];
+						if(profileCustomizationSection?.firstChild == undefined) return;
+						let avatarDecorationSection = profileCustomizationSection.firstChild.firstChild.children[3];
+						let avatarDecorationButtonSection = profileCustomizationSection.firstChild.firstChild.children[3].lastChild;
+						if(document.getElementById("decorationButton") != undefined) return;
+						
+						let decorationButtonHTML = `<button id="decorationButton" 
+						class="button-ejjZWC lookFilled-1H2Jvj colorBrand-2M3O3N sizeSmall-3R2P2p grow-2T4nbg"
+						style="background-color: #7289da; width: 100px; height: 50px; color: white; border-radius: 3px;"
+						onclick='if(document.getElementById("avatarDecorations").style.display == "block"){document.getElementById("avatarDecorations").style.display = "none"}else if(document.getElementById("avatarDecorations").style.display == "none") document.getElementById("avatarDecorations").style.display = "block";'>
+						Change Decoration [YABDP4Nitro]</button>`
+						avatarDecorationButtonSection.innerHTML += decorationButtonHTML;
+						
+						if(document.getElementById("avatarDecorations") != undefined) return;
+							
+						let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white">
+							<style>
+								.riolubruhsspecialsauce {
+									width: 19%;
+									cursor: pointer;
+								}
+							</style>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_0f5d6c4dd8ae74662ee9c40722a56cbd.png?size=80" /> 0
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_1dbc603c181999b9815cb426dfec71a6.png?size=80" /> 1
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_fe3c76cac2adf426832a7e495e8329d3.png?size=80" /> 2
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_db9baf0ba7cf449d2b027c06309dbe8d.png?size=80" /> 3<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_d650e22f6c4bab4fc0969e9d35edbcb0.png?size=80" /> 4
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_29a0533cb3de61aa8179810188f3830d.png?size=80" /> 5
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9d67a1cbf81fe7197c871e94f619b04b.png?size=80" /> 6
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4c9f2ec29c05755456dbce45d8190ed4.png?size=80" /> 7<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c7e1751e8122f1b475cb3006966fb28c.png?size=80" /> 8
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c3c09bd122898be35093d0d59850f627.png?size=80" /> 9
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_55c9d0354290afa8b7fe47ea9bd7dbcf.png?size=80" /> 10
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8ffa2ba9bff18e96b76c2e66fd0d7fa3.png?size=80" /> 11<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f1b2fd4706ab02b54d3a58f84b3ef564.png?size=80" /> 12
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_3c97a2d37f433a7913a1c7b7a735d000.png?size=80" /> 13
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_911e48f3a695c7f6c267843ab6a96f2f.png?size=80" /> 14
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc.png?size=80" /> 15<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9b7b74e72efe1bc5a6beddced3da3c0f.png?size=80" /> 16
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_faaa56d945e2d0f6c41cf940d122cb9e.png?size=80" /> 17
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8b0d858b65a81ea0c537091a4650a6d4.png?size=80" /> 18
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_950aea7686c5674b4e2f5df0830d153b.png?size=80" /> 19
+						</div>`
+						avatarDecorationSection.innerHTML += avatarDecorationsHTML;
+						
+						let avatarDecorations = document.getElementsByClassName("riolubruhsspecialsauce");
+						
+						function secondsightify(t) {
+								if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+									return
+								} else {
+									// No 3y3 text was found, Encoding...
+									return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
+								}
+							}
+						
+						for(let i = 0; i < avatarDecorations.length; i++){
+							let encodedText = secondsightify("/a" + i);
+							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
+							avatarDecorations[i].outerHTML = avatarDecorations[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
+						} 
+					}
+					
+					
+					const profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
+					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllTryItOut", () => {
+						try{
+							makeAvatarDecorationShit();
+						}catch(err){
+							console.error(err);
+						}
+					});
+					
+					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllPending", () => {
+						try{
+							makeAvatarDecorationShit();
+						}catch(err){
+							console.error(err);
+						}
+					});
+				}
 				
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
@@ -988,8 +1150,8 @@ module.exports = (() => {
 							clipboardTextElem.select();
 							clipboardTextElem.setSelectionRange(0, 99999);
 							document.execCommand('copy');
-							Toasts.info("Copied to clipboard");
-							document.body.removeChild(clipboardTextElem);	
+							Toasts.info("3y3 copied to clipboard!");
+							document.body.removeChild(clipboardTextElem);
 						}
 						copyButton.style = "margin-left: 10px;"
 						if(profileThemeSection[0] != undefined){
@@ -1020,7 +1182,7 @@ module.exports = (() => {
 						let user = args[0].user;
 						let profile = args[0].displayProfile;
 						if(profile == undefined) return;
-						if(profile._userProfile.banner != undefined) return
+						if(profile._userProfile.banner != undefined) return;
 						if(profile.bio == undefined) return;
 						if(ret.props?.children?.props?.style == undefined) return;
 						
@@ -1041,6 +1203,7 @@ module.exports = (() => {
 						if(matches == undefined) return;
 						if(matches == "") return;
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
+						if(ret.props.children.props.style.backgroundImage == `url(https://i.imgur.com/${matchedText})` && args[0].displayProfile.banner == "funky_kong_is_epic") return;
 						ret.props.children.props.style.backgroundImage = `url(https://i.imgur.com/${matchedText})` 
 						args[0].displayProfile.banner = "funky_kong_is_epic" //this can be literally any string, i just like funky kong
 					});
@@ -1091,7 +1254,7 @@ module.exports = (() => {
 							if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 								stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
 								encodedStr = " " + secondsightify(stringToEncode);
-								Toasts.info("Copied to clipboard");
+								Toasts.info("3y3 copied to clipboard!");
 							}else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
 								Toasts.warning("Please use Imgur!");
 								return
@@ -1177,6 +1340,8 @@ module.exports = (() => {
 					if(document.getElementById("copy3y3button")) document.getElementById("copy3y3button").remove();
 					if(document.getElementById("profileBannerButton")) document.getElementById("profileBannerButton").remove();
 					if(document.getElementById("profileBannerUrlInput")) document.getElementById("profileBannerUrlInput").remove();
+					if(document.getElementById("decorationButton")) document.getElementById("decorationButton").remove();
+					if(document.getElementById("avatarDecorations")) document.getElementById("avatarDecorations").remove();
 				}
 			};
 		};
