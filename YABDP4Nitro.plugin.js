@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.3
+ * @version 4.8.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.3",
+			"version": "4.8.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -336,7 +336,7 @@ module.exports = (() => {
 							});
 							
 						}catch(err){
-							console.warn(err)
+							console.warn("[YABDP4Nitro] " + err);
 						}
 					}
 					
@@ -394,12 +394,7 @@ module.exports = (() => {
 						if(args == undefined) return;
 						if(args[0] == undefined) return;
 						if(ret == undefined) return;
-						if(!downloadedUserProfiles.includes(args[0])) return;
-						let userProfile = userProfileMod.getUserProfile(args[0]);
-						if(userProfile == undefined) return;
-						if(userProfile.bio == undefined) return;
-						if(userProfile.bio == "") return;
-						if(!userProfile.bio.includes("󠀯󠁡")) return;
+						
 						function secondsightify(t) {
 							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
 								// 3y3 text detected. Revealing...
@@ -409,9 +404,27 @@ module.exports = (() => {
 								return
 							}
 						}
-						let revealedText = secondsightify(userProfile.bio);
+						
+						let revealedText = ""
+						if(downloadedUserProfiles.includes(args[0])){
+							let userProfile = userProfileMod.getUserProfile(args[0]);
+							revealedText = secondsightify(String(userProfile.bio));
+						}
+						if(DiscordModules.UserStatusStore.getActivities(args[0]).length > 0){
+							let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
+							if(activities[0].name != "Custom Status") return;
+							let customStatus = activities[0].state;
+							if(customStatus == undefined) return;
+							if(revealedText != undefined){
+								if(revealedText.includes("/a")) return; //already got revealedText from bio
+							}
+							revealedText = secondsightify(String(customStatus));
+						}
 						if(revealedText == undefined) return;
+						if(revealedText == "") return;
+						
 						let position = revealedText.indexOf("/a");
+						if(position == undefined) return;
 						let assetIndex = parseInt(revealedText.slice(position+2, position+4));
 						if(isNaN(assetIndex)) return;
 						if(assetIndex > 19) return;
@@ -438,7 +451,7 @@ module.exports = (() => {
 							'a_8b0d858b65a81ea0c537091a4650a6d4', //a18 (donut)
 							'a_950aea7686c5674b4e2f5df0830d153b'  //a19 (pancakes)
 						];
-						//console.log(ret.avatarDecorationData);
+						
 						if(ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetIndex]){
 							ret.avatarDecorationData = {
 								asset: avatarDecorations[assetIndex],
