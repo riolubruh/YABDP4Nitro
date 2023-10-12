@@ -125,13 +125,15 @@ Clicking this button will reveal a menu with each of the avatar decorations in a
 ![avatar decorations](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/54597f3e-b115-44dd-9804-3aee5d9c99b3)
 
 Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
-<br>Now follow one of the following methods to apply the avatar decoration to your profile:
+<br>Now follow one or both of the following methods to apply the avatar decoration to your profile:
 
 <details>
  <summary>
  Custom Status 
 </summary>
- Now that you have the 3y3 encoded data in your clipboard, close settings by pressing Escape or hitting the button labeled ESC in the top right.
+ Now that you have the 3y3 encoded data in your clipboard:
+ 
+ Close settings by pressing Escape or hitting the button labeled ESC in the top right.
 
  Click on your profile in the bottom left to open this menu:
  
@@ -146,20 +148,21 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
  <summary>
  About Me / Profile Bio
 </summary>
- Now that you have the 3y3 encoded data in your clipboard, paste your clipboard into the About Me section of your profile.
+ Now that you have the 3y3 encoded data in your clipboard:
+ <br>Paste your clipboard into the About Me section of your profile.
 
  Demonstration:
  
  ![decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/b91fcd6e-389f-4adf-aa92-054d3e18d524)
+
+ **Note: If your Avatar Decoration is in the About Me section of your profile, it will only appear for other users *after* they have opened your profile at least once.**
  
 </details>
 
+<br>
+Any other user of YABDP4Nitro with Fake Avatar Decorations enabled will now be able to see your avatar decoration.
 
-
-
-
-But of course, this wouldn't be very useful if only _you_ could see it!
-<br>So, of course, I've made it so that any other user of YABDP4Nitro with Fake Avatar Decorations enabled will also be able to see your avatar decoration.
+___
 
 ## Miscellaneous
 
