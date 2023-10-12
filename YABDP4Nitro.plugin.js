@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.4
+ * @version 4.8.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.4",
+			"version": "4.8.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -405,21 +405,27 @@ module.exports = (() => {
 							}
 						}
 						
-						let revealedText = ""
-						if(downloadedUserProfiles.includes(args[0])){
-							let userProfile = userProfileMod.getUserProfile(args[0]);
-							revealedText = secondsightify(String(userProfile.bio));
-						}
-						if(DiscordModules.UserStatusStore.getActivities(args[0]).length > 0){
-							let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
-							if(activities[0].name != "Custom Status") return;
-							let customStatus = activities[0].state;
-							if(customStatus == undefined) return;
-							if(revealedText != undefined){
-								if(revealedText.includes("/a")) return; //already got revealedText from bio
+						function getRevealedText(){
+							let revealedTextLocal = "";
+							if(downloadedUserProfiles.includes(args[0])){
+								let userProfile = userProfileMod.getUserProfile(args[0]);
+								revealedTextLocal = secondsightify(String(userProfile.bio));
+								if(revealedTextLocal != undefined){
+									if(String(revealedTextLocal).includes("/a")){
+										return revealedTextLocal;
+									}
+								}
 							}
-							revealedText = secondsightify(String(customStatus));
+							if(DiscordModules.UserStatusStore.getActivities(args[0]).length > 0){
+								let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
+								if(activities[0].name != "Custom Status") return;
+								let customStatus = activities[0].state;
+								if(customStatus == undefined) return;
+								revealedTextLocal = secondsightify(String(customStatus));
+								return revealedTextLocal;
+							}
 						}
+						let revealedText = getRevealedText();
 						if(revealedText == undefined) return;
 						if(revealedText == "") return;
 						
