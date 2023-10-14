@@ -174,11 +174,11 @@ Uses invisible 3y3 encoding to allow setting profile effects by hiding IDs in yo
 To use Fake Profile Effects, first go to Settings>Profiles; you should see a Profile Effect section:
 
 ![Profile Effect section](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/2030de16-4bec-4e55-96be-916c9cfb8090)
-<br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
 Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
 
 ![profile effect section opened](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/20a4ee8d-afc6-4e78-a478-ded416172e56)
+<br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
 Clicking one of these profile effects will copy the invisible 3y3-encoded data into your clipboard.
 <br>Now all you have to do is paste your clipboard into the "About Me" section of your profile and click Save Changes!
