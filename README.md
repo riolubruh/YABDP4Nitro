@@ -16,6 +16,7 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
      + [Fake Profile Themes](#fake-profile-themes)
      + [Fake Profile Banners](#fake-profile-banners)
      + [Fake Avatar Decorations](#fake-avatar-decorations)
+     + [Fake Profile Effects](#fake-profile-effects)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
@@ -120,7 +121,7 @@ To use Fake Avatar Decorations, go to Settings>Profiles you should see a new but
 
 ![deco-button](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/0b5547e0-2947-4628-a3da-a91f9ee1c933)
 
-Clicking this button will reveal a menu with each of the avatar decorations in a 4x5 grid.
+Clicking this button will reveal a menu with each of the avatar decorations in a grid.
 
 ![avatar decorations](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/54597f3e-b115-44dd-9804-3aee5d9c99b3)
 
@@ -161,6 +162,30 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
 
 <br>
 Any other user of YABDP4Nitro with Fake Avatar Decorations enabled will now be able to see your avatar decoration.
+
+___
+
+## Fake Profile Effects
+
+Uses invisible 3y3 encoding to allow setting profile effects by hiding IDs in your bio.
+
+![profile effect example](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/d9a2b6a4-dcdb-4fef-9310-5af30dffbfe6)
+
+To use Fake Profile Effects, first go to Settings>Profiles; you should see a Profile Effect section:
+
+![Profile Effect section](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/2030de16-4bec-4e55-96be-916c9cfb8090)
+
+Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
+
+![profile effect section opened](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/20a4ee8d-afc6-4e78-a478-ded416172e56)
+
+Clicking one of these profile effects will copy the invisible 3y3-encoded data into your clipboard.
+<br>Now all you have to do is paste your clipboard into the "About Me" section of your profile and click Save Changes!
+
+![profile effects settings demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/7b2f8340-be41-4155-a0b5-77d37220d278)
+<br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
+
+Any other user of YABDP4Nitro with Fake Profile Effects enabled will now be able to see your profile effect!
 
 ___
 
