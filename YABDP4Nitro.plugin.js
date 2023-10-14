@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.7
+ * @version 4.9.0
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.7",
+			"version": "4.9.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -118,7 +118,9 @@ module.exports = (() => {
 					"removeScreenshareUpsell": true,
 					"fakeProfileBanners": true,
 					"fakeAvatarDecorations": true,
-					"unlockAppIcons": false
+					"unlockAppIcons": false,
+					"profileEffects": true,
+					"killProfileEffects": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -194,7 +196,9 @@ module.exports = (() => {
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
 							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
 							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value),
-							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value)
+							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value),
+							new Settings.Switch("Fake Profile Effects", "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", this.settings.profileEffects, value => this.settings.profileEffects = value),
+							new Settings.Switch("Kill Profile Effects", "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", this.settings.killProfileEffects, value => this.settings.killProfileEffects = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							
@@ -383,6 +387,18 @@ module.exports = (() => {
 					if(this.settings.unlockAppIcons){
 						this.appIcons();
 					}
+					
+					if(this.settings.profileEffects){
+						const profileEffects = WebpackModules.getByProps("profileEffects").profileEffects;
+						let profileEffectIdList = new Array();
+						for(let i = 0; i < profileEffects.length; i++){
+							profileEffectIdList.push(profileEffects[i].id)
+						}
+						this.profileFX(profileEffectIdList, profileEffects, this.secondsightifyEncodeOnly);
+					}
+					
+					if(this.settings.killProfileEffects) killProfileFX();
+					
 
 				} //End of saveAndUpdate
 				
@@ -405,6 +421,101 @@ module.exports = (() => {
 						//3y3 text detected. revealing...
 						return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
 					}
+				}
+				
+				profileFX(profileEffectIdList, profileEffects, secondsightifyEncodeOnly){
+					if(this.settings.killProfileEffects) return;
+					if(WebpackModules.getByProps("getExperimentOverrides").getExperimentOverrides()["2023-08_profile_effects"] == undefined){
+						const dispatcher = WebpackModules.getByProps("dispatch", "subscribe");
+						console.log("applying experiment override 2023-08_profile_effects; bucket 1");
+						dispatcher.dispatch({
+							type: "EXPERIMENT_OVERRIDE_BUCKET",
+							experimentId: "2023-08_profile_effects",
+							experimentBucket: 1
+						});
+					}
+					const userProfileMod = WebpackModules.getByProps("getUserProfile");
+					BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+						if(ret == undefined) return;
+						if(ret.bio == undefined) return;
+						
+						let revealedText = this.secondsightifyRevealOnly(ret.bio);
+						if(revealedText == undefined) return;
+						
+						if(revealedText.includes("/fx")){
+							let position = revealedText.indexOf("/fx");
+							if(position == undefined) return;
+							let effectIndex = parseInt(revealedText.slice(position+3, position+5));
+							if(isNaN(effectIndex)) return;
+							if(profileEffectIdList[effectIndex] == undefined) return;
+							ret.profileEffectID = profileEffectIdList[effectIndex];
+						}
+					});
+					
+					const profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
+					function makeProfileEffectButtons(){
+						let profileCustomizationSection = document.getElementsByClassName("profileCustomizationSection-53kreU")[0];
+						if(profileCustomizationSection?.firstChild == undefined) return;
+						let profileEffectSection = profileCustomizationSection.firstChild.firstChild.children[4].lastChild.lastChild;
+						let profileEffectButtonSection = profileCustomizationSection.firstChild.firstChild.children[4].lastChild.lastChild.lastChild;
+						
+						let changeProfileEffectButton = `<button id="changeProfileEffectButton" 
+						class="button-ejjZWC lookFilled-1H2Jvj colorBrand-2M3O3N sizeSmall-3R2P2p grow-2T4nbg"
+						style="background-color: #7289da; width: 100px; height: 32px; color: white; border-radius: 3px;"
+						onclick='if(document.getElementById("profileEffects").style.display == "block"){document.getElementById("profileEffects").style.display = "none"}else if(document.getElementById("profileEffects").style.display == "none") document.getElementById("profileEffects").style.display = "block";'>
+						Change Effect [YABDP4Nitro]</button>`;
+						if(document.getElementById("changeProfileEffectButton") != undefined) return;
+						profileEffectButtonSection.innerHTML += changeProfileEffectButton;
+						let profileEffectsHTML = `<br><div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
+							<style>
+								.riolubruhsSecretStuff {
+									width: 21%;
+									cursor: pointer;
+								}
+							</style>`
+						for(let i = 0; i < profileEffects.length; i++){
+							let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
+							profileEffectsHTML += `<img class="riolubruhsSecretStuff" src="${previewURL}" />${i}`
+							if((i+1) % 4 == 0){ //every 4th profile effect
+								profileEffectsHTML += "<br>";
+							}
+						}
+						profileEffectSection.innerHTML += profileEffectsHTML;
+						
+						let profileEffectButtons = document.getElementsByClassName("riolubruhsSecretStuff");
+						
+						for(let i = 0; i < profileEffectButtons.length; i++){
+							let encodedText = secondsightifyEncodeOnly("/fx" + i);
+							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
+							profileEffectButtons[i].outerHTML = profileEffectButtons[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
+						} 
+					}
+					
+					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllTryItOut", () => {
+						try{
+							makeProfileEffectButtons();
+						}catch(err){
+							console.error(err);
+						}
+					});
+					
+					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllPending", () => {
+						try{
+							makeProfileEffectButtons();
+						}catch(err){
+							console.error(err);
+						}
+					});
+					
+				}
+				
+				killProfileFX(){
+					const userProfileMod = WebpackModules.getByProps("getUserProfile");
+					BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+						if(ret == undefined) return;
+						if(ret.profileEffectID == undefined) return;
+						ret.profileEffectID = undefined;
+					});
 				}
 				
 				fakeAvatarDecorations(){
