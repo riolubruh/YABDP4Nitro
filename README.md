@@ -101,7 +101,7 @@ To use Fake Profile Banners, go to Settings>Profiles. You should see a new text 
 <br>
 Simply type/paste in an Imgur URL into the input area
 
-(ex: **`https://i.imgur.com/bYGGXnq.gif`**. **The file extension is required!**)
+( ex: **`https://i.imgur.com/bYGGXnq.gif`** )
 
 Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
 
