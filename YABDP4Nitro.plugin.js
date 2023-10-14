@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.8.5
+ * @version 4.8.6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.8.5",
+			"version": "4.8.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -117,7 +117,8 @@ module.exports = (() => {
 					//"removeProfileUpsell": true,
 					"removeScreenshareUpsell": true,
 					"fakeProfileBanners": true,
-					"fakeAvatarDecorations": true
+					"fakeAvatarDecorations": true,
+					"unlockAppIcons": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -193,14 +194,15 @@ module.exports = (() => {
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
 							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
 							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value),
-							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio. Note: ONLY UPDATES WHEN YOU OPEN A USER'S PROFILE. This is due to restrictions with reading the bio.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value)
+							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
-							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value)
+							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
+							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. NOTE: this will forcibly override the Experiment responsible for in-app icons!", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value)
 						)
 					])
 				}
@@ -378,7 +380,29 @@ module.exports = (() => {
 						this.fakeAvatarDecorations();
 					}
 					
+					this.appIcons();
+
 				} //End of saveAndUpdate
+				
+				secondsightifyRevealOnly(t) {
+					if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+						// 3y3 text detected. Revealing...
+						return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
+					}else {
+						// no encoded text found, returning
+						return
+					}
+				}
+				
+				secondsightifyEncodeOnly(t) {
+					if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+						// 3y3 text detected. returning...
+						return
+					}else {
+						//3y3 text detected. revealing...
+						return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
+					}
+				}
 				
 				fakeAvatarDecorations(){
 					let downloadedUserProfiles = [];
@@ -395,21 +419,11 @@ module.exports = (() => {
 						if(args[0] == undefined) return;
 						if(ret == undefined) return;
 						
-						function secondsightify(t) {
-							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-								// 3y3 text detected. Revealing...
-								return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
-							}else {
-								//console.log("no encoded text found");
-								return
-							}
-						}
-						
-						function getRevealedText(){
+						function getRevealedText(self){
 							let revealedTextLocal = "";
 							if(downloadedUserProfiles.includes(args[0])){
 								let userProfile = userProfileMod.getUserProfile(args[0]);
-								revealedTextLocal = secondsightify(String(userProfile.bio));
+								revealedTextLocal = self.secondsightifyRevealOnly(String(userProfile.bio));
 								if(revealedTextLocal != undefined){
 									if(String(revealedTextLocal).includes("/a")){
 										return revealedTextLocal;
@@ -421,11 +435,11 @@ module.exports = (() => {
 								if(activities[0].name != "Custom Status") return;
 								let customStatus = activities[0].state;
 								if(customStatus == undefined) return;
-								revealedTextLocal = secondsightify(String(customStatus));
+								revealedTextLocal = self.secondsightifyRevealOnly(String(customStatus));
 								return revealedTextLocal;
 							}
 						}
-						let revealedText = getRevealedText();
+						let revealedText = getRevealedText(this);
 						if(revealedText == undefined) return;
 						if(revealedText == "") return;
 						
@@ -433,7 +447,6 @@ module.exports = (() => {
 						if(position == undefined) return;
 						let assetIndex = parseInt(revealedText.slice(position+2, position+4));
 						if(isNaN(assetIndex)) return;
-						if(assetIndex > 19) return;
 						
 						const avatarDecorations = [
 							'a_0f5d6c4dd8ae74662ee9c40722a56cbd', //a0 (flaming sword)
@@ -455,9 +468,18 @@ module.exports = (() => {
 							'a_9b7b74e72efe1bc5a6beddced3da3c0f', //a16 (fried egg)
 							'a_faaa56d945e2d0f6c41cf940d122cb9e', //a17 (blueberry jam)
 							'a_8b0d858b65a81ea0c537091a4650a6d4', //a18 (donut)
-							'a_950aea7686c5674b4e2f5df0830d153b'  //a19 (pancakes)
+							'a_950aea7686c5674b4e2f5df0830d153b', //a19 (pancakes)
+							'a_5087f7f988bd1b2819cac3e33d0150f5', //a20 (fall leaves)
+							'a_145dffeb81bcfff96be683fd9f6db20a', //a21 (pumpkin spice)
+							'a_4936aa6c33a101b593f9607d48d686ec', //a22 (frog hat)
+							'a_7d305bca6cf371df98c059f9d2ef05e4', //a23 (fox hat)
+							'a_ad4e2cad924bbb3a2fddf5c527370479', //a24 (graveyard cat)
+							'a_b9a64088e30fd3a6f2456c2e0f44f173', //a25 (ghosts)
+							'a_f979ba5f9c2ba83db3149cc02f489f7c', //a26 (minions)
+							'a_50939e8f95b0ddfa596809480b0eb3e1'  //a27 (jack-o'-lantern)
 						];
 						
+						if(assetIndex > (avatarDecorations.length - 1)) return;
 						if(ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetIndex]){
 							ret.avatarDecorationData = {
 								asset: avatarDecorations[assetIndex],
@@ -482,49 +504,58 @@ module.exports = (() => {
 						
 						if(document.getElementById("avatarDecorations") != undefined) return;
 							
-						let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white">
+						let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white; white-space: nowrap; overflow: visible;">
 							<style>
 								.riolubruhsspecialsauce {
-									width: 19%;
+									width: 20%;
 									cursor: pointer;
 								}
 							</style>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_0f5d6c4dd8ae74662ee9c40722a56cbd.png?size=80" /> 0
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_1dbc603c181999b9815cb426dfec71a6.png?size=80" /> 1
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_fe3c76cac2adf426832a7e495e8329d3.png?size=80" /> 2
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_db9baf0ba7cf449d2b027c06309dbe8d.png?size=80" /> 3<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_d650e22f6c4bab4fc0969e9d35edbcb0.png?size=80" /> 4
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_29a0533cb3de61aa8179810188f3830d.png?size=80" /> 5
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9d67a1cbf81fe7197c871e94f619b04b.png?size=80" /> 6
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4c9f2ec29c05755456dbce45d8190ed4.png?size=80" /> 7<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c7e1751e8122f1b475cb3006966fb28c.png?size=80" /> 8
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c3c09bd122898be35093d0d59850f627.png?size=80" /> 9
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_55c9d0354290afa8b7fe47ea9bd7dbcf.png?size=80" /> 10
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8ffa2ba9bff18e96b76c2e66fd0d7fa3.png?size=80" /> 11<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f1b2fd4706ab02b54d3a58f84b3ef564.png?size=80" /> 12
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_3c97a2d37f433a7913a1c7b7a735d000.png?size=80" /> 13
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_911e48f3a695c7f6c267843ab6a96f2f.png?size=80" /> 14
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc.png?size=80" /> 15<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9b7b74e72efe1bc5a6beddced3da3c0f.png?size=80" /> 16
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_faaa56d945e2d0f6c41cf940d122cb9e.png?size=80" /> 17
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8b0d858b65a81ea0c537091a4650a6d4.png?size=80" /> 18
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_950aea7686c5674b4e2f5df0830d153b.png?size=80" /> 19
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_0f5d6c4dd8ae74662ee9c40722a56cbd.png?size=64" /> 0
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_1dbc603c181999b9815cb426dfec71a6.png?size=64" /> 1
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_fe3c76cac2adf426832a7e495e8329d3.png?size=64" /> 2
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_db9baf0ba7cf449d2b027c06309dbe8d.png?size=64" /> 3<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_d650e22f6c4bab4fc0969e9d35edbcb0.png?size=64" /> 4
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_29a0533cb3de61aa8179810188f3830d.png?size=64" /> 5
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9d67a1cbf81fe7197c871e94f619b04b.png?size=64" /> 6 
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4c9f2ec29c05755456dbce45d8190ed4.png?size=64" /> 7<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c7e1751e8122f1b475cb3006966fb28c.png?size=64" /> 8
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c3c09bd122898be35093d0d59850f627.png?size=64" /> 9
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_55c9d0354290afa8b7fe47ea9bd7dbcf.png?size=64" /> 10
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8ffa2ba9bff18e96b76c2e66fd0d7fa3.png?size=64" /> 11<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f1b2fd4706ab02b54d3a58f84b3ef564.png?size=64" /> 12
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_3c97a2d37f433a7913a1c7b7a735d000.png?size=64" /> 13
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_911e48f3a695c7f6c267843ab6a96f2f.png?size=64" /> 14
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc.png?size=64" /> 15<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9b7b74e72efe1bc5a6beddced3da3c0f.png?size=64" /> 16
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_faaa56d945e2d0f6c41cf940d122cb9e.png?size=64" /> 17
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8b0d858b65a81ea0c537091a4650a6d4.png?size=64" /> 18
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_950aea7686c5674b4e2f5df0830d153b.png?size=64" /> 19<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_5087f7f988bd1b2819cac3e33d0150f5.png?size=64" /> 20
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_145dffeb81bcfff96be683fd9f6db20a.png?size=64" /> 21
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4936aa6c33a101b593f9607d48d686ec.png?size=64" /> 22
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_7d305bca6cf371df98c059f9d2ef05e4.png?size=64" /> 23<br>
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_ad4e2cad924bbb3a2fddf5c527370479.png?size=64" /> 24
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_b9a64088e30fd3a6f2456c2e0f44f173.png?size=64" /> 25
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f979ba5f9c2ba83db3149cc02f489f7c.png?size=64" /> 26
+							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_50939e8f95b0ddfa596809480b0eb3e1.png?size=64" /> 27
 						</div>`
 						avatarDecorationSection.innerHTML += avatarDecorationsHTML;
 						
 						let avatarDecorations = document.getElementsByClassName("riolubruhsspecialsauce");
 						
-						function secondsightify(t) {
-								if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-									return
-								} else {
-									// No 3y3 text was found, Encoding...
-									return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
-								}
+						function secondsightifyEncodeOnly(t) {
+							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+								// 3y3 text detected. Revealing...
+								return
+							}else {
+								//console.log("no encoded text found");
+								return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
 							}
+						}
 						
 						for(let i = 0; i < avatarDecorations.length; i++){
-							let encodedText = secondsightify("/a" + i);
+							let encodedText = secondsightifyEncodeOnly("/a" + i);
 							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
 							avatarDecorations[i].outerHTML = avatarDecorations[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
 						} 
@@ -1205,16 +1236,7 @@ module.exports = (() => {
 						if(profile.bio == undefined) return;
 						if(ret.props?.children?.props?.style == undefined) return;
 						
-						function secondsightify(t) {
-							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-								// 3y3 text detected. Revealing...
-								return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
-							}else {
-								//console.log("no encoded text found");
-								return
-							}
-						}
-						let parsed = secondsightify(profile.bio);
+						let parsed = this.secondsightifyRevealOnly(profile.bio);
 						if(parsed == undefined) return;
 						
 						let regex = /B\{[^}]*\}/i;
@@ -1222,6 +1244,11 @@ module.exports = (() => {
 						if(matches == undefined) return;
 						if(matches == "") return;
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
+						//console.log(matchedText);
+						if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
+							matchedText += ".gif"; //No supported file extension detected. 
+							//Falling back to a default file extension
+						}
 						if(ret.props.children.props.style.backgroundImage == `url(https://i.imgur.com/${matchedText})` && args[0].displayProfile.banner == "funky_kong_is_epic") return;
 						ret.props.children.props.style.backgroundImage = `url(https://i.imgur.com/${matchedText})` 
 						args[0].displayProfile.banner = "funky_kong_is_epic" //this can be literally any string, i just like funky kong
@@ -1256,23 +1283,21 @@ module.exports = (() => {
 							.replace("http://", "")
 							.replace("https://", "")
 							.replace("i.imgur.com","imgur.com")
-							//console.log(stringToEncode);
-							
-							function secondsightify(t) {
-								if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-									console.log("3y3 text detected. Returning...")
-									return
-								} else {
-									// No 3y3 text was found, Encoding...
-									return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
-								}
-							}
 							
 							let encodedStr = ""
 							stringToEncode = String(stringToEncode);
+							function secondsightifyEncodeOnly(t) {
+								if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
+									// 3y3 text detected. returning...
+									return
+								}else {
+									//encoding...
+									return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
+								}
+							}
 							if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 								stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
-								encodedStr = " " + secondsightify(stringToEncode);
+								encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
 								Toasts.info("3y3 copied to clipboard!");
 							}else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
 								Toasts.warning("Please use Imgur!");
@@ -1322,16 +1347,8 @@ module.exports = (() => {
 						let user = WebpackModules.getByProps("getCurrentUser").getCurrentUser();
 						let userProfile = WebpackModules.getByProps("getUserProfile").getUserProfile(user.id);
 						if(userProfile == undefined) return;
-						function secondsightify(t) {
-							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-								// 3y3 text detected. Revealing...
-								return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
-							}else {
-								//console.log("no encoded text found");
-								return
-							}
-						}
-						let parsed = secondsightify(userProfile.bio);
+						
+						let parsed = this.secondsightifyRevealOnly(userProfile.bio);
 						if(parsed == undefined) return;
 						
 						let regex = /B\{[^}]*\}/i;
@@ -1339,7 +1356,50 @@ module.exports = (() => {
 						if(matches == undefined) return;
 						if(matches == "") return;
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
+						if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp") && !String(matchedText).endsWith(".mp4") && !String(matchedText).endsWith(".tiff") && !String(matchedText).endsWith(".avi") && !String(matchedText).endsWith(".webm")){
+							matchedText += ".gif"; //No supported file extension detected. 
+							//Falling back to default file extension
+						}
 						ret.pendingBanner = `https://i.imgur.com/${matchedText}`;
+					});
+				}
+				
+				appIcons(){
+					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
+					
+					WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+					setTimeout(() => {
+						if(this.settings.changePremiumType){
+							WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+						}
+					}, 10000);
+					
+					const appIconModule = WebpackModules.getByProps("getCurrentDesktopIcon");
+					delete appIconModule.isUpsellPreview;
+					Object.defineProperty(appIconModule, "isUpsellPreview", {
+						value: false,
+						configurable: true,
+						enumerable: true,
+						writable: true,
+					});
+					delete appIconModule.isEditorOpen;
+					Object.defineProperty(appIconModule, "isEditorOpen", {
+						value: false,
+						configurable: true,
+						enumerable: true,
+						writable: true,
+					});
+					
+					const dispatcher = WebpackModules.getByProps("dispatch", "subscribe");
+					dispatcher.dispatch({
+						type: "EXPERIMENT_OVERRIDE_BUCKET",
+						experimentId: "2023-09_deskop_in_app_icon",
+						experimentBucket: 2
+					});
+					
+					const appIconButtonsModule = WebpackModules.getAllByProps("Z").filter((obj) => obj.Z.toString().includes("renderCTAButtons"))[0];
+					BdApi.Patcher.before("YABDP4Nitro", appIconButtonsModule, "Z", (_,args) => {
+						args[0].disabled = false; //force buttons clickable
 					});
 				}
 				
