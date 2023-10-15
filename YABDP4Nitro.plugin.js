@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.9.0
+ * @version 4.9.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.9.0",
+			"version": "4.9.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -202,7 +202,7 @@ module.exports = (() => {
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							
-							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires that this be enabled to have emojis work correctly.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
+							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
@@ -218,12 +218,14 @@ module.exports = (() => {
 					Patcher.unpatchAll();
 					
 					if(this.settings.changePremiumType){
-						WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-						setTimeout(() => {
-							if(this.settings.changePremiumType){
-								WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-							}
-						}, 10000);
+						if(!(this.originalNitroStatus > 1)){
+							WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							setTimeout(() => {
+								if(this.settings.changePremiumType){
+									WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+								}
+							}, 10000);
+						}
 					}
 					
 					if(this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
@@ -376,12 +378,12 @@ module.exports = (() => {
 					
 					if(this.settings.fakeProfileBanners){
 						this.bannerUrlDecoding();
-						this.bannerUrlEncoding();
+						this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
 						this.bannerUrlDecodingPreview();
 					}
 					
 					if(this.settings.fakeAvatarDecorations){
-						this.fakeAvatarDecorations();
+						this.fakeAvatarDecorations(this);
 					}
 					
 					if(this.settings.unlockAppIcons){
@@ -427,7 +429,7 @@ module.exports = (() => {
 					if(this.settings.killProfileEffects) return;
 					if(WebpackModules.getByProps("getExperimentOverrides").getExperimentOverrides()["2023-08_profile_effects"] == undefined){
 						const dispatcher = WebpackModules.getByProps("dispatch", "subscribe");
-						console.log("applying experiment override 2023-08_profile_effects; bucket 1");
+						//console.log("applying experiment override 2023-08_profile_effects; bucket 1");
 						dispatcher.dispatch({
 							type: "EXPERIMENT_OVERRIDE_BUCKET",
 							experimentId: "2023-08_profile_effects",
@@ -518,7 +520,28 @@ module.exports = (() => {
 					});
 				}
 				
-				fakeAvatarDecorations(){
+				fakeAvatarDecorations(self){
+					const shopModule = WebpackModules.getAllByProps("ZP").filter((obj) => obj.ZP.toString().includes("useFetchCollectiblesCategoriesAndPurchases"))[0];
+					let avatarDecorations = self.settings.avatarDecorations;
+					BdApi.Patcher.after("YABDP4Nitro", shopModule, "ZP", (_,args,ret) => {
+						if(ret.categories == undefined) return;
+						function handleEachItem(item){
+							if(item.asset != undefined){
+								if(self.settings.avatarDecorations.includes(String(item.asset))) return;
+								self.settings.avatarDecorations.unshift(String(item.asset));
+								Utilities.saveSettings(self.getName(), self.settings);
+							}
+						}
+						function handleEachProduct(product){
+							product.items.forEach((item) => handleEachItem(item));
+						}
+						function handleEachStoreItem(element){
+							element.products.forEach((product) => handleEachProduct(product));
+						}
+						ret.categories.forEach((element) => handleEachStoreItem(element))
+					});
+					
+					
 					let downloadedUserProfiles = [];
 					const userProfileMod = WebpackModules.getByProps("getUserProfile");
 					BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
@@ -532,6 +555,44 @@ module.exports = (() => {
 						if(args == undefined) return;
 						if(args[0] == undefined) return;
 						if(ret == undefined) return;
+						
+						if((avatarDecorations == new Array()) || (avatarDecorations == undefined) || (avatarDecorations.length == 0)){
+							//Fallback to potentially outdated list in case the user has not downloaded the avatar decoration data yet.
+							avatarDecorations = [
+								"a_10b9f886b513b77ccdd67c8784f1a496",//a0
+								"a_fed43ab12698df65902ba06727e20c0e",//a1
+								"a_d3da36040163ee0f9176dfe7ced45cdc",//a2
+								"a_950aea7686c5674b4e2f5df0830d153b",//a3
+								"a_8b0d858b65a81ea0c537091a4650a6d4",//a4
+								"a_faaa56d945e2d0f6c41cf940d122cb9e",//a5
+								"a_9b7b74e72efe1bc5a6beddced3da3c0f",//a6
+								"a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc",//a7
+								"a_911e48f3a695c7f6c267843ab6a96f2f",//a8
+								"a_3c97a2d37f433a7913a1c7b7a735d000",//a9
+								"a_f1b2fd4706ab02b54d3a58f84b3ef564",//a10
+								"a_8ffa2ba9bff18e96b76c2e66fd0d7fa3",//a11
+								"a_d72066b8cecbadd9fc951913ebcc384f",//a12
+								"a_55c9d0354290afa8b7fe47ea9bd7dbcf",//a13
+								"a_c3c09bd122898be35093d0d59850f627",//a14
+								"a_c7e1751e8122f1b475cb3006966fb28c",//a15
+								"a_4c9f2ec29c05755456dbce45d8190ed4",//a16
+								"a_9d67a1cbf81fe7197c871e94f619b04b",//a17
+								"a_29a0533cb3de61aa8179810188f3830d",//a18
+								"a_d650e22f6c4bab4fc0969e9d35edbcb0",//a19
+								"a_db9baf0ba7cf449d2b027c06309dbe8d",//a20
+								"a_fe3c76cac2adf426832a7e495e8329d3",//a21
+								"a_1dbc603c181999b9815cb426dfec71a6",//a22
+								"a_0f5d6c4dd8ae74662ee9c40722a56cbd",//a23
+								"a_7d305bca6cf371df98c059f9d2ef05e4",//a24
+								"a_4936aa6c33a101b593f9607d48d686ec",//a25
+								"a_145dffeb81bcfff96be683fd9f6db20a",//a26
+								"a_5087f7f988bd1b2819cac3e33d0150f5",//a27
+								"a_50939e8f95b0ddfa596809480b0eb3e1",//a28
+								"a_f979ba5f9c2ba83db3149cc02f489f7c",//a29
+								"a_b9a64088e30fd3a6f2456c2e0f44f173",//a30
+								"a_ad4e2cad924bbb3a2fddf5c527370479" //a31
+								]
+						}
 						
 						function getRevealedText(self){
 							let revealedTextLocal = "";
@@ -562,37 +623,6 @@ module.exports = (() => {
 						let assetIndex = parseInt(revealedText.slice(position+2, position+4));
 						if(isNaN(assetIndex)) return;
 						
-						const avatarDecorations = [
-							'a_0f5d6c4dd8ae74662ee9c40722a56cbd', //a0 (flaming sword)
-							'a_1dbc603c181999b9815cb426dfec71a6', //a1 (potion)
-							'a_fe3c76cac2adf426832a7e495e8329d3', //a2 (fairy sprites)
-							'a_db9baf0ba7cf449d2b027c06309dbe8d', //a3 (wizard staff)
-							'a_d650e22f6c4bab4fc0969e9d35edbcb0', //a4 (glowing runes)
-							'a_29a0533cb3de61aa8179810188f3830d', //a5 (shield)
-							'a_9d67a1cbf81fe7197c871e94f619b04b', //a6 (skull medal)
-							'a_4c9f2ec29c05755456dbce45d8190ed4', //a7 (treasure and key)
-							'a_c7e1751e8122f1b475cb3006966fb28c', //a8 (radiating energy)
-							'a_c3c09bd122898be35093d0d59850f627', //a9 (soul leaving body)
-							'a_55c9d0354290afa8b7fe47ea9bd7dbcf', //a10 (sweat drops)
-							'a_8ffa2ba9bff18e96b76c2e66fd0d7fa3', //a11 (in love)
-							'a_f1b2fd4706ab02b54d3a58f84b3ef564', //a12 (shocked)
-							'a_3c97a2d37f433a7913a1c7b7a735d000', //a13 (angry)
-							'a_911e48f3a695c7f6c267843ab6a96f2f', //a14 (toast)
-							'a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc', //a15 (morning coffee)
-							'a_9b7b74e72efe1bc5a6beddced3da3c0f', //a16 (fried egg)
-							'a_faaa56d945e2d0f6c41cf940d122cb9e', //a17 (blueberry jam)
-							'a_8b0d858b65a81ea0c537091a4650a6d4', //a18 (donut)
-							'a_950aea7686c5674b4e2f5df0830d153b', //a19 (pancakes)
-							'a_5087f7f988bd1b2819cac3e33d0150f5', //a20 (fall leaves)
-							'a_145dffeb81bcfff96be683fd9f6db20a', //a21 (pumpkin spice)
-							'a_4936aa6c33a101b593f9607d48d686ec', //a22 (frog hat)
-							'a_7d305bca6cf371df98c059f9d2ef05e4', //a23 (fox hat)
-							'a_ad4e2cad924bbb3a2fddf5c527370479', //a24 (graveyard cat)
-							'a_b9a64088e30fd3a6f2456c2e0f44f173', //a25 (ghosts)
-							'a_f979ba5f9c2ba83db3149cc02f489f7c', //a26 (minions)
-							'a_50939e8f95b0ddfa596809480b0eb3e1'  //a27 (jack-o'-lantern)
-						];
-						
 						if(assetIndex > (avatarDecorations.length - 1)) return;
 						if(ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetIndex]){
 							ret.avatarDecorationData = {
@@ -602,7 +632,7 @@ module.exports = (() => {
 						}
 					});
 					
-					function makeAvatarDecorationShit(){
+					function makeAvatarDecorationShit(secondsightifyEncodeOnly, avatarDecorations){
 						let profileCustomizationSection = document.getElementsByClassName("profileCustomizationSection-53kreU")[0];
 						if(profileCustomizationSection?.firstChild == undefined) return;
 						let avatarDecorationSection = profileCustomizationSection.firstChild.firstChild.children[3];
@@ -625,53 +655,19 @@ module.exports = (() => {
 									cursor: pointer;
 								}
 							</style>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_0f5d6c4dd8ae74662ee9c40722a56cbd.png?size=64" /> 0
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_1dbc603c181999b9815cb426dfec71a6.png?size=64" /> 1
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_fe3c76cac2adf426832a7e495e8329d3.png?size=64" /> 2
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_db9baf0ba7cf449d2b027c06309dbe8d.png?size=64" /> 3<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_d650e22f6c4bab4fc0969e9d35edbcb0.png?size=64" /> 4
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_29a0533cb3de61aa8179810188f3830d.png?size=64" /> 5
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9d67a1cbf81fe7197c871e94f619b04b.png?size=64" /> 6 
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4c9f2ec29c05755456dbce45d8190ed4.png?size=64" /> 7<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c7e1751e8122f1b475cb3006966fb28c.png?size=64" /> 8
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_c3c09bd122898be35093d0d59850f627.png?size=64" /> 9
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_55c9d0354290afa8b7fe47ea9bd7dbcf.png?size=64" /> 10
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8ffa2ba9bff18e96b76c2e66fd0d7fa3.png?size=64" /> 11<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f1b2fd4706ab02b54d3a58f84b3ef564.png?size=64" /> 12
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_3c97a2d37f433a7913a1c7b7a735d000.png?size=64" /> 13
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_911e48f3a695c7f6c267843ab6a96f2f.png?size=64" /> 14
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc.png?size=64" /> 15<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_9b7b74e72efe1bc5a6beddced3da3c0f.png?size=64" /> 16
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_faaa56d945e2d0f6c41cf940d122cb9e.png?size=64" /> 17
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_8b0d858b65a81ea0c537091a4650a6d4.png?size=64" /> 18
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_950aea7686c5674b4e2f5df0830d153b.png?size=64" /> 19<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_5087f7f988bd1b2819cac3e33d0150f5.png?size=64" /> 20
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_145dffeb81bcfff96be683fd9f6db20a.png?size=64" /> 21
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_4936aa6c33a101b593f9607d48d686ec.png?size=64" /> 22
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_7d305bca6cf371df98c059f9d2ef05e4.png?size=64" /> 23<br>
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_ad4e2cad924bbb3a2fddf5c527370479.png?size=64" /> 24
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_b9a64088e30fd3a6f2456c2e0f44f173.png?size=64" /> 25
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_f979ba5f9c2ba83db3149cc02f489f7c.png?size=64" /> 26
-							<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/a_50939e8f95b0ddfa596809480b0eb3e1.png?size=64" /> 27
-						</div>`
+							`
+						for(let i = 0; i < avatarDecorations.length; i++){ //no more copy-pasted html, I can die happy
+							avatarDecorationsHTML += `<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/` + avatarDecorations[i] + `.png?size=64" /> ${i}`
+							if((i+1) % 4 == 0) avatarDecorationsHTML += "<br>"
+						}
 						avatarDecorationSection.innerHTML += avatarDecorationsHTML;
 						
-						let avatarDecorations = document.getElementsByClassName("riolubruhsspecialsauce");
+						let avatarDecorationsElements = document.getElementsByClassName("riolubruhsspecialsauce");
 						
-						function secondsightifyEncodeOnly(t) {
-							if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-								// 3y3 text detected. Revealing...
-								return
-							}else {
-								//console.log("no encoded text found");
-								return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
-							}
-						}
-						
-						for(let i = 0; i < avatarDecorations.length; i++){
+						for(let i = 0; i < avatarDecorationsElements.length; i++){
 							let encodedText = secondsightifyEncodeOnly("/a" + i);
 							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
-							avatarDecorations[i].outerHTML = avatarDecorations[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
+							avatarDecorationsElements[i].outerHTML = avatarDecorationsElements[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
 						} 
 					}
 					
@@ -679,7 +675,7 @@ module.exports = (() => {
 					const profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
 					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllTryItOut", () => {
 						try{
-							makeAvatarDecorationShit();
+							makeAvatarDecorationShit(this.secondsightifyEncodeOnly, avatarDecorations);
 						}catch(err){
 							console.error(err);
 						}
@@ -687,13 +683,12 @@ module.exports = (() => {
 					
 					BdApi.Patcher.after("YABDP4Nitro", profileCustomizationModule, "getAllPending", () => {
 						try{
-							makeAvatarDecorationShit();
+							makeAvatarDecorationShit(this.secondsightifyEncodeOnly, avatarDecorations);
 						}catch(err){
 							console.error(err);
 						}
 					});
 				}
-				
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
 					const Uploader = WebpackModules.getByProps("uploadFiles", "upload");
@@ -1358,7 +1353,6 @@ module.exports = (() => {
 						if(matches == undefined) return;
 						if(matches == "") return;
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
-						//console.log(matchedText);
 						if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
 							matchedText += ".gif"; //No supported file extension detected. 
 							//Falling back to a default file extension
@@ -1370,7 +1364,7 @@ module.exports = (() => {
 				}
 				
 				
-				bannerUrlEncoding(){
+				bannerUrlEncoding(secondsightifyEncodeOnly){
 					function makeBannerEncodingShit(){
 						if(document.getElementById("profileBannerButton") != undefined) return;
 						const profileThemeSection = document.getElementsByClassName("buttonsContainer-5mLFN9");
@@ -1400,15 +1394,6 @@ module.exports = (() => {
 							
 							let encodedStr = ""
 							stringToEncode = String(stringToEncode);
-							function secondsightifyEncodeOnly(t) {
-								if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-									// 3y3 text detected. returning...
-									return
-								}else {
-									//encoding...
-									return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
-								}
-							}
 							if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 								stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
 								encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
@@ -1481,12 +1466,14 @@ module.exports = (() => {
 				appIcons(){
 					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
 					
-					WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-					setTimeout(() => {
-						if(this.settings.changePremiumType){
-							WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-						}
-					}, 10000);
+					if(!(this.originalNitroStatus > 1)){
+						WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+						setTimeout(() => {
+							if(this.settings.changePremiumType){
+								WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							}
+						}, 10000);
+					}
 					
 					const appIconModule = WebpackModules.getByProps("getCurrentDesktopIcon");
 					delete appIconModule.isUpsellPreview;
@@ -1535,6 +1522,8 @@ module.exports = (() => {
 					if(document.getElementById("profileBannerUrlInput")) document.getElementById("profileBannerUrlInput").remove();
 					if(document.getElementById("decorationButton")) document.getElementById("decorationButton").remove();
 					if(document.getElementById("avatarDecorations")) document.getElementById("avatarDecorations").remove();
+					if(document.getElementById("changeProfileEffectButton")) document.getElementById("changeProfileEffectButton").remove();
+					if(document.getElementById("profileEffects")) document.getElementById("profileEffects").remove();
 				}
 			};
 		};
