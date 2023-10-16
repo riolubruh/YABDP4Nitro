@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.9.1
+ * @version 4.9.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.9.1",
+			"version": "4.9.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -218,13 +218,19 @@ module.exports = (() => {
 					Patcher.unpatchAll();
 					
 					if(this.settings.changePremiumType){
-						if(!(this.originalNitroStatus > 1)){
-							WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-							setTimeout(() => {
-								if(this.settings.changePremiumType){
-									WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-								}
-							}, 10000);
+						try{
+							if(!(this.originalNitroStatus > 1)){
+								WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+								setTimeout(() => {
+									if(this.settings.changePremiumType){
+										WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+									}
+								}, 10000);
+							}
+						}
+						catch(err){
+							console.log("[YABDP4Nitro]: Error occurred changing premium type.");
+							console.error(err);
 						}
 					}
 					
@@ -232,53 +238,78 @@ module.exports = (() => {
 					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
 					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
-					this.videoQualityModule(); //Quality Module
+					try{
+						this.videoQualityModule(); //Quality Module
+					}catch(err){
+						console.log("[YABDP4Nitro]: Error occurred during videoQualityModule()");
+						console.error(err);
+					}
 					
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
-					this.buttonCreate(); //Fast Quality Button and Menu
-					document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
-					document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
-					if(!this.settings.ResolutionSwapper){
-						if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none'
-						if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
+					try{
+						this.buttonCreate(); //Fast Quality Button and Menu
+					}catch(err){
+						console.error(err);
+					}
+					try{
+						document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
+						document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
+						if(!this.settings.ResolutionSwapper){
+							if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none'
+							if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none'
+						}
+					}catch(err){
+						console.error(err);
 					}
 
 					if(this.settings.stickerBypass){
-						this.stickerSending();
+						try{this.stickerSending()}catch(err){console.error(err)}
 					}
 					
 					if(this.settings.emojiBypass){
-						this.emojiBypass();
-						let emojiMods = WebpackModules.getByProps("B6", "ZP", "qc");
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFilteredOrLocked", () => {
-							return false
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiDisabled", () => {
-							return false
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFiltered", () => {
-							return false
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiPremiumLocked", () => {
-							return false
-						});
-						BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "getEmojiUnavailableReason", () => {
-							return
-						});
+						try{
+							this.emojiBypass();
+							let emojiMods = WebpackModules.getByProps("B6", "ZP", "qc");
+							BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFilteredOrLocked", () => {
+								return false
+							});
+							BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiDisabled", () => {
+								return false
+							});
+							BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiFiltered", () => {
+								return false
+							});
+							BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "isEmojiPremiumLocked", () => {
+								return false
+							});
+							BdApi.Patcher.instead("YABDP4Nitro", emojiMods.ZP, "getEmojiUnavailableReason", () => {
+								return
+							});
+						}catch(err){
+							console.error(err);
+						}
 					}
 					
 					if(this.settings.profileV2 == true){
-						const userProfileMod = WebpackModules.getByProps("getUserProfile");
-						BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
-							if(ret == undefined) return;
-							ret.premiumType = 2;
-						});
+						try{
+							const userProfileMod = WebpackModules.getByProps("getUserProfile");
+							BdApi.Patcher.after("YABDP4Nitro", userProfileMod, "getUserProfile", (_,args,ret) => {
+								if(ret == undefined) return;
+								ret.premiumType = 2;
+							});
+						}catch(err){
+							console.error(err);
+						}
 					}
 					
 					if(this.settings.screenSharing){
-						this.customVideoSettings();
+						try{
+							this.customVideoSettings();
+						}catch(err){
+							console.error(err);
+						}
 					}
 					
 					if(this.settings.forceStickersUnlocked){
@@ -349,8 +380,14 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.fakeProfileThemes){
-						this.decodeAndApplyProfileColors();
-						this.encodeProfileColors();
+						try{
+							this.decodeAndApplyProfileColors();
+							this.encodeProfileColors();
+						}catch(err){
+							console.log("[YABDP4Nitro]: Error occurred running fakeProfileThemes bypass.");
+							console.error(err);
+						}
+						
 					}
 					
 					/*
@@ -369,37 +406,70 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.removeScreenshareUpsell){
-						BdApi.DOM.addStyle("YABDP4Nitro",`
-						[class*="upsellBanner"] {
-						  display: none;
-						  visibility: hidden;
-						}`);
+						try{
+							BdApi.DOM.addStyle("YABDP4Nitro",`
+							[class*="upsellBanner"] {
+							  display: none;
+							  visibility: hidden;
+							}`);
+						}catch(err){
+							console.error(err);
+						}
+						
 					}
 					
 					if(this.settings.fakeProfileBanners){
-						this.bannerUrlDecoding();
-						this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
-						this.bannerUrlDecodingPreview();
+						try{
+							this.bannerUrlDecoding();
+							this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
+							this.bannerUrlDecodingPreview();
+						}catch(err){
+							console.log("[YABDP4Nitro]: What the fuck happened? fakeProfileBanners");
+							console.error(err);
+						}
 					}
 					
 					if(this.settings.fakeAvatarDecorations){
-						this.fakeAvatarDecorations(this);
+						try{
+							this.fakeAvatarDecorations(this);
+						}catch(err){
+							console.log("[YABDP4Nitro]: An error occurred during fakeAvatarDecorations().");
+							console.error(err);
+						}
+						
 					}
 					
 					if(this.settings.unlockAppIcons){
-						this.appIcons();
+						try{
+							this.appIcons();
+						}catch(err){
+							console.log("[YABDP4Nitro]: An error occurred during appIcons()");
+							console.error(err);
+						}
+						
 					}
 					
 					if(this.settings.profileEffects){
-						const profileEffects = WebpackModules.getByProps("profileEffects").profileEffects;
-						let profileEffectIdList = new Array();
-						for(let i = 0; i < profileEffects.length; i++){
-							profileEffectIdList.push(profileEffects[i].id)
+						try{
+							const profileEffects = WebpackModules.getByProps("profileEffects").profileEffects;
+							let profileEffectIdList = new Array();
+							for(let i = 0; i < profileEffects.length; i++){
+								profileEffectIdList.push(profileEffects[i].id)
+							}
+							this.profileFX(profileEffectIdList, profileEffects, this.secondsightifyEncodeOnly);
+						}catch(err){
+							console.error(err);
 						}
-						this.profileFX(profileEffectIdList, profileEffects, this.secondsightifyEncodeOnly);
 					}
 					
-					if(this.settings.killProfileEffects) killProfileFX();
+					if(this.settings.killProfileEffects){
+						try{
+							this.killProfileFX();
+						}catch(err){
+							console.log("[YABDP4Nitro]: Error occured during killProfileFX();");
+							console.error(err);
+						}
+					}
 					
 
 				} //End of saveAndUpdate
@@ -1175,11 +1245,16 @@ module.exports = (() => {
 					}
 					
 					try{
-						document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton);
+						document.getElementsByClassName("container-1CH86i")[0].appendChild(qualityButton);
 					}catch(err){
-						console.log("YABDP4Nitro: What the fuck happened..? During buttonCreate()");
-						console.error(err);
-					};
+						try{
+							document.getElementsByClassName("container-YkUktl")[0].appendChild(qualityButton);
+						}catch(err){
+							console.log("YABDP4Nitro: What the fuck happened..? During buttonCreate()");
+							console.error(err);
+						}
+					}
+					
 
 					let qualityMenu = document.createElement('div');
 					qualityMenu.id = 'qualityMenu';
@@ -1466,13 +1541,19 @@ module.exports = (() => {
 				appIcons(){
 					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
 					
-					if(!(this.originalNitroStatus > 1)){
-						WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-						setTimeout(() => {
-							if(this.settings.changePremiumType){
-								WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
-							}
-						}, 10000);
+					try{
+						if(!(this.originalNitroStatus > 1)){
+							WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+							setTimeout(() => {
+								if(this.settings.changePremiumType){
+									WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = 1;
+								}
+							}, 10000);
+						}
+					}
+					catch(err){
+						console.log("[YABDP4Nitro]: Error occurred changing premium type.");
+						console.error(err);
 					}
 					
 					const appIconModule = WebpackModules.getByProps("getCurrentDesktopIcon");
