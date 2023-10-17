@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 4.9.2
+ * @version 4.9.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "4.9.2",
+			"version": "4.9.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -120,7 +120,8 @@ module.exports = (() => {
 					"fakeAvatarDecorations": true,
 					"unlockAppIcons": false,
 					"profileEffects": true,
-					"killProfileEffects": false
+					"killProfileEffects": false,
+					"avatarDecorations": []
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -597,7 +598,11 @@ module.exports = (() => {
 						if(ret.categories == undefined) return;
 						function handleEachItem(item){
 							if(item.asset != undefined){
-								if(self.settings.avatarDecorations.includes(String(item.asset))) return;
+								if(self.settings.avatarDecorations != undefined){
+									if(self.settings.avatarDecorations.length > 0){
+										if(self.settings.avatarDecorations.includes(String(item.asset))) return;
+									}
+								}
 								self.settings.avatarDecorations.unshift(String(item.asset));
 								Utilities.saveSettings(self.getName(), self.settings);
 							}
@@ -661,7 +666,7 @@ module.exports = (() => {
 								"a_f979ba5f9c2ba83db3149cc02f489f7c",//a29
 								"a_b9a64088e30fd3a6f2456c2e0f44f173",//a30
 								"a_ad4e2cad924bbb3a2fddf5c527370479" //a31
-								]
+							]
 						}
 						
 						function getRevealedText(self){
