@@ -17,12 +17,14 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
      + [Fake Profile Banners](#fake-profile-banners)
      + [Fake Avatar Decorations](#fake-avatar-decorations)
      + [Fake Profile Effects](#fake-profile-effects)
+     + [Fake Profile Pictures](#fake-profile-pictures)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
 - [FAQ (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
+- [Special Thanks](#contributors)
 - [Additional Plugins I Recommend](#recommended-additional-plugins-for-more-nitro-features)
 - [License Agreement](#license)
   
@@ -189,6 +191,36 @@ Any other user of YABDP4Nitro with Fake Profile Effects enabled will now be able
 
 ___
 
+## Fake Profile Pictures
+
+Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL in your status.
+<br>Only supports Imgur URLs for security reasons.
+
+![fake-pfp demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/07745802-005a-40b1-9655-b1cb8e0ecfa6)
+
+To use Fake Profile Pictures, first go to Settings>Profiles; you should see a new input & button:
+
+![fake pfp setting section](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/99adab5d-5d69-4e1d-ae84-f094b2cb782e)
+
+Now paste an Imgur URL (ex: `https://i.imgur.com/bYGGXnq.gif`) into the box and click the "Copy 3y3" to the right!
+
+![fakepfp demo](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/a7aba7b6-f947-4b2a-b2c2-696692ce7abc)
+
+Assuming nothing goes wrong, you should see "3y3 copied to clipboard!" appear at the bottom of the window.
+
+Now, close Settings and click your profile in the bottom left of the window.
+<br>You should see the following:
+
+![profile](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/60173742-79bb-4dfe-9a99-1aed2a250682)
+
+Choose the option to set your custom status, and paste your clipboard anywhere into your custom status.
+
+You should now see your profile picture change to the desired image!
+
+Note that only other others of the plugin will be able to see your fake profile picture.
+
+___
+
 ## Miscellaneous
 
 ### Nitro Client Themes
@@ -223,6 +255,15 @@ If you would like to contribute to the project, there are several ways to do so.
 - Submit a pull request to merge your changes back into the main branch
 
 Thank you for your interest in contributing to YABDP4Nitro!
+
+## Contributors
+Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
+
+Special thanks to:
+- Weblure for making a pull request to fix a bug!
+- Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
+
+Thank you all so much for your effort in making this plugin great!
 
 ## Recommended additional plugins for more Nitro features
 
