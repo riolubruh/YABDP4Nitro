@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.0
+ * @version 5.0.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.0",
+			"version": "5.0.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -468,7 +468,7 @@ module.exports = (() => {
 					
 					if(this.settings.profileEffects){
 						try{
-							const profileEffects = WebpackModules.getByProps("profileEffects").profileEffects;
+							const profileEffects = WebpackModules.getAllByProps("profileEffects")[1].profileEffects;
 							let profileEffectIdList = new Array();
 							for(let i = 0; i < profileEffects.length; i++){
 								profileEffectIdList.push(profileEffects[i].id)
@@ -620,8 +620,6 @@ module.exports = (() => {
 							badgesList.push(ret.badges[i].id);
 						}
 						if(this.badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user")){
-							//console.log(ret.badges);
-							//if(badgesList.includes("yabdp_user")) return;
 							ret.badges.push({
 								id: "yabdp_user",
 								icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
@@ -760,10 +758,10 @@ module.exports = (() => {
 					function makeProfileEffectButtons(){
 						const profileCustomizationSectionClasses = WebpackModules.getByProps("customizationSection", "customizationSectionBackground", "customizationSectionBorder");
 						
-						let profileCustomizationSection = document.getElementsByClassName(profileCustomizationSectionClasses.customizationSection + " " + profileCustomizationSectionClasses.showBorder)[0];
+						let profileCustomizationSection = document.getElementsByClassName(profileCustomizationSectionClasses.customizationSection)[4];
 						if(profileCustomizationSection?.firstChild == undefined) return;
-						let profileEffectSection = profileCustomizationSection.firstChild.firstChild;
-						let profileEffectButtonSection = profileCustomizationSection.firstChild.firstChild.lastChild;
+						let profileEffectSection = profileCustomizationSection;
+						let profileEffectButtonSection = profileCustomizationSection.lastChild;
 						const buttonClassModule = WebpackModules.getByProps("lookFilled", "button", "contents");						
 						
 						let changeProfileEffectButton = `<button id="changeProfileEffectButton" 
@@ -779,7 +777,7 @@ module.exports = (() => {
 									width: 21%;
 									cursor: pointer;
 								}
-							</style>`
+							</style>`;
 						for(let i = 0; i < profileEffects.length; i++){
 							let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
 							profileEffectsHTML += `<img class="riolubruhsSecretStuff" src="${previewURL}" />${i}`
@@ -1798,6 +1796,7 @@ module.exports = (() => {
 					});
 				}
 				
+				
 				appIcons(){
 					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
 					
@@ -1845,12 +1844,14 @@ module.exports = (() => {
 					});
 				}
 				
+				
 				onStart() {
 					ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), this._config.info.github_raw);
 					this.originalNitroStatus = WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType;
 					this.previewInitial = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview;
 					this.saveAndUpdate();
 				}
+				
 
 				onStop() {
 					WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType = this.originalNitroStatus;
