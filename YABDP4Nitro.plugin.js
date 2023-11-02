@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.1
+ * @version 5.0.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.1",
+			"version": "5.0.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -123,7 +123,8 @@ module.exports = (() => {
 					"profileEffects": true,
 					"killProfileEffects": false,
 					"avatarDecorations": [],
-					"customPFPs": true
+					"customPFPs": true,
+					"experiments": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -210,7 +211,9 @@ module.exports = (() => {
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
-							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. NOTE: this will forcibly override the Experiment responsible for in-app icons!", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value)
+							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. Buggy.", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value),
+							new Settings.Switch("Experiments", "Unlocks experiments. Use at your own risk. Buggy but mostly functional.", this.settings.experiments, value => this.settings.experiments = value)
+							
 						)
 					])
 				}
@@ -328,67 +331,7 @@ module.exports = (() => {
 					
 					if(this.settings.clientThemes){
 						try{
-							const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
-							delete clientthemesmodule.isPreview;
-							Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
-								value: false,
-								configurable: true,
-								enumerable: true,
-								writable: true,
-							});
-							
-							const shouldSync = WebpackModules.getByProps("shouldSync"); //Disabling syncing the profile theme
-							BdApi.Patcher.instead("YABDP4Nitro", shouldSync, "shouldSync", (_, arg, originalFunction) => {
-								if(arg[0] = "appearance"){
-									return false
-								}else{
-									originalFunction(arg);
-								}
-							});
-							
-							const themesModule = WebpackModules.getByProps("saveClientTheme");
-							const gradientSettingModule = WebpackModules.getByProps("_updateClientTheme");
-							
-							BdApi.Patcher.before("YABDP4Nitro", themesModule, "saveClientTheme", (_,args) => {
-								if(args[0].backgroundGradientPresetId != undefined){ //If appearance is changed to a nitro client theme
-									this.settings.lastGradientSettingStore = parseInt(args[0].backgroundGradientPresetId); //Store the gradient value
-									Utilities.saveSettings(this.getName(), this.settings); //Save the gradient value to file
-								}
-								if(args[0].backgroundGradientPresetId == undefined){ //If appearance is changed to a non-nitro client theme
-									this.settings.lastGradientSettingStore = -1; //Set the gradient value to -1 (disabled)
-									Utilities.saveSettings(this.getName(), this.settings); //Save that value to file
-								}
-								
-								//themesModule.default.?????(args[0].theme); //Change from light to dark theme. It was having issues due to shouldSync being false so we just set it manually if the user changes the Appearance
-								//What the fuck did Discord change??? I can't fucking figure out this code.
-								//Nasty hotfix below
-								if(args[0].theme == 'light' && args[0].backgroundGradientPresetId == undefined){
-									gradientSettingModule._updateBackgroundGradientPresetId(0);
-									return;
-								}
-								if(args[0].theme == 'dark' && args[0].backgroundGradientPresetId == undefined){
-									gradientSettingModule._updateBackgroundGradientPresetId(-1)
-									return;
-								}
-								//Nasty hotfix above
-								
-								if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
-									gradientSettingModule._updateBackgroundGradientPresetId(this.settings.lastGradientSettingStore); //Apply nitro client theme
-								}
-								
-							});
-							
-							if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
-								gradientSettingModule._updateBackgroundGradientPresetId(this.settings.lastGradientSettingStore); //Restore gradient on plugin load/save
-							}
-							
-							const accountSwitchModule = WebpackModules.getByProps("startSession")
-							BdApi.Patcher.after("YABDP4Nitro", accountSwitchModule, "startSession", () => {
-								if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
-									gradientSettingModule._updateBackgroundGradientPresetId(this.settings.lastGradientSettingStore); //Restore gradient on account switch
-								}
-							});
-							
+							this.clientThemes();
 						}catch(err){
 							console.warn("[YABDP4Nitro] " + err);
 						}
@@ -457,13 +400,7 @@ module.exports = (() => {
 					}
 					
 					if(this.settings.unlockAppIcons){
-						try{
-							this.appIcons();
-						}catch(err){
-							console.log("[YABDP4Nitro]: An error occurred during appIcons();");
-							console.error(err);
-						}
-						
+						this.appIcons();
 					}
 					
 					if(this.settings.profileEffects){
@@ -505,7 +442,117 @@ module.exports = (() => {
 						}
 					}
 					
+					if(this.settings.experiments){
+						try{
+							this.experiments();
+						}catch(err){
+							console.log("[YABDP4Nitro] Error occurred in experiments();");
+							console.error(err);
+						}
+					}
+					
 				} //End of saveAndUpdate
+				
+				
+				experiments(){
+					//Code graciously stolen from https://gist.github.com/MeguminSama/2cae24c9e4c335c661fa94e72235d4c4?permalink_comment_id=4737864#gistcomment-4737864
+					let c = window.webpackChunkdiscord_app.push([[Symbol()],{},({c})=>Object.values(c)]);
+					let u = c.find((x)=> x?.exports?.default?.getUsers).exports.default;
+					let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
+					u.getCurrentUser().flags |= 1;
+					m.find((x)=>x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
+					try {m.find((x)=>x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({user:{flags: 1}})} catch {}
+					m.find((x)=>x.name === "ExperimentStore").storeDidChange()
+					let mod = WebpackModules.getByProps("isStaffEnv");
+					BdApi.Patcher.instead("YABDP4Nitro", mod, "isStaffEnv", () => {
+						return true;
+					});
+				}
+				
+				
+				clientThemes(){
+					const clientthemesmodule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview"));
+					delete clientthemesmodule.isPreview;
+					Object.defineProperty(clientthemesmodule, "isPreview", { //Enabling the nitro theme settings
+						value: false,
+						configurable: true,
+						enumerable: true,
+						writable: true,
+					});
+							
+					const themesModule = WebpackModules.getByProps("saveClientTheme");
+					const gradientSettingModule2 = WebpackModules.getByProps("resetPreviewClientTheme");
+					const dispatcher = WebpackModules.getByProps("subscribe", "dispatch");
+							
+					BdApi.Patcher.instead("YABDP4Nitro", themesModule, "saveClientTheme", (_,args) => {
+						if(args[0].backgroundGradientPresetId == undefined){
+							this.settings.lastGradientSettingStore = -1;
+							if(args[0].theme == 'dark'){
+								//console.log('dark');
+								dispatcher.dispatch({
+									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+									changes: {
+										appearance: {
+											shouldSync: false,
+											settings: {
+												theme: 'dark',
+												developerMode: true
+											}
+										}
+									}
+								})
+								gradientSettingModule2.resetPreviewClientTheme();
+								return;
+							}
+									
+							if(args[0].theme == 'light'){
+								//console.log("light");
+								dispatcher.dispatch({
+									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+									changes: {
+										appearance: {
+											shouldSync: false,
+											settings: {
+												theme: 'light',
+												developerMode: true
+											}
+										}
+									}
+								})
+							}
+							return;
+						}else{
+							this.settings.lastGradientSettingStore = args[0].backgroundGradientPresetId;
+							dispatcher.dispatch({
+									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+									changes: {
+										appearance: {
+											shouldSync: false,
+											settings: {
+												theme: args[0].theme,
+												clientThemeSettings: {
+													backgroundGradientPresetId: args[0].backgroundGradientPresetId
+												},
+												developerMode: true
+											}
+										}
+									}
+								})
+							gradientSettingModule2.updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
+						}
+					});
+							
+					if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
+						gradientSettingModule2.updateBackgroundGradientPreset(this.settings.lastGradientSettingStore); //Restore gradient on plugin load/save
+					}
+						
+					const accountSwitchModule = WebpackModules.getByProps("startSession")
+					BdApi.Patcher.after("YABDP4Nitro", accountSwitchModule, "startSession", () => {
+						if(this.settings.lastGradientSettingStore != -1){ //If appearance is changed to a nitro client theme
+							gradientSettingModule2.updateBackgroundGradientPreset(this.settings.lastGradientSettingStore); //Restore gradient on account switch
+						}
+					});
+				}
 				
 				
 				customProfilePictureDecoding(){
@@ -536,7 +583,7 @@ module.exports = (() => {
 				customProfilePictureEncoding(secondsightifyEncodeOnly){
 					function makePfpEncodingShit(){
 						if(document.getElementById("profilePictureButton") != undefined) return;
-						const containerClassModule = WebpackModules.getAllByProps("buttonsContainer","removeButton","buttonHighlighted")[2];
+						const containerClassModule = WebpackModules.getAllByProps("buttonsContainer","removeButton","buttonHighlighted")[1];
 						const profileThemeSection = document.getElementsByClassName(containerClassModule.buttonsContainer);
 						const buttonClassModule = WebpackModules.getByProps("lookFilled", "button", "contents");
 						
@@ -641,7 +688,7 @@ module.exports = (() => {
 								id: "yabdp_contributor",
 								icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
 								description: "YABDP4Nitro Contributor!",
-								link: "https://github.com/riolubruh/YABDP4Nitro"
+								link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
 							});
 						}
 					});
@@ -728,7 +775,6 @@ module.exports = (() => {
 					if(this.settings.killProfileEffects) return;
 					if(WebpackModules.getByProps("getExperimentOverrides").getExperimentOverrides()["2023-08_profile_effects"] == undefined){
 						const dispatcher = WebpackModules.getByProps("dispatch", "subscribe");
-						//console.log("applying experiment override 2023-08_profile_effects; bucket 1");
 						dispatcher.dispatch({
 							type: "EXPERIMENT_OVERRIDE_BUCKET",
 							experimentId: "2023-08_profile_effects",
@@ -909,6 +955,7 @@ module.exports = (() => {
 							let revealedTextLocal = "";
 							if(downloadedUserProfiles.includes(args[0])){
 								let userProfile = self.userProfileMod.getUserProfile(args[0]);
+								if(userProfile.bio == undefined) return;
 								revealedTextLocal = self.secondsightifyRevealOnly(String(userProfile.bio));
 								if(revealedTextLocal != undefined){
 									if(String(revealedTextLocal).includes("/a")){
@@ -1319,20 +1366,25 @@ module.exports = (() => {
 				videoQualityModule(){ //Custom Bitrates, FPS, Resolution
 					const videoOptionFunctions = BdApi.Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
 					const videoModules = WebpackModules.getByPrototypes("_handleVideoStreamId").prototype
-					
 					if(this.settings.CustomBitrateEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							//Minimum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.videoBitrateFloor = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.videoBitrate.min = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.min = (this.settings.minBitrate * 1000);
 							
 							//Maximum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.options.videoBitrate.max = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.max = (this.settings.maxBitrate * 1000);
 							
 							//Target Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
 							e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.target = (this.settings.targetBitrate * 1000);
 							
 							//Bonus: Audio Bitrate
 							e.voiceBitrate = (this.settings.voiceBitrate * 1000);
@@ -1354,7 +1406,7 @@ module.exports = (() => {
 							e.videoQualityManager.connection.remoteVideoSinkWants = this.settings.CustomFPS;
 						});
 					}
-					if(this.settings.ResolutionEnabled || this.settings.CustomFPSEnabled){
+					if(this.settings.screenSharing){
 						BdApi.Patcher.before("YABDP4Nitro", videoOptionFunctions, "updateVideoQuality", (e) => {
 							const videoQuality = new Object({
 								width: e.videoStreamParameters[0].maxResolution.width,
@@ -1363,7 +1415,17 @@ module.exports = (() => {
 							});
 							e.videoQualityManager.options.videoBudget = videoQuality;
 							e.videoQualityManager.options.videoCapture = videoQuality;
-							e.videoQualityManager.ladder.pixelBudget = (e.videoStreamParameters[0].maxResolution.height * e.videoStreamParameters[0].maxResolution.width);
+							e.videoQualityManager.ladder.pixelBudget = (videoQuality.height * videoQuality.width);
+							
+							for(const ladder in e.videoQualityManager.ladder.ladder) {
+								e.videoQualityManager.ladder.ladder[ladder].width = videoQuality.width * (ladder / 100);
+								e.videoQualityManager.ladder.ladder[ladder].height = videoQuality.height * (ladder / 100);
+							}
+							for(const ladder of e.videoQualityManager.ladder.orderedLadder){
+								ladder.width = videoQuality.width * (ladder.wantValue / 100);
+								ladder.height = videoQuality.height * (ladder.wantValue / 100);
+								ladder.pixelCount = ladder.width * ladder.height;
+							}
 						});
 					}
 					if(this.settings.videoCodec > 0){ // Video codecs
@@ -1653,6 +1715,11 @@ module.exports = (() => {
 				
 				bannerUrlDecoding(){
 					const bannerUrlModule = WebpackModules.getByPrototypes("getBannerURL").prototype;
+					
+					BdApi.Patcher.before("YABDP4Nitro", WebpackModules.getByProps("getUserBannerURL"), "getUserBannerURL", (_,args) => {
+						args[0].canAnimate = true; //fixes nitro banners not animating
+					});
+					
 					BdApi.Patcher.instead("YABDP4Nitro", bannerUrlModule, "getBannerURL", (userInfo, args, ogFunction) => {
 						let user = userInfo;
 						let profile = userInfo._userProfile;
@@ -1675,6 +1742,7 @@ module.exports = (() => {
 						if(!this.badgeUserIDs.includes(user.userId)) this.badgeUserIDs.push(user.userId);
 						return `https://i.imgur.com/${matchedText}`;
 					});
+					
 					const profileRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("CLYDE_SETTINGS"))[0];
 					BdApi.Patcher.before("YABDP4Nitro", profileRenderer, "default", (_,args) => {
 						if(args == undefined) return;
@@ -1698,7 +1766,7 @@ module.exports = (() => {
 				bannerUrlEncoding(secondsightifyEncodeOnly){
 					function makeBannerEncodingShit(){
 						if(document.getElementById("profileBannerButton") != undefined) return;
-						const containerClassModule = WebpackModules.getByProps("buttonsContainer");
+						const containerClassModule = WebpackModules.getAllByProps("buttonsContainer","removeButton","buttonHighlighted")[2];
 						const profileThemeSection = document.getElementsByClassName(containerClassModule.buttonsContainer);
 						const buttonClassModule = WebpackModules.getByProps("lookFilled", "button", "contents");
 						
@@ -1723,7 +1791,7 @@ module.exports = (() => {
 							let stringToEncode = "" + profileBannerUrlInputValue
 							.replace("http://", "")
 							.replace("https://", "")
-							.replace("i.imgur.com","imgur.com")
+							.replace("i.imgur.com","imgur.com");
 							
 							let encodedStr = ""
 							stringToEncode = String(stringToEncode);
@@ -1816,6 +1884,7 @@ module.exports = (() => {
 					}
 					
 					const appIconModule = WebpackModules.getByProps("getCurrentDesktopIcon");
+					
 					delete appIconModule.isUpsellPreview;
 					Object.defineProperty(appIconModule, "isUpsellPreview", {
 						value: false,
@@ -1823,19 +1892,13 @@ module.exports = (() => {
 						enumerable: true,
 						writable: true,
 					});
+					
 					delete appIconModule.isEditorOpen;
 					Object.defineProperty(appIconModule, "isEditorOpen", {
 						value: false,
 						configurable: true,
 						enumerable: true,
 						writable: true,
-					});
-					
-					const dispatcher = WebpackModules.getByProps("dispatch", "subscribe");
-					dispatcher.dispatch({
-						type: "EXPERIMENT_OVERRIDE_BUCKET",
-						experimentId: "2023-09_deskop_in_app_icon",
-						experimentBucket: 2
 					});
 					
 					const appIconButtonsModule = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("renderCTAButtons"))[0];
