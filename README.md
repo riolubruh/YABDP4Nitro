@@ -275,8 +275,6 @@ Thank you all so much for your effort in making this plugin great!
 
 [SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 25 megabyte chunks! YABDP4Nitro-compatible fork created by me.
 
-[DiscordBypasses by Ahlawat](https://github.com/Tharki-God/BetterDiscordPlugins#discordbypasses) - A mixture of different Discord bypasses, including unlocking Experiments.
-
 ## License
 
 The plugin is licensed under the NPOSL Version 3 License. You can find it [here](https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md).
