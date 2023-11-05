@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.2
+ * @version 5.0.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.2",
+			"version": "5.0.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -85,7 +85,8 @@ module.exports = (() => {
 				Toasts,
 				Utilities,
 				WebpackModules,
-				DiscordClassModules
+				DiscordClassModules,
+				PluginUpdater
 			} = Api;
 			return class YABDP4Nitro extends Plugin {
 				defaultSettings = {
@@ -124,7 +125,9 @@ module.exports = (() => {
 					"killProfileEffects": false,
 					"avatarDecorations": [],
 					"customPFPs": true,
-					"experiments": false
+					"experiments": false,
+					"userPfpIntegration": true,
+					"userBgIntegration": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -200,10 +203,12 @@ module.exports = (() => {
 							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
 							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
 							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value),
+							new Settings.Switch("UserBG Integration", "Downloads and parses the UserBG JSON database so that UserBG banners will appear for you.", this.settings.userBgIntegration, value => this.settings.userBgIntegration = value),
 							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value),
 							new Settings.Switch("Fake Profile Effects", "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", this.settings.profileEffects, value => this.settings.profileEffects = value),
 							new Settings.Switch("Kill Profile Effects", "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", this.settings.killProfileEffects, value => this.settings.killProfileEffects = value),
-							new Settings.Switch("Fake Profile Pictures", "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.customPFPs, value => this.settings.customPFPs = value)
+							new Settings.Switch("Fake Profile Pictures", "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.customPFPs, value => this.settings.customPFPs = value),
+							new Settings.Switch("UserPFP Integration", "Injects the UserPFP CSS so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							
@@ -451,6 +456,21 @@ module.exports = (() => {
 						}
 					}
 					
+					try{ //UserPFP integration.
+						BdApi.DOM.removeStyle("userPfp");
+					}catch(err){
+						console.error(err);
+					}
+					
+					if(this.settings.userPfpIntegration){ //UserPFP integration.
+						try{
+							BdApi.DOM.addStyle("userPfp",`@import url("https://userpfp.github.io/UserPFP/import.css");`);
+						}catch(err){
+							console.error(err);
+						}
+					}
+					
+					
 				} //End of saveAndUpdate
 				
 				
@@ -662,6 +682,7 @@ module.exports = (() => {
 					BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
 						if(ret == undefined) return;
 						if(ret.userId == undefined) return;
+						if(ret.badges == undefined) return;
 						const badgesList = [];
 						for(let i = 0; i < ret.badges.length; i++){
 							badgesList.push(ret.badges[i].id);
@@ -897,6 +918,7 @@ module.exports = (() => {
 						});
 					}catch(err){
 						console.log("[YABDP4Nitro] An error occurred while patching the shop module.")
+						console.error(err);
 					}
 					
 					
@@ -1262,7 +1284,6 @@ module.exports = (() => {
 					}
 					//Original method
 					if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
-						//console.log("Classic Method (No Ghost)")
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [, msg]) => {
 							let currentChannelId = WebpackModules.getByProps("getLastChannelFollowingDestination").getChannelId();
 							let emojiGhostIteration = 0;
@@ -1436,19 +1457,15 @@ module.exports = (() => {
 							let isCodecVP9 = false;
 							switch(this.settings.videoCodec){
 								case 1:
-									//console.log("case 1 -> isCodecH264");
 									isCodecH264 = true;
 									break;
 								case 2:
-									//console.log("case 2 -> isCodecAV1");
 									isCodecAV1 = true;
 									break;
 								case 3:
-									//console.log("case 3 -> isCodecVP8");
 									isCodecVP8 = true;
 									break;
 								case 4:
-									//console.log("case 4 -> isCodecVP9");
 									isCodecVP9 = true;
 									break;
 							}
@@ -1714,31 +1731,48 @@ module.exports = (() => {
 				}
 				
 				bannerUrlDecoding(){
+					if(this.settings.userBgIntegration){ //download & parse userBg data
+						const userBgJsonUrl = "https://raw.githubusercontent.com/Discord-Custom-Covers/usrbg/master/dist/usrbg.json";
+						if(this.userBgs != undefined) if(Object.entries(this.userBgs).length > 0) return; //already downloaded this session
+						fetch(userBgJsonUrl).then(res => res.text().then(str => JSON.parse(str).forEach(obj => { //download, then parse json
+							this.userBgs[obj.uid] = obj.img; //add each entry to an object with {userId: imgURL} format
+						})));
+					}
 					const bannerUrlModule = WebpackModules.getByPrototypes("getBannerURL").prototype;
 					
 					BdApi.Patcher.before("YABDP4Nitro", WebpackModules.getByProps("getUserBannerURL"), "getUserBannerURL", (_,args) => {
 						args[0].canAnimate = true; //fixes nitro banners not animating
 					});
 					
-					BdApi.Patcher.instead("YABDP4Nitro", bannerUrlModule, "getBannerURL", (userInfo, args, ogFunction) => {
-						let user = userInfo;
-						let profile = userInfo._userProfile;
-						if(profile == undefined) return ogFunction(userInfo, args);
-						if(profile.bio == undefined) return ogFunction(userInfo, args);
+					BdApi.Patcher.instead("YABDP4Nitro", bannerUrlModule, "getBannerURL", (user, args, ogFunction) => {
+						let profile = user._userProfile;
+						if(profile == undefined) return ogFunction(user, args);
+						
+						if(this.settings.userBgIntegration){
+							let userBg = this.userBgs[user.userId];
+							if(userBg != undefined){
+								profile.banner = "funky_kong_is_epic";
+								profile.premiumType = 2;
+								return userBg;
+							}
+						}
+						
+						if(profile.bio == undefined) return ogFunction(user, args);
 						
 						let parsed = this.secondsightifyRevealOnly(profile.bio);
-						if(parsed == undefined) return ogFunction(userInfo, args);
+						if(parsed == undefined) return ogFunction(user, args);
 						
 						let regex = /B\{[^}]*\}/i;
 						let matches = parsed.toString().match(regex);
-						if(matches == undefined) return ogFunction(userInfo, args);
-						if(matches == "") return ogFunction(userInfo, args);
+						if(matches == undefined) return ogFunction(user, args);
+						if(matches == "") return ogFunction(user, args);
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
 						if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
 							matchedText += ".gif"; //No supported file extension detected. 
 							//Falling back to a default file extension
 						}
 						profile.banner = "funky_kong_is_epic" //this can be literally any string, i just like funky kong
+						profile.premiumType = 2;
 						if(!this.badgeUserIDs.includes(user.userId)) this.badgeUserIDs.push(user.userId);
 						return `https://i.imgur.com/${matchedText}`;
 					});
@@ -1751,6 +1785,7 @@ module.exports = (() => {
 							args[0].showPremiumBadgeUpsell = false;
 						}
 					});
+					
 					BdApi.Patcher.after("YABDP4Nitro", profileRenderer, "default", (_,args,ret) => {
 						if(args == undefined) return;
 						if(args[0]?.displayProfile?.banner == undefined) return;
@@ -1909,9 +1944,10 @@ module.exports = (() => {
 				
 				
 				onStart() {
-					ZLibrary.PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), this._config.info.github_raw);
+					PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), this._config.info.github_raw);
 					this.originalNitroStatus = WebpackModules.getByProps("getCurrentUser").getCurrentUser().premiumType;
 					this.previewInitial = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview;
+					this.userBgs = {};
 					this.saveAndUpdate();
 				}
 				
@@ -1932,6 +1968,17 @@ module.exports = (() => {
 					if(document.getElementById("profileEffects")) document.getElementById("profileEffects").remove();
 					if(document.getElementById("profilePictureUrlInput")) document.getElementById("profilePictureUrlInput").remove();
 					if(document.getElementById("profilePictureButton")) document.getElementById("profilePictureButton").remove();
+					try{
+						BdApi.DOM.removeStyle("YABDP4Nitro");
+					}catch(err){
+						console.error(err);
+					}
+					try{
+						BdApi.DOM.removeStyle("userPfp");
+					}catch(err){
+						console.error(err);
+					}
+					this.userBgs = {};
 				}
 			};
 		};
