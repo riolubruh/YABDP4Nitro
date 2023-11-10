@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.4
+ * @version 5.0.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.4",
+			"version": "5.0.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -837,9 +837,8 @@ module.exports = (() => {
 						}
 					});
 					
-					if(this.profileCustomizationSectionClasses == undefined) this.profileCustomizationSectionClasses = WebpackModules.getByProps("customizationSection", "customizationSectionBackground", "customizationSectionBorder");
-					
 					function makeProfileEffectButtons(self){
+						if(self.profileCustomizationSectionClasses == undefined) self.profileCustomizationSectionClasses = WebpackModules.getByProps("customizationSection", "customizationSectionBackground", "customizationSectionBorder");
 						let profileCustomizationSection = document.getElementsByClassName(self.profileCustomizationSectionClasses.customizationSection)[4];
 						if(profileCustomizationSection?.firstChild == undefined) return;
 						let profileEffectSection = profileCustomizationSection;
