@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.5
+ * @version 5.0.6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.5",
+			"version": "5.0.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -479,6 +479,15 @@ module.exports = (() => {
 							console.error(err);
 						}
 					}
+					
+					if(this.settings.unlockAppIcons || this.settings.changePremiumType || this.settings.experiments){ //account panel breaking shit workaround
+						if(this.accountPanelRenderer == undefined) this.accountPanelRenderer = WebpackModules.getAllByProps("default").filter(obj => obj.default.toString().includes("useIsHomeSelected"))[0];
+						BdApi.Patcher.after("YABDP4Nitro", this.accountPanelRenderer, "default", (_,args,ret) => {
+							if(this.settings.unlockAppIcons || this.settings.changePremiumType) ret.props.currentUser.premiumType = 1;
+							if(this.settings.experiments) ret.props.currentUser.flags |= 1;
+						});
+					}
+					
 					
 				} //End of saveAndUpdate()
 				
