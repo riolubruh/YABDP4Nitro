@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.6
+ * @version 5.0.7
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.6",
+			"version": "5.0.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -208,7 +208,7 @@ module.exports = (() => {
 							new Settings.Switch("Fake Profile Effects", "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", this.settings.profileEffects, value => this.settings.profileEffects = value),
 							new Settings.Switch("Kill Profile Effects", "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", this.settings.killProfileEffects, value => this.settings.killProfileEffects = value),
 							new Settings.Switch("Fake Profile Pictures", "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.customPFPs, value => this.settings.customPFPs = value),
-							new Settings.Switch("UserPFP Integration", "Injects the UserPFP CSS so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
+							new Settings.Switch("UserPFP Integration", "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
@@ -216,8 +216,7 @@ module.exports = (() => {
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
 							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. Buggy.", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value),
-							new Settings.Switch("Experiments", "Unlocks experiments. Use at your own risk. Buggy but mostly functional.", this.settings.experiments, value => this.settings.experiments = value)
-							
+							new Settings.Switch("Experiments", "Unlocks experiments. Use at your own risk.", this.settings.experiments, value => this.settings.experiments = value)
 						)
 					])
 				}
@@ -249,31 +248,28 @@ module.exports = (() => {
 					if(this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
 					if(this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
 					
-					try{
-						this.videoQualityModule(); //Quality Module
-					}catch(err){
-						console.log("[YABDP4Nitro]: Error occurred during videoQualityModule()");
-						console.error(err);
-					}
-					
 					if(document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
 					if(document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
 					if(document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
-					try{
-						this.buttonCreate(); //Fast Quality Button and Menu
-					}catch(err){
-						console.error(err);
-					}
-					try{
-						document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
-						document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
-						if(!this.settings.ResolutionSwapper){
-							if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none';
-							if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none';
+					
+					if(this.settings.ResolutionSwapper){
+						try{
+							this.buttonCreate(); //Fast Quality Button and Menu
+						}catch(err){
+							console.error(err);
 						}
-					}catch(err){
-						console.error(err);
+						try{
+							document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
+							document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
+							if(!this.settings.ResolutionSwapper){
+								if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none';
+								if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none';
+							}
+						}catch(err){
+							console.error(err);
+						}
 					}
+					
 
 					if(this.settings.stickerBypass){
 						try{this.stickerSending()}catch(err){console.error(err)}
@@ -285,19 +281,19 @@ module.exports = (() => {
 							
 							if(this.emojiMods == undefined) this.emojiMods = WebpackModules.getByProps("isEmojiFilteredOrLocked");
 							
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFilteredOrLocked", () => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFilteredOrLocked", (_, args, originalFunction) => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiDisabled", () => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiDisabled", (_, args, originalFunction) => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFiltered", () => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFiltered", (_, args, originalFunction) => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiPremiumLocked", () => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiPremiumLocked", (_, args, originalFunction) => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", (callee, args) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", (callee, args, originalFunction) => {
 								return
 							});
 						}catch(err){
@@ -318,8 +314,15 @@ module.exports = (() => {
 					
 					if(this.settings.screenSharing){
 						try{
-							this.customVideoSettings();
+							this.customVideoSettings(); //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
 						}catch(err){
+							console.log("[YABDP4Nitro]: Error occurred during customVideoSettings;()");
+							console.error(err);
+						}
+						try{
+							this.videoQualityModule(); //Custom bitrate, fps, resolution module
+						}catch(err){
+							console.log("[YABDP4Nitro]: Error occurred during videoQualityModule();");
 							console.error(err);
 						}
 					}
@@ -461,49 +464,45 @@ module.exports = (() => {
 						}
 					}
 					
-					if(!this.settings.userPfpIntegration && this.hasAddedUserPfpStyle){
-						try{ //Undo UserPFP integration.
-							BdApi.DOM.removeStyle("userPfp");
-							this.hasAddedUserPfpStyle = false;
-						}catch(err){
-							console.error(err);
-						}
-					}
-					
-					
-					if(this.settings.userPfpIntegration && !this.hasAddedUserPfpStyle){ //UserPFP integration.
-						try{
-							BdApi.DOM.addStyle("userPfp",`@import url("https://userpfp.github.io/UserPFP/import.css");`);
-							this.hasAddedUserPfpStyle = true;
-						}catch(err){
-							console.error(err);
-						}
-					}
-					
 					if(this.settings.unlockAppIcons || this.settings.changePremiumType || this.settings.experiments){ //account panel breaking shit workaround
 						if(this.accountPanelRenderer == undefined) this.accountPanelRenderer = WebpackModules.getAllByProps("default").filter(obj => obj.default.toString().includes("useIsHomeSelected"))[0];
 						BdApi.Patcher.after("YABDP4Nitro", this.accountPanelRenderer, "default", (_,args,ret) => {
 							if(this.settings.unlockAppIcons || this.settings.changePremiumType) ret.props.currentUser.premiumType = 1;
 							if(this.settings.experiments) ret.props.currentUser.flags |= 1;
+							if(this.settings.ResolutionSwapper && (document.getElementById("qualityButton") == undefined || document.getElementById("qualityInputFPS") == undefined)){
+								this.buttonCreate();
+								document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
+								document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
+								if(!this.settings.ResolutionSwapper){
+									if(document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none';
+									if(document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none';
+								}
+							}
 						});
 					}
-					
 					
 				} //End of saveAndUpdate()
 				
 				
 				experiments(){
 					if(this.hasAppliedExperiments) return;
-					//Code graciously stolen from https://gist.github.com/MeguminSama/2cae24c9e4c335c661fa94e72235d4c4?permalink_comment_id=4737864#gistcomment-4737864
-					let c = window.webpackChunkdiscord_app.push([[Symbol()],{},({c})=>Object.values(c)]);
-					let u = c.find((x)=> x?.exports?.default?.getUsers).exports.default;
-					let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
-					u.getCurrentUser().flags |= 1;
-					m.find((x)=>x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
-					try {m.find((x)=>x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({user:{flags: 1}})} catch {}
-					m.find((x)=>x.name === "ExperimentStore").storeDidChange()
+					//Code graciously stolen from https://gist.github.com/MeguminSama/2cae24c9e4c335c661fa94e72235d4c4?permalink_comment_id=4779787#gistcomment-4779787
+					try{
+						let cache; webpackChunkdiscord_app.push([["wp_isdev_patch"], {}, r => cache=r.c]);
+						let UserStore = Object.values(cache).find(m => m?.exports?.default?.getUsers).exports.default;
+						let actions = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
+						let user = UserStore.getCurrentUser();
+						actions.find(n => n.name === "ExperimentStore").actionHandler.CONNECTION_OPEN({
+							type: "CONNECTION_OPEN", user: {flags: user.flags |= 1}, experiments: [],
+						});
+						actions.find(n => n.name === "DeveloperExperimentStore").actionHandler.CONNECTION_OPEN();
+						webpackChunkdiscord_app.pop(); user.flags &= ~1; "done";
+						
+						this.hasAppliedExperiments = true;
+					}catch(err){
+						console.error(err);
+					}
 					
-					this.hasAppliedExperiments = true;
 				}
 				
 				
@@ -525,7 +524,6 @@ module.exports = (() => {
 						if(args[0].backgroundGradientPresetId == undefined){
 							this.settings.lastGradientSettingStore = -1;
 							if(args[0].theme == 'dark'){
-								//console.log('dark');
 								this.dispatcher.dispatch({
 									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
 									changes: {
@@ -543,7 +541,6 @@ module.exports = (() => {
 							}
 									
 							if(args[0].theme == 'light'){
-								//console.log("light");
 								this.dispatcher.dispatch({
 									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
 									changes: {
@@ -596,6 +593,20 @@ module.exports = (() => {
 				customProfilePictureDecoding(){
 					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
 					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user,args,originalFunction) => {
+						//userpfp closer integration
+						if(!this.fetchedUserPfp || this.userPfps == undefined){
+							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+							//download & parse userPfp data
+							BdApi.Net.fetch(userPfpJsonUrl).then(res => res.json()).then(res => this.userPfps = res.avatars); 
+							this.fetchedUserPfp = true;
+						}
+						if(this.userPfps != undefined){
+							if(this.userPfps[user.id] != undefined){
+								return this.userPfps[user.id];
+							}
+						}
+						
+						
 						if(DiscordModules.UserStatusStore.getActivities(user.id).length > 0){
 							let activities = DiscordModules.UserStatusStore.getActivities(user.id);
 							if(activities[0].name != "Custom Status") return originalFunction(user,args);
@@ -847,11 +858,9 @@ module.exports = (() => {
 					});
 					
 					function makeProfileEffectButtons(self){
-						if(self.profileCustomizationSectionClasses == undefined) self.profileCustomizationSectionClasses = WebpackModules.getByProps("customizationSection", "customizationSectionBackground", "customizationSectionBorder");
-						let profileCustomizationSection = document.getElementsByClassName(self.profileCustomizationSectionClasses.customizationSection)[4];
-						if(profileCustomizationSection?.firstChild == undefined) return;
-						let profileEffectSection = profileCustomizationSection;
-						let profileEffectButtonSection = profileCustomizationSection.lastChild;
+						if(self.profileCustomizationSectionClass == undefined) self.profileCustomizationSectionClass = WebpackModules.getByProps("customizationSection").customizationSection;
+						let profileEffectSection = document.getElementsByClassName(self.profileCustomizationSectionClass)[5];
+						if(profileEffectSection == undefined) return;
 						const buttonClassModule = self.buttonClassModule;
 						
 						let changeProfileEffectButton = `<button id="changeProfileEffectButton" 
@@ -859,31 +868,33 @@ module.exports = (() => {
 						style="background-color: #7289da; width: 100px; height: 32px; color: white; border-radius: 3px;"
 						onclick='if(document.getElementById("profileEffects").style.display == "block"){document.getElementById("profileEffects").style.display = "none"}else if(document.getElementById("profileEffects").style.display == "none") document.getElementById("profileEffects").style.display = "block";'>
 						Change Effect [YABDP4Nitro]</button>`;
-						if(document.getElementById("changeProfileEffectButton") != undefined) return;
-						profileEffectButtonSection.innerHTML += changeProfileEffectButton;
-						let profileEffectsHTML = `<br><div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
-							<style>
-								.riolubruhsSecretStuff {
-									width: 21%;
-									cursor: pointer;
+						if(document.getElementById("changeProfileEffectButton") == undefined){
+							profileEffectSection.innerHTML += changeProfileEffectButton;
+							let profileEffectsHTML = `<br><div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
+								<style>
+									.riolubruhsSecretStuff {
+										width: 20%;
+										cursor: pointer;
+									}
+								</style>`;
+							for(let i = 0; i < profileEffects.length; i++){
+								let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
+								profileEffectsHTML += `<img class="riolubruhsSecretStuff" src="${previewURL}" />${i}`
+								if((i+1) % 4 == 0){ //every 4th profile effect
+									profileEffectsHTML += "<br>";
 								}
-							</style>`;
-						for(let i = 0; i < profileEffects.length; i++){
-							let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
-							profileEffectsHTML += `<img class="riolubruhsSecretStuff" src="${previewURL}" />${i}`
-							if((i+1) % 4 == 0){ //every 4th profile effect
-								profileEffectsHTML += "<br>";
 							}
+							profileEffectsHTML += "</div>";
+							profileEffectSection.innerHTML += profileEffectsHTML;
+							
+							let profileEffectButtons = document.getElementsByClassName("riolubruhsSecretStuff");
+							
+							for(let i = 0; i < profileEffectButtons.length; i++){
+								let encodedText = secondsightifyEncodeOnly("/fx" + i);
+								let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
+								profileEffectButtons[i].outerHTML = profileEffectButtons[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
+							} 
 						}
-						profileEffectSection.innerHTML += profileEffectsHTML;
-						
-						let profileEffectButtons = document.getElementsByClassName("riolubruhsSecretStuff");
-						
-						for(let i = 0; i < profileEffectButtons.length; i++){
-							let encodedText = secondsightifyEncodeOnly("/fx" + i);
-							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
-							profileEffectButtons[i].outerHTML = profileEffectButtons[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
-						} 
 					}
 					
 					if(this.profileCustomizationModule == undefined) this.profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
@@ -1040,43 +1051,47 @@ module.exports = (() => {
 					});
 					
 					function makeAvatarDecorationShit(secondsightifyEncodeOnly, avatarDecorations, buttonClassModule, self){
-						if(self.profileCustomizationSectionClass == undefined) self.profileCustomizationSectionClass = WebpackModules.getByProps("customizationSection", "customizationSectionBackground", "customizationSectionBorder").customizationSection;
-						let profileCustomizationSection = document.getElementsByClassName(self.profileCustomizationSectionClass)[3];
-						if(profileCustomizationSection == undefined) return;
-						let avatarDecorationSection = profileCustomizationSection;
-						let avatarDecorationButtonSection = profileCustomizationSection.children[1];
-						if(document.getElementById("decorationButton") != undefined) return;
+						if(self.profileCustomizationSectionClass == undefined) self.profileCustomizationSectionClass = WebpackModules.getByProps("customizationSection").customizationSection;
+						let profileCustomizationSection = document.getElementsByClassName(self.profileCustomizationSectionClass)[5];
 						
-						let decorationButtonHTML = `<button id="decorationButton" 
-						class="${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}"
-						style="background-color: #7289da; width: 100px; height: 50px; color: white; border-radius: 3px;"
-						onclick='if(document.getElementById("avatarDecorations").style.display == "block"){document.getElementById("avatarDecorations").style.display = "none"}else if(document.getElementById("avatarDecorations").style.display == "none") document.getElementById("avatarDecorations").style.display = "block";'>
-						Change Decoration [YABDP4Nitro]</button>`
-						avatarDecorationButtonSection.innerHTML += decorationButtonHTML;
-						
-						if(document.getElementById("avatarDecorations") != undefined) return;
-							
-						let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white; white-space: nowrap; overflow: visible;">
-							<style>
-								.riolubruhsspecialsauce {
-									width: 20%;
-									cursor: pointer;
+						if(profileCustomizationSection != undefined){
+							let avatarDecorationSection = profileCustomizationSection;
+							let avatarDecorationButtonSection = profileCustomizationSection;
+							if(document.getElementById("decorationButton") == undefined){
+								let decorationButtonHTML = `<button id="decorationButton" 
+								class="${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}"
+								style="background-color: #7289da; width: 100px; height: 50px; color: white; border-radius: 3px;"
+								onclick='if(document.getElementById("avatarDecorations").style.display == "block"){document.getElementById("avatarDecorations").style.display = "none"}else if(document.getElementById("avatarDecorations").style.display == "none") document.getElementById("avatarDecorations").style.display = "block";'>
+								Change Decoration [YABDP4Nitro]</button>`
+								
+								avatarDecorationButtonSection.innerHTML += decorationButtonHTML;
+								
+								if(document.getElementById("avatarDecorations") == undefined){
+									let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white; white-space: nowrap; overflow: visible;">
+										<style>
+											.riolubruhsspecialsauce {
+												width: 20%;
+												cursor: pointer;
+											}
+										</style>
+										`
+									for(let i = 0; i < avatarDecorations.length; i++){ //no more copy-pasted html, I can die happy
+										avatarDecorationsHTML += `<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/` + avatarDecorations[i] + `.png?size=64" /> ${i}`
+										if((i+1) % 4 == 0) avatarDecorationsHTML += "<br>"
+									}
+									avatarDecorationsHTML += "</div>"
+									avatarDecorationSection.innerHTML += avatarDecorationsHTML;
+									
+									let avatarDecorationsElements = document.getElementsByClassName("riolubruhsspecialsauce");
+									
+									for(let i = 0; i < avatarDecorationsElements.length; i++){
+										let encodedText = secondsightifyEncodeOnly("/a" + i);
+										let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
+										avatarDecorationsElements[i].outerHTML = avatarDecorationsElements[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
+									}
 								}
-							</style>
-							`
-						for(let i = 0; i < avatarDecorations.length; i++){ //no more copy-pasted html, I can die happy
-							avatarDecorationsHTML += `<img class="riolubruhsspecialsauce" src="https://cdn.discordapp.com/avatar-decoration-presets/` + avatarDecorations[i] + `.png?size=64" /> ${i}`
-							if((i+1) % 4 == 0) avatarDecorationsHTML += "<br>"
+							}
 						}
-						avatarDecorationSection.innerHTML += avatarDecorationsHTML;
-						
-						let avatarDecorationsElements = document.getElementsByClassName("riolubruhsspecialsauce");
-						
-						for(let i = 0; i < avatarDecorationsElements.length; i++){
-							let encodedText = secondsightifyEncodeOnly("/a" + i);
-							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
-							avatarDecorationsElements[i].outerHTML = avatarDecorationsElements[i].outerHTML.replace("class", `onclick='${copyDecoration3y3}' class`);
-						} 
 					}
 					
 					if(this.profileCustomizationModule == undefined) this.profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
@@ -1152,7 +1167,7 @@ module.exports = (() => {
 				}
 				
 				
-				async customVideoSettings() { //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
+				customVideoSettings() { //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
 					if(this.StreamButtons == undefined) this.StreamButtons = WebpackModules.getByProps("ApplicationStreamFPSButtons", "ApplicationStreamResolutionButtons");
 					if(this.settings.ResolutionEnabled && this.settings.CustomResolution != 0){
 						delete this.StreamButtons.ApplicationStreamResolutions.RESOLUTION_1440
@@ -1978,7 +1993,7 @@ module.exports = (() => {
 					this.previewInitial = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("isPreview")).isPreview;
 					this.userBgs = {};
 					this.fetchedUserBg = false;
-					this.hasAddedUserPfpStyle = false;
+					this.fetchedUserPfp = false;
 					this.userProfileMod = WebpackModules.getByProps("getUserProfile");
 					this.buttonClassModule = WebpackModules.getByProps("lookFilled", "button", "contents");
 					this.dispatcher = WebpackModules.getByProps("subscribe", "dispatch");
