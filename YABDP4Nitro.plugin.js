@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.0.8
+ * @version 5.0.9
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.0.8",
+			"version": "5.0.9",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -211,7 +211,7 @@ module.exports = (() => {
 							new Settings.Switch("UserPFP Integration", "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
-							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
+							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work. Only enable this if you don't have Nitro.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
 							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
@@ -858,19 +858,14 @@ module.exports = (() => {
 					});
 					
 					function makeProfileEffectButtons(self){
-						if(self.profileCustomizationSectionClass == undefined) self.profileCustomizationSectionClass = WebpackModules.getByProps("customizationSection").customizationSection;
-						let profileCustomizationSections = document.getElementsByClassName(self.profileCustomizationSectionClass);
-						let profileCustomizationSection;
-						for(let i = 0; i < profileCustomizationSections.length; i++){
-							if(profileCustomizationSections[i].innerText.startsWith("BANNER COLOR")){
-								profileCustomizationSection = profileCustomizationSections[i];
-								break;
-							}
-						}
-						if(profileCustomizationSection == undefined){
+						if(self.profileFxButtonContainerClass == undefined) self.profileFxButtonContainerClass = WebpackModules.getByProps("buttonsContainer", "newBadge").buttonsContainer;
+						
+						let profileCustomizationSection = document.getElementsByClassName(self.profileFxButtonContainerClass)[0];
+						
+						/*if(profileCustomizationSection == undefined){
 							if(self.containerClass == undefined) self.containerClass = WebpackModules.getByProps("container", "control", "disabled", "dividerDefault").container;
-							profileCustomizationSection = document.getElementsByClassName(container)[0].appendChild(document.createElement("p"));
-						}
+							profileCustomizationSection = document.getElementsByClassName(self.containerClass)[0];
+						}*/
 						
 						const buttonClassModule = self.buttonClassModule;
 						
@@ -880,8 +875,12 @@ module.exports = (() => {
 						onclick='if(document.getElementById("profileEffects").style.display == "block"){document.getElementById("profileEffects").style.display = "none"}else if(document.getElementById("profileEffects").style.display == "none") document.getElementById("profileEffects").style.display = "block";'>
 						Change Effect [YABDP4Nitro]</button>`;
 						if(document.getElementById("changeProfileEffectButton") == undefined){
-							profileCustomizationSection.innerHTML += changeProfileEffectButton;
-							let profileEffectsHTML = `<br><div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
+							let profileEffectButton = document.createElement("div");
+							profileEffectButton.innerHTML = changeProfileEffectButton;
+							//profileCustomizationSection.innerHTML += changeProfileEffectButton;
+							profileCustomizationSection.append(profileEffectButton);
+							
+							let profileEffectsHTML = `<div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
 								<style>
 									.riolubruhsSecretStuff {
 										width: 20%;
@@ -896,7 +895,11 @@ module.exports = (() => {
 								}
 							}
 							profileEffectsHTML += "</div>";
-							profileCustomizationSection.innerHTML += profileEffectsHTML;
+							let profileEffectsElement = document.createElement("div");
+							profileEffectsElement.innerHTML = profileEffectsHTML;
+							
+							//profileCustomizationSection.innerHTML += profileEffectsHTML;
+							profileCustomizationSection.parentElement.append(profileEffectsElement);
 							
 							let profileEffectButtons = document.getElementsByClassName("riolubruhsSecretStuff");
 							
@@ -1062,23 +1065,10 @@ module.exports = (() => {
 					});
 					
 					function makeAvatarDecorationShit(secondsightifyEncodeOnly, avatarDecorations, buttonClassModule, self){
-						if(self.profileCustomizationSectionClass == undefined) self.profileCustomizationSectionClass = WebpackModules.getByProps("customizationSection").customizationSection;
-						let profileCustomizationSections = document.getElementsByClassName(self.profileCustomizationSectionClass);
-						let profileCustomizationSection;
-						for(let i = 0; i < profileCustomizationSections.length; i++){
-							if(profileCustomizationSections[i].innerText.startsWith("BANNER COLOR")){
-								profileCustomizationSection = profileCustomizationSections[i];
-								break;
-							}
-						}
-						if(profileCustomizationSection == undefined){
-							if(self.containerClass == undefined) self.containerClass = WebpackModules.getByProps("container", "control", "disabled", "dividerDefault").container;
-							profileCustomizationSection = document.getElementsByClassName(container)[0].appendChild(document.createElement("p"));
-						}
+						if(self.avatarDecorationButtonsContainerClass == undefined) self.avatarDecorationButtonsContainerClass = WebpackModules.getAllByProps("buttonsContainer", "buttonHighlighted", "removeButton")[3].buttonsContainer;
+						let avatarDecorationSection = document.getElementsByClassName(self.avatarDecorationButtonsContainerClass)[0];
 						
-						if(profileCustomizationSection != undefined){
-							let avatarDecorationSection = profileCustomizationSection;
-							let avatarDecorationButtonSection = profileCustomizationSection;
+						if(avatarDecorationSection != undefined){
 							if(document.getElementById("decorationButton") == undefined){
 								let decorationButtonHTML = `<button id="decorationButton" 
 								class="${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}"
@@ -1086,10 +1076,13 @@ module.exports = (() => {
 								onclick='if(document.getElementById("avatarDecorations").style.display == "block"){document.getElementById("avatarDecorations").style.display = "none"}else if(document.getElementById("avatarDecorations").style.display == "none") document.getElementById("avatarDecorations").style.display = "block";'>
 								Change Decoration [YABDP4Nitro]</button>`
 								
-								avatarDecorationButtonSection.innerHTML += decorationButtonHTML;
+								let decorationButtonElement = document.createElement("div");
+								decorationButtonElement.innerHTML = decorationButtonHTML;
+								
+								avatarDecorationSection.append(decorationButtonElement);
 								
 								if(document.getElementById("avatarDecorations") == undefined){
-									let avatarDecorationsHTML = `<br><div id="avatarDecorations" style="display:none; color:white; white-space: nowrap; overflow: visible;">
+									let avatarDecorationsHTML = `<div id="avatarDecorations" style="display:none; color:white; white-space: nowrap; overflow: visible;">
 										<style>
 											.riolubruhsspecialsauce {
 												width: 20%;
@@ -1102,7 +1095,9 @@ module.exports = (() => {
 										if((i+1) % 4 == 0) avatarDecorationsHTML += "<br>"
 									}
 									avatarDecorationsHTML += "</div>";
-									avatarDecorationSection.innerHTML += avatarDecorationsHTML;
+									let avatarDecorationsElement = document.createElement("div")
+									avatarDecorationsElement.innerHTML = avatarDecorationsHTML;
+									avatarDecorationSection.parentElement.append(avatarDecorationsElement);
 									
 									let avatarDecorationsElements = document.getElementsByClassName("riolubruhsspecialsauce");
 									
@@ -1132,6 +1127,7 @@ module.exports = (() => {
 							console.error(err);
 						}
 					});
+
 				} //End of fakeAvatarDecorations()
 				
 
