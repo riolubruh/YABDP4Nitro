@@ -178,26 +178,9 @@ module.exports = (() => {
 						]),
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-							new Settings.Dropdown("Size", "The size of the emoji in pixels.", this.settings.emojiSize, [
-									{label: "32px (Default small/inline)", value: 32},
-									{label: "48px (Recommended, default large)", value: 48},
-									{label: "16px", value: 16},
-									{label: "24px", value: 24},
-									{label: "40px", value: 40},
-									{label: "56px", value: 56},
-									{label: "64px", value: 64},
-									{label: "80px", value: 80},
-									{label: "96px", value: 96},
-									{label: "128px (Max emoji size)", value: 128},
-									{label: "256px (Max GIF emoji size)", value: 256}
-								], 
-								value => {
-									if (isNaN(value)) {
-										value = 48;
-									}
-									this.settings.emojiSize = value
-								}, {searchable: true}
-							),
+							new Settings.Slider("Size", "The size of the emoji in pixels. 48 is the default. 128 and 256 are the max for static and animated emoji, respectively.", 16, 256, this.settings.emojiSize, size => this.settings.emojiSize = size, { 
+								markers: [16, 24, 32, 40, 48, 56, 64, 80, 96, 128, 256], stickToMarkers: true 
+							}),
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
 							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
