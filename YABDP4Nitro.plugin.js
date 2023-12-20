@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.1.1
+ * @version 5.1.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.1.1",
+			"version": "5.1.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -507,7 +507,7 @@ module.exports = (() => {
 						
 						this.hasAppliedExperiments = true;
 					}catch(err){
-						console.error(err);
+						console.warn(err);
 					}
 					
 				}
@@ -868,7 +868,7 @@ module.exports = (() => {
 						if(self.profileFxButtonContainerClass == undefined) self.profileFxButtonContainerClass = WebpackModules.getByProps("buttonsContainer", "newBadge").buttonsContainer;
 						
 						let profileCustomizationSection = document.getElementsByClassName(self.profileFxButtonContainerClass)[0];
-						
+						if(profileCustomizationSection == undefined) return;
 						/*if(profileCustomizationSection == undefined){
 							if(self.containerClass == undefined) self.containerClass = WebpackModules.getByProps("container", "control", "disabled", "dividerDefault").container;
 							profileCustomizationSection = document.getElementsByClassName(self.containerClass)[0];
@@ -917,6 +917,12 @@ module.exports = (() => {
 							} 
 						}
 					}
+					
+					this.dispatcher.dispatch({
+						type: "EXPERIMENT_OVERRIDE_BUCKET",
+						experimentId: "2023-08_profile_effects",
+						experimentBucket: 1
+					});
 					
 					if(this.profileCustomizationModule == undefined) this.profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
 					BdApi.Patcher.after("YABDP4Nitro", this.profileCustomizationModule, "getAllTryItOut", () => {
