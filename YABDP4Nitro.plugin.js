@@ -188,7 +188,8 @@ module.exports = (() => {
 									{label: "64px", value: 64},
 									{label: "80px", value: 80},
 									{label: "96px", value: 96},
-									{label: "128px (Max emoji size)", value: 128}
+									{label: "128px (Max emoji size)", value: 128},
+									{label: "256px (Max GIF emoji size)", value: 256}
 								], 
 								value => {
 									if (isNaN(value)) {
