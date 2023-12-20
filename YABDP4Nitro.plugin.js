@@ -918,11 +918,15 @@ module.exports = (() => {
 						}
 					}
 					
-					this.dispatcher.dispatch({
-						type: "EXPERIMENT_OVERRIDE_BUCKET",
-						experimentId: "2023-08_profile_effects",
-						experimentBucket: 1
-					});
+					if(this.experimentsModule == undefined) this.experimentsModule = WebpackModules.getByProps("getExperimentOverrides");
+					if(this.experimentsModule.getExperimentOverrides()['2023-08_profile_effects'] == undefined){
+						this.dispatcher.dispatch({
+							type: "EXPERIMENT_OVERRIDE_BUCKET",
+							experimentId: "2023-08_profile_effects",
+							experimentBucket: 1
+						});
+					}
+					
 					
 					if(this.profileCustomizationModule == undefined) this.profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
 					BdApi.Patcher.after("YABDP4Nitro", this.profileCustomizationModule, "getAllTryItOut", () => {
