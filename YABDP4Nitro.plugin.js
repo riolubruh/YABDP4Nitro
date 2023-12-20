@@ -178,18 +178,24 @@ module.exports = (() => {
 						]),
 						new Settings.SettingGroup("Emojis").append(
 							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-							new Settings.Textbox("Size", "The size of the emoji in pixels. Valid values: 16, 32, 48, 64, 80, 96, 112, 128, or powers of 2.", this.settings.emojiSize,
+							new Settings.Dropdown("Size", "The size of the emoji in pixels.", this.settings.emojiSize, [
+									{label: "32px (Default small/inline)", value: 32},
+									{label: "48px (Recommended, default large)", value: 48},
+									{label: "16px", value: 16},
+									{label: "24px", value: 24},
+									{label: "40px", value: 40},
+									{label: "56px", value: 56},
+									{label: "64px", value: 64},
+									{label: "80px", value: 80},
+									{label: "96px", value: 96},
+									{label: "128px (Max emoji size)", value: 128}
+								], 
 								value => {
-									value = parseInt(value);
 									if (isNaN(value)) {
-										value = 64;
-									} else if (value > 128) {
-										value = Math.pow(2, Math.round(Math.log(value) / Math.log(2))); 
-									} else if (![16, 32, 48, 64, 80, 96, 112, 128].includes(value)) {
-										value = Math.min.apply(Math, [16, 32, 48, 64, 80, 96, 112, 128].filter(function(x) { return x > value }));
+										value = 48;
 									}
-									this.settings.emojiSize = value;
-								}
+									this.settings.emojiSize = value
+								}, {searchable: true}
 							),
 							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
 							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
