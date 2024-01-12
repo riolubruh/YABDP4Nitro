@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.1.2
+ * @version 5.1.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.1.2",
+			"version": "5.1.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -279,7 +279,11 @@ module.exports = (() => {
 					
 
 					if(this.settings.stickerBypass){
-						try{this.stickerSending()}catch(err){console.error(err)}
+						try{
+							this.stickerSending()
+						}catch(err){
+							console.error(err)
+						}
 					}
 					
 					if(this.settings.emojiBypass){
@@ -858,7 +862,7 @@ module.exports = (() => {
 							let effectIndex = parseInt(revealedText.slice(position+3, position+5));
 							if(isNaN(effectIndex)) return;
 							if(profileEffectIdList[effectIndex] == undefined) return;
-							ret.profileEffectID = profileEffectIdList[effectIndex];
+							ret.profileEffectId = profileEffectIdList[effectIndex];
 							if(args[0] == undefined) return;
 							if(!this.badgeUserIDs.includes(args[0])) this.badgeUserIDs.push(args[0]);
 						}
