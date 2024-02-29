@@ -262,8 +262,9 @@ Thank you for your interest in contributing to YABDP4Nitro!
 Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
 
 Special thanks to:
-- Weblure for making multiple code contributions!
+- Weblure for making [multiple code contributions](https://github.com/riolubruh/YABDP4Nitro/commits?author=Weblure)!
 - Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
+- Moeefa for [committing a bugfix](https://github.com/riolubruh/YABDP4Nitro/commits?author=Moeefa)!
 
 Thank you all so much for your effort in making this plugin great!
 
