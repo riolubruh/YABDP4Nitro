@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.1.3
+ * @version 5.1.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.1.3",
+			"version": "5.1.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -312,7 +312,7 @@ module.exports = (() => {
 						}
 					}
 					
-					if(this.settings.profileV2 == true){
+					if(this.settings.profileV2){
 						try{
 							BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
 								if(ret == undefined) return;
@@ -511,7 +511,7 @@ module.exports = (() => {
 						
 						this.hasAppliedExperiments = true;
 					}catch(err){
-						console.warn(err);
+						//console.warn(err);
 					}
 					
 				}
@@ -602,8 +602,8 @@ module.exports = (() => {
 				
 				
 				customProfilePictureDecoding(){
-					if(this.getUserAvatarUrlModule == undefined) this.getUserAvatarUrlModule = WebpackModules.getByPrototypes("getUserAvatarURL").prototype;
-					BdApi.Patcher.instead("YABDP4Nitro", this.getUserAvatarUrlModule, "getUserAvatarURL", (user,args,originalFunction) => {
+					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
+					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user,args,originalFunction) => {
 						//userpfp closer integration
 						if(!this.fetchedUserPfp || this.userPfps == undefined){
 							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
@@ -730,7 +730,16 @@ module.exports = (() => {
 				} //End of customProfilePictureEncoding()
 				
 				
-				honorBadge(){
+				honorBadge(){ //css better than the stupid shit we were doing before
+					BdApi.DOM.addStyle("YABDP4NitroBadges", `
+						a[aria-label="A fellow YABDP4Nitro user!"] img {
+							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png");
+						}
+
+						a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
+							content: url("https://i.imgur.com/bYGGXnq.gif");
+						}
+					`)
 					BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
 						if(ret == undefined) return;
 						if(ret.userId == undefined) return;
@@ -755,7 +764,7 @@ module.exports = (() => {
 								link: "https://github.com/riolubruh/YABDP4Nitro"
 							});
 						}
-						const specialThanks = ["122072911455453184", "760274365853335563"];
+						const specialThanks = ["122072911455453184", "760274365853335563", "482224256730791967"];
 						if(specialThanks.includes(ret.userId) && !badgesList.includes("yabdp_contributor")){
 							ret.badges.push({
 								id: "yabdp_contributor",
@@ -763,63 +772,6 @@ module.exports = (() => {
 								description: "YABDP4Nitro Contributor!",
 								link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
 							});
-						}
-					});
-					
-					function applyCustomBadgeIcon(self){
-						if(self.profileBadgesClass == undefined) self.profileBadgesClass = WebpackModules.getByProps("profileBadges").profileBadges;
-						for(const element of document.getElementsByClassName(self.profileBadgesClass) + document.getElementsByClassName(DiscordClassModules.UserModal.profileBadge)){
-							const qry = document.querySelectorAll('[aria-label="A fellow YABDP4Nitro user!"]');
-							if(qry.length > 0){
-								qry.forEach((obj) => {
-									const icon = "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png";
-									const badge = obj;
-									if(badge.firstChild.src != icon) badge.firstChild.src = icon;
-								});		
-							}
-							const qry2 = document.querySelectorAll('[aria-label="YABDP4Nitro Creator!"]');
-							if(qry2.length > 0){
-								qry2.forEach((obj) => {
-									const icon = "https://i.imgur.com/bYGGXnq.gif";
-									const badge = obj;
-									if(badge.firstChild.src != icon) badge.firstChild.src = icon;
-								});		
-							}
-							const qry3 = document.querySelectorAll('[aria-label="YABDP4Nitro Contributor!"]');
-							if(qry3.length > 0){
-								qry3.forEach((obj) => {
-									const icon = "https://i.imgur.com/bYGGXnq.gif";
-									const badge = obj;
-									if(badge.firstChild.src != icon) badge.firstChild.src = icon;
-								});		
-							}
-						}
-					}
-					
-					if(this.profileRenderer == undefined) this.profileRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("CLYDE_SETTINGS"))[0];
-					
-					BdApi.Patcher.after("YABDP4Nitro", this.profileRenderer, "default", (_,args,ret) => {
-						try{
-							applyCustomBadgeIcon(this);
-						}catch(err){
-							console.error(err);
-						}
-					});
-					
-					if(this.profileCustomizationModule == undefined) this.profileCustomizationModule = WebpackModules.getByProps("getTryItOutThemeColors");
-					BdApi.Patcher.after("YABDP4Nitro", this.profileCustomizationModule, "getAllTryItOut", () => {
-						try{
-							applyCustomBadgeIcon(this);
-						}catch(err){
-							console.error(err);
-						}
-					});
-					
-					BdApi.Patcher.after("YABDP4Nitro", this.profileCustomizationModule, "getAllPending", () => {
-						try{
-							applyCustomBadgeIcon(this);
-						}catch(err){
-							console.error(err);
 						}
 					});
 				} //End of honorBadge()
@@ -868,15 +820,11 @@ module.exports = (() => {
 						}
 					});
 					
-					function makeProfileEffectButtons(self){
+					function makeProfileEffectButtons(self){ //All of the code in this function is really hard to read.
 						if(self.profileFxButtonContainerClass == undefined) self.profileFxButtonContainerClass = WebpackModules.getByProps("buttonsContainer", "newBadge").buttonsContainer;
 						
 						let profileCustomizationSection = document.getElementsByClassName(self.profileFxButtonContainerClass)[0];
 						if(profileCustomizationSection == undefined) return;
-						/*if(profileCustomizationSection == undefined){
-							if(self.containerClass == undefined) self.containerClass = WebpackModules.getByProps("container", "control", "disabled", "dividerDefault").container;
-							profileCustomizationSection = document.getElementsByClassName(self.containerClass)[0];
-						}*/
 						
 						const buttonClassModule = self.buttonClassModule;
 						
@@ -888,7 +836,6 @@ module.exports = (() => {
 						if(document.getElementById("changeProfileEffectButton") == undefined){
 							let profileEffectButton = document.createElement("div");
 							profileEffectButton.innerHTML = changeProfileEffectButton;
-							//profileCustomizationSection.innerHTML += changeProfileEffectButton;
 							profileCustomizationSection.append(profileEffectButton);
 							
 							let profileEffectsHTML = `<div id="profileEffects" style="display:none; color:white; white-space: nowrap; overflow: visible;">
@@ -909,7 +856,6 @@ module.exports = (() => {
 							let profileEffectsElement = document.createElement("div");
 							profileEffectsElement.innerHTML = profileEffectsHTML;
 							
-							//profileCustomizationSection.innerHTML += profileEffectsHTML;
 							profileCustomizationSection.parentElement.append(profileEffectsElement);
 							
 							let profileEffectButtons = document.getElementsByClassName("riolubruhsSecretStuff");
@@ -976,7 +922,7 @@ module.exports = (() => {
 											if(self.settings.avatarDecorations.includes(String(item.asset))) return;
 										}
 									}
-									self.settings.avatarDecorations.unshift(String(item.asset));
+									self.settings.avatarDecorations.push(String(item.asset));
 									Utilities.saveSettings(self.getName(), self.settings);
 								}
 							}
@@ -1008,40 +954,60 @@ module.exports = (() => {
 						if(ret == undefined) return;
 						
 						if((avatarDecorations == new Array()) || (avatarDecorations == undefined) || (avatarDecorations.length == 0)){
-							//Fallback to potentially outdated list in case the user has not downloaded the avatar decoration data yet.
+							//Fallback to outdated list in case the user has not downloaded the avatar decoration data yet.
 							avatarDecorations = [
-								"a_10b9f886b513b77ccdd67c8784f1a496",//a0
-								"a_fed43ab12698df65902ba06727e20c0e",//a1
-								"a_d3da36040163ee0f9176dfe7ced45cdc",//a2
-								"a_950aea7686c5674b4e2f5df0830d153b",//a3
-								"a_8b0d858b65a81ea0c537091a4650a6d4",//a4
-								"a_faaa56d945e2d0f6c41cf940d122cb9e",//a5
-								"a_9b7b74e72efe1bc5a6beddced3da3c0f",//a6
-								"a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc",//a7
-								"a_911e48f3a695c7f6c267843ab6a96f2f",//a8
-								"a_3c97a2d37f433a7913a1c7b7a735d000",//a9
-								"a_f1b2fd4706ab02b54d3a58f84b3ef564",//a10
-								"a_8ffa2ba9bff18e96b76c2e66fd0d7fa3",//a11
-								"a_d72066b8cecbadd9fc951913ebcc384f",//a12
-								"a_55c9d0354290afa8b7fe47ea9bd7dbcf",//a13
-								"a_c3c09bd122898be35093d0d59850f627",//a14
-								"a_c7e1751e8122f1b475cb3006966fb28c",//a15
-								"a_4c9f2ec29c05755456dbce45d8190ed4",//a16
-								"a_9d67a1cbf81fe7197c871e94f619b04b",//a17
-								"a_29a0533cb3de61aa8179810188f3830d",//a18
-								"a_d650e22f6c4bab4fc0969e9d35edbcb0",//a19
-								"a_db9baf0ba7cf449d2b027c06309dbe8d",//a20
-								"a_fe3c76cac2adf426832a7e495e8329d3",//a21
-								"a_1dbc603c181999b9815cb426dfec71a6",//a22
-								"a_0f5d6c4dd8ae74662ee9c40722a56cbd",//a23
-								"a_7d305bca6cf371df98c059f9d2ef05e4",//a24
-								"a_4936aa6c33a101b593f9607d48d686ec",//a25
-								"a_145dffeb81bcfff96be683fd9f6db20a",//a26
-								"a_5087f7f988bd1b2819cac3e33d0150f5",//a27
-								"a_50939e8f95b0ddfa596809480b0eb3e1",//a28
-								"a_f979ba5f9c2ba83db3149cc02f489f7c",//a29
-								"a_b9a64088e30fd3a6f2456c2e0f44f173",//a30
-								"a_ad4e2cad924bbb3a2fddf5c527370479" //a31
+								"a_172fa9da0af8698e37f5e5de76637439",
+								"a_cc83efd93ecd6e41857449c3c0ef9b22",
+								"a_c6b3bc1dc49e5b284dca0b6437831004",
+								"a_e90ebc0114e7bdc30353c8b11953ea41",
+								"a_b98e8b204d59882fb7f9f7c86922c0bf",
+								"a_48ca99fcfa4ecc11acdc323534a0ecbb",
+								"a_21c7a425b490017478a5558f33f33c63",
+								"a_2ca5fb1ecf0dac410b38d76cb4aae7f9",
+								"a_be797b0a0efafd45a9ee49aaedbde4d2",
+								"a_42f43a32539de2f3f30a348dc8a880e1",
+								"a_40d1bf0f84b5042c4777371275294664",
+								"a_129e3e818c8319e031d34d4194cf8ecd",
+								"a_8b7ad8479ad8cc9996b508b75410e2f9",
+								"a_68b9ced89df522993b81a33f43490ef1",
+								"a_ea8e2e628bacdddb1ef18cb382aa454c",
+								"a_e11ac0d3f2b1301173847b84a1a3268f",
+								"a_88f42fb7360d8224a670a50c3496f315",
+								"a_85a8f9ca60cb4328378270a7f13ed7fd",
+								"a_a0fafb7c7ee7f1e5b1442f44f3aa14b7",
+								"a_a46f14932ac02de32f64139d3b9057b8",
+								"a_10b9f886b513b77ccdd67c8784f1a496",
+								"a_fed43ab12698df65902ba06727e20c0e",
+								"a_d3da36040163ee0f9176dfe7ced45cdc",
+								"a_950aea7686c5674b4e2f5df0830d153b",
+								"a_8b0d858b65a81ea0c537091a4650a6d4",
+								"a_faaa56d945e2d0f6c41cf940d122cb9e",
+								"a_9b7b74e72efe1bc5a6beddced3da3c0f",
+								"a_aa2e1c2b3cf05b24f6ec7b8b4141f5fc",
+								"a_911e48f3a695c7f6c267843ab6a96f2f",
+								"a_3c97a2d37f433a7913a1c7b7a735d000",
+								"a_f1b2fd4706ab02b54d3a58f84b3ef564",
+								"a_8ffa2ba9bff18e96b76c2e66fd0d7fa3",
+								"a_d72066b8cecbadd9fc951913ebcc384f",
+								"a_55c9d0354290afa8b7fe47ea9bd7dbcf",
+								"a_c3c09bd122898be35093d0d59850f627",
+								"a_c7e1751e8122f1b475cb3006966fb28c",
+								"a_4c9f2ec29c05755456dbce45d8190ed4",
+								"a_9d67a1cbf81fe7197c871e94f619b04b",
+								"a_29a0533cb3de61aa8179810188f3830d",
+								"a_d650e22f6c4bab4fc0969e9d35edbcb0",
+								"a_db9baf0ba7cf449d2b027c06309dbe8d",
+								"a_fe3c76cac2adf426832a7e495e8329d3",
+								"a_1dbc603c181999b9815cb426dfec71a6",
+								"a_0f5d6c4dd8ae74662ee9c40722a56cbd",
+								"a_7d305bca6cf371df98c059f9d2ef05e4",
+								"a_4936aa6c33a101b593f9607d48d686ec",
+								"a_145dffeb81bcfff96be683fd9f6db20a",
+								"a_5087f7f988bd1b2819cac3e33d0150f5",
+								"a_50939e8f95b0ddfa596809480b0eb3e1",
+								"a_f979ba5f9c2ba83db3149cc02f489f7c",
+								"a_b9a64088e30fd3a6f2456c2e0f44f173",
+								"a_ad4e2cad924bbb3a2fddf5c527370479"
 							]
 						}
 						
@@ -1796,9 +1762,8 @@ module.exports = (() => {
 				
 				
 				bannerUrlDecoding(){
-					if(this.settings.userBgIntegration){ //download & parse userBg data
+					if(this.settings.userBgIntegration && !this.fetchedUserBg){ //download & parse userBg data if we havent already
 						const userBgJsonUrl = "https://raw.githubusercontent.com/Discord-Custom-Covers/usrbg/master/dist/usrbg.json";
-						if(this.fetchedUserBg) return; //already fetched userbg database. previous code was probably laggy as fuck sry
 						fetch(userBgJsonUrl).then(res => res.text().then(str => JSON.parse(str).forEach(obj => { //download, then parse json
 							this.userBgs[obj.uid] = obj.img; //add each entry to an object with {userId: imgURL} format
 						})));
@@ -2056,16 +2021,8 @@ module.exports = (() => {
 					if(document.getElementById("profileEffects")) document.getElementById("profileEffects").remove();
 					if(document.getElementById("profilePictureUrlInput")) document.getElementById("profilePictureUrlInput").remove();
 					if(document.getElementById("profilePictureButton")) document.getElementById("profilePictureButton").remove();
-					try{
-						BdApi.DOM.removeStyle("YABDP4Nitro");
-					}catch(err){
-						console.error(err);
-					}
-					try{
-						BdApi.DOM.removeStyle("userPfp");
-					}catch(err){
-						console.error(err);
-					}
+					BdApi.DOM.removeStyle("YABDP4Nitro");
+					BdApi.DOM.removeStyle("YABDP4NitroBadges");
 					this.userBgs = {};
 				}
 			};
