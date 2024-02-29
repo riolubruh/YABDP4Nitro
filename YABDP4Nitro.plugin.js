@@ -602,8 +602,8 @@ module.exports = (() => {
 				
 				
 				customProfilePictureDecoding(){
-					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
-					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user,args,originalFunction) => {
+					if(this.getUserAvatarUrlModule == undefined) this.getUserAvatarUrlModule = WebpackModules.getByPrototypes("getUserAvatarURL").prototype;
+					BdApi.Patcher.instead("YABDP4Nitro", this.getUserAvatarUrlModule, "getUserAvatarURL", (user,args,originalFunction) => {
 						//userpfp closer integration
 						if(!this.fetchedUserPfp || this.userPfps == undefined){
 							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
