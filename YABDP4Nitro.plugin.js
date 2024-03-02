@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.1.4
+ * @version 5.1.5
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.1.4",
+			"version": "5.1.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -602,8 +602,8 @@ module.exports = (() => {
 				
 				
 				customProfilePictureDecoding(){
-					if(this.getUserAvatarUrlModule == undefined) this.getUserAvatarUrlModule = WebpackModules.getByPrototypes("getUserAvatarURL").prototype;
-					BdApi.Patcher.instead("YABDP4Nitro", this.getUserAvatarUrlModule, "getUserAvatarURL", (user,args,originalFunction) => {
+					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
+					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user,args,originalFunction) => {
 						//userpfp closer integration
 						if(!this.fetchedUserPfp || this.userPfps == undefined){
 							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
@@ -733,13 +733,12 @@ module.exports = (() => {
 				honorBadge(){ //css better than the stupid shit we were doing before
 					BdApi.DOM.addStyle("YABDP4NitroBadges", `
 						a[aria-label="A fellow YABDP4Nitro user!"] img {
-							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png");
+							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
 						}
 
 						a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
-							content: url("https://i.imgur.com/bYGGXnq.gif");
-						}
-					`)
+							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+						}`)
 					BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
 						if(ret == undefined) return;
 						if(ret.userId == undefined) return;
