@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.0
+ * @version 5.2.1
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.0",
+			"version": "5.2.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -673,7 +673,7 @@ module.exports = (() => {
 							//if there is no 3y3 encoded text, return original function.
 							if(revealedText == undefined) return originalFunction(user,args);
 							
-							//This regex matches /P{*} . Do not fuck with this.
+							//This regex matches /P{*} . (Do not fuck with this)
 							let regex = /P\{[^}]*\}/i;
 							
 							//Check if there are any matches in the custom status.
@@ -704,10 +704,14 @@ module.exports = (() => {
 				
 				
 				//Custom PFP profile customization buttons and encoding code.
-				customProfilePictureEncoding(secondsightifyEncodeOnly){
+				async customProfilePictureEncoding(secondsightifyEncodeOnly){
 					
-					const asdf = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("USER_SETTINGS_RESET_AVATAR"))[0];
-					BdApi.Patcher.after("YABDP4Nitro", asdf, "default", (_,[args],ret) => {
+					//wait for avatar customization section renderer to be loaded
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("USER_SETTINGS_RESET_AVATAR"));
+					//store avatar customization section renderer module
+					if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("USER_SETTINGS_RESET_AVATAR"))[0];
+					
+					BdApi.Patcher.after("YABDP4Nitro", this.customPFPSettingsRenderMod, "default", (_,[args],ret) => {
 					
 						//don't need to do anything if this is the "Try out Nitro" flow.
 						if(args.isTryItOutFlow) return;
@@ -921,6 +925,7 @@ module.exports = (() => {
 						if(revealedText.includes("/fx")){
 							let position = revealedText.indexOf("/fx");
 							if(position == undefined) return;
+							
 							//find the 2 characters after the /fx and parse int
 							let effectIndex = parseInt(revealedText.slice(position+3, position+5));
 							//ignore invalid data 
@@ -929,6 +934,7 @@ module.exports = (() => {
 							if(profileEffectIdList[effectIndex] == undefined) return;
 							//set the profile effect
 							ret.profileEffectId = profileEffectIdList[effectIndex];
+							
 							//if for some reason we dont know what this user's ID is, stop here
 							if(args[0] == undefined) return;
 							//otherwise add them to the list of users who show up with the YABDP4Nitro user badge
@@ -968,6 +974,7 @@ module.exports = (() => {
 								children: "Change Effect [YABDP4Nitro]",
 								className: `${this.buttonClassModule.button} ${this.buttonClassModule.lookFilled} ${this.buttonClassModule.colorBrand} ${this.buttonClassModule.sizeSmall} ${this.buttonClassModule.grow}`,
 								size: "sizeSmall__71a98",
+								id: "changeProfileEffectButton",
 								style: {
 									width: "100px",
 									height: "32px",
@@ -1041,7 +1048,8 @@ module.exports = (() => {
 				}
 				
 				
-				fakeAvatarDecorations(self){
+				//Everything related to fake avatar decorations.
+				async fakeAvatarDecorations(self){
 					if(this.shopModule == undefined) this.shopModule = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("useFetchCollectiblesCategoriesAndPurchases"))[0];
 					
 					let avatarDecorations = self.settings.avatarDecorations;
@@ -1178,22 +1186,23 @@ module.exports = (() => {
 						}
 					}); //end of getUser patch for avatar decorations
 					
+					//Wait for avatar decor customization section render module to be loaded.
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("useGuildMemberAndUserPendingAvatarDecoration"));
+					
 					//Avatar decoration customization section render module/function.
-					if(this.decorationCustomizationSectionMod == undefined) this.decorationCustomizationSectionMod = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("USER_SETTINGS_AVATAR_DECORATION"))[0];
+					if(this.decorationCustomizationSectionMod == undefined) this.decorationCustomizationSectionMod = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("useGuildMemberAndUserPendingAvatarDecoration"))[0];
 					
 					//Avatar decoration customization section patch
 					BdApi.Patcher.after("YABDP4Nitro", this.decorationCustomizationSectionMod, "default", (_,[args],ret) => {
-						
 						//don't run if this is the try out nitro flow.
 						if(args.isTryItOutFlow) return;
 						
 						//push change decoration button
-						ret.props.children.props.children.push(
+						ret.props.children[0].props.children.push(
 							BdApi.React.createElement("button", {
 								id: "decorationButton",
 								children: "Change Decoration [YABDP4Nitro]",
 								style: {
-									backgroundColor: "#7289da",
 									width: "100px",
 									height: "50px",
 									color: "white",
@@ -2108,8 +2117,10 @@ module.exports = (() => {
 				
 				//Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
 				//Documented/commented and partially rewritten to use React patching on 3/6/2024
-				bannerUrlEncoding(secondsightifyEncodeOnly){ 
+				async bannerUrlEncoding(secondsightifyEncodeOnly){
 					
+					//wait for banner customization renderer module to be loaded
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("USER_SETTINGS_PROFILE_BANNER"));
 					if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("USER_SETTINGS_PROFILE_BANNER"))[0];
 					
 					BdApi.Patcher.after("YABDP4Nitro", this.profileBannerSectionRenderer, "default", (_, args, ret) => {
