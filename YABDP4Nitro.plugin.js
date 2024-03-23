@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.1
+ * @version 5.2.2
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.1",
+			"version": "5.2.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -292,19 +292,19 @@ module.exports = (() => {
 							
 							if(this.emojiMods == undefined) this.emojiMods = WebpackModules.getByProps("isEmojiFilteredOrLocked");
 							
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFilteredOrLocked", (_, args, originalFunction) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFilteredOrLocked", () => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiDisabled", (_, args, originalFunction) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiDisabled", () => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFiltered", (_, args, originalFunction) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFiltered", () => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiPremiumLocked", (_, args, originalFunction) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiPremiumLocked", () => {
 								return false
 							});
-							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", (callee, args, originalFunction) => {
+							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", () => {
 								return
 							});
 						}catch(err){
@@ -629,9 +629,8 @@ module.exports = (() => {
 				customProfilePictureDecoding(){
 					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
 					
-					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user,args,originalFunction) => {
+					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user, [args], originalFunction) => {
 						//userpfp closer integration
-						
 						//if we haven't fetched userPFP database yet,
 						if(!this.fetchedUserPfp || this.userPfps == undefined){
 							
@@ -662,16 +661,16 @@ module.exports = (() => {
 							//get user activities
 							let activities = DiscordModules.UserStatusStore.getActivities(user.id);
 							//if user does not have a custom status, return original function.
-							if(activities[0].name != "Custom Status") return originalFunction(user,args);
+							if(activities[0].name != "Custom Status") return originalFunction(args);
 							
 							//if user does have a custom status, assign it to customStatus variable.
 							let customStatus = activities[0].state;
 							//checking if anything went wrong
-							if(customStatus == undefined) return originalFunction(user,args);
+							if(customStatus == undefined) return originalFunction(args);
 							//decode any 3y3 text
 							let revealedText = this.secondsightifyRevealOnly(String(customStatus));
 							//if there is no 3y3 encoded text, return original function.
-							if(revealedText == undefined) return originalFunction(user,args);
+							if(revealedText == undefined) return originalFunction(args);
 							
 							//This regex matches /P{*} . (Do not fuck with this)
 							let regex = /P\{[^}]*\}/i;
@@ -679,8 +678,8 @@ module.exports = (() => {
 							//Check if there are any matches in the custom status.
 							let matches = revealedText.toString().match(regex);
 							//if not, return orig function
-							if(matches == undefined) return originalFunction(user,args);
-							if(matches == "") return originalFunction(user,args);
+							if(matches == undefined) return originalFunction(args);
+							if(matches == "") return originalFunction(args);
 							
 							//if there is a match, take the first match and remove the starting "P{ and ending "}"
 							let matchedText = matches[0].replace("P{", "").replace("}", "");
@@ -698,7 +697,7 @@ module.exports = (() => {
 						}
 						
 						//if user does not have any activities active, return original function.
-						return originalFunction(user,args);
+						return originalFunction(args);
 					})
 				}
 				
@@ -2004,7 +2003,7 @@ module.exports = (() => {
 				bannerUrlDecoding(){ //Decode 3y3 from profile bio and apply fake banners.
 					
 					//if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
-					if(this.settings.userBgIntegration && !this.fetchedUserBg){ 
+					if(this.settings.userBgIntegration && !this.fetchedUserBg){
 						
 						//userBg database url.
 						const userBgJsonUrl = "https://raw.githubusercontent.com/Discord-Custom-Covers/usrbg/master/dist/usrbg.json";
@@ -2021,17 +2020,16 @@ module.exports = (() => {
 					if(this.bannerUrlModule == undefined) this.bannerUrlModule = WebpackModules.getByPrototypes("getBannerURL");
 					
 					//Patch getUserBannerURL function
-					BdApi.Patcher.before("YABDP4Nitro", this.bannerUrlModule, "getUserBannerURL", (_,args) => {
-						args[0].canAnimate = true; //fixes nitro banners not animating
+					BdApi.Patcher.before("YABDP4Nitro", this.bannerUrlModule, "getUserBannerURL", (_, args) => {
+						args[0].canAnimate = true;
 					});
 					
 					//Patch getBannerURL function
-					BdApi.Patcher.instead("YABDP4Nitro", this.bannerUrlModule.prototype, "getBannerURL", (user, args, ogFunction) => {
-						
+					BdApi.Patcher.instead("YABDP4Nitro", this.bannerUrlModule.prototype, "getBannerURL", (user, [args], ogFunction) => {
 						let profile = user._userProfile;
 						
 						//Returning ogFunction with the same arguments that were passed to this function will do the vanilla check for a legit banner.
-						if(profile == undefined) return ogFunction(user, args);
+						if(profile == undefined) return ogFunction(args);
 						
 						if(this.settings.userBgIntegration){ //if userBg integration is enabled
 							//check userBg database for this user
@@ -2043,16 +2041,15 @@ module.exports = (() => {
 								profile.premiumType = 2; //set this profile to appear with premium rendering
 								return userBg; //return userBg banner URL and exit.
 							}
-							else ;
 						}
 						
 						//do original function if we don't have the user's bio
-						if(profile.bio == undefined) return ogFunction(user, args);
+						if(profile.bio == undefined) return ogFunction(args);
 						
 						//reveal 3y3 encoded text, store as parsed
 						let parsed = this.secondsightifyRevealOnly(profile.bio);
 						//if there is no 3y3 encoded text, return original function
-						if(parsed == undefined) return ogFunction(user, args);
+						if(parsed == undefined) return ogFunction(args);
 						
 						//This regex matches /B{*} . Do not touch unless you know what you are doing.
 						let regex = /B\{[^}]*\}/i;
@@ -2061,8 +2058,8 @@ module.exports = (() => {
 						let matches = parsed.toString().match(regex);
 						
 						//if there's no matches, return original function
-						if(matches == undefined) return ogFunction(user, args);
-						if(matches == "") return ogFunction(user, args);
+						if(matches == undefined) return ogFunction(args);
+						if(matches == "") return ogFunction(args);
 						
 						//if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
 						let matchedText = matches[0].replace("B{", "").replace("}", "");
@@ -2087,7 +2084,7 @@ module.exports = (() => {
 						
 					}); //End of patch for getBannerURL
 					
-					if(this.profileRenderer == undefined) this.profileRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("CLYDE_SETTINGS"))[0];
+					if(this.profileRenderer == undefined) this.profileRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("PRESS_PREMIUM_UPSELL"))[0]
 					
 					BdApi.Patcher.before("YABDP4Nitro", this.profileRenderer, "default", (_,args) => {
 						if(args == undefined) return;
@@ -2105,7 +2102,6 @@ module.exports = (() => {
 						if(args[0]?.displayProfile?.banner == undefined) return;
 						if(ret == undefined) return;
 						if(ret.props?.hasBanner == undefined) return;
-						
 						//if this user's banner is a fake banner
 						if(args[0].displayProfile.banner == "funky_kong_is_epic"){
 							//tell the profile renderer to show them as having a banner.
