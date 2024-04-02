@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.3
+ * @version 5.2.4
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.3",
+			"version": "5.2.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -1956,6 +1956,9 @@ module.exports = (() => {
 					
 					//wait for theme color picker module to be loaded
 					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byProps("getTryItOutThemeColors")); 
+					
+					//wait for color picker renderer module to be loaded
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("__invalid_profileThemesSection"));
 					
 					if(this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = WebpackModules.getAllByProps("default").filter(obj => obj.default.toString().includes("__invalid_profileThemesSection"))[0];
 					
