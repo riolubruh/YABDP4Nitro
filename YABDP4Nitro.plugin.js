@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.2
+ * @version 5.2.3
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +38,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.2",
+			"version": "5.2.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -427,12 +427,7 @@ module.exports = (() => {
 					
 					if(this.settings.profileEffects){
 						try{
-							if(this.profileEffects == undefined) this.profileEffects = WebpackModules.getByProps("profileEffects", "tryItOutId").profileEffects;
-							let profileEffectIdList = new Array();
-							for(let i = 0; i < this.profileEffects.length; i++){
-								profileEffectIdList.push(this.profileEffects[i].id)
-							}
-							this.profileFX(profileEffectIdList, this.profileEffects, this.secondsightifyEncodeOnly);
+							this.profileFX(this.secondsightifyEncodeOnly);
 						}catch(err){
 							console.error(err);
 						}
@@ -629,10 +624,11 @@ module.exports = (() => {
 				customProfilePictureDecoding(){
 					if(this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = WebpackModules.getByPrototypes("getAvatarURL").prototype;
 					
-					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user, [args], originalFunction) => {
+					BdApi.Patcher.instead("YABDP4Nitro", this.getAvatarUrlModule, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
+						
 						//userpfp closer integration
-						//if we haven't fetched userPFP database yet,
-						if(!this.fetchedUserPfp || this.userPfps == undefined){
+						//if we haven't fetched userPFP database yet and it's enabled
+						if((!this.fetchedUserPfp || this.userPfps == undefined) && this.settings.userPfpIntegration){
 							
 							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
 							
@@ -647,8 +643,8 @@ module.exports = (() => {
 							
 						}
 						
-						//if userPfp database is not undefined has been fetched
-						if(this.userPfps != undefined && this.fetchedUserPfp){
+						//if userPfp database is not undefined, has been fetched, and is enabled
+						if((this.userPfps != undefined && this.fetchedUserPfp) && this.settings.userPfpIntegration){
 							//and this user is in the userPfp database,
 							if(this.userPfps[user.id] != undefined){
 								//return UserPFP profile picture URL.
@@ -661,16 +657,16 @@ module.exports = (() => {
 							//get user activities
 							let activities = DiscordModules.UserStatusStore.getActivities(user.id);
 							//if user does not have a custom status, return original function.
-							if(activities[0].name != "Custom Status") return originalFunction(args);
+							if(activities[0].name != "Custom Status") return originalFunction(userId, size, shouldAnimate);
 							
 							//if user does have a custom status, assign it to customStatus variable.
 							let customStatus = activities[0].state;
 							//checking if anything went wrong
-							if(customStatus == undefined) return originalFunction(args);
+							if(customStatus == undefined) return originalFunction(userId, size, shouldAnimate);
 							//decode any 3y3 text
 							let revealedText = this.secondsightifyRevealOnly(String(customStatus));
 							//if there is no 3y3 encoded text, return original function.
-							if(revealedText == undefined) return originalFunction(args);
+							if(revealedText == undefined) return originalFunction(userId, size, shouldAnimate);
 							
 							//This regex matches /P{*} . (Do not fuck with this)
 							let regex = /P\{[^}]*\}/i;
@@ -678,8 +674,8 @@ module.exports = (() => {
 							//Check if there are any matches in the custom status.
 							let matches = revealedText.toString().match(regex);
 							//if not, return orig function
-							if(matches == undefined) return originalFunction(args);
-							if(matches == "") return originalFunction(args);
+							if(matches == undefined) return originalFunction(userId, size, shouldAnimate);
+							if(matches == "") return originalFunction(userId, size, shouldAnimate);
 							
 							//if there is a match, take the first match and remove the starting "P{ and ending "}"
 							let matchedText = matches[0].replace("P{", "").replace("}", "");
@@ -697,7 +693,7 @@ module.exports = (() => {
 						}
 						
 						//if user does not have any activities active, return original function.
-						return originalFunction(args);
+						return originalFunction(userId, size, shouldAnimate);
 					})
 				}
 				
@@ -761,8 +757,8 @@ module.exports = (() => {
 									//if url seems correct
 									if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 										
-										//Check for album URL
-										if(stringToEncode.replace("imgur.com/","").startsWith("a/")){
+										//Check for album or gallery URL
+										if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")){
 											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
 											
 											//Fetch imgur album page
@@ -906,11 +902,32 @@ module.exports = (() => {
 				
 				
 				//Everything related to Fake Profile Effects.
-				async profileFX(profileEffectIdList, profileEffects, secondsightifyEncodeOnly){
+				async profileFX(secondsightifyEncodeOnly){
+					
+					//wait for profile effects module
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byProps("profileEffects", "tryItOutId"));
+					
+					//try to get profile effects data
+					if(this.profileEffects == undefined) this.profileEffects = WebpackModules.getByProps("profileEffects", "tryItOutId").profileEffects;
+					
+					//if profile effects data hasn't been fetched by the client yet
+					if(this.profileEffects.length == 0){
+						
+						//make the client fetch profile effects
+						await WebpackModules.getByProps("fetchUserProfileEffects").fetchUserProfileEffects().then(() => {
+							//then wait for the effects to be fetched and store them
+							this.profileEffects = WebpackModules.getByProps("profileEffects", "tryItOutId").profileEffects;
+						});
+					}
+					
+					let profileEffectIdList = new Array();
+					for(let i = 0; i < this.profileEffects.length; i++){
+						profileEffectIdList.push(this.profileEffects[i].id);
+					}
+					
 					
 					if(this.settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 					
-					//1000th patch on getUserProfile.
 					BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
 						//error prevention
 						if(ret == undefined) return;
@@ -954,7 +971,7 @@ module.exports = (() => {
 					//wait for profile effect section renderer to be loaded.
 					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("openProfileEffectModal"));
 					
-					//fetch the module now that it's ready for patching
+					//fetch the module now that it's loaded
 					if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("openProfileEffectModal"))[0];
 					
 					
@@ -962,8 +979,6 @@ module.exports = (() => {
 					BdApi.Patcher.after("YABDP4Nitro", this.profileEffectSectionRenderer, "default", (_, [args], ret) => {
 						
 						//if this is the tryItOut flow, don't do anything.
-						//console.log(ret);
-						//console.log(args);
 						if(args.isTryItOutFlow) return;
 						//if(ret.props.hasBackground) return;
 						
@@ -996,13 +1011,14 @@ module.exports = (() => {
 							.riolubruhsSecretStuff {
 								width: 20%;
 								cursor: pointer;
+								margin-top: .5em;
 							}
 						</style>`;
 						
 						//for each profile effect
-						for(let i = 0; i < profileEffects.length; i++){
+						for(let i = 0; i < this.profileEffects.length; i++){
 							//get preview image url
-							let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
+							let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
 							//encode 3y3
 							let encodedText = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
 							//javascript that runs onclick for each profile effect button
@@ -1027,7 +1043,8 @@ module.exports = (() => {
 									display: "none",
 									color: "white",
 									whiteSpace: "nowrap",
-									overflow: "visible"
+									overflow: "visible",
+									marginTop: ".5em"
 								},
 								dangerouslySetInnerHTML: {__html: profileEffectsHTML} //set inner html.
 							})
@@ -1206,7 +1223,7 @@ module.exports = (() => {
 									height: "50px",
 									color: "white",
 									borderRadius: "3px",
-									marginLeft: "5px"
+									marginLeft: "5px",
 								},
 								className: `${this.buttonClassModule.button} ${this.buttonClassModule.lookFilled} ${this.buttonClassModule.colorBrand} ${this.buttonClassModule.sizeSmall} ${this.buttonClassModule.grow}`,
 								onClick: () => {
@@ -1254,7 +1271,8 @@ module.exports = (() => {
 										display: "none",
 										color: "white",
 										whiteSpace: "nowrap",
-										overflow: "visible"
+										overflow: "visible",
+										marginTop: ".5em"
 									},
 									dangerouslySetInnerHTML: {__html: avatarDecorationsHTML} //set inner html.
 								})
@@ -1320,7 +1338,7 @@ module.exports = (() => {
 
 				emojiBypassForValidEmoji(emoji, currentChannelId){ //Made into a function to save space and clean up
 					if(this.settings.emojiBypassForValidEmoji){
-						if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0)) {
+						if((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId) && !emoji.animated && (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type == 11)) {
 						//If emoji is from current guild, not animated, and we are actually in a guild channel, cancel emoji bypass
 							return true //Returning true cancels emoji bypass
 						}
@@ -1932,70 +1950,71 @@ module.exports = (() => {
 				}
 				
 				
-				encodeProfileColors(primary, accent) {
-					if(this.themeColorsPickerModule == undefined) this.themeColorsPickerModule = WebpackModules.getByProps("getTryItOutThemeColors");
+				//Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
+				//Replaced DOM manipulation with React patching 4/2/2024
+				async encodeProfileColors(primary, accent) {
 					
-					function makeCopyButtonAndEncoding(themeColorsPickerModule, self){
-						const sectionContainerClassModule = WebpackModules.getByProps("sectionContainer");
-						const profileThemeSection = document.getElementsByClassName(sectionContainerClassModule.sectionContainer);
-						let copyButton = document.createElement("button");
-						copyButton.innerText = "Copy Colors 3y3";
-						copyButton.className = `${self.buttonClassModule.button} ${self.buttonClassModule.lookFilled} ${self.buttonClassModule.colorBrand} ${self.buttonClassModule.sizeSmall} ${self.buttonClassModule.grow}`;
-						copyButton.id = "copy3y3button";
-						copyButton.style = "margin-left: 10px; margin-top: 10px";
-						copyButton.onclick = function(){
-							let themeColors = null;
-							try{
-								themeColors = themeColorsPickerModule.getAllTryItOut().tryItOutThemeColors
-							}catch(err){
-								console.warn(err);
-							}
-							if(themeColors == null){
-								try{
-									themeColors = themeColorsPickerModule.getAllPending().pendingThemeColors;
-								}catch(err){
-									console.error(err);
-								}
-							}
-							if(themeColors == undefined){
-								Toasts.warning("Nothing has been copied. Is the selected color identical to your current color?");
-								return
-							}
-							const primary = themeColors[0];
-							const accent = themeColors[1];
-							let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
-							const padding = "";
-							let encoded = Array.from(message)
-								.map(x => x.codePointAt(0))
-								.filter(x => x >= 0x20 && x <= 0x7f)
-								.map(x => String.fromCodePoint(x + 0xe0000))
-								.join("");
-
-							let encodedStr = ((padding || "") + " " + encoded);
-							
-							const clipboardTextElem = document.createElement("textarea");
-							clipboardTextElem.style.position = 'fixed';
-							clipboardTextElem.value = encodedStr;
-							document.body.appendChild(clipboardTextElem);
-							clipboardTextElem.select();
-							clipboardTextElem.setSelectionRange(0, 99999);
-							document.execCommand('copy');
-							Toasts.info("3y3 copied to clipboard!");
-							document.body.removeChild(clipboardTextElem);
-						}
-						if(profileThemeSection[0] != undefined){
-							if(profileThemeSection[0].children.length == 2){
-								profileThemeSection[0].appendChild(copyButton);
-							}
-						}
-					}
-					BdApi.Patcher.after("YABDP4Nitro", this.themeColorsPickerModule, "getAllTryItOut", () => {
-						makeCopyButtonAndEncoding(this.themeColorsPickerModule, this);
+					//wait for theme color picker module to be loaded
+					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byProps("getTryItOutThemeColors")); 
+					
+					if(this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = WebpackModules.getAllByProps("default").filter(obj => obj.default.toString().includes("__invalid_profileThemesSection"))[0];
+					
+					BdApi.Patcher.after("YABDP4Nitro", this.colorPickerRendererMod, "default", (_, args, ret) => {
 						
+						ret.props.children.props.children.push( //append copy colors 3y3 button
+							BdApi.React.createElement("button", {
+								id: "copy3y3button",
+								children: "Copy Colors 3y3", 
+								className: `${this.buttonClassModule.button} ${this.buttonClassModule.lookFilled} ${this.buttonClassModule.colorBrand} ${this.buttonClassModule.sizeSmall} ${this.buttonClassModule.grow}`,
+								style: {
+									marginLeft: "10px",
+									marginTop: "10px"
+								},
+								onClick: () => {
+									let themeColors = null;
+									try{
+										themeColors = ZLibrary.WebpackModules.getByProps("getTryItOutThemeColors").getAllTryItOut().tryItOutThemeColors
+									}catch(err){
+										console.warn(err);
+									}
+									if(themeColors == null){
+										try{
+											themeColors = ZLibrary.WebpackModules.getByProps("getTryItOutThemeColors").getAllPending().pendingThemeColors;
+										}catch(err){
+											console.error(err);
+										}
+									}
+									if(themeColors == undefined){
+										Toasts.warning("Nothing has been copied. Is the selected color identical to your current color?");
+										return
+									}
+									const primary = themeColors[0];
+									const accent = themeColors[1];
+									let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+									const padding = "";
+									let encoded = Array.from(message)
+										.map(x => x.codePointAt(0))
+										.filter(x => x >= 0x20 && x <= 0x7f)
+										.map(x => String.fromCodePoint(x + 0xe0000))
+										.join("");
+
+									let encodedStr = ((padding || "") + " " + encoded);
+									
+									//do this stupid shit Chrome makes you do to copy text to the clipboard.
+									const clipboardTextElem = document.createElement("textarea");
+									clipboardTextElem.style.position = 'fixed';
+									clipboardTextElem.value = encodedStr;
+									document.body.appendChild(clipboardTextElem);
+									clipboardTextElem.select();
+									clipboardTextElem.setSelectionRange(0, 99999);
+									document.execCommand('copy');
+									Toasts.info("3y3 copied to clipboard!");
+									document.body.removeChild(clipboardTextElem);
+								}
+							})
+						);
 					});
-					BdApi.Patcher.after("YABDP4Nitro", this.themeColorsPickerModule, "getAllPending", () => {
-						makeCopyButtonAndEncoding(this.themeColorsPickerModule, this);
-					});
+					
 				} //End of encodeProfileColors()
 				
 				
@@ -2172,8 +2191,8 @@ module.exports = (() => {
 									//if url seems correct
 									if(stringToEncode.toLowerCase().startsWith("imgur.com")){
 										
-										//Check for album URL
-										if(stringToEncode.replace("imgur.com/","").startsWith("a/")){
+										//Check for album or gallery URL
+										if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")){
 											
 											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
 											const parser = new DOMParser(); //initialize DOM parser
