@@ -29,6 +29,7 @@ Raw Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YA
 - [Special Thanks](#contributors)
 - [Additional Plugins I Recommend](#recommended-additional-plugins-for-more-nitro-features)
 - [License Agreement](#license)
+- [Donate](#donate)
   
 ## Features
 
@@ -280,20 +281,10 @@ Thank you all so much for your effort in making this plugin great!
 
 The plugin is licensed under the NPOSL Version 3 License. You can find it [here](https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md).
 
-tl;dr: This license grants you the right to:
+This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL WORK IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
 
-**Use and Modify**: You can use and modify the original work, such as software code or creative content, without needing to pay royalties.
+## Donate
 
-**Create Derivative Works**: You're allowed to create new works based on the original, like adding features or making improvements.
+### Support the trolling of Discord via Ko-fi!
 
-**Distribute and Share**: You can share copies of the original work and your derivative creations with others, as long as you follow the license rules.
-
-Important things to consider:
-
-**Attribution**: If you modify the original work, you need to keep copyright, patent, and trademark notices intact and provide clear information about your changes.
-
-**No Warranties**: The original work is provided "as is," without any warranty, and the creator is not responsible for any problems or damages you might encounter.
-
-**Limitation of Liability**: The creator is not liable for any damages that might arise from using the original work or your modifications.
-
-**Termination**: If you violate the license terms, your rights can be terminated. Also, if you sue the creator for patent infringement based on the original work, your rights under the license automatically end.
+<a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
