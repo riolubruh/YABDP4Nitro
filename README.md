@@ -285,6 +285,6 @@ This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either expre
 
 ## Donate
 
-### Support the trolling of Discord via Ko-fi!
+### Support the development of this plugin via Ko-fi!
 
 <a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
