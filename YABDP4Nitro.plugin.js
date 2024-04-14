@@ -1,7 +1,8 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.4
+ * @version 5.2.5
+ * @invite KvdT5Wg8s6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
@@ -38,7 +39,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.4",
+			"version": "5.2.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -1460,6 +1461,11 @@ module.exports = (() => {
 					//Upload Emotes Method
 					if(this.settings.uploadEmotes) {
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "_sendMessage", (_, msg, send) => {
+							//fix polls
+							if(msg[2].poll != undefined){
+								send(msg[0], msg[1], msg[2], msg[3]);
+								return;
+							}
 							const currentChannelId = msg[0];
 							let runs = 0; //number of times the uploader has run for this message
 							msg[1].validNonShortcutEmojis.forEach(emoji => {
@@ -1497,7 +1503,6 @@ module.exports = (() => {
 					//Ghost mode method
 					if(this.settings.ghostMode && !this.settings.uploadEmotes) {
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-							
 							let emojiGhostIteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
 							msg.validNonShortcutEmojis.forEach(emoji => {
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
@@ -1543,6 +1548,7 @@ module.exports = (() => {
 					//Original method
 					if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+							
 							//refer to previous bypasses for comments on what this all is for.
 							let emojiGhostIteration = 0;
 							msg.validNonShortcutEmojis.forEach(emoji => {
