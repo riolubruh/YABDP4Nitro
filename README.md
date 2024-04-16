@@ -29,6 +29,7 @@ Raw Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YA
 - [Special Thanks](#contributors)
 - [Additional Plugins I Recommend](#recommended-additional-plugins-for-more-nitro-features)
 - [License Agreement](#license)
+- [Discord Server](#discord-server)
 - [Donate](#donate)
   
 ## Features
@@ -281,7 +282,11 @@ Thank you all so much for your effort in making this plugin great!
 
 The plugin is licensed under the NPOSL Version 3 License. You can find it [here](https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md).
 
-This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL WORK IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
+This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
+
+## Discord Server
+
+https://discord.gg/EFmGEWAUns
 
 ## Donate
 
