@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.5
+ * @version 5.2.6
  * @invite KvdT5Wg8s6
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,7 +39,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.5",
+			"version": "5.2.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -981,9 +981,70 @@ module.exports = (() => {
 						
 						//if this is the tryItOut flow, don't do anything.
 						if(args.isTryItOutFlow) return;
-						//if(ret.props.hasBackground) return;
 						
-						ret.props.children.props.children.push( //append Change Effect button
+						let profileEffectChildren = [];
+						
+						//for each profile effect
+						for(let i = 0; i < this.profileEffects.length; i++){
+							
+							//get preview image url
+							let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
+							let title = this.profileEffects[i].config.title;
+							//encode 3y3
+							let encodedText = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
+							//javascript that runs onclick for each profile effect button
+							let copyDecoration3y3 = function(){
+								const clipboardTextElem = document.createElement("textarea");
+								clipboardTextElem.style.position = "fixed";
+								clipboardTextElem.value = ` ${encodedText}`;
+								document.body.appendChild(clipboardTextElem);
+								clipboardTextElem.select();
+								clipboardTextElem.setSelectionRange(0, 99999);
+								document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!");
+								document.body.removeChild(clipboardTextElem);
+							}
+							
+							profileEffectChildren.push(
+								BdApi.React.createElement("img", {
+									className: "riolubruhsSecretStuff",
+									onClick: copyDecoration3y3,
+									src: previewURL,
+									title,
+									style: {
+										width: "22.5%",
+										cursor: "pointer",
+										marginBottom: "0.5em",
+										marginLeft: "0.5em"
+									}
+								})
+							);
+
+							//add newline every 4th profile effect
+							if((i+1) % 4 == 0){ 
+								profileEffectChildren.push(
+									BdApi.React.createElement("br")
+								);
+							}
+						}
+						
+						//Profile Effects Modal
+						function EffectsModal() {
+							const elem = BdApi.React.createElement("div", {
+								style: {
+									width: "100%",
+									display: "block",
+									color: "white",
+									whiteSpace: "nowrap",
+									overflow: "visible",
+									marginTop: ".5em"
+								},
+								children: profileEffectChildren
+							});
+							return elem;
+						}
+						
+						//Append Change Effect button
+						ret.props.children.props.children.push( 
 							//self explanatory create react element
 							BdApi.React.createElement("button", {
 								children: "Change Effect [YABDP4Nitro]",
@@ -997,57 +1058,9 @@ module.exports = (() => {
 									marginLeft: "10px"
 								},
 								onClick: () => {
-									if(document.getElementById("profileEffects").style.display == "block")
-										document.getElementById("profileEffects").style.display = "none";
-									else if(document.getElementById("profileEffects").style.display == "none")
-										document.getElementById("profileEffects").style.display = "block";
+									BdApi.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", BdApi.React.createElement(EffectsModal));
 								}
 								
-							})
-						);
-						
-						//beginning of profile effect buttons html
-						let profileEffectsHTML = `
-						<style>
-							.riolubruhsSecretStuff {
-								width: 20%;
-								cursor: pointer;
-								margin-top: .5em;
-							}
-						</style>`;
-						
-						//for each profile effect
-						for(let i = 0; i < this.profileEffects.length; i++){
-							//get preview image url
-							let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
-							//encode 3y3
-							let encodedText = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
-							//javascript that runs onclick for each profile effect button
-							let copyDecoration3y3 = `const clipboardTextElem = document.createElement("textarea"); clipboardTextElem.style.position = "fixed"; clipboardTextElem.value = " ${encodedText}"; document.body.appendChild(clipboardTextElem); clipboardTextElem.select(); clipboardTextElem.setSelectionRange(0, 99999); document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);`
-							//append html to profileEffectsHTML for each button 
-							profileEffectsHTML += `<img class="riolubruhsSecretStuff" onclick='${copyDecoration3y3}' src="${previewURL}">${i} `
-							//add newline every 4th profile effect
-							if((i+1) % 4 == 0){ 
-								profileEffectsHTML += "<br>";
-							}
-						}
-						
-						//make ret.props.children into an array so i can append another child. 
-						//if ret.props.children becomes an array in the future for some reason, remove below line.
-						ret.props.children = [ret.props.children];
-						
-						ret.props.children.push( //append profile effect buttons
-							BdApi.React.createElement("div", {
-								id: "profileEffects",
-								style: {
-									width: "100%",
-									display: "none",
-									color: "white",
-									whiteSpace: "nowrap",
-									overflow: "visible",
-									marginTop: ".5em"
-								},
-								dangerouslySetInnerHTML: {__html: profileEffectsHTML} //set inner html.
 							})
 						);
 					}); //end patch of profile effect section renderer function
@@ -1066,6 +1079,7 @@ module.exports = (() => {
 				
 				
 				//Everything related to fake avatar decorations.
+				//This needs to be rewritten.
 				async fakeAvatarDecorations(self){
 					if(this.shopModule == undefined) this.shopModule = WebpackModules.getAllByProps("default").filter((obj) => obj.default.toString().includes("useFetchCollectiblesCategoriesAndPurchases"))[0];
 					
@@ -2356,7 +2370,6 @@ module.exports = (() => {
 					if(document.getElementById("decorationButton")) document.getElementById("decorationButton").remove();
 					if(document.getElementById("avatarDecorations")) document.getElementById("avatarDecorations").remove();
 					if(document.getElementById("changeProfileEffectButton")) document.getElementById("changeProfileEffectButton").remove();
-					if(document.getElementById("profileEffects")) document.getElementById("profileEffects").remove();
 					if(document.getElementById("profilePictureUrlInput")) document.getElementById("profilePictureUrlInput").remove();
 					if(document.getElementById("profilePictureButton")) document.getElementById("profilePictureButton").remove();
 					BdApi.DOM.removeStyle("YABDP4Nitro");
