@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.8
+ * @version 5.2.9
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,7 +39,7 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.8",
+			"version": "5.2.9",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
@@ -1162,7 +1162,7 @@ module.exports = (() => {
 						if(firstMatch == undefined) return;
 						
 						//slice off the /a and parse the number as an int
-						let assetId = revealedText.slice(2);
+						let assetId = firstMatch.slice(2);
 						
 						//if this decoration is not in the list, return
 						if(avatarDecorations[assetId] == undefined) return;
