@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.0
+ * @version 5.3.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,18 +39,18 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.0",
+			"version": "5.3.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.0 Changelog",
+				title: "5.3.1, Remove Visual Locks and Upsells",
 				items: [
-					"Added changelog",
-					"Fixed Spotify Listen Along invites not being sent if no message was attached",
-					"Added a case where if a emoji is determined unavailable due to Server Boost level dropping, the emoji bypass will apply."
+					"Replaced console.error() calls with Logger.err() calls for more nice-looking output in the event of an error",
+					"Patched canUserUse function to remove visual locks on some things like the emoji menu and upsells in Profile Settings",
+					'Re-added "Remove Profile Upsell" option. Off by default so there is no confusion, since it also unlocks the Server Profiles menu, but you can\'t actually use the locked parts due to the API.'
 				]
 			}
 		],
@@ -97,7 +97,8 @@ module.exports = (() => {
 				Utilities,
 				WebpackModules,
 				DiscordClassModules,
-				PluginUpdater
+				PluginUpdater,
+				Logger
 			} = Api;
 			return class YABDP4Nitro extends Plugin {
 				defaultSettings = {
@@ -127,7 +128,7 @@ module.exports = (() => {
 					"clientThemes": true,
 					"lastGradientSettingStore": -1,
 					"fakeProfileThemes": true,
-					//"removeProfileUpsell": true,
+					"removeProfileUpsell": false,
 					"removeScreenshareUpsell": true,
 					"fakeProfileBanners": true,
 					"fakeAvatarDecorations": true,
@@ -231,7 +232,7 @@ module.exports = (() => {
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work. Only enable this if you don't have Nitro.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
 							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
-							//new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
+							new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
 							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
 							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. Buggy.", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value),
 							new Settings.Switch("Experiments", "Unlocks experiments. Use at your own risk.", this.settings.experiments, value => this.settings.experiments = value)
@@ -257,8 +258,7 @@ module.exports = (() => {
 							}
 						}
 						catch(err){
-							console.log("[YABDP4Nitro]: Error occurred changing premium type.");
-							console.error(err);
+							Logger.err(this.getName(), "An error occurred changing premium type." + err);
 						}
 					}
 					
@@ -318,6 +318,7 @@ module.exports = (() => {
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", () => {
 								return
 							});
+							
 						}catch(err){
 							console.error(err);
 						}
@@ -338,14 +339,12 @@ module.exports = (() => {
 						try{
 							this.customVideoSettings(); //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
 						}catch(err){
-							console.log("[YABDP4Nitro]: Error occurred during customVideoSettings;()");
-							console.error(err);
+							Logger.err(this.getName(), "Error occurred during customVideoSettings() " + err);
 						}
 						try{
 							this.videoQualityModule(); //Custom bitrate, fps, resolution module
 						}catch(err){
-							console.log("[YABDP4Nitro]: Error occurred during videoQualityModule();");
-							console.error(err);
+							Logger.err(this.getName(), "Error occurred during videoQualityModule() " + err);
 						}
 					}
 					
@@ -373,27 +372,16 @@ module.exports = (() => {
 							this.decodeAndApplyProfileColors();
 							this.encodeProfileColors();
 						}catch(err){
-							console.log("[YABDP4Nitro]: Error occurred running fakeProfileThemes bypass.");
-							console.error(err);
+							Logger.err(this.getName(), "Error occurred running fakeProfileThemes bypass. " + err);
 						}
 						
 					}
-					
-					/*
-					//TODO: find a different way to do this
-					
-					if(this.settings.removeProfileUpsell){
-						BdApi.Patcher.instead("YABDP4Nitro", permissions, "canUsePremiumProfileCustomization", () => {
-							return true
-						});
-					}*/
-					
 					
 					if(this.hasAddedScreenshareUpsellStyle && !this.settings.removeScreenshareUpsell){
 						try{
 							BdApi.DOM.removeStyle("YABDP4Nitro")
 						}catch(err){
-							console.warn(err)
+							Logger.warn(this.getName(), err);
 						}
 					}
 					
@@ -407,7 +395,7 @@ module.exports = (() => {
 							}`);
 							this.hasAddedScreenshareUpsellStyle = true;
 						}catch(err){
-							console.error(err);
+							Logger.err(this.getName(), err);
 						}
 						
 					}
@@ -418,8 +406,7 @@ module.exports = (() => {
 							this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
 							this.bannerUrlDecodingPreview();
 						}catch(err){
-							console.log("[YABDP4Nitro]: What the fuck happened? fakeProfileBanners");
-							console.error(err);
+							Logger.err(this.getName(), "What the fuck happened? In fakeProfileBanners: " + err);
 						}
 					}
 					
@@ -427,8 +414,7 @@ module.exports = (() => {
 						try{
 							this.fakeAvatarDecorations(this);
 						}catch(err){
-							console.log("[YABDP4Nitro]: An error occurred during fakeAvatarDecorations();");
-							console.error(err);
+							Logger.err(this.getName(), "An error occurred during fakeAvatarDecorations() " + err);
 						}
 					}
 					
@@ -448,16 +434,14 @@ module.exports = (() => {
 						try{
 							this.killProfileFX();
 						}catch(err){
-							console.log("[YABDP4Nitro]: Error occured during killProfileFX();");
-							console.error(err);
+							Logger.err(this.getName(), "Error occured during killProfileFX() " + err);
 						}
 					}
 					
 					try{
 						this.honorBadge();
 					}catch(err){
-						console.log("[YABDP4Nitro] An error occurred during honorBadge();");
-						console.error(err);
+						Logger.err(this.getName(), "An error occurred during honorBadge() " + err);
 					}
 					
 					if(this.settings.customPFPs){
@@ -465,8 +449,7 @@ module.exports = (() => {
 							this.customProfilePictureDecoding();
 							this.customProfilePictureEncoding(this.secondsightifyEncodeOnly);
 						}catch(err){
-							console.log("[YABDP4Nitro] An error occurred during customProfilePicture decoding/encoding.");
-							console.error(err);
+							Logger.err(this.getName(), "An error occurred during customProfilePicture decoding/encoding. " + err);
 						}
 					}
 					
@@ -474,8 +457,7 @@ module.exports = (() => {
 						try{
 							this.experiments();
 						}catch(err){
-							console.log("[YABDP4Nitro] Error occurred in experiments();");
-							console.error(err);
+							Logger.err(this.getName(), "Error occurred in experiments() " + err);
 						}
 					}
 					
@@ -496,6 +478,27 @@ module.exports = (() => {
 							}
 						});
 					}
+					
+					BdApi.Patcher.instead("YABDP4Nitro", this.canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
+						
+						if(this.settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis")){
+							return true;
+						}
+						
+						if(this.settings.appIcons && feature.name == 'appIcons'){
+							return true;
+						}
+						
+						if(this.settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures'){
+							return true;
+						}
+						
+						if(this.settings.clientThemes && feature.name == 'clientThemes')
+						
+						
+						return originalFunction(feature, user);
+					});
+					
 					
 				} //End of saveAndUpdate()
 				
@@ -1359,15 +1362,14 @@ module.exports = (() => {
 				// true = skip bypass
 				// false = perform bypass
 				emojiBypassForValidEmoji(emoji, currentChannelId){
-					console.log(emoji);
 					if(this.settings.emojiBypassForValidEmoji){
 						if( (DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated
 						&& (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available)
-							//If emoji is from current guild, not animated, and we are actually in a guild channel, cancel emoji bypass
+							//If emoji is from current guild, not animated, and we are actually in a guild channel,
+							//and emoji is "available" (could be unavailable due to Server Boost level dropping), cancel emoji bypass
 							
 							|| emoji.managed){
-								//emoji.managed = whether the emoji is managed by a Twitch integration. who would have thought?
-								
+								// OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration)
 								return true;
 							}
 							
@@ -1910,8 +1912,7 @@ module.exports = (() => {
 					try{
 						document.getElementsByClassName(DiscordClassModules.AccountDetails.container)[0].appendChild(qualityButton);
 					}catch(err){
-						console.log("YABDP4Nitro: What the fuck happened..? During buttonCreate()");
-						console.error(err);
+						console.error("[YABDP4Nitro] What the fuck happened..? During buttonCreate() " + err);
 					}
 
 					let qualityMenu = document.createElement('div');
@@ -2341,8 +2342,7 @@ module.exports = (() => {
 						}
 					}
 					catch(err){
-						console.log("[YABDP4Nitro]: Error occurred changing premium type.");
-						console.error(err);
+						Logger.err(this.getName(), "Error occurred changing premium type. " + err);
 					}
 					
 					if(this.appIconModule == undefined) this.appIconModule = WebpackModules.getByProps("getCurrentDesktopIcon");
@@ -2382,6 +2382,7 @@ module.exports = (() => {
 					this.userProfileMod = WebpackModules.getByProps("getUserProfile");
 					this.buttonClassModule = WebpackModules.getByProps("lookFilled", "button", "contents");
 					this.dispatcher = WebpackModules.getByProps("subscribe", "dispatch");
+					this.canUserUseMod = WebpackModules.getByProps("canUserUse");
 					this.saveAndUpdate();
 				}
 				
