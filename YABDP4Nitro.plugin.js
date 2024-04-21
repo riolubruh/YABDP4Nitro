@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.2.9
+ * @version 5.3.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,11 +39,21 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.2.9",
+			"version": "5.3.0",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
+		changelog: [
+			{
+				title: "5.3.0 Changelog",
+				items: [
+					"Added changelog",
+					"Fixed Spotify Listen Along invites not being sent if no message was attached",
+					"Added a case where if a emoji is determined unavailable due to Server Boost level dropping, the emoji bypass will apply."
+				]
+			}
+		],
 		"main": "YABDP4Nitro.plugin.js"
 	};
 
@@ -171,8 +181,8 @@ module.exports = (() => {
 								}),
 								new Settings.Dropdown("Preferred Video Codec", "Changes the screen share video codec to the one set.", this.settings.videoCodec, [
 									{label: "Default/Disabled", value: 0},
-									{label: "H.264", value: 1},
-									{label: "AV1", value: 2},
+									{label: "H.265", value: 1},
+									{label: "H.264", value: 2},
 									{label: "VP8", value: 3},
 									{label: "VP9", value: 4}], value => this.settings.videoCodec = value, {searchable: true}
 								)
@@ -1161,7 +1171,7 @@ module.exports = (() => {
 						let firstMatch = matches[0];
 						if(firstMatch == undefined) return;
 						
-						//slice off the /a and parse the number as an int
+						//slice off the /a and just store the ID number
 						let assetId = firstMatch.slice(2);
 						
 						//if this decoration is not in the list, return
@@ -1348,14 +1358,20 @@ module.exports = (() => {
 				//Whether we should skip the emoji bypass for a given emoji.
 				// true = skip bypass
 				// false = perform bypass
-				emojiBypassForValidEmoji(emoji, currentChannelId){ 
+				emojiBypassForValidEmoji(emoji, currentChannelId){
+					console.log(emoji);
 					if(this.settings.emojiBypassForValidEmoji){
-						if( (DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type == 11))
+						if( (DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated
+						&& (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available)
 							//If emoji is from current guild, not animated, and we are actually in a guild channel, cancel emoji bypass
 							
-							|| emoji.managed)
-							//emoji.managed = whether the emoji is managed by a Twitch integration. who would have thought?
-							return true;
+							|| emoji.managed){
+								//emoji.managed = whether the emoji is managed by a Twitch integration. who would have thought?
+								
+								return true;
+							}
+							
+							
 						
 					}
 					return false;
@@ -1476,6 +1492,7 @@ module.exports = (() => {
 					if(this.settings.uploadEmotes) {
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "_sendMessage", (_, msg, send) => {
 							//fix polls
+							if(msg[2].activityAction)
 							if(msg[2].poll != undefined){
 								send(msg[0], msg[1], msg[2], msg[3]);
 								return;
@@ -1508,7 +1525,7 @@ module.exports = (() => {
 								//upload emote
 								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
 							});
-							if((msg[1].content !== undefined && msg[1].content != "") && runs == 0) {
+							if((msg[1].content !== undefined && (msg[1].content != "" || msg[2].activityAction != undefined)) && runs == 0) {
 								send(msg[0], msg[1], msg[2], msg[3]);
 							}
 						});
@@ -1762,23 +1779,26 @@ module.exports = (() => {
 					
 					if(this.settings.videoCodec > 0){ // Video codecs
 						BdApi.Patcher.before("YABDP4Nitro", this.videoOptionFunctions, "updateVideoQuality", (e) => {
-							
 							//This code determines what codec was chosen
+							let isCodecH265 = false;
 							let isCodecH264 = false;
 							let isCodecAV1 = false;
 							let isCodecVP8 = false;
 							let isCodecVP9 = false;
 							switch(this.settings.videoCodec){
 								case 1:
-									isCodecH264 = true;
+									isCodecH265 = true;
 									break;
 								case 2:
-									isCodecAV1 = true;
+									isCodecH264 = true;
 									break;
 								case 3:
-									isCodecVP8 = true;
+									isCodecAV1 = true;
 									break;
 								case 4:
+									isCodecVP8 = true;
+									break;
+								case 5:
 									isCodecVP9 = true;
 									break;
 							}
@@ -1789,55 +1809,64 @@ module.exports = (() => {
 							function setPriority(codec){
 								switch(codec){
 									case 0:
-									if(isCodecH264){
-										return 1;
+										if(isCodecH265){
+											return 1;
+											break;
+										}else{
+											currentHighestNum += 1;
+											return currentHighestNum;
+										}
 										break;
-									}else{
-										currentHighestNum += 1;
-										return currentHighestNum;
-									}
-									break;
+									case 1:
+										if(isCodecH264){
+											return 1;
+											break;
+										}else{
+											currentHighestNum += 1;
+											return currentHighestNum;
+										}
+										break;
 									
-								case 1:
-									if(isCodecAV1){
-										return 1;
+									case 2:
+											if(isCodecAV1){
+												return 1;
+												break;
+											}else{
+												currentHighestNum += 1;
+												return currentHighestNum;
+											}
+											break;
+									case 3:
+											if(isCodecVP8){
+												return 1;
+												break;
+											}else{
+												currentHighestNum += 1;
+												return currentHighestNum;
+											}
+											break;
+									case 4:
+										if(isCodecVP9){
+											return 1;
+											break;
+										}else{
+											currentHighestNum += 1;
+											return currentHighestNum;
+										}
 										break;
-									}else{
-										currentHighestNum += 1;
-										return currentHighestNum;
-									}
-									break;
-								case 2:
-									if(isCodecVP8){
-										return 1;
-										break;
-									}else{
-										currentHighestNum += 1;
-										return currentHighestNum;
-									}
-									break;
-								case 3:
-									if(isCodecVP9){
-										return 1;
-										break;
-									}else{
-										currentHighestNum += 1;
-										return currentHighestNum;
-									}
-									break;
 								}
-								
 							}
 							
 							//and this code sets the priorities based on the outputs of setPriority.
 							if(e.codecs != undefined && e.codecs[1]?.decode != undefined){
+								
+								e.codecs[1].decode = isCodecH265; //H.265
+								e.codecs[1].encode = isCodecH265;
+								e.codecs[1].priority = parseInt(setPriority(0));
+								
 								e.codecs[2].decode = isCodecH264; //H.264
 								e.codecs[2].encode = isCodecH264;
-								e.codecs[2].priority = parseInt(setPriority(0));
-								
-								e.codecs[1].decode = isCodecAV1; //AV1
-								e.codecs[1].encode = isCodecAV1;
-								e.codecs[1].priority = parseInt(setPriority(1));
+								e.codecs[2].priority = parseInt(setPriority(1));
 								
 								e.codecs[3].decode = isCodecVP8; //VP8
 								e.codecs[3].encode = isCodecVP8;
