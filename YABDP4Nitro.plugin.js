@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.1
+ * @version 5.3.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,18 +39,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.1",
+			"version": "5.3.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.1, Remove Visual Locks and Upsells",
+				title: "5.3.2 Hotfix",
 				items: [
-					"Replaced console.error() calls with Logger.err() calls for more nice-looking output in the event of an error",
-					"Patched canUserUse function to remove visual locks on some things like the emoji menu and upsells in Profile Settings",
-					'Re-added "Remove Profile Upsell" option. Off by default so there is no confusion, since it also unlocks the Server Profiles menu, but you can\'t actually use the locked parts due to the API.'
+					"Fixed a typo in the canUserUse function patch."
 				]
 			}
 		],
@@ -493,8 +491,9 @@ module.exports = (() => {
 							return true;
 						}
 						
-						if(this.settings.clientThemes && feature.name == 'clientThemes')
-						
+						if(this.settings.clientThemes && feature.name == 'clientThemes'){
+							return true;
+						}
 						
 						return originalFunction(feature, user);
 					});
