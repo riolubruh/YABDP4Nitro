@@ -132,7 +132,8 @@ Clicking this button will reveal a menu with each of the avatar decorations in a
 ![avatar decorations](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/54597f3e-b115-44dd-9804-3aee5d9c99b3)
 
 Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
-<br>Now follow one or both of the following methods to apply the avatar decoration to your profile:
+<br>Now follow one or both **(for the best effect, do both!)** of the following methods to apply the avatar decoration to your profile:
+
 
 <details>
  <summary>
@@ -147,6 +148,8 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
  ![profile](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/2e48a60a-b235-48fd-a93f-b14c6a2ba695)
 
  Click the button to add/edit your custom status and paste your clipboard into your status.
+
+ **Note that if you are using the Custom Status method only, it will only appear for other YABDP4Nitro users when you are online.**
 
  You should now see the avatar decoration appear around your profile picture!
 </details>
