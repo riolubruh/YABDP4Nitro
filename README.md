@@ -23,7 +23,7 @@ Raw Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YA
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
-- [FAQ (read this before asking!)](#frequently-asked-questions)
+- [FAQ & Installation (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
 - [Special Thanks](#contributors)
@@ -244,7 +244,7 @@ ___
 Removes the annoying Nitro upsell in the screen share quality menu.
 
 # Frequently Asked Questions
-[Go here for the FAQ!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
+[Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
 
 If your question isn't there **and you think it should be there,** write a comment below that issue. 
 
