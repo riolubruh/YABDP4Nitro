@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.2
+ * @version 5.3.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,16 +39,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.2",
+			"version": "5.3.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.2 Hotfix",
+				title: "5.3.3 Emoji Bypass Hotfix",
 				items: [
-					"Fixed a typo in the canUserUse function patch."
+					"Fixed an issue where emojis did not work as a result of Discord changing the emoji object format (removed emoji.url)."
 				]
 			}
 		],
@@ -1503,11 +1503,12 @@ module.exports = (() => {
 							msg[1].validNonShortcutEmojis.forEach(emoji => {
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
 								if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
-								if(emoji.url.startsWith("/assets/")) return; //System emoji. Skip.
-								
 								if(this.settings.PNGemote) {
-									emoji.url = emoji.url.replace('.webp', '.png'); //replace WEBP with PNG if the option is enabled.
+									emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
 								}
+								let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
+								if(emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
+								
 								
 								//If there is a backslash (\) before the emote we are processing,
 								if(msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
@@ -1520,11 +1521,11 @@ module.exports = (() => {
 								runs++; // increment number of times the uploader has run for this message.
 								
 								//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-								emoji.url = emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`; 
+								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`; 
 								//remove emote from message.
 								msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
 								//upload emote
-								this.UploadEmote(emoji.url, currentChannelId, msg, emoji, runs);
+								this.UploadEmote(emojiUrl, currentChannelId, msg, emoji, runs);
 							});
 							if((msg[1].content !== undefined && (msg[1].content != "" || msg[2].activityAction != undefined)) && runs == 0) {
 								send(msg[0], msg[1], msg[2], msg[3]);
@@ -1541,11 +1542,12 @@ module.exports = (() => {
 									return
 								}
 								if(emoji.type == "UNICODE") return;
-								if(emoji.url.startsWith("/assets/")){
-									return
-								}
 								if(this.settings.PNGemote) {
-									emoji.url = emoji.url.replace('.webp', '.png')
+									emoji.forcePNG = true;
+								}
+								let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
+								if(emojiUrl.startsWith("/assets/")){
+									return
 								}
 								if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
 									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
@@ -1554,7 +1556,7 @@ module.exports = (() => {
 								
 								//if ghost mode is not required
 								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
 									return;
 								}
 								emojiGhostIteration++; //increment dummy value
@@ -1566,11 +1568,11 @@ module.exports = (() => {
 									//remove processed emoji from the message
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
 									//add to the end of the message
-									msg.content += " " + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
+									msg.content += " " + emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
 									return
 								}
 								//if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
 								return
 							})
 						});
@@ -1586,17 +1588,18 @@ module.exports = (() => {
 							msg.validNonShortcutEmojis.forEach(emoji => {
 								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
 								if(emoji.type == "UNICODE") return;
-								if(emoji.url.startsWith("/assets/")) return;
 								if(this.settings.PNGemote) {
-									emoji.url = emoji.url.replace('.webp', '.png')
+									emoji.forcePNG = true;
 								}
+								let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
+								if(emojiUrl.startsWith("/assets/")) return;
 								
 								if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
 									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
 									return //If there is a backslash before the emoji, skip it.
 								} 
 								emojiGhostIteration++;
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emoji.url.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
 							})
 						});
 						//editing message in classic mode
@@ -1732,7 +1735,7 @@ module.exports = (() => {
 							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
 							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
 							
-							for(const ladder in e.videoQualityManager.ladder.ladder) {
+							/*for(const ladder in e.videoQualityManager.ladder.ladder) {
 								e.videoQualityManager.ladder.ladder[ladder].framerate = this.settings.CustomFPS;
 								//e.videoQualityManager.ladder.ladder[ladder].mutedFramerate = parseInt(this.settings.CustomFPS / 2);
 							}
@@ -1742,7 +1745,7 @@ module.exports = (() => {
 								//ladder.mutedFramerate = parseInt(this.settings.CustomFPS / 2);
 							}
 							
-							e.videoQualityManager.connection.remoteVideoSinkWants = this.settings.CustomFPS;
+							e.videoQualityManager.connection.remoteVideoSinkWants = this.settings.CustomFPS;*/
 						});
 					}
 					
@@ -1762,7 +1765,7 @@ module.exports = (() => {
 							//Ensure video capture quality parameters match stream parameters
 							e.videoQualityManager.options.videoCapture = videoQuality;
 							//Ensure pixel budget matches stream resolution.
-							e.videoQualityManager.ladder.pixelBudget = (videoQuality.height * videoQuality.width);
+							/*e.videoQualityManager.ladder.pixelBudget = (videoQuality.height * videoQuality.width);
 							
 							
 							//What follows is the word 'ladder' repeated way too many times.
@@ -1774,7 +1777,7 @@ module.exports = (() => {
 								ladder.width = videoQuality.width * (ladder.wantValue / 100);
 								ladder.height = videoQuality.height * (ladder.wantValue / 100);
 								ladder.pixelCount = ladder.width * ladder.height;
-							}
+							}*/
 						});
 					}
 					
