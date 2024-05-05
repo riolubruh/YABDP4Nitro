@@ -295,8 +295,6 @@ https://discord.gg/EFmGEWAUns
 
 ### Support through GitHub Sponsors
 
-**This is the preferred method!**
-
 Either click the Sponsor button at the top of the page, or [click here](https://github.com/sponsors/riolubruh)
 
 ___
