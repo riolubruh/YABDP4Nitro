@@ -1890,10 +1890,11 @@ module.exports = (() => {
 					qualityButton.id = 'qualityButton';
 					qualityButton.className = `${this.buttonClassModule.lookFilled} ${this.buttonClassModule.colorBrand}`;
 					qualityButton.innerHTML = '<p style="display: block-inline; margin-left: -6%; margin-top: -4.5%;">Quality</p>';
-					qualityButton.style.position = "relative";
+					qualityButton.style.position = "absolute";
 					qualityButton.style.zIndex = "2";
-					qualityButton.style.bottom = "-33%";
-					qualityButton.style.left = "-50%";
+					qualityButton.style.bottom = "0";
+					qualityButton.style.left = "50%";
+					qualityButton.style.transform = "translateX(-50%)"
 					qualityButton.style.height = "15px";
 					qualityButton.style.width = "48px";
 					qualityButton.style.verticalAlign = "middle";
