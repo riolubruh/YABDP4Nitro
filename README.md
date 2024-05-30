@@ -226,6 +226,8 @@ You should now see your profile picture change to the desired image!
 
 Note that only other others of the plugin will be able to see your fake profile picture.
 
+**Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
+
 ___
 
 ## Miscellaneous
