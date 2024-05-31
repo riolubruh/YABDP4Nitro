@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.3
+ * @version 5.3.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,16 +39,22 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.3",
+			"version": "5.3.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.3 Emoji Bypass Hotfix",
+				title: "5.3.4 Changes",
 				items: [
-					"Fixed an issue where emojis did not work as a result of Discord changing the emoji object format (removed emoji.url)."
+					"Fix quality button position (Thanks Xasya)",
+					"Fixed a problem where Imgur album and gallery URLs weren't being fetched properly because the name of the meta property with the correct URL changed.",
+					"Fixed a typo resulting in polls and activity actions not working as intended.",
+					"Made it so the Camera tries to use the custom FPS and resolution.",
+					"Fixed an issue where uploading a file while sending an emoji in the same message would cause the emoji bypass to not run.",
+					"Fixed custom badges sometimes appearing with the wrong icon.",
+					"Several minor code adjustments."
 				]
 			}
 		],
@@ -302,19 +308,19 @@ module.exports = (() => {
 							if(this.emojiMods == undefined) this.emojiMods = WebpackModules.getByProps("isEmojiFilteredOrLocked");
 							
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFilteredOrLocked", () => {
-								return false
+								return false;
 							});
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiDisabled", () => {
-								return false
+								return false;
 							});
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiFiltered", () => {
-								return false
+								return false;
 							});
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "isEmojiPremiumLocked", () => {
-								return false
+								return false;
 							});
 							BdApi.Patcher.instead("YABDP4Nitro", this.emojiMods, "getEmojiUnavailableReason", () => {
-								return
+								return;
 							});
 							
 						}catch(err){
@@ -350,10 +356,10 @@ module.exports = (() => {
 						if(this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = WebpackModules.getByProps("isSendableSticker");
 						
 						BdApi.Patcher.instead("YABDP4Nitro", this.stickerSendabilityModule, "getStickerSendability", () => {
-							return 0
+							return 0;
 						});
 						BdApi.Patcher.instead("YABDP4Nitro", this.stickerSendabilityModule, "isSendableSticker", () => {
-							return true
+							return true;
 						});
 					}
 					
@@ -783,15 +789,22 @@ module.exports = (() => {
 											
 											/*This next part is interesting, so a code explanation follows:
 											* First, we're parsing the HTML of the Imgur Album using the DOM parser we initialized before.
-											* Then, find the meta tag in the HTML that has the og:image property
-											* Finally, we take the content of the og:image meta tag. This is the direct URL to the file that we want.
-											* The need to do this makes it necessary for this function to be async. */
-											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:image"]').content));
+											* Then, find the meta tag in the HTML that has the og:url property
+											* Finally, we take the content of the og:url meta tag. This is the direct URL to the file that we want.
+											* The need to do this makes it necessary for this function to be async.
+											* This was previously og:image but they changed it for some reason. */
+											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:url"]').content));
 											stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
 											.replace("https://", "")
 											.replace("i.imgur.com","imgur.com")
 											.split("?")[0]; //remove any URL parameters since we don't want or need them
 										}
+										
+										if(stringToEncode == ""){
+											Toasts.error("An error occurred: couldn't find file name.");
+											Logger.err(this.getName(), "Couldn't find file name for some reason.");
+										}
+										
 										//add starting "P{" , remove "imgur.com/" , and add ending "}"
 										stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}"
 										//finally encode the string, adding a space before it so nothing fucks up
@@ -802,7 +815,7 @@ module.exports = (() => {
 									//If this is not an Imgur URL, yell at the user.
 									}else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
 										Toasts.warning("Please use Imgur!");
-										return
+										return;
 									}
 									
 									//if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
@@ -832,10 +845,19 @@ module.exports = (() => {
 						a[aria-label="A fellow YABDP4Nitro user!"] img {
 							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
 						}
+						
+						div [aria-label="A fellow YABDP4Nitro user!"] > a > img {
+							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
+						}
 
 						a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
 							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-						}`);
+						}
+						
+						div [aria-label="YABDP4Nitro Creator!"] > a > img {
+							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+						}
+					`);
 						
 					//User profile badge patches
 					BdApi.Patcher.after("YABDP4Nitro", this.userProfileMod, "getUserProfile", (_,args,ret) => {
@@ -895,10 +917,10 @@ module.exports = (() => {
 				secondsightifyRevealOnly(t) {
 					if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
 						// 3y3 text detected. Revealing...
-						return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t)
+						return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t);
 					}else {
 						// no encoded text found, returning
-						return
+						return;
 					}
 				}
 				
@@ -906,10 +928,10 @@ module.exports = (() => {
 				secondsightifyEncodeOnly(t) {
 					if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
 						// 3y3 text detected. returning...
-						return
+						return;
 					}else {
 						//3y3 text detected. revealing...
-						return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t)
+						return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0)+0xe0000) : x).join(""))(t);
 					}
 				}
 				
@@ -1305,8 +1327,6 @@ module.exports = (() => {
 				
 
 				async UploadEmote(url, channelIdLmao, msg, emoji, runs){
-					if(this.Uploader == undefined) this.Uploader = WebpackModules.getByProps("uploadFiles", "upload");
-					
 					if(emoji === undefined){
 						let emoji;
 					}
@@ -1339,7 +1359,9 @@ module.exports = (() => {
 					uploadOptions.channelId = channelIdLmao; //Upload to current channel
 					uploadOptions.uploads = [fileUp]; //The file from before
 					uploadOptions.draftType = 0; // Not sure what this does.
-					uploadOptions.options = { stickerIds: [] }; //No stickers in the message
+					uploadOptions.options = {
+						stickerIds: [] //No stickers in the message
+					}; 
 					//Message attached to the upload.
 					uploadOptions.parsedMessage = { channelId: channelIdLmao, content: msg[1].content, tts: false, invalidEmojis:[] }
 					
@@ -1486,15 +1508,16 @@ module.exports = (() => {
 					
 				} //End of customVideoSettings()
 
-
 				emojiBypass(){
+					
+					if(this.Uploader == undefined) this.Uploader = WebpackModules.getByProps("uploadFiles", "upload");
 					
 					//Upload Emotes Method
 					if(this.settings.uploadEmotes) {
+						
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "_sendMessage", (_, msg, send) => {
-							//fix polls
-							if(msg[2].activityAction)
-							if(msg[2].poll != undefined){
+						
+							if(msg[2].poll != undefined || msg[2].activityAction != undefined){ //fix polls, activity actions
 								send(msg[0], msg[1], msg[2], msg[3]);
 								return;
 							}
@@ -1531,66 +1554,130 @@ module.exports = (() => {
 								send(msg[0], msg[1], msg[2], msg[3]);
 							}
 						});
+						
+						BdApi.Patcher.instead("YABDP4Nitro", this.Uploader, "uploadFiles", (_, [args], originalFunction) => {
+							
+							const currentChannelId = args.channelId;
+							let emojis = [];
+							let runs = 0;
+							
+							if(args.parsedMessage.validNonShortcutEmojis != undefined){
+								if(args.parsedMessage.validNonShortcutEmojis.length > 0){
+									args.parsedMessage.validNonShortcutEmojis.forEach(emoji => {
+										if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
+										if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
+										if(this.settings.PNGemote) {
+											emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
+										}
+										
+										let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
+										if(emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
+										
+										//If there is a backslash (\) before the emote we are processing,
+										if(args.parsedMessage.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
+											//remove the backslash
+											args.parsedMessage.content = args.parsedMessage.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+											//and skip bypass for that emote
+											return; 
+										}
+										
+										//add to list of emojis
+										emojis.push(emoji);
+										
+										//remove emote from message.
+										args.parsedMessage.content = args.parsedMessage.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
+									});
+									
+									//send file with text and shit
+									originalFunction(args);
+									
+									//loop through emotes to send one at a time
+									for(let i=0; i < emojis.length; i++){
+										let emoji = emojis[i];
+										let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
+										
+										//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
+										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`; 
+										
+										this.UploadEmote(emojiUrl, currentChannelId, [currentChannelId, {content: "", tts: false, invalidEmojis:[] }], emoji, 1);
+									}
+									
+								}else{
+									originalFunction(args);
+								}
+							}else{
+								originalFunction(args);
+							}
+							
+						});
+						
 					}
-					
+				
 					//Ghost mode method
+					const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "	
+					
 					if(this.settings.ghostMode && !this.settings.uploadEmotes) {
-						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+						
+						function ghostModeMethod(msg, currentChannelId, self){
 							let emojiGhostIteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
 							msg.validNonShortcutEmojis.forEach(emoji => {
-								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)){
-									return
-								}
+								if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
 								if(emoji.type == "UNICODE") return;
-								if(this.settings.PNGemote) {
-									emoji.forcePNG = true;
-								}
+								if(self.settings.PNGemote) emoji.forcePNG = true;
+								
 								let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
-								if(emojiUrl.startsWith("/assets/")){
-									return
-								}
+								if(emojiUrl.startsWith("/assets/")) return;
+								
 								if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
 									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-									return //If there is a backslash before the emoji, skip it.
+									return; //If there is a backslash before the emoji, skip it.
 								} 
 								
 								//if ghost mode is not required
 								if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `)
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `)
 									return;
 								}
 								emojiGhostIteration++; //increment dummy value
-								
-								const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
 								
 								//if message already has ghostmodetext.
 								if(msg.content.includes(ghostmodetext)) {
 									//remove processed emoji from the message
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
 									//add to the end of the message
-									msg.content += " " + emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
-									return
+									msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
+									return;
 								}
 								//if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless `
-								return
-							})
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `
+							});
+						}
+						
+						//sending message in ghost mode
+						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+							ghostModeMethod(msg, currentChannelId, this);
 						});
-						return
+						
+						//uploading file with emoji in the message in ghost mode.
+						BdApi.Patcher.before("YABDP4Nitro", this.Uploader, "uploadFiles", (_, [args], originalFunction) => {
+							const currentChannelId = args.channelId;
+							const msg = args.parsedMessage;
+							ghostModeMethod(msg, currentChannelId, this);
+						})
+						
 					}
 					
 					//Original method
 					if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
-						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-							
+						
+						function classicModeMethod(msg, currentChannelId, self){
 							//refer to previous bypasses for comments on what this all is for.
 							let emojiGhostIteration = 0;
 							msg.validNonShortcutEmojis.forEach(emoji => {
-								if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
+								if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
 								if(emoji.type == "UNICODE") return;
-								if(this.settings.PNGemote) {
-									emoji.forcePNG = true;
-								}
+								if(self.settings.PNGemote) emoji.forcePNG = true;
+								
 								let emojiUrl = DiscordModules.AvatarDefaults.getEmojiURL(emoji);
 								if(emojiUrl.startsWith("/assets/")) return;
 								
@@ -1599,9 +1686,22 @@ module.exports = (() => {
 									return //If there is a backslash before the emoji, skip it.
 								} 
 								emojiGhostIteration++;
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
-							})
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
+							});
+						}
+						
+						//sending message in classic mode
+						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+							classicModeMethod(msg, currentChannelId, this);
 						});
+						
+						//uploading file with emoji in the message in classic mode.
+						BdApi.Patcher.before("YABDP4Nitro", this.Uploader, "uploadFiles", (_, [args], originalFunction) => {
+							const msg = args.parsedMessage;
+							const currentChannelId = args.channelId;
+							classicModeMethod(msg, currentChannelId, this);
+						});
+						
 						//editing message in classic mode
 						BdApi.Patcher.before("YABDP4Nitro", DiscordModules.MessageActions, "editMessage", (_, obj) => {
 							let msg = obj[2].content
@@ -1611,7 +1711,7 @@ module.exports = (() => {
 								obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
 							})
 						});
-						return
+						return;
 					}
 				} //End of emojiBypass()
 				
@@ -1729,23 +1829,12 @@ module.exports = (() => {
 					//Video quality bypasses if Custom FPS is enabled.
 					if(this.settings.CustomFPSEnabled){
 						BdApi.Patcher.before("YABDP4Nitro", this.videoOptionFunctions, "updateVideoQuality", (e) => {
-							if(e.stats?.camera !== undefined) return; //if camera is enabled, don't fuck with fps
+							//if(e.stats?.camera !== undefined) return; //if camera is enabled, don't fuck with fps
 							
-							//Most of this is pretty self-explanatory.
+							//This is pretty self-explanatory.
 							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
 							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
 							
-							/*for(const ladder in e.videoQualityManager.ladder.ladder) {
-								e.videoQualityManager.ladder.ladder[ladder].framerate = this.settings.CustomFPS;
-								//e.videoQualityManager.ladder.ladder[ladder].mutedFramerate = parseInt(this.settings.CustomFPS / 2);
-							}
-							
-							for(const ladder of e.videoQualityManager.ladder.orderedLadder){
-								ladder.framerate = this.settings.CustomFPS;
-								//ladder.mutedFramerate = parseInt(this.settings.CustomFPS / 2);
-							}
-							
-							e.videoQualityManager.connection.remoteVideoSinkWants = this.settings.CustomFPS;*/
 						});
 					}
 					
@@ -1760,25 +1849,60 @@ module.exports = (() => {
 								framerate: e.videoStreamParameters[0].maxFrameRate,
 							});
 							
+							if(e.stats?.camera != undefined && this.settings.CustomFPSEnabled){
+								videoQuality.framerate = this.settings.CustomFPS;
+							}
+							
 							//Ensure video budget quality parameters match stream parameters
 							e.videoQualityManager.options.videoBudget = videoQuality;
 							//Ensure video capture quality parameters match stream parameters
 							e.videoQualityManager.options.videoCapture = videoQuality;
-							//Ensure pixel budget matches stream resolution.
-							/*e.videoQualityManager.ladder.pixelBudget = (videoQuality.height * videoQuality.width);
 							
-							
-							//What follows is the word 'ladder' repeated way too many times.
-							for(const ladder in e.videoQualityManager.ladder.ladder) {
-								e.videoQualityManager.ladder.ladder[ladder].width = videoQuality.width * (ladder / 100);
-								e.videoQualityManager.ladder.ladder[ladder].height = videoQuality.height * (ladder / 100);
+							if(e.stats?.camera != undefined){
+								for(let i = 0; i < e.videoStreamParameters.length; i++){
+									if(this.settings.ResolutionEnabled && this.settings.CustomResolution > -1){
+										e.videoStreamParameters[i].maxResolution.height = this.settings.CustomResolution;
+										e.videoStreamParameters[i].maxResolution.width = (16/9) * this.settings.CustomResolution;
+										e.videoStreamParameters[i].maxPixelCount = (e.videoStreamParameters[i].maxResolution.height * e.videoStreamParameters[i].maxResolution.width);
+									
+									}
+									if(this.settings.CustomFPSEnabled && this.settings.CustomFPS > -1)
+										e.videoStreamParameters[i].maxFrameRate = this.settings.CustomFPS;
+								}
 							}
-							for(const ladder of e.videoQualityManager.ladder.orderedLadder){
-								ladder.width = videoQuality.width * (ladder.wantValue / 100);
-								ladder.height = videoQuality.height * (ladder.wantValue / 100);
-								ladder.pixelCount = ladder.width * ladder.height;
-							}*/
 						});
+						
+						/*BdApi.Patcher.after("YABDP4Nitro", WebpackModules.getByPrototypes("applyQualityConstraints").prototype, "applyQualityConstraints", (_, args, ret) => {
+							
+							//camera quality bypass
+							if(this.settings.ResolutionEnabled && ret.constraints.remoteSinkWantsMaxFramerate == 20){
+								ret.constraints.remoteSinkWantsPixelCount = 0;
+								ret.constraints.encodingVideoHeight = this.settings.CustomResolution;
+								ret.constraints.encodingVideoWidth = (16/9) * this.settings.CustomResolution;
+								
+								ret.quality.capture.height = this.settings.CustomResolution;
+								ret.quality.capture.width = (16/9) * this.settings.CustomResolution;
+								ret.quality.capture.pixelCount = (ret.quality.capture.height * ret.quality.capture.width);
+								
+								ret.quality.encode.height = this.settings.CustomResolution;
+								ret.quality.encode.width = (16/9) * this.settings.CustomResolution;
+								ret.quality.encode.pixelCount = (ret.quality.capture.height * ret.quality.capture.width);
+							}
+							
+							//camera fps bypass
+							if(this.settings.CustomFPSEnabled && ret.constraints.remoteSinkWantsMaxFramerate == 20){
+								//Custom FPS enabled and this is a camera (because remote sink always wants camera to be 20fps)
+								ret.constraints.captureVideoFrameRate = this.settings.CustomFPS;
+								ret.constraints.encodingVideoFrameRate = this.settings.CustomFPS;
+								ret.constraints.remoteSinkWantsMaxFramerate = this.settings.CustomFPS;
+								
+								if(ret.quality.capture?.framerate != undefined)
+									ret.quality.capture.framerate = this.settings.CustomFPS;
+								
+								if(ret.quality.encode?.framerate != undefined)
+									ret.quality.encode.framerate = this.settings.CustomFPS;
+							}
+						});*/
 					}
 					
 					if(this.settings.videoCodec > 0){ // Video codecs
@@ -1894,7 +2018,7 @@ module.exports = (() => {
 					qualityButton.style.zIndex = "2";
 					qualityButton.style.bottom = "0";
 					qualityButton.style.left = "50%";
-					qualityButton.style.transform = "translateX(-50%)"
+					qualityButton.style.transform = "translateX(-50%)";
 					qualityButton.style.height = "15px";
 					qualityButton.style.width = "48px";
 					qualityButton.style.verticalAlign = "middle";
@@ -1957,10 +2081,10 @@ module.exports = (() => {
 					if(this.currentChannelIdMod == undefined) this.currentChannelIdMod = WebpackModules.getByProps("getLastChannelFollowingDestination");
 					if(this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = WebpackModules.getByProps("StickerSendability","getStickerSendability","isSendableSticker");
 					BdApi.Patcher.instead("YABDP4Nitro", this.stickerSendabilityModule, "getStickerSendability", () => {
-						return 0
+						return 0;
 					});
 					BdApi.Patcher.instead("YABDP4Nitro", this.stickerSendabilityModule, "isSendableSticker", () => {
-						return true
+						return true;
 					});
 					
 					BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "sendStickers", (_,b) => {
@@ -1974,7 +2098,7 @@ module.exports = (() => {
 							emoji.name = b[0];
 							let msg = [undefined,{content: ""}]
 							this.UploadEmote(stickerURL, currentChannelId, [undefined,{content:""}], emoji)
-							return
+							return;
 						}
 						if(!this.settings.uploadStickers){
 							let messageContent = {content: stickerURL, tts: false, invalidEmojis:[], validNonShortcutEmojis:[]}
@@ -2042,7 +2166,7 @@ module.exports = (() => {
 									}
 									if(themeColors == undefined){
 										Toasts.warning("Nothing has been copied. Is the selected color identical to your current color?");
-										return
+										return;
 									}
 									const primary = themeColors[0];
 									const accent = themeColors[1];
@@ -2261,16 +2385,21 @@ module.exports = (() => {
 											
 											/*This next part is interesting, so a code explanation follows:
 											* First, we're parsing the HTML of the Imgur Album using the DOM parser we initialized before.
-											* Then, find the meta tag in the HTML that has the og:image property
-											* Finally, we take the content of the og:image meta tag. This is the direct URL to the file that we want.
+											* Then, find the meta tag in the HTML that has the og:url property
+											* Finally, we take the content of the og:url meta tag. This is the direct URL to the file that we want.
 											* The need to do this makes it necessary for this function to be async.
+											* This was previously og:image but they changed it for some reason!
 											*/
-											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:image"]').content));
+											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:url"]').content));
 											//clean up string to encode
 											stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
 											.replace("https://", "") //get rid of protocol
 											.replace("i.imgur.com","imgur.com") //change i.imgur.com to imgur.com
 											.split("?")[0]; //remove any URL parameters since we don't want or need them
+										}
+										if(stringToEncode == ""){
+											Toasts.error("An error occurred: couldn't find file name.");
+											Logger.err(this.getName(), "Couldn't find file name for some reason. Contact Riolubruh.");
 										}
 										//add starting "B{" , remove "imgur.com/" , and add ending "}"
 										stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
