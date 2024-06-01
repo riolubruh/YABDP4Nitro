@@ -293,6 +293,8 @@ This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either expre
 
 ## Discord Server
 
+Please read [this README](#readme) and [the FAQ](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
+
 https://discord.gg/EFmGEWAUns
 
 ## Donate
