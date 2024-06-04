@@ -4,7 +4,7 @@
 
 YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience. This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more!
 
-### [Download Link](https://riolubruh.github.io/autoDownload/?file=https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js)
+### <a href="https://riolubruh.github.io/autoDownload/?file=https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js" target="_blank" rel="noopener noreferrer">Download Link</a>
 
 Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js)
 
