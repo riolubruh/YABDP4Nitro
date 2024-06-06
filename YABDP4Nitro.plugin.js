@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.4
+ * @version 5.3.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,22 +39,17 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.4",
+			"version": "5.3.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.4 Changes",
+				title: "5.3.5 Changes",
 				items: [
-					"Fix quality button position (Thanks Xasya)",
-					"Fixed a problem where Imgur album and gallery URLs weren't being fetched properly because the name of the meta property with the correct URL changed.",
-					"Fixed a typo resulting in polls and activity actions not working as intended.",
-					"Made it so the Camera tries to use the custom FPS and resolution.",
-					"Fixed an issue where uploading a file while sending an emoji in the same message would cause the emoji bypass to not run.",
-					"Fixed custom badges sometimes appearing with the wrong icon.",
-					"Several minor code adjustments."
+					"Made more modifications to the Imgur URL fetching so it will hopefully work correctly now.",
+					"Improved compatibility with SimpleDiscordCrypt by adding an exception to the emoji bypass if SDC encryption is enabled."
 				]
 			}
 		],
@@ -502,9 +497,7 @@ module.exports = (() => {
 						}
 						
 						return originalFunction(feature, user);
-					});
-					
-					
+					});					
 				} //End of saveAndUpdate()
 				
 				
@@ -781,28 +774,28 @@ module.exports = (() => {
 											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
 											
 											//Fetch imgur album page
-											const parser = new DOMParser();
-											stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
-												method: "GET",
-												mode: "cors"
-											}).then(res => res.text()
-											
-											/*This next part is interesting, so a code explanation follows:
-											* First, we're parsing the HTML of the Imgur Album using the DOM parser we initialized before.
-											* Then, find the meta tag in the HTML that has the og:url property
-											* Finally, we take the content of the og:url meta tag. This is the direct URL to the file that we want.
-											* The need to do this makes it necessary for this function to be async.
-											* This was previously og:image but they changed it for some reason. */
-											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:url"]').content));
-											stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-											.replace("https://", "")
-											.replace("i.imgur.com","imgur.com")
-											.split("?")[0]; //remove any URL parameters since we don't want or need them
+											try{
+												const parser = new DOMParser();
+												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
+													method: "GET",
+													mode: "cors"
+												}).then(res => res.text()
+												//parse html, queryselect meta tag with certain name
+												.then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+												stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+												.replace("https://", "") //get rid of protocol
+												.replace("i.imgur.com","imgur.com")
+												.replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
+												.split("?")[0]; //remove any URL parameters since we don't want or need them
+											}catch(err){
+												ZLibrary.Logger.err("YABDP4Nitro", err);
+												ZLibrary.Toasts.error("An error occurred. Are there multiple images in this album/gallery?");
+												return;
+											}
 										}
-										
 										if(stringToEncode == ""){
-											Toasts.error("An error occurred: couldn't find file name.");
-											Logger.err(this.getName(), "Couldn't find file name for some reason.");
+											ZLibrary.Toasts.error("An error occurred: couldn't find file name.");
+											ZLibrary.Logger.err("YABDP4Nitro", "Couldn't find file name for some reason. Contact Riolubruh.");
 										}
 										
 										//add starting "P{" , remove "imgur.com/" , and add ending "}"
@@ -996,16 +989,6 @@ module.exports = (() => {
 							if(!this.badgeUserIDs.includes(args[0])) this.badgeUserIDs.push(args[0]);
 						}
 					}); //end of getUserProfile patch.
-					
-					//override 2023-08_profile_effects experiment to forcibly enable profile effects.
-					if(this.experimentsModule == undefined) this.experimentsModule = WebpackModules.getByProps("getExperimentOverrides");
-					if(this.experimentsModule.getExperimentOverrides()['2023-08_profile_effects'] == undefined){
-						this.dispatcher.dispatch({
-							type: "EXPERIMENT_OVERRIDE_BUCKET",
-							experimentId: "2023-08_profile_effects",
-							experimentBucket: 1
-						});
-					}
 					
 					//wait for profile effect section renderer to be loaded.
 					await BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byStrings("openProfileEffectModal"));
@@ -1516,10 +1499,17 @@ module.exports = (() => {
 					if(this.settings.uploadEmotes) {
 						
 						BdApi.Patcher.instead("YABDP4Nitro", DiscordModules.MessageActions, "_sendMessage", (_, msg, send) => {
-						
 							if(msg[2].poll != undefined || msg[2].activityAction != undefined){ //fix polls, activity actions
 								send(msg[0], msg[1], msg[2], msg[3]);
 								return;
+							}
+							if(document.getElementsByClassName("sdc-tooltip").length > 0){
+								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+								if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+									//SDC Encryption Enabled
+									send(msg[0], msg[1], msg[2], msg[3]);
+									return;
+								}
 							}
 							const currentChannelId = msg[0];
 							let runs = 0; //number of times the uploader has run for this message
@@ -1556,7 +1546,15 @@ module.exports = (() => {
 						});
 						
 						BdApi.Patcher.instead("YABDP4Nitro", this.Uploader, "uploadFiles", (_, [args], originalFunction) => {
-							
+							//console.log(args);
+							if(document.getElementsByClassName("sdc-tooltip").length > 0){
+								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+								if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+									//SDC Encryption Enabled
+									originalFunction(args);
+									return;
+								}
+							}
 							const currentChannelId = args.channelId;
 							let emojis = [];
 							let runs = 0;
@@ -1619,6 +1617,13 @@ module.exports = (() => {
 					if(this.settings.ghostMode && !this.settings.uploadEmotes) {
 						
 						function ghostModeMethod(msg, currentChannelId, self){
+							if(document.getElementsByClassName("sdc-tooltip").length > 0){
+								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+								if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+									//SDC Encryption Enabled
+									return;
+								}
+							}
 							let emojiGhostIteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
 							msg.validNonShortcutEmojis.forEach(emoji => {
 								if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
@@ -1671,6 +1676,13 @@ module.exports = (() => {
 					if(!this.settings.ghostMode && !this.settings.uploadEmotes) {
 						
 						function classicModeMethod(msg, currentChannelId, self){
+							if(document.getElementsByClassName("sdc-tooltip").length > 0){
+								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+								if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+									//SDC Encryption Enabled
+									return;
+								}
+							}
 							//refer to previous bypasses for comments on what this all is for.
 							let emojiGhostIteration = 0;
 							msg.validNonShortcutEmojis.forEach(emoji => {
@@ -2362,7 +2374,12 @@ module.exports = (() => {
 									let stringToEncode = "" + profileBannerUrlInputValue
 									.replace("http://", "") //get rid of protocol
 									.replace("https://", "")
+									.replace(".jpg","")
+									.replace(".png","")
+									.replace(".mp4", "")
+									.replace("webm", "")
 									.replace("i.imgur.com","imgur.com"); //change i.imgur.com to imgur.com
+									
 									
 									let encodedStr = ""; //initialize encoded string as empty string
 									
@@ -2375,31 +2392,30 @@ module.exports = (() => {
 										if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")){
 											
 											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-											const parser = new DOMParser(); //initialize DOM parser
 											
 											//Fetch imgur album page
-											stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), { 
-												method: "GET",
-												mode: "cors"
-											}).then(res => res.text() //use result as text
-											
-											/*This next part is interesting, so a code explanation follows:
-											* First, we're parsing the HTML of the Imgur Album using the DOM parser we initialized before.
-											* Then, find the meta tag in the HTML that has the og:url property
-											* Finally, we take the content of the og:url meta tag. This is the direct URL to the file that we want.
-											* The need to do this makes it necessary for this function to be async.
-											* This was previously og:image but they changed it for some reason!
-											*/
-											.then(res => parser.parseFromString(res, "text/html").querySelector('[property="og:url"]').content));
-											//clean up string to encode
-											stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-											.replace("https://", "") //get rid of protocol
-											.replace("i.imgur.com","imgur.com") //change i.imgur.com to imgur.com
-											.split("?")[0]; //remove any URL parameters since we don't want or need them
+											try{
+												const parser = new DOMParser();
+												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
+													method: "GET",
+													mode: "cors"
+												}).then(res => res.text()
+												//parse html, queryselect meta tag with certain name
+												.then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+												stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+												.replace("https://", "") //get rid of protocol
+												.replace("i.imgur.com","imgur.com")
+												.replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
+												.split("?")[0]; //remove any URL parameters since we don't want or need them
+											}catch(err){
+												ZLibrary.Logger.err("YABDP4Nitro", err);
+												ZLibrary.Toasts.error("An error occurred. Are there multiple images in this album/gallery?");
+												return;
+											}
 										}
 										if(stringToEncode == ""){
-											Toasts.error("An error occurred: couldn't find file name.");
-											Logger.err(this.getName(), "Couldn't find file name for some reason. Contact Riolubruh.");
+											ZLibrary.Toasts.error("An error occurred: couldn't find file name.");
+											ZLibrary.Logger.err("YABDP4Nitro", "Couldn't find file name for some reason. Contact Riolubruh.");
 										}
 										//add starting "B{" , remove "imgur.com/" , and add ending "}"
 										stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}"
