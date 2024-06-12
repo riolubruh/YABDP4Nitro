@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.3.6
+ * @version 5.3.7
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -39,16 +39,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.3.6",
+			"version": "5.3.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.3.6 Changes",
+				title: "5.3.7 Changes",
 				items: [
-					"Patch out Discord's \"interesting\" solution to limit the available resolutions and framerates of screen sharing."
+					"Fix UsrBG integration."
 				]
 			}
 		],
@@ -2224,15 +2224,14 @@ module.exports = (() => {
 					if(this.settings.userBgIntegration && !this.fetchedUserBg){
 						
 						//userBg database url.
-						const userBgJsonUrl = "https://raw.githubusercontent.com/Discord-Custom-Covers/usrbg/master/dist/usrbg.json";
+						const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
 						
-						//download, then parse json
-						fetch(userBgJsonUrl).then(res => res.text().then(str => JSON.parse(str).forEach(obj => { 
-							this.userBgs[obj.uid] = obj.img; //add each entry to an object with {userId: imgURL} format
-						})));
-						
-						//mark db as fetched so we only fetch it once per load of the plugin
-						this.fetchedUserBg = true;
+						//download, then store json
+						BdApi.Net.fetch(userBgJsonUrl).then(res => res.json().then(res => {
+							this.userBgs = Object.keys(res.users);
+							//mark db as fetched so we only fetch it once per load of the plugin
+							this.fetchedUserBg = true;
+						}));
 					}
 					
 					if(this.bannerUrlModule == undefined) this.bannerUrlModule = WebpackModules.getByPrototypes("getBannerURL");
@@ -2250,15 +2249,17 @@ module.exports = (() => {
 						if(profile == undefined) return ogFunction(args);
 						
 						if(this.settings.userBgIntegration){ //if userBg integration is enabled
-							//check userBg database for this user
-							let userBg = this.userBgs[user.userId];
-							
-							//if user is in userBg database,
-							if(userBg != undefined){
-								profile.banner = "funky_kong_is_epic"; //set banner id to fake value
-								profile.premiumType = 2; //set this profile to appear with premium rendering
-								return userBg; //return userBg banner URL and exit.
+
+							//if we've fetched the userbg database
+							if(this.fetchedUserBg){
+								//if user is in userBg database,
+								if(this.userBgs.includes(user.userId)){
+									profile.banner = "funky_kong_is_epic"; //set banner id to fake value
+									profile.premiumType = 2; //set this profile to appear with premium rendering
+									return `https://usrbg.is-hardly.online/usrbg/v2/${user.userId}?size=4096`; //return userBg banner URL and exit.
+								}
 							}
+							
 						}
 						
 						//do original function if we don't have the user's bio
