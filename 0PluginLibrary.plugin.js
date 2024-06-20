@@ -1,7 +1,7 @@
 /**
  * @name ZeresPluginLibrary
  * @description Gives other plugins utility functions.
- * @version 2.0.20
+ * @version 2.0.21
  * @author Zerebos
  * @source https://github.com/rauenzi/BDPluginLibrary
  */
@@ -90,7 +90,7 @@ module.exports = {
     id: "9",
     name: "ZeresPluginLibrary",
     author: "Zerebos",
-    version: "2.0.20",
+    version: "2.0.21",
     description: "Gives other plugins utility functions.",
     source: "https://github.com/rauenzi/BDPluginLibrary",
     github_raw: "https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js",
@@ -100,9 +100,6 @@ module.exports = {
             type: "fixed",
             items: [
                 "Fixed the error on startup.",
-                "Fixed styling and spacing of plugin settings.",
-                "Fixed title and label styles in plugin settings.",
-                "Fix dividers in plugin settings."
             ]
         },
     ],
@@ -4449,7 +4446,7 @@ const ComponentDispatch = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.ge
 const ComponentActions = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.POPOUT_SHOW, {searchExports: true});
 const Popout = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.defaultProps && m?.Animation, {searchExports: true});
 const ThemeContext = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m?.toString?.().includes(".DARK") && m?.toString?.().includes("primaryColor") && m?.toString?.().includes("Provider"), {searchExports: true});
-const Hooks = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.useStateFromStores);
+const Hooks = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.useSyncExternalStore);
 const ThemeStore = modules__WEBPACK_IMPORTED_MODULE_0__.WebpackModules.getModule(m => m.theme);
 
 const createStore = state => {
@@ -4596,7 +4593,7 @@ class Popouts {
 }
 
 function DiscordProviders({children, container}) {
-    const theme = Hooks.useStateFromStores([ThemeStore], () => ThemeStore.theme);
+    const theme = Hooks.useSyncExternalStore([ThemeStore], () => ThemeStore.theme);
 
     return React.createElement(LayerProvider, {value: [container]},
                 React.createElement(ThemeContext, {theme}, children)
