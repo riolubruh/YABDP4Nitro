@@ -121,7 +121,7 @@ ___
 
 ### Fake Avatar Decorations
 
-Uses invisible 3y3 encoding to allow setting avatar decorations by hiding IDs in your bio.
+Uses invisible 3y3 encoding to allow setting avatar decorations by hiding IDs in your bio or custom status.
 
 ![avatar decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/005379d8-5d6f-43e9-8735-b44788560831)
 
