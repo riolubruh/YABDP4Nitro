@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.1
+ * @version 5.4.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -55,6 +55,7 @@ const buttonClassModule = Webpack.getByKeys("lookFilled", "button", "contents");
 const Dispatcher = Webpack.getByKeys("subscribe", "dispatch");
 const canUserUseMod = Webpack.getByKeys("canUserUse");
 const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
+const LadderModule = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byProps("calculateLadder"), { searchExports: true });
 //#endregion
 
 module.exports = (() => {
@@ -66,21 +67,19 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.1",
+			"version": "5.4.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.1",
+				title: "5.4.2",
 				items: [
-					"Fixed profile effects not being in settings.",
-					"Reduced amount of dependency on ZLibrary.",
-					"Reduced amount of repeated strings.",
-					"Fix gradient theme bypass.",
-					"Fixed error with UserBGs.",
-					"Fixed stickers not being unlocked."
+					"Fix gradient client themes not saving properly if you closed the client without changing any plugin settings afterwards.",
+					"Fix Force Stickers Unlocked option no longer working.",
+					"Reworked screenshare-related bypasses.",
+					"Updated descriptions for Custom Bitrate settings."
 				]
 			}
 		],
@@ -188,17 +187,17 @@ module.exports = (() => {
 								}),
 							new Settings.Switch("Stream Settings Quick Swapper", "Adds a button that will let you switch your resolution quickly!", this.settings.ResolutionSwapper, value => this.settings.ResolutionSwapper = value),
 							new Settings.Switch("Custom Bitrate", "Choose the bitrate for your streams!", this.settings.CustomBitrateEnabled, value => this.settings.CustomBitrateEnabled = value),
-							new Settings.Textbox("Minimum Bitrate", "The minimum bitrate (in kbps).", this.settings.minBitrate,
+							new Settings.Textbox("Minimum Bitrate", "The minimum bitrate (in kbps). If this is set to a negative number, the Discord default of 150kbps will be used.", this.settings.minBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.minBitrate = value;
 								}),
-							new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps).", this.settings.maxBitrate,
+							new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps). If this is set to a negative number, the Discord default of 600kbps will be used.", this.settings.maxBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.maxBitrate = value;
 								}),
-							new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps).", this.settings.targetBitrate,
+							new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps). If this is set to a negative number, the Discord default of 2500kbps will be used.", this.settings.targetBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.targetBitrate = value;
@@ -376,12 +375,13 @@ module.exports = (() => {
 					}
 
 					if (this.settings.forceStickersUnlocked) {
-						if (this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = Webpack.getByKeys("isSendableSticker");
-
-						BdApi.Patcher.instead(this.getName(), this.stickerSendabilityModule, "getStickerSendability", () => {
+						if (this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = Webpack.getByKeys("cO", "eb", "kl");
+						//getStickerSendability
+						BdApi.Patcher.instead(this.getName(), this.stickerSendabilityModule, "cO", () => {
 							return 0;
 						});
-						BdApi.Patcher.instead(this.getName(), this.stickerSendabilityModule, "isSendableSticker", () => {
+						//isSendableSticker
+						BdApi.Patcher.instead(this.getName(), this.stickerSendabilityModule, "kl", () => {
 							return true;
 						});
 					}
@@ -568,6 +568,8 @@ module.exports = (() => {
 
 							//If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
 							this.settings.lastGradientSettingStore = -1;
+							//save any changes to settings
+							Utilities.saveSettings(this.getName(), this.settings);
 
 							//if user is trying to set the theme to the default dark theme
 							if (args.theme == 'dark') {
@@ -607,9 +609,10 @@ module.exports = (() => {
 							}
 							return;
 						} else { //gradient themes
-
 							//Store the last gradient setting used in settings
 							this.settings.lastGradientSettingStore = args.backgroundGradientPresetId;
+							//save any changes to settings
+							Utilities.saveSettings(this.getName(), this.settings);
 
 							//dispatch settings update event to change to the gradient the user chose
 							Dispatcher.dispatch({
@@ -1565,7 +1568,7 @@ module.exports = (() => {
 						});
 
 						BdApi.Patcher.instead(this.getName(), Uploader, "uploadFiles", (_, [args], originalFunction) => {
-							//console.log(args);
+
 							if (document.getElementsByClassName("sdc-tooltip").length > 0) {
 								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
 								if (SDC_Tooltip.innerHTML == "Disable Encryption") {
@@ -1818,61 +1821,70 @@ module.exports = (() => {
 
 				videoQualityModule() { //Custom Bitrates, FPS, Resolution
 					if (this.videoOptionFunctions == undefined) this.videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-					if (this.settings.CustomBitrateEnabled) {
-						BdApi.Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
+					BdApi.Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
 
-							if (this.settings.minBitrate > 0) {
-								//Minimum Bitrate
-								e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
-								e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
-								e.videoQualityManager.options.videoBitrateFloor = (this.settings.minBitrate * 1000);
-								e.videoQualityManager.options.videoBitrate.min = (this.settings.minBitrate * 1000);
-								e.videoQualityManager.options.desktopBitrate.min = (this.settings.minBitrate * 1000);
-							}
+						if (!e.videoQualityManager.qualityOverwrite) e.videoQualityManager.qualityOverwrite = {};
 
-							if (this.settings.maxBitrate > 0) {
-								//Maximum Bitrate
-								e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
-								e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
-								e.videoQualityManager.options.videoBitrate.max = (this.settings.maxBitrate * 1000);
-								e.videoQualityManager.options.desktopBitrate.max = (this.settings.maxBitrate * 1000);
-							}
 
-							if (this.settings.targetBitrate > 0) {
-								//Target Bitrate
-								e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
-								e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
-								e.videoQualityManager.options.desktopBitrate.target = (this.settings.targetBitrate * 1000);
-							}
+						if (this.settings.minBitrate > 0 && this.settings.CustomBitrateEnabled) {
+							//Minimum Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.videoBitrateFloor = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.videoBitrate.min = (this.settings.minBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.min = (this.settings.minBitrate * 1000);
+						} else {
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = 150000;
+							e.videoQualityManager.qualityOverwrite.bitrateMin = 150000;
+							e.videoQualityManager.options.videoBitrateFloor = 150000;
+							e.videoQualityManager.options.videoBitrate.min = 150000;
+							e.videoQualityManager.options.desktopBitrate.min = 150000;
+						}
 
-							if (this.settings.voiceBitrate != 128) {
-								//Audio Bitrate
-								e.voiceBitrate = this.settings.voiceBitrate * 1000;
+						if (this.settings.maxBitrate > 0 && this.settings.CustomBitrateEnabled) {
+							//Maximum Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.options.videoBitrate.max = (this.settings.maxBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.max = (this.settings.maxBitrate * 1000);
+						} else {
+							//Default max bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = 2500000;
+							e.videoQualityManager.qualityOverwrite.bitrateMax = 2500000;
+							e.videoQualityManager.options.videoBitrate.max = 2500000;
+							e.videoQualityManager.options.desktopBitrate.max = 2500000;
+						}
 
-								e.conn.setTransportOptions({
-									encodingVoiceBitRate: e.voiceBitrate
-								});
-							}
+						if (this.settings.targetBitrate > 0 && this.settings.CustomBitrateEnabled) {
+							//Target Bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
+							e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
+							e.videoQualityManager.options.desktopBitrate.target = (this.settings.targetBitrate * 1000);
+						} else {
+							//Default target bitrate
+							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = 600000;
+							e.videoQualityManager.qualityOverwrite.bitrateTarget = 600000;
+							e.videoQualityManager.options.desktopBitrate.target = 600000;
+						}
 
-						});
-					}
+						if (this.settings.voiceBitrate != 128) {
+							//Audio Bitrate
+							e.voiceBitrate = this.settings.voiceBitrate * 1000;
 
-					//Video quality bypasses if Custom FPS is enabled.
-					if (this.settings.CustomFPSEnabled) {
-						BdApi.Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
-							//if(e.stats?.camera !== undefined) return; //if camera is enabled, don't fuck with fps
+							e.conn.setTransportOptions({
+								encodingVoiceBitRate: e.voiceBitrate
+							});
+						}
 
+						//Video quality bypasses if Custom FPS is enabled.
+						if (this.settings.CustomFPSEnabled) {
 							//This is pretty self-explanatory.
 							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
 							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
+						}
 
-						});
-					}
-
-					//If screen sharing bypasses are enabled,
-					if (this.settings.screenSharing) {
-						BdApi.Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
-
+						//If screen sharing bypasses are enabled,
+						if (this.settings.screenSharing) {
 							//Ensure video quality parameters match the stream parameters.
 							const videoQuality = new Object({
 								width: e.videoStreamParameters[0].maxResolution.width,
@@ -1884,11 +1896,26 @@ module.exports = (() => {
 								videoQuality.framerate = this.settings.CustomFPS;
 							}
 
+							e.remoteSinkWantsMaxFramerate = e.videoStreamParameters[0].maxFrameRate;
+
+							//janky fix to #218
+							if (videoQuality.width <= 0) {
+								videoQuality.width = 2160;
+								if ((this.settings.CustomResolution * (16 / 9)) > (2160 * (16 / 9)))
+									videoQuality.width = this.settings.CustomResolution * (16 / 9);
+							}
+							if (videoQuality.height <= 0) {
+								videoQuality.height = 1440;
+								if (this.settings.CustomResolution > 1440)
+									videoQuality.width = this.settings.CustomResolution;
+							}
+
 							//Ensure video budget quality parameters match stream parameters
 							e.videoQualityManager.options.videoBudget = videoQuality;
 							//Ensure video capture quality parameters match stream parameters
 							e.videoQualityManager.options.videoCapture = videoQuality;
 
+							//janky camera bypass
 							if (e.stats?.camera != undefined) {
 								for (let i = 0; i < e.videoStreamParameters.length; i++) {
 									if (this.settings.ResolutionEnabled && this.settings.CustomResolution > -1) {
@@ -1901,43 +1928,17 @@ module.exports = (() => {
 										e.videoStreamParameters[i].maxFrameRate = this.settings.CustomFPS;
 								}
 							}
-						});
 
-						/*BdApi.Patcher.after(this.getName(), Webpack.getByPrototypeKeys("applyQualityConstraints").prototype, "applyQualityConstraints", (_, args, ret) => {
-							
-							//camera quality bypass
-							if(this.settings.ResolutionEnabled && ret.constraints.remoteSinkWantsMaxFramerate == 20){
-								ret.constraints.remoteSinkWantsPixelCount = 0;
-								ret.constraints.encodingVideoHeight = this.settings.CustomResolution;
-								ret.constraints.encodingVideoWidth = (16/9) * this.settings.CustomResolution;
-								
-								ret.quality.capture.height = this.settings.CustomResolution;
-								ret.quality.capture.width = (16/9) * this.settings.CustomResolution;
-								ret.quality.capture.pixelCount = (ret.quality.capture.height * ret.quality.capture.width);
-								
-								ret.quality.encode.height = this.settings.CustomResolution;
-								ret.quality.encode.width = (16/9) * this.settings.CustomResolution;
-								ret.quality.encode.pixelCount = (ret.quality.capture.height * ret.quality.capture.width);
-							}
-							
-							//camera fps bypass
-							if(this.settings.CustomFPSEnabled && ret.constraints.remoteSinkWantsMaxFramerate == 20){
-								//Custom FPS enabled and this is a camera (because remote sink always wants camera to be 20fps)
-								ret.constraints.captureVideoFrameRate = this.settings.CustomFPS;
-								ret.constraints.encodingVideoFrameRate = this.settings.CustomFPS;
-								ret.constraints.remoteSinkWantsMaxFramerate = this.settings.CustomFPS;
-								
-								if(ret.quality.capture?.framerate != undefined)
-									ret.quality.capture.framerate = this.settings.CustomFPS;
-								
-								if(ret.quality.encode?.framerate != undefined)
-									ret.quality.encode.framerate = this.settings.CustomFPS;
-							}
-						});*/
-					}
+							//Ladder bypasses
+							let pixelBudget = (videoQuality.width * videoQuality.height);
+							e.videoQualityManager.ladder.pixelBudget = pixelBudget
+							e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
+							e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
+						}
 
-					if (this.settings.videoCodec > 0) { // Video codecs
-						BdApi.Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
+
+						// Video codecs
+						if (this.settings.videoCodec > 0) {
 							//This code determines what codec was chosen
 							let isCodecH265 = false;
 							let isCodecH264 = false;
@@ -1970,7 +1971,6 @@ module.exports = (() => {
 									case 0:
 										if (isCodecH265) {
 											return 1;
-											break;
 										} else {
 											currentHighestNum += 1;
 											return currentHighestNum;
@@ -1979,7 +1979,6 @@ module.exports = (() => {
 									case 1:
 										if (isCodecH264) {
 											return 1;
-											break;
 										} else {
 											currentHighestNum += 1;
 											return currentHighestNum;
@@ -1989,7 +1988,6 @@ module.exports = (() => {
 									case 2:
 										if (isCodecAV1) {
 											return 1;
-											break;
 										} else {
 											currentHighestNum += 1;
 											return currentHighestNum;
@@ -1998,7 +1996,6 @@ module.exports = (() => {
 									case 3:
 										if (isCodecVP8) {
 											return 1;
-											break;
 										} else {
 											currentHighestNum += 1;
 											return currentHighestNum;
@@ -2007,7 +2004,6 @@ module.exports = (() => {
 									case 4:
 										if (isCodecVP9) {
 											return 1;
-											break;
 										} else {
 											currentHighestNum += 1;
 											return currentHighestNum;
@@ -2035,8 +2031,8 @@ module.exports = (() => {
 								e.codecs[4].encode = isCodecVP9;
 								e.codecs[4].priority = parseInt(setPriority(3));
 							}
-						});
-					}
+						}
+					});
 				} //End of videoQualityModule()
 
 
