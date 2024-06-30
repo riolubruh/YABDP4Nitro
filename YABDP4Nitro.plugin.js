@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.3
+ * @version 5.4.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -68,16 +68,17 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.3",
+			"version": "5.4.4",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.3",
+				title: "5.4.4",
 				items: [
-					"Reworked avatar decoration fetching."
+					"Added missing CSS for UsrBG integration.",
+					"Fix \"There was a problem updating your profile\" error caused by unnecessary patch to getAllPending."
 				]
 			}
 		],
@@ -426,10 +427,27 @@ module.exports = (() => {
 
 					}
 
+					BdApi.DOM.removeStyle("UsrBGIntegration");
+
 					if (this.settings.fakeProfileBanners) {
 						this.bannerUrlDecoding();
 						this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
-						this.bannerUrlDecodingPreview();
+						if(this.settings.userBgIntegration){
+							BdApi.DOM.addStyle("UsrBGIntegration", `
+								:is([class*="userProfile"], [class*="userPopout"]) [class*="bannerPremium"] {
+									background: center / cover no-repeat;
+								}
+
+								[class*="NonPremium"]:has([class*="bannerPremium"]) [class*="avatarPositionNormal"],
+								[class*="PremiumWithoutBanner"]:has([class*="bannerPremium"]) [class*="avatarPositionPremiumNoBanner"] {
+									top: 76px;
+								}
+
+								[style*="background-image"] [class*="background_"] {
+									background-color: transparent !important;
+								}`
+							)
+						}
 					}
 
 					Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
@@ -480,24 +498,6 @@ module.exports = (() => {
 							Logger.err(this.getName(), "Error occurred in experiments() " + err);
 						}
 					}
-
-					/* if (this.settings.unlockAppIcons || this.settings.changePremiumType || this.settings.experiments) { //account panel breaking shit workaround
-						if (this.accountPanelRenderer == undefined) this.accountPanelRenderer = Webpack.getAllByKeys("default").filter(obj => obj.default.toString().includes("useIsHomeSelected"))[0];
-
-						BdApi.Patcher.after(this.getName(), this.accountPanelRenderer, "default", (_, args, ret) => {
-							if (this.settings.unlockAppIcons || this.settings.changePremiumType) ret.props.currentUser.premiumType = 1;
-							if (this.settings.experiments) ret.props.currentUser.flags |= 1;
-							if (this.settings.ResolutionSwapper && (document.getElementById("qualityButton") == undefined || document.getElementById("qualityInputFPS") == undefined)) {
-								this.buttonCreate();
-								document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
-								document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
-								if (!this.settings.ResolutionSwapper) {
-									if (document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none';
-									if (document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none';
-								}
-							}
-						});
-					} */
 
 					BdApi.Patcher.instead(this.getName(), canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
 
@@ -2195,13 +2195,13 @@ module.exports = (() => {
 								onClick: () => {
 									let themeColors = null;
 									try {
-										themeColors = Webpack.getByKeys("getTryItOutThemeColors").getAllTryItOut().tryItOutThemeColors;
+										themeColors = Webpack.getStore("UserSettingsAccountStore").getAllTryItOut().tryItOutThemeColors;
 									} catch (err) {
 										console.warn(err);
 									}
 									if (themeColors == null) {
 										try {
-											themeColors = Webpack.getByKeys("getTryItOutThemeColors").getAllPending().pendingThemeColors;
+											themeColors = Webpack.getStore("UserSettingsAccountStore").getAllPending().pendingThemeColors;
 										} catch (err) {
 											console.error(err);
 										}
@@ -2481,30 +2481,6 @@ module.exports = (() => {
 				} //End of bannerUrlEncoding()
 
 
-				bannerUrlDecodingPreview() {
-					if (this.profileCustomizationModule == undefined) this.profileCustomizationModule = Webpack.getByKeys("getTryItOutThemeColors");
-					BdApi.Patcher.after(this.getName(), this.profileCustomizationModule, "getAllPending", (_, args, ret) => {
-						let user = CurrentUser;
-						let userProfile = userProfileMod.getUserProfile(user.id);
-						if (userProfile == undefined) return;
-
-						let parsed = this.secondsightifyRevealOnly(userProfile.bio);
-						if (parsed == undefined) return;
-
-						let regex = /B\{[^}]*\}/;
-						let matches = parsed.toString().match(regex);
-						if (matches == undefined) return;
-						if (matches == "") return;
-						let matchedText = matches[0].replace("B{", "").replace("}", "");
-						if (!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp") && !String(matchedText).endsWith(".mp4") && !String(matchedText).endsWith(".tiff") && !String(matchedText).endsWith(".avi") && !String(matchedText).endsWith(".webm")) {
-							matchedText += ".gif"; //No supported file extension detected. 
-							//Falling back to default file extension
-						}
-						ret.pendingBanner = `https://i.imgur.com/${matchedText}`;
-					});
-				}
-
-
 				appIcons() {
 					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
 
@@ -2568,6 +2544,7 @@ module.exports = (() => {
 					if (document.getElementById("profilePictureButton")) document.getElementById("profilePictureButton").remove();
 					BdApi.DOM.removeStyle(this.getName());
 					BdApi.DOM.removeStyle("YABDP4NitroBadges");
+					BdApi.DOM.removeStyle("UsrBGIntegration");
 					userBgs = [];
 				}
 			};
