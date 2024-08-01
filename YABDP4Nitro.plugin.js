@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.4
+ * @version 5.4.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -45,7 +45,7 @@ const Uploader = Webpack.getByKeys("uploadFiles", "upload");
 const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
-let userBgs = [];
+let usrBgUsers = [];
 let badgeUserIDs = [];
 let fetchedUserBg = false;
 let fetchedUserPfp = false;
@@ -68,17 +68,18 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.4",
+			"version": "5.4.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.4",
+				title: "5.4.5",
 				items: [
-					"Added missing CSS for UsrBG integration.",
-					"Fix \"There was a problem updating your profile\" error caused by unnecessary patch to getAllPending."
+					"Modified UsrBg implementation to be closer to the original implementation.",
+					"Simplified some code related to styles.",
+					"Fixed gradient themes being removed after reload."
 				]
 			}
 		],
@@ -271,6 +272,10 @@ module.exports = (() => {
 				saveAndUpdate() { //Saves and updates settings and runs functions
 					Utilities.saveSettings(this.getName(), this.settings);
 					BdApi.Patcher.unpatchAll(this.getName());
+					
+					BdApi.DOM.removeStyle(this.getName());
+					BdApi.DOM.removeStyle("YABDP4NitroBadges");
+					BdApi.DOM.removeStyle("UsrBGIntegration");
 
 					if (this.settings.changePremiumType) {
 						try {
@@ -404,30 +409,17 @@ module.exports = (() => {
 
 					}
 
-					if (this.hasAddedScreenshareUpsellStyle && !this.settings.removeScreenshareUpsell) {
-						try {
-							BdApi.DOM.removeStyle(this.getName())
-						} catch (err) {
-							Logger.warn(this.getName(), err);
-						}
-					}
-
-
-					if (this.settings.removeScreenshareUpsell && !this.hasAddedScreenshareUpsellStyle) {
+					if (this.settings.removeScreenshareUpsell) {
 						try {
 							BdApi.DOM.addStyle(this.getName(), `
 							[class*="upsellBanner"] {
 							  display: none;
 							  visibility: hidden;
 							}`);
-							this.hasAddedScreenshareUpsellStyle = true;
 						} catch (err) {
 							Logger.err(this.getName(), err);
 						}
-
 					}
-
-					BdApi.DOM.removeStyle("UsrBGIntegration");
 
 					if (this.settings.fakeProfileBanners) {
 						this.bannerUrlDecoding();
@@ -569,7 +561,7 @@ module.exports = (() => {
 
 					if (this.themesModule == undefined) this.themesModule = Webpack.getByKeys("V1", "ZI")
 
-					if (this.gradientSettingModule == undefined) this.gradientSettingModule = Webpack.getByKeys("bM", "kj", "my", "xs", "zO")
+					if (this.gradientSettingModule == undefined) this.gradientSettingModule = Webpack.getByKeys("kj", "zO");
 					const resetPreviewClientTheme = this.gradientSettingModule.kj;
 					const updateBackgroundGradientPreset = this.gradientSettingModule.zO;
 
@@ -589,7 +581,7 @@ module.exports = (() => {
 									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
 									changes: {
 										appearance: {
-											shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+											shouldSync: false,
 											settings: {
 												theme: 'dark', //default dark theme
 												developerMode: true //genuinely have no idea what this does.
@@ -2242,7 +2234,9 @@ module.exports = (() => {
 
 				//Commented to hell and back on 3/6/2024
 				bannerUrlDecoding() { //Decode 3y3 from profile bio and apply fake banners.
-
+				
+					let endpoint, bucket, prefix, data;
+					
 					//if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
 					if (this.settings.userBgIntegration && !fetchedUserBg) {
 
@@ -2251,7 +2245,11 @@ module.exports = (() => {
 
 						//download, then store json
 						BdApi.Net.fetch(userBgJsonUrl).then(res => res.json().then(res => {
-							userBgs = Object.keys(res.users);
+							data = res;
+							endpoint = res.endpoint;
+							bucket = res.bucket;
+							prefix = res.prefix;
+							usrBgUsers = Object.keys(res.users);
 							//mark db as fetched so we only fetch it once per load of the plugin
 							fetchedUserBg = true;
 						}));
@@ -2274,10 +2272,10 @@ module.exports = (() => {
 							//if we've fetched the userbg database
 							if (fetchedUserBg) {
 								//if user is in userBg database,
-								if (userBgs.includes(user.userId)) {
+								if (usrBgUsers.includes(user.userId)) {
 									profile.banner = "funky_kong_is_epic"; //set banner id to fake value
 									profile.premiumType = 2; //set this profile to appear with premium rendering
-									return `https://usrbg.is-hardly.online/usrbg/v2/${user.userId}?size=4096`; //return userBg banner URL and exit.
+									return `${endpoint}/${bucket}/${prefix}${user.userId}?${data.users[user.userId]}`; //return userBg banner URL and exit.
 								}
 							}
 
@@ -2545,7 +2543,7 @@ module.exports = (() => {
 					BdApi.DOM.removeStyle(this.getName());
 					BdApi.DOM.removeStyle("YABDP4NitroBadges");
 					BdApi.DOM.removeStyle("UsrBGIntegration");
-					userBgs = [];
+					usrBgUsers = [];
 				}
 			};
 		};
