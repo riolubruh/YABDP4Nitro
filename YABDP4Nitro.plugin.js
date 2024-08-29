@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.5
+ * @version 5.4.6
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -68,18 +68,20 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.5",
+			"version": "5.4.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.5",
+				title: "5.4.6",
 				items: [
-					"Modified UsrBg implementation to be closer to the original implementation.",
-					"Simplified some code related to styles.",
-					"Fixed gradient themes being removed after reload."
+					"Fixed mislabeling on stream bitrate settings.",
+					"Updated experiments code",
+					"Fix gradient client themes not working",
+					"Attempt to fix gradient client themes not reapplying when switching accounts with a hacky fix.",
+					"Minor code tweaks"
 				]
 			}
 		],
@@ -193,15 +195,15 @@ module.exports = (() => {
 									value = parseFloat(value);
 									this.settings.minBitrate = value;
 								}),
-							new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps). If this is set to a negative number, the Discord default of 600kbps will be used.", this.settings.maxBitrate,
-								value => {
-									value = parseFloat(value);
-									this.settings.maxBitrate = value;
-								}),
-							new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps). If this is set to a negative number, the Discord default of 2500kbps will be used.", this.settings.targetBitrate,
+							new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps). If this is set to a negative number, the Discord default of 600kbps will be used.", this.settings.targetBitrate,
 								value => {
 									value = parseFloat(value);
 									this.settings.targetBitrate = value;
+								}),
+							new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps). If this is set to a negative number, the Discord default of 2500kbps will be used.", this.settings.maxBitrate,
+								value => {
+									value = parseFloat(value);
+									this.settings.maxBitrate = value;
 								}),
 							new Settings.Textbox("Voice Audio Bitrate", "Allows you to change the voice bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps).", this.settings.voiceBitrate,
 								value => {
@@ -272,10 +274,6 @@ module.exports = (() => {
 				saveAndUpdate() { //Saves and updates settings and runs functions
 					Utilities.saveSettings(this.getName(), this.settings);
 					BdApi.Patcher.unpatchAll(this.getName());
-					
-					BdApi.DOM.removeStyle(this.getName());
-					BdApi.DOM.removeStyle("YABDP4NitroBadges");
-					BdApi.DOM.removeStyle("UsrBGIntegration");
 
 					if (this.settings.changePremiumType) {
 						try {
@@ -409,6 +407,8 @@ module.exports = (() => {
 
 					}
 
+					BdApi.DOM.removeStyle(this.getName());
+
 					if (this.settings.removeScreenshareUpsell) {
 						try {
 							BdApi.DOM.addStyle(this.getName(), `
@@ -420,6 +420,8 @@ module.exports = (() => {
 							Logger.err(this.getName(), err);
 						}
 					}
+
+					BdApi.DOM.removeStyle("UsrBGIntegration");
 
 					if (this.settings.fakeProfileBanners) {
 						this.bannerUrlDecoding();
@@ -468,6 +470,7 @@ module.exports = (() => {
 						}
 					}
 
+					BdApi.DOM.removeStyle("YABDP4NitroBadges");
 					try {
 						this.honorBadge();
 					} catch (err) {
@@ -496,52 +499,35 @@ module.exports = (() => {
 						if (this.settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis")) {
 							return true;
 						}
-
 						if (this.settings.appIcons && feature.name == 'appIcons') {
 							return true;
 						}
-
 						if (this.settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures') {
 							return true;
 						}
-
 						if (this.settings.clientThemes && feature.name == 'clientThemes') {
 							return true;
 						}
-
 						return originalFunction(feature, user);
 					});
 				} //End of saveAndUpdate()
 
 
 				experiments() {
-					if (this.hasAppliedExperiments) return;
-					//Code graciously stolen from https://gist.github.com/MeguminSama/2cae24c9e4c335c661fa94e72235d4c4?permalink_comment_id=4952988#gistcomment-4952988
-					try {
-						let _, a = Object.values,
-							b = "getCurrentUser",
-							c = "actionHandler",
-							d = "_actionHandlers",
-							l = "_dispatcher",
-							i = "ExperimentStore";
-						webpackChunkdiscord_app.push([
-							[Date.now()], {},
-							e => {
-								_ = e
-							}
-						]), m = a((u = a(_.c).find(e => e?.exports?.default?.[b] && e?.exports?.default?.[l]?.[d]).exports.default)[l][d]._dependencyGraph.nodes), u[b]().flags |= 1, m.find(e => "Developer" + i == e.name)[c].CONNECTION_OPEN();
-						try {
-							m.find(e => i == e.name)[c].OVERLAY_INITIALIZE({
-								user: {
-									flags: 1
-								}
-							})
-						} catch { }
-						m.find(e => i == e.name).storeDidChange()
-					} catch (err) {
-						//console.warn(err);
-					}
+					try{
+						//code modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
+						let wpRequire;
+						webpackChunkdiscord_app.push([[ Math.random() ], {}, (req) => { wpRequire = req; }]);
+						let u = Object.values(wpRequire.c).find((x)=> x?.exports?.default?.getCurrentUser && x?.exports?.default?._dispatcher?._actionHandlers).exports.default
+						let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
 
+						u.getCurrentUser().flags |= 1;
+						m.find((x)=>x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
+						try {m.find((x)=>x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({user:{flags: 1}})} catch {}
+						m.find((x)=>x.name === "ExperimentStore").storeDidChange()
+					}catch(err){
+						//console.error(err);
+					}
 				}
 
 
@@ -561,7 +547,7 @@ module.exports = (() => {
 
 					if (this.themesModule == undefined) this.themesModule = Webpack.getByKeys("V1", "ZI")
 
-					if (this.gradientSettingModule == undefined) this.gradientSettingModule = Webpack.getByKeys("kj", "zO");
+					if (this.gradientSettingModule == undefined) this.gradientSettingModule = Webpack.getByKeys("kj", "zO")
 					const resetPreviewClientTheme = this.gradientSettingModule.kj;
 					const updateBackgroundGradientPreset = this.gradientSettingModule.zO;
 
@@ -581,7 +567,7 @@ module.exports = (() => {
 									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
 									changes: {
 										appearance: {
-											shouldSync: false,
+											shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
 											settings: {
 												theme: 'dark', //default dark theme
 												developerMode: true //genuinely have no idea what this does.
@@ -647,16 +633,18 @@ module.exports = (() => {
 						updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
 					}
 
-					if (this.accountSwitchModule == undefined) this.accountSwitchModule = Webpack.getByKeys("startSession");
+					if (this.accountSwitchModule == undefined) this.accountSwitchModule = Webpack.getByKeys("startSession", "login");
 
 					//startSession patch. This function runs upon switching accounts.
 					BdApi.Patcher.after(this.getName(), this.accountSwitchModule, "startSession", () => {
 
 						//If last appearance choice was a nitro client theme
-						if (this.settings.lastGradientSettingStore != -1) {
-							//Restore gradient on account switch
-							updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
-						}
+						setTimeout(() => {
+							if (this.settings.lastGradientSettingStore != -1) {
+								//Restore gradient on account switch
+								updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
+							}
+						}, 3000)
 					});
 				} //End of clientThemes()
 
@@ -1170,7 +1158,7 @@ module.exports = (() => {
 								let userProfile = userProfileMod.getUserProfile(args[0]);
 
 								//if their bio is empty, move on to the next check.
-								if (userProfile.bio != undefined) {
+								if (userProfile?.bio != undefined) {
 									//reveal 3y3 encoded text
 									revealedTextLocal = self.secondsightifyRevealOnly(String(userProfile.bio));
 									//if there's no 3y3 text, move on to the next check.
