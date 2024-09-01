@@ -1,7 +1,7 @@
 /**
  * @name ZeresPluginLibrary
  * @description Gives other plugins utility functions.
- * @version 2.0.21
+ * @version 2.0.22
  * @author Zerebos
  * @source https://github.com/rauenzi/BDPluginLibrary
  */
@@ -90,7 +90,7 @@ module.exports = {
     id: "9",
     name: "ZeresPluginLibrary",
     author: "Zerebos",
-    version: "2.0.21",
+    version: "2.0.22",
     description: "Gives other plugins utility functions.",
     source: "https://github.com/rauenzi/BDPluginLibrary",
     github_raw: "https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js",
@@ -100,6 +100,8 @@ module.exports = {
             type: "fixed",
             items: [
                 "Fixed the error on startup.",
+                "Settings titles are now styled correctly @Dastan",
+                "Settings can now be localized properly @Dastan"
             ]
         },
     ],
@@ -3710,7 +3712,6 @@ class Plugin {
         const config = this._config.defaultConfig;
         const buildGroup = (group) => {
             const {name, id, collapsible, shown, settings} = group;
-            // this.settings[id] = {};
 
             const list = [];
             for (let s = 0; s < settings.length; s++) {
@@ -3720,14 +3721,19 @@ class Plugin {
                     this.settings[id][current.id] = value;
                 };
                 if (Object.keys(this.strings).length && this.strings.settings && this.strings.settings[id] && this.strings.settings[id][current.id]) {
-                    const {settingName = name, note} = this.strings.settings[id][current.id];
-                    current.name = settingName;
-                    current.note = note;
+                    const settingStrings = this.strings.settings[id][current.id];
+                    current.name = settingStrings.name;
+                    current.note = settingStrings.note;
                 }
                 list.push(this.buildSetting(current));
             }
             
-            const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingGroup(name, {shown, collapsible}).append(...list);
+            let groupName = name;
+            if (Object.keys(this.strings).length && this.strings.settings && this.strings.settings[id]) {
+                groupName = this.strings.settings[id].name;
+            }
+
+            const settingGroup = new _ui_settings__WEBPACK_IMPORTED_MODULE_6__.SettingGroup(groupName, {shown, collapsible}).append(...list);
             settingGroup.id = id;
             return settingGroup;
         };
@@ -4492,7 +4498,7 @@ class Popouts {
     // static get AnimationTypes() {return AnimationTypes;}
 
     static initialize() {
-        // return;
+        return;
         this.dispose();
         this.popouts = 0;
 
@@ -4807,7 +4813,7 @@ class SettingField extends _structs_listenable__WEBPACK_IMPORTED_MODULE_0__["def
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SettingField);
 
 
-const TITLE_DEFAULT = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("titleDefault")?.title ?? "titleDefault-a8-ZSr title-31JmR4";
+const TITLE = modules__WEBPACK_IMPORTED_MODULE_1__.WebpackModules.getByProps("title", "dividerDefault")?.title ?? "title_ed1d57";
 
 class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.React.Component {
     get noteElement() {
@@ -4822,11 +4828,10 @@ class ReactSetting extends modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.R
         const SettingElement = ce(this.props.type, this.props);
         if (this.props.inline) {
             const Flex = modules__WEBPACK_IMPORTED_MODULE_1__.DiscordModules.FlexChild;
-            const titleDefault = TITLE_DEFAULT;
             return ce(Flex, {direction: Flex.Direction.VERTICAL, className: modules__WEBPACK_IMPORTED_MODULE_1__.DiscordClasses.Margins.marginTop20.toString()},
             ce(Flex, {align: Flex.Align.START}, 
                 ce(Flex.Child, {wrap: !0},
-                    ce("div", {className: titleDefault}, this.props.title)
+                    ce("div", {className: TITLE}, this.props.title)
                 ),
                 ce(Flex.Child, {grow: 0, shrink: 0}, SettingElement)
             ),
