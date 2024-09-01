@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.6
+ * @version 5.4.7
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -68,20 +68,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.6",
+			"version": "5.4.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.6",
+				title: "5.4.7",
 				items: [
-					"Fixed mislabeling on stream bitrate settings.",
-					"Updated experiments code",
-					"Fix gradient client themes not working",
-					"Attempt to fix gradient client themes not reapplying when switching accounts with a hacky fix.",
-					"Minor code tweaks"
+					"Finally got around to fixing the missing library dialog; it was failing to download ZeresPluginLibrary."
 				]
 			}
 		],
@@ -109,8 +105,9 @@ module.exports = (() => {
 				confirmText: "Download Now",
 				cancelText: "Cancel",
 				onConfirm: () => {
-					require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
-						if (error) return require("electron").shell.openExternal("https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+					BdApi.Net.fetch("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js", {method:"GET"}).then(async res => {
+						if (!res.ok) return require("electron").shell.openExternal("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+						let body = await res.text();
 						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
 					});
 				}
