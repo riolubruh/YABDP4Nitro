@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.7
+ * @version 5.4.8
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
@@ -68,16 +68,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.7",
+			"version": "5.4.8",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.7",
+				title: "5.4.8",
 				items: [
-					"Finally got around to fixing the missing library dialog; it was failing to download ZeresPluginLibrary."
+					"Update Preferred Video Codec option to work now that AV1 is one of the codecs."
 				]
 			}
 		],
@@ -211,8 +211,9 @@ module.exports = (() => {
 								{ label: "Default/Disabled", value: 0 },
 								{ label: "H.265", value: 1 },
 								{ label: "H.264", value: 2 },
-								{ label: "VP8", value: 3 },
-								{ label: "VP9", value: 4 }], value => this.settings.videoCodec = value, { searchable: true }
+								{ label: "AV1", value: 3 },
+								{ label: "VP8", value: 4 },
+								{ label: "VP9", value: 5 }], value => this.settings.videoCodec = value, { searchable: true }
 							)
 						]),
 						new Settings.SettingGroup("Emojis").append(
@@ -2004,21 +2005,20 @@ module.exports = (() => {
 							//and this code sets the priorities based on the outputs of setPriority.
 							if (e.codecs != undefined && e.codecs[1]?.decode != undefined) {
 
-								e.codecs[1].decode = isCodecH265; //H.265
-								e.codecs[1].encode = isCodecH265;
-								e.codecs[1].priority = parseInt(setPriority(0));
+								e.codecs[1].encode = isCodecAV1; //AV1
+								e.codecs[1].priority = parseInt(setPriority(2));
 
-								e.codecs[2].decode = isCodecH264; //H.264
-								e.codecs[2].encode = isCodecH264;
-								e.codecs[2].priority = parseInt(setPriority(1));
+								e.codecs[2].encode = isCodecH265; //H.265
+								e.codecs[2].priority = parseInt(setPriority(0));
 
-								e.codecs[3].decode = isCodecVP8; //VP8
-								e.codecs[3].encode = isCodecVP8;
-								e.codecs[3].priority = parseInt(setPriority(2));
+								e.codecs[3].encode = isCodecH264; //H.264
+								e.codecs[3].priority = parseInt(setPriority(1));
 
-								e.codecs[4].decode = isCodecVP9; //VP9
-								e.codecs[4].encode = isCodecVP9;
+								e.codecs[4].encode = isCodecVP8; //VP8
 								e.codecs[4].priority = parseInt(setPriority(3));
+
+								e.codecs[5].encode = isCodecVP9; //VP9
+								e.codecs[5].priority = parseInt(setPriority(4));
 							}
 						}
 					});
