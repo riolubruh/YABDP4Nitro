@@ -305,8 +305,6 @@ If you want to show your love for the plugin, (or just put a middle finger to Di
 
 Either click the Sponsor button at the top of the page, or [click here](https://github.com/sponsors/riolubruh)
 
-___
-
 #### Ko-fi
 
 <a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
