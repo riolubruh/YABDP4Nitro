@@ -241,9 +241,10 @@ Allows you to use the Nitro-exclusive gradient client themes by Discord.
 ![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
-___
 
 ### Remove Screenshare Nitro Upsell
+
+___
 
 Removes the annoying Nitro upsell in the screen share quality menu.
 
@@ -255,9 +256,13 @@ If your question isn't there **and you think it should be there,** write a comme
 If you have any other questions, you may DM me directly if you wish, otherwise you can [make a new Issue](https://github.com/riolubruh/YABDP4Nitro/issues/new) 
 with your question, and I'll try to answer it to the best of my abilities.
 
+___
+
 ## Reporting Issues
 To report an issue, please open a new issue on the [Issues page](https://github.com/YABDP4Nitro/YABDP4Nitro/issues)
 of this GitHub repository with a clear description of the problem and any steps to reproduce it.
+
+___
 
 ## Contributing
 If you would like to contribute to the project, there are several ways to do so. You can:
@@ -266,6 +271,8 @@ If you would like to contribute to the project, there are several ways to do so.
 - Submit a pull request to merge your changes back into the main branch
 
 Thank you for your interest in contributing to YABDP4Nitro!
+
+___
 
 ## Contributors
 Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
@@ -277,6 +284,8 @@ Special thanks to:
 
 Thank you all so much for your effort in making this plugin great!
 
+___
+
 ## Recommended additional plugins for more Nitro features
 
 [FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked until the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is fixed)
@@ -285,17 +294,23 @@ Thank you all so much for your effort in making this plugin great!
 
 [SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 25 megabyte chunks! YABDP4Nitro-compatible fork created by me.
 
+___
+
 ## License
 
 The plugin is licensed under the NPOSL Version 3 License. You can find it [here](https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md).
 
 This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
 
+___
+
 ## Discord Server
 
 Please read [this README](#readme) and [the FAQ](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
 
 https://discord.gg/EFmGEWAUns
+
+___
 
 ## Donate
 
