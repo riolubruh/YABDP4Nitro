@@ -242,11 +242,13 @@ Allows you to use the Nitro-exclusive gradient client themes by Discord.
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
 
-### Remove Screenshare Nitro Upsell
-
 ___
 
+### Remove Screenshare Nitro Upsell
+
 Removes the annoying Nitro upsell in the screen share quality menu.
+
+___
 
 # Frequently Asked Questions
 [Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
