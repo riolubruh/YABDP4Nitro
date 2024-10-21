@@ -324,14 +324,26 @@ Either click the Sponsor button at the top of the page, or [click here](https://
 
 #### Ko-fi
 
-<a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
-
+<a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36px' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
 
 #### PayPal
 
-<a href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a>
-
+<a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a>
 
 #### Venmo
 
-https://venmo.com/riolubruh
+<a href="https://venmo.com/riolubruh" target='_blank'><img height='36' style="height:36px;" src="https://github.com/user-attachments/assets/cbea3de4-e504-45c4-94fa-9d38d2d371f7"></a>
+
+#### Patreon
+
+<a href="https://patreon.com/riolubruh" target='_blank'>
+  <img height='36' style="height:48px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236">
+</a>
+
+#### BTC Address
+
+`bc1qyzrd2x4gvq86pe6hujd5uxw3j5cqhpdcyhn8d3`
+
+#### Monero Address
+
+`48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
