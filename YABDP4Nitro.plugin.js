@@ -1,9 +1,10 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.9
+ * @version 5.4.10
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
+ * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
  */
 /*@cc_on
@@ -68,17 +69,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.4.9",
+			"version": "5.4.10",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.4.9",
+				title: "5.4.10",
 				items: [
-					"(Temporarily?) Remove Preferred Video Codec because it doesn't actually work lol",
-					"Fix Custom FPS not being applied properly, because Discord has finally fixed the crash regarding custom resolutions and FPS for vanilla clients!"
+					"Fix PFP URL and Banner URL input areas not appearing."
 				]
 			}
 		],
@@ -268,7 +268,7 @@ module.exports = (() => {
 						)
 					])
 				}
-
+				
 
 				saveAndUpdate() { //Saves and updates settings and runs functions
 					Utilities.saveSettings(this.getName(), this.settings);
@@ -729,9 +729,9 @@ module.exports = (() => {
 				async customProfilePictureEncoding(secondsightifyEncodeOnly) {
 
 					//wait for avatar customization section renderer to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("USER_SETTINGS_RESET_AVATAR"));
+					await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", "isTryItOutFlow"));
 					//store avatar customization section renderer module
-					if (this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("USER_SETTINGS_RESET_AVATAR"))[0];
+					if (this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getAllByKeys("Z").filter(obj => obj.Z.toString().includes("showRemoveAvatarButton")).filter(obj => obj.Z.toString().includes("isTryItOutFlow"))[0];
 
 					Patcher.after(this.getName(), this.customPFPSettingsRenderMod, "Z", (_, [args], ret) => {
 
@@ -2250,29 +2250,13 @@ module.exports = (() => {
 				async bannerUrlEncoding(secondsightifyEncodeOnly) {
 
 					//wait for banner customization renderer module to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("USER_SETTINGS_PROFILE_BANNER"));
-					if (this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("USER_SETTINGS_PROFILE_BANNER"))[0];
+					await Webpack.waitForModule(Webpack.Filters.byStrings("setPendingAccentColor", "showEyeDropper"));
+					if (this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getAllByKeys("Z").filter(obj => obj.Z.toString().includes("setPendingAccentColor")).filter(obj => obj.Z.toString().includes("showEyeDropper"))[0];
 
 					Patcher.after(this.getName(), this.profileBannerSectionRenderer, "Z", (_, args, ret) => {
+						ret.props.children = [ret.props.children];
 
-						args[0].showPremiumIcon = false;
-
-						//create and append profileBannerUrlInput input element.
-						ret.props.children.props.children.push(
-							BdApi.React.createElement("input", {
-								id: "profileBannerUrlInput",
-								placeholder: "Imgur URL",
-								style: {
-									width: "30%",
-									height: "20%",
-									maxHeight: "50%",
-									marginLeft: "10px",
-									marginTop: "5px"
-								}
-							})
-						);
-
-						ret.props.children.props.children.push( //append Copy 3y3 button
+						ret.props.children.push( //append Copy 3y3 button
 							//create react element
 
 							BdApi.React.createElement("button", {
@@ -2282,7 +2266,10 @@ module.exports = (() => {
 								size: "sizeSmall__71a98",
 								style: {
 									whiteSpace: "nowrap",
-									marginLeft: "10px"
+									marginLeft: "10px",
+									float: "right",
+									marginLeft: "10px",
+									marginTop: "10px"
 								},
 								onClick: async function () { //Upon clicking Copy 3y3 button
 
@@ -2369,6 +2356,21 @@ module.exports = (() => {
 								} //end of onClick function
 							}) //end of react createElement
 						); //end of profileBannerButton element push
+
+						//create and append profileBannerUrlInput input element.
+						ret.props.children.push(
+							BdApi.React.createElement("input", {
+								id: "profileBannerUrlInput",
+								placeholder: "Imgur URL",
+								style: {
+									float: "right",
+									width: "30%",
+									height: "20%",
+									maxHeight: "50%",
+									marginTop: "15px"
+								}
+							})
+						);
 
 					}); //end of patched function
 
