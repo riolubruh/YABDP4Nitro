@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.0
+ * @version 5.5.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -32,7 +32,7 @@
 @else@*/
 
 //#region 
-const { Webpack, Patcher } = BdApi;
+const { Webpack, Patcher, Net, React } = BdApi;
 const StreamButtons = Webpack.getByKeys("L9", "LY", "ND", "WC", "aW", "af");
 const ApplicationStreamResolutions = StreamButtons.LY;
 const ApplicationStreamSettingRequirements = StreamButtons.ND;
@@ -54,10 +54,14 @@ let downloadedUserProfiles = [];
 const userProfileMod = Webpack.getByKeys("getUserProfile");
 const buttonClassModule = Webpack.getByKeys("lookFilled", "button", "contents");
 const Dispatcher = Webpack.getByKeys("subscribe", "dispatch");
-const canUserUseMod = Webpack.getByKeys("canUserUse");
+const canUserUseMod = Webpack.getByKeys("$0","ks");
 const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
 const LadderModule = Webpack.getModule(Webpack.Filters.byProps("calculateLadder"), { searchExports: true });
-const FetchCollectibleCategories = Webpack.getByKeys("B1", "DR", "F$", "K$").F$
+const FetchCollectibleCategories = Webpack.getByKeys("B1", "DR", "F$", "K$").F$;
+let ffmpeg = undefined;
+const MP4Box = Webpack.getByKeys("MP4BoxStream");
+const udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
+const udtaBuffer = udta.buffer;
 //#endregion
 
 module.exports = (() => {
@@ -69,16 +73,23 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.0",
+			"version": "5.5.1",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.0",
+				title: "5.5.1",
 				items: [
-					"Fix PFP URL and Banner URL input areas not appearing."
+					'Added a brand new bypass: Clips Bypass! Allows you to send video files up to 100MB as "Clips". Enabled by default. Disable it if your file upload limit is higher than 100MB.',
+					"Added HunBun to the list of YABDP4Nitro contributors for coming up with the idea behind the Discord Clips Bypass and helping an shit-ton in its' creation.",
+					"Added options: Use Clips Bypass, Force Transmuxing, Force Clip. See Settings > Clips for more information.",
+					"Micro-optimization when decoding and applying custom profile pictures and banners.",
+					"Change UsrBg database fetch timeout to be more lenient.",
+					"Fix 3y3 banner input not appearing for Nitro users.",
+					"Fix Remove Profile Customization Upsell no longer working.",
+					"Fix App Icons sometimes not appearing as unlocked."
 				]
 			}
 		],
@@ -106,7 +117,7 @@ module.exports = (() => {
 				confirmText: "Download Now",
 				cancelText: "Cancel",
 				onConfirm: () => {
-					BdApi.Net.fetch("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js", {method:"GET"}).then(async res => {
+					Net.fetch("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js", {method:"GET"}).then(async res => {
 						if (!res.ok) return require("electron").shell.openExternal("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
 						let body = await res.text();
 						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
@@ -167,7 +178,10 @@ module.exports = (() => {
 					"customPFPs": true,
 					"experiments": false,
 					"userPfpIntegration": true,
-					"userBgIntegration": true
+					"userBgIntegration": true,
+					"useClipBypass": true,
+					"alwaysTransmuxClips": false,
+					"forceClip": false
 				};
 				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
 				getSettingsPanel() {
@@ -257,6 +271,11 @@ module.exports = (() => {
 							new Settings.Switch("Kill Profile Effects", "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", this.settings.killProfileEffects, value => this.settings.killProfileEffects = value),
 							new Settings.Switch("Fake Profile Pictures", "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", this.settings.customPFPs, value => this.settings.customPFPs = value),
 							new Settings.Switch("UserPFP Integration", "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
+						),
+						new Settings.SettingGroup("Clips").append(
+							new Settings.Switch("Use Clips Bypass", "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.", this.settings.useClipBypass, value => this.settings.useClipBypass = value),
+							new Settings.Switch("Force Transmuxing", "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42.", this.settings.alwaysTransmuxClips, value => this.settings.alwaysTransmuxClips = value),
+							new Settings.Switch("Force Clip", "Always send video files as a clip, even if the size is below 10MB.", this.settings.forceClip, value => this.settings.forceClip = value)
 						),
 						new Settings.SettingGroup("Miscellaneous").append(
 							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work. Only enable this if you don't have Nitro.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
@@ -492,8 +511,9 @@ module.exports = (() => {
 							Logger.err(this.getName(), "Error occurred in experiments() " + err);
 						}
 					}
-
-					Patcher.instead(this.getName(), canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
+					
+					//Name changed from "canUserUse"
+					Patcher.instead(this.getName(), canUserUseMod, "ks", (_, [feature, user], originalFunction) => {
 
 						if (this.settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis")) {
 							return true;
@@ -509,8 +529,203 @@ module.exports = (() => {
 						}
 						return originalFunction(feature, user);
 					});
+
+					//Clips Bypass
+					if(this.settings.useClipBypass){
+						try{
+							this.clipsBypass();
+						}catch(err){
+							console.error(err);
+						}
+					}
+					
 				} //End of saveAndUpdate()
 
+				async clipsBypass(){
+					if(ffmpeg == undefined) await this.loadFFmpeg();
+
+					async function ffmpegTransmux(arrayBuffer, fileName = "input.mp4"){
+						if(ffmpeg){
+							Toasts.info("Transmuxing video...");
+							ffmpeg.on("log", ({ message }) => {
+								console.log(message);
+							});
+							await ffmpeg.writeFile(fileName, new Uint8Array(arrayBuffer));
+							await ffmpeg.exec(["-i", fileName, "-codec", "copy", "-brand", "isom/avc1", "-movflags", "+faststart", "-map", "0", "-map_metadata", "-1", "output.mp4"]);
+							const data = await ffmpeg.readFile('output.mp4');
+							
+							return data.buffer;
+						}
+					}
+
+					Patcher.instead(this.getName(), Webpack.getByKeys("addFiles"), "addFiles", async (_, [args], originalFunction) => {
+						//for each file being added
+						for(let i = 0; i < args.files.length; i++){
+							const currentFile = args.files[i];
+
+							//larger than 10mb
+							if(currentFile.file.size > 10485759 || this.settings.forceClip){
+								//if this file is an mp4 file
+								if(currentFile.file.type == "video/mp4"){
+									let dontStopMeNow = true;
+									let mp4BoxFile = MP4Box.createFile();
+									mp4BoxFile.onError = (e) => {
+										console.error(e);
+										dontStopMeNow = false;
+									};
+									mp4BoxFile.onReady = async (info) => {
+										mp4BoxFile.flush();
+
+										try{
+											//check if file is H264 or H265
+											if(info.videoTracks[0].codec.startsWith("avc") || info.videoTracks[0].codec.startsWith("hev1")){
+
+												if(!info.brands.includes("avc1") || info.brands.includes("mp42") || this.settings.alwaysTransmuxClips){
+													arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
+												}
+												
+												let isMetadataPresent = false;
+												//Is this file already a Discord clip?
+												for(let j = 0; j < mp4BoxFile.boxes.length; j++){
+													if(mp4BoxFile.boxes[j].type == "uuid"){
+														isMetadataPresent = true;
+													}
+												}
+												
+												//If this file is not a Discord clip, append udtaBuffer
+												if(!isMetadataPresent){
+
+													let array1 = ArrayBuffer.concat(arrayBuffer, udtaBuffer);
+
+													let video = new File([new Uint8Array(array1)], currentFile.file.name, {type: "video/mp4"});
+
+													currentFile.file = video;
+												}
+											}else{
+												//file is not H264 or H265, but is an mp4
+												arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
+												let array1 = ArrayBuffer.concat(arrayBuffer, udtaBuffer);
+												let video = new File([new Uint8Array(array1)], currentFile.file.name, {type: "video/mp4"});
+												
+												currentFile.file = video;
+											}
+
+											//send as a "clip"
+											currentFile.clip = {
+												"id": "",
+												"version": 3,
+												"applicationName": "",
+												"applicationId": "1301689862256066560",
+												"users": [
+													CurrentUser.id
+												],
+												"clipMethod": "manual",
+												"length": currentFile.file.size,
+												"thumbnail": "",
+												"filepath": ""
+											}
+										}catch(err){
+											Toasts.error("Something went wrong. See console for details.", {type: "error"});
+											Logger.err(this.getName(), err);
+										}finally{
+											dontStopMeNow = false;
+										}
+									};
+
+									let arrayBuffer;
+									currentFile.file.arrayBuffer().then(obj => {
+										arrayBuffer = obj;
+										arrayBuffer.fileStart = 0;
+										//examine file with mp4Box.
+										mp4BoxFile.appendBuffer(arrayBuffer);
+										//onReady will run after the buffer is appended successfully
+									});
+
+									//wait for onReady to finish
+									while(dontStopMeNow){
+										await new Promise(r => setTimeout(r, 10));
+									}
+								}else if(currentFile.file.type.startsWith("video/")){
+									//Is a video file, but not MP4
+
+									//AVI file warning
+									if(currentFile.file.type == "video/x-msvideo"){
+										Toasts.warning("[YABDP4Nitro] NOTE: AVI Files will send, but HTML5 does not support playing AVI video codecs!");
+									}
+									try{
+										let arrayBuffer = await currentFile.file.arrayBuffer();
+
+										let array1 = ArrayBuffer.concat(await ffmpegTransmux(arrayBuffer, currentFile.file.name), udtaBuffer);		
+										let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", {type: "video/mp4"});
+		
+										currentFile.file = video;
+										
+										//send as a "clip"
+										currentFile.clip = {
+											"id": "",
+											"version": 3,
+											"applicationName": "",
+											"applicationId": "1301689862256066560",
+											"users": [
+												CurrentUser.id
+											],
+											"clipMethod": "manual",
+											"length": currentFile.file.size,
+											"thumbnail": "",
+											"filepath": ""
+										}
+									}catch(err){
+										console.error(err);
+									}	
+								}
+								currentFile.platform = 1;
+							}
+							
+						}
+						
+						originalFunction(args);
+						
+					});
+				} //End of clipsBypass()
+
+				async loadFFmpeg(){
+					const defineTemp = window.global.define;
+
+					try{
+						//load ffmpeg worker
+						const ffmpegWorkerURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/814.ffmpeg.js", {timeout: 100000})).blob());
+
+						//load FFmpeg.WASM
+						let ffmpegSrc = await (await Net.fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js")).text();
+						
+						//patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
+						ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
+						//blob ffmpeg
+						const ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
+						
+						window.global.define = undefined;
+
+						//deprecated function, but uhhhh fuck you we need it
+						await BdApi.linkJS("ffmpeg.js", ffmpegURL);
+
+						ffmpeg = new FFmpegWASM.FFmpeg();
+						
+						const ffmpegCoreURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
+						
+						const ffmpegCoreWasmURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", {timeout: 100000})).blob());
+						
+						await ffmpeg.load({
+							coreURL: ffmpegCoreURL,
+							wasmURL: ffmpegCoreWasmURL
+						});
+						Logger.log("FFmpeg load success!");
+					}catch(err){
+						Toasts.error("An error occured trying to load FFmpeg.wasm. Check console for details.");
+						Logger.err(this.getName(), err);
+					}finally{
+						window.global.define = defineTemp;
+					}
+				} //End of loadFFmpeg()
 
 				experiments() {
 					try{
@@ -660,7 +875,7 @@ module.exports = (() => {
 							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
 
 							// download userPfp data
-							BdApi.Net.fetch(userPfpJsonUrl)
+							Net.fetch(userPfpJsonUrl)
 								// parse as json
 								.then(res => res.json())
 								// store res.avatars in this.userPfps
@@ -679,10 +894,10 @@ module.exports = (() => {
 							}
 						}
 
+						//get user activities
+						let activities = DiscordModules.UserStatusStore.getActivities(user.id);
 
-						if (DiscordModules.UserStatusStore.getActivities(user.id).length > 0) {
-							//get user activities
-							let activities = DiscordModules.UserStatusStore.getActivities(user.id);
+						if (activities.length > 0) {
 							//if user does not have a custom status, return original function.
 							if (activities[0].name != "Custom Status") return originalFunction(userId, size, shouldAnimate);
 
@@ -696,7 +911,7 @@ module.exports = (() => {
 							if (revealedText == undefined) return originalFunction(userId, size, shouldAnimate);
 
 							//This regex matches /P{*} . (Do not fuck with this)
-							let regex = /P\{[^}]*\}/;
+							let regex = /P\{[^}]*?\}/;
 
 							//Check if there are any matches in the custom status.
 							let matches = revealedText.toString().match(regex);
@@ -712,7 +927,7 @@ module.exports = (() => {
 								matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
 							}
 
-							//add this user to the list of users who have thee YABDP4Nitro user badge if we haven't added them already.
+							//add this user to the list of users who have the YABDP4Nitro user badge if we haven't added them already.
 							if (!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
 
 							//return imgur url
@@ -739,7 +954,7 @@ module.exports = (() => {
 						if (args.isTryItOutFlow) return;
 
 						ret.props.children.props.children.push(
-							BdApi.React.createElement("input", {
+							React.createElement("input", {
 								id: "profilePictureUrlInput",
 								style: {
 									width: "30%",
@@ -754,7 +969,7 @@ module.exports = (() => {
 
 						//Create and append Copy PFP 3y3 button.
 						ret.props.children.props.children.push(
-							BdApi.React.createElement("button", {
+							React.createElement("button", {
 								children: "Copy PFP 3y3",
 								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
 								id: "profilePictureButton",
@@ -791,7 +1006,7 @@ module.exports = (() => {
 											//Fetch imgur album page
 											try {
 												const parser = new DOMParser();
-												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
+												stringToEncode = await Net.fetch(("https://" + stringToEncode), {
 													method: "GET",
 													mode: "cors"
 												}).then(res => res.text()
@@ -907,8 +1122,9 @@ module.exports = (() => {
 
 						const specialThanks = [
 							"122072911455453184", // Weblure,
-							"760274365853335563", // Kozhura_ubezhishe_player_fly, and
-							"482224256730791967"  // Moeefa!
+							"760274365853335563", // Kozhura_ubezhishe_player_fly,
+							"482224256730791967", // Moeefa, and
+							"1106012563835195412" // HunBun!
 						];
 
 						//if the currently processed user is included in specialThanks, and they don't already have the badge applied,
@@ -1037,12 +1253,13 @@ module.exports = (() => {
 								document.body.appendChild(clipboardTextElem);
 								clipboardTextElem.select();
 								clipboardTextElem.setSelectionRange(0, 99999);
-								document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!");
+								document.execCommand("copy");
+								ZLibrary.Toasts.info("3y3 copied to clipboard!");
 								document.body.removeChild(clipboardTextElem);
 							}
 
 							profileEffectChildren.push(
-								BdApi.React.createElement("img", {
+								React.createElement("img", {
 									className: "riolubruhsSecretStuff",
 									onClick: copyDecoration3y3,
 									src: previewURL,
@@ -1060,14 +1277,14 @@ module.exports = (() => {
 							//add newline every 4th profile effect
 							if ((i + 1) % 4 == 0) {
 								profileEffectChildren.push(
-									BdApi.React.createElement("br")
+									React.createElement("br")
 								);
 							}
 						}
 
 						//Profile Effects Modal
 						function EffectsModal() {
-							const elem = BdApi.React.createElement("div", {
+							const elem = React.createElement("div", {
 								style: {
 									width: "100%",
 									display: "block",
@@ -1084,7 +1301,7 @@ module.exports = (() => {
 						//Append Change Effect button
 						ret.props.children.props.children.push(
 							//self explanatory create react element
-							BdApi.React.createElement("button", {
+							React.createElement("button", {
 								children: "Change Effect [YABDP4Nitro]",
 								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
 								size: "sizeSmall__71a98",
@@ -1096,7 +1313,7 @@ module.exports = (() => {
 									marginLeft: "10px"
 								},
 								onClick: () => {
-									BdApi.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", BdApi.React.createElement(EffectsModal));
+									BdApi.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal));
 								}
 
 							})
@@ -1170,9 +1387,10 @@ module.exports = (() => {
 								}
 
 							}
-							if (DiscordModules.UserStatusStore.getActivities(args[0]).length > 0) {
+							let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
+							if (activities.length > 0) {
 								//grab user's activities (this includes custom status)
-								let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
+								
 								//if they don't have a custom status, stop processing.
 								if (activities[0].name != "Custom Status") return;
 								//otherwise, grab the text from the custom status
@@ -1242,7 +1460,7 @@ module.exports = (() => {
 
 						//push change decoration button
 						ret.props.children[0].props.children.push(
-							BdApi.React.createElement("button", {
+							React.createElement("button", {
 								id: "decorationButton",
 								children: "Change Decoration [YABDP4Nitro]",
 								style: {
@@ -1254,7 +1472,7 @@ module.exports = (() => {
 								},
 								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
 								onClick: () => {
-									BdApi.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", BdApi.React.createElement(DecorModal));
+									BdApi.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal));
 								}
 							})
 						);
@@ -1279,7 +1497,7 @@ module.exports = (() => {
 								document.execCommand("copy");
 								ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);
 							}
-							let child = BdApi.React.createElement("img", {
+							let child = React.createElement("img", {
 								style: {
 									width: "23%",
 									cursor: "pointer",
@@ -1296,12 +1514,12 @@ module.exports = (() => {
 							//add newline every 4th decoration
 							if ((i + 1) % 4 == 0) {
 								//avatarDecorationsHTML += "<br>"
-								avatarDecorationChildren.push(BdApi.React.createElement("br"));
+								avatarDecorationChildren.push(React.createElement("br"));
 							}
 						}
 
 						function DecorModal() {
-							return BdApi.React.createElement("div", {
+							return React.createElement("div", {
 								style: {
 									width: "100%",
 									display: "block",
@@ -1817,9 +2035,6 @@ module.exports = (() => {
 
 						if (!e.videoQualityManager.qualityOverwrite) e.videoQualityManager.qualityOverwrite = {};
 
-						//console.log(e);
-
-
 						if (this.settings.minBitrate > 0 && this.settings.CustomBitrateEnabled) {
 							//Minimum Bitrate
 							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
@@ -2072,7 +2287,7 @@ module.exports = (() => {
 					Patcher.after(this.getName(), this.colorPickerRendererMod, "Z", (_, args, ret) => {
 
 						ret.props.children.props.children.push( //append copy colors 3y3 button
-							BdApi.React.createElement("button", {
+							React.createElement("button", {
 								id: "copy3y3button",
 								children: "Copy Colors 3y3",
 								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
@@ -2127,9 +2342,8 @@ module.exports = (() => {
 
 				} //End of encodeProfileColors()
 
-
-				//Commented to hell and back on 3/6/2024
-				bannerUrlDecoding() { //Decode 3y3 from profile bio and apply fake banners.
+				//Decode 3y3 from profile bio and apply fake banners.
+				bannerUrlDecoding() { 
 				
 					let endpoint, bucket, prefix, data;
 					
@@ -2140,7 +2354,7 @@ module.exports = (() => {
 						const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
 
 						//download, then store json
-						BdApi.Net.fetch(userBgJsonUrl).then(res => res.json().then(res => {
+						Net.fetch(userBgJsonUrl, {timeout: 100000}).then(res => res.json().then(res => {
 							data = res;
 							endpoint = res.endpoint;
 							bucket = res.bucket;
@@ -2186,7 +2400,7 @@ module.exports = (() => {
 						if (parsed == undefined) return ogFunction(args);
 
 						//This regex matches /B{*} . Do not touch unless you know what you are doing.
-						let regex = /B\{[^}]*\}/;
+						let regex = /B\{[^}]*?\}/;
 
 						//find banner url in parsed bio
 						let matches = parsed.toString().match(regex);
@@ -2250,26 +2464,37 @@ module.exports = (() => {
 				async bannerUrlEncoding(secondsightifyEncodeOnly) {
 
 					//wait for banner customization renderer module to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("setPendingAccentColor", "showEyeDropper"));
-					if (this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getAllByKeys("Z").filter(obj => obj.Z.toString().includes("setPendingAccentColor")).filter(obj => obj.Z.toString().includes("showEyeDropper"))[0];
+					await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer"));
+					this.profileBannerSectionRenderer = Webpack.getAllByKeys("Z").filter(obj => obj.Z.toString().includes("showRemoveBannerButton") && obj.Z.toString().includes("isTryItOutFlow") && obj.Z.toString().includes("buttonsContainer"))[0];
 
 					Patcher.after(this.getName(), this.profileBannerSectionRenderer, "Z", (_, args, ret) => {
-						ret.props.children = [ret.props.children];
+						//create and append profileBannerUrlInput input element.
+						let profileBannerUrlInput = React.createElement("input", {
+							id: "profileBannerUrlInput",
+							placeholder: "Imgur URL",
+							style: {
+								float: "right",
+								width: "30%",
+								height: "20%",
+								maxHeight: "50%",
+								marginTop: "auto",
+								marginBottom: "auto",
+								marginLeft: "10px"
+							}
+						});
+						ret.props.children.props.children.push(profileBannerUrlInput);
 
-						ret.props.children.push( //append Copy 3y3 button
+						ret.props.children.props.children.push( //append Copy 3y3 button
 							//create react element
 
-							BdApi.React.createElement("button", {
+							React.createElement("button", {
 								id: "profileBannerButton",
 								children: "Copy Banner 3y3",
 								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
 								size: "sizeSmall__71a98",
 								style: {
 									whiteSpace: "nowrap",
-									marginLeft: "10px",
-									float: "right",
-									marginLeft: "10px",
-									marginTop: "10px"
+									marginLeft: "10px"
 								},
 								onClick: async function () { //Upon clicking Copy 3y3 button
 
@@ -2306,7 +2531,7 @@ module.exports = (() => {
 											//Fetch imgur album page
 											try {
 												const parser = new DOMParser();
-												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
+												stringToEncode = await Net.fetch(("https://" + stringToEncode), {
 													method: "GET",
 													mode: "cors"
 												}).then(res => res.text()
@@ -2356,21 +2581,6 @@ module.exports = (() => {
 								} //end of onClick function
 							}) //end of react createElement
 						); //end of profileBannerButton element push
-
-						//create and append profileBannerUrlInput input element.
-						ret.props.children.push(
-							BdApi.React.createElement("input", {
-								id: "profileBannerUrlInput",
-								placeholder: "Imgur URL",
-								style: {
-									float: "right",
-									width: "30%",
-									height: "20%",
-									maxHeight: "50%",
-									marginTop: "15px"
-								}
-							})
-						);
 
 					}); //end of patched function
 
@@ -2442,6 +2652,7 @@ module.exports = (() => {
 					BdApi.DOM.removeStyle("YABDP4NitroBadges");
 					BdApi.DOM.removeStyle("UsrBGIntegration");
 					usrBgUsers = [];
+					BdApi.unlinkJS("ffmpeg.js");
 				}
 			};
 		};
