@@ -1080,6 +1080,10 @@ module.exports = (() => {
 						div [aria-label="YABDP4Nitro Creator!"] > a > img {
 							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
 						}
+						
+						div [aria-label="YABDP4Nitro Contributor!"] > a > img {
+							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+						}
 					`);
 
 					//User profile badge patches
