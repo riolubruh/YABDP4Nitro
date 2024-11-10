@@ -22,6 +22,7 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
      + [Fake Avatar Decorations](#fake-avatar-decorations)
      + [Fake Profile Effects](#fake-profile-effects)
      + [Fake Profile Pictures](#fake-profile-pictures)
+   * [Clips 100MB Video File Bypass](#clips)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
@@ -229,6 +230,17 @@ You should now see your profile picture change to the desired image!
 Note that only other others of the plugin will be able to see your fake profile picture.
 
 **Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
+
+___
+
+## Clips
+
+![Clips Kung Fu Panda Example](https://github.com/user-attachments/assets/b140c90a-4688-4e91-b696-97f01d314e5c)
+
+Increases the file upload limit for video files to 100 MB by sending them as "Discord Clip"s.
+
+It works by first using FFmpeg.WASM to transmux to "isom"-branded MP4 without re-encoding (unless it's already an "isom"-branded MP4),
+and then appending a special tag that the Discord API specifically checks for to the file in order for it to be considered "valid".
 
 ___
 
