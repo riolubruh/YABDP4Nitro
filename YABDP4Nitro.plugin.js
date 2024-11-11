@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.2
+ * @version 5.5.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,16 +73,18 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.2",
+			"version": "5.5.3",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.2",
+				title: "5.5.3",
 				items: [
-					"Fixed a logical error where if a file was transmuxed but the initial file contained a UUID tag, it would not be added to the new file."
+					"Override clip experiments since not everybody has it enabled.",
+					"Fixed a problem where the plugin would leave window.global.define as undefined for an extended period of time which other parts of the Discord client sometimes need.",
+					"Fixed a problem where the plugin would not output that FFmpeg has loaded to the console."
 				]
 			}
 		],
@@ -526,13 +528,26 @@ module.exports = (() => {
 					//Clips Bypass
 					if(this.settings.useClipBypass){
 						try{
+							this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
+							this.overrideExperiment("2022-11_clips_experiment", 1);
+							this.overrideExperiment("2023-10_viewer_clipping", 1);
+
 							this.clipsBypass();
 						}catch(err){
 							console.error(err);
 						}
 					}
-					
+
 				} //End of saveAndUpdate()
+
+				overrideExperiment(type, bucket){
+					//console.log("applying experiment override " + type + "; bucket " + bucket);
+					Dispatcher.dispatch({
+						type: "EXPERIMENT_OVERRIDE_BUCKET",
+						experimentId: type,
+						experimentBucket: bucket
+					});
+				}
 
 				async clipsBypass(){
 					if(ffmpeg == undefined) await this.loadFFmpeg();
@@ -708,6 +723,8 @@ module.exports = (() => {
 						//deprecated function, but uhhhh fuck you we need it
 						await BdApi.linkJS("ffmpeg.js", ffmpegURL);
 
+						window.global.define = defineTemp;
+
 						ffmpeg = new FFmpegWASM.FFmpeg();
 						
 						const ffmpegCoreURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
@@ -718,7 +735,7 @@ module.exports = (() => {
 							coreURL: ffmpegCoreURL,
 							wasmURL: ffmpegCoreWasmURL
 						});
-						Logger.log("FFmpeg load success!");
+						console.log("FFmpeg load success!");
 					}catch(err){
 						Toasts.error("An error occured trying to load FFmpeg.wasm. Check console for details.");
 						Logger.err(this.getName(), err);
