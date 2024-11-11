@@ -82,9 +82,7 @@ module.exports = (() => {
 			{
 				title: "5.5.4",
 				items: [
-					"Override clip experiments since not everybody has it enabled.",
-					"Fixed a problem where the plugin would leave window.global.define as undefined for an extended period of time which other parts of the Discord client sometimes need.",
-					"Fixed a problem where the plugin would not output that FFmpeg has loaded to the console."
+					"Improved SplitLargeFiles compatibility."
 				]
 			}
 		],
