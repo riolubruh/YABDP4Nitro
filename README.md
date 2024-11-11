@@ -88,7 +88,8 @@ ___
 ### Fake Profile Themes
 
 Allows profile theming by hiding color information in your bio using invisible 3y3 encoding!<br>
-Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!<br>
+Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!
+
 ![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
 
 Happy theming!
@@ -104,11 +105,10 @@ Only supports Imgur URLs for security reasons.
 ![Fake Profile Banners Big Yosher](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/f7edda1f-531b-45b8-bc8b-ee50d5c5cfdb)
 
 To use Fake Profile Banners, go to Settings>Profiles. You should see a new text input and 
-"Copy 3y3" button under the Profile Banners section:
+"Copy Banner 3y3" button under the Profile Banners section:
 
-![Profile Settings](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/facc8c27-5353-4205-b001-5b9c62375d6e)
+![Banner Tutorial Sceenshot](https://github.com/user-attachments/assets/c0f5620b-af4a-48e9-b196-1e41f8d09f33)
 
-<br>
 Simply type/paste in an Imgur URL into the input area
 
 ( ex: **`https://i.imgur.com/bYGGXnq.gif`** )
