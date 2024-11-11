@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.1
+ * @version 5.5.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,23 +73,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.1",
+			"version": "5.5.2",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.1",
+				title: "5.5.2",
 				items: [
-					'Added a brand new bypass: Clips Bypass! Allows you to send video files up to 100MB as "Clips". Enabled by default. Disable it if your file upload limit is higher than 100MB.',
-					"Added HunBun to the list of YABDP4Nitro contributors for coming up with the idea behind the Discord Clips Bypass and helping an shit-ton in its' creation.",
-					"Added options: Use Clips Bypass, Force Transmuxing, Force Clip. See Settings > Clips for more information.",
-					"Micro-optimization when decoding and applying custom profile pictures and banners.",
-					"Change UsrBg database fetch timeout to be more lenient.",
-					"Fix 3y3 banner input not appearing for Nitro users.",
-					"Fix Remove Profile Customization Upsell no longer working.",
-					"Fix App Icons sometimes not appearing as unlocked."
+					"Fixed a logical error where if a file was transmuxed but the initial file contained a UUID tag, it would not be added to the new file."
 				]
 			}
 		],
@@ -551,7 +544,7 @@ module.exports = (() => {
 								console.log(message);
 							});
 							await ffmpeg.writeFile(fileName, new Uint8Array(arrayBuffer));
-							await ffmpeg.exec(["-i", fileName, "-codec", "copy", "-brand", "isom/avc1", "-movflags", "+faststart", "-map", "0", "-map_metadata", "-1", "output.mp4"]);
+							await ffmpeg.exec(["-i", fileName, "-codec", "copy", "-brand", "isom/avc1", "-movflags", "+faststart", "-map", "0", "-map_metadata", "-1", "-map_chapters", "-1", "output.mp4"]);
 							const data = await ffmpeg.readFile('output.mp4');
 							
 							return data.buffer;
@@ -580,15 +573,21 @@ module.exports = (() => {
 											//check if file is H264 or H265
 											if(info.videoTracks[0].codec.startsWith("avc") || info.videoTracks[0].codec.startsWith("hev1")){
 
+												let hasTransmuxed = false;
 												if(!info.brands.includes("avc1") || info.brands.includes("mp42") || this.settings.alwaysTransmuxClips){
 													arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
+													hasTransmuxed = true;
 												}
 												
 												let isMetadataPresent = false;
-												//Is this file already a Discord clip?
-												for(let j = 0; j < mp4BoxFile.boxes.length; j++){
-													if(mp4BoxFile.boxes[j].type == "uuid"){
-														isMetadataPresent = true;
+
+												//skip if we transmuxed since we know it won't have the tag
+												if(!hasTransmuxed){
+													//Is this file already a Discord clip?
+													for(let j = 0; j < mp4BoxFile.boxes.length; j++){
+														if(mp4BoxFile.boxes[j].type == "uuid"){
+															isMetadataPresent = true;
+														}
 													}
 												}
 												
@@ -601,6 +600,7 @@ module.exports = (() => {
 
 													currentFile.file = video;
 												}
+												
 											}else{
 												//file is not H264 or H265, but is an mp4
 												arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
