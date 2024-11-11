@@ -571,6 +571,8 @@ module.exports = (() => {
 						for(let i = 0; i < args.files.length; i++){
 							const currentFile = args.files[i];
 
+							if(currentFile.file.name.endsWith(".dlfc")) return;
+
 							//larger than 10mb
 							if(currentFile.file.size > 10485759 || this.settings.forceClip){
 								//if this file is an mp4 file
