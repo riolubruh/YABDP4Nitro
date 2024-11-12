@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.4
+ * @version 5.5.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,16 +73,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.4",
+			"version": "5.5.5",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.4",
+				title: "5.5.5",
 				items: [
-					"Improved SplitLargeFiles compatibility."
+					"Auto-Enable experiments if Clips Bypass is enabled."
 				]
 			}
 		],
@@ -526,6 +526,7 @@ module.exports = (() => {
 					//Clips Bypass
 					if(this.settings.useClipBypass){
 						try{
+							this.experiments();
 							this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
 							this.overrideExperiment("2022-11_clips_experiment", 1);
 							this.overrideExperiment("2023-10_viewer_clipping", 1);
