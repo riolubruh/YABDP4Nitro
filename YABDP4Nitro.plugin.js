@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.5
+ * @version 5.5.6
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,16 +73,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.5",
+			"version": "5.5.6",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.5",
+				title: "5.5.6",
 				items: [
-					"Auto-Enable experiments if Clips Bypass is enabled."
+					"Emoji bypass fix -- Animated emojis not animating."
 				]
 			}
 		],
@@ -709,10 +709,10 @@ module.exports = (() => {
 
 					try{
 						//load ffmpeg worker
-						const ffmpegWorkerURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/814.ffmpeg.js", {timeout: 100000})).blob());
+						const ffmpegWorkerURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/814.ffmpeg.js", {timeout: 100000})).blob());
 
 						//load FFmpeg.WASM
-						let ffmpegSrc = await (await Net.fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js")).text();
+						let ffmpegSrc = await (await Net.fetch("http://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js")).text();
 						
 						//patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
 						ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
@@ -728,9 +728,9 @@ module.exports = (() => {
 
 						ffmpeg = new FFmpegWASM.FFmpeg();
 						
-						const ffmpegCoreURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
+						const ffmpegCoreURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
 						
-						const ffmpegCoreWasmURL = URL.createObjectURL(await (await Net.fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", {timeout: 100000})).blob());
+						const ffmpegCoreWasmURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", {timeout: 100000})).blob());
 						
 						await ffmpeg.load({
 							coreURL: ffmpegCoreURL,
@@ -1773,8 +1773,11 @@ module.exports = (() => {
 									emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
 								}
 								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
+								if(emoji.animated){
+									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+								}
 								if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
-
+								console.log(emojiUrl);
 
 								//If there is a backslash (\) before the emote we are processing,
 								if (msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
@@ -1787,7 +1790,7 @@ module.exports = (() => {
 								runs++; // increment number of times the uploader has run for this message.
 
 								//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`;
+								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}`;
 								//remove emote from message.
 								msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
 								//upload emote
@@ -1823,6 +1826,9 @@ module.exports = (() => {
 
 										let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
 										if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
+										if(emoji.animated){
+											emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+										}
 
 										//If there is a backslash (\) before the emote we are processing,
 										if (args.parsedMessage.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
@@ -1846,9 +1852,12 @@ module.exports = (() => {
 									for (let i = 0; i < emojis.length; i++) {
 										let emoji = emojis[i];
 										let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
+										if(emoji.animated){
+											emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+										}
 
 										//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`;
+										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}`;
 
 										this.UploadEmote(emojiUrl, currentChannelId, [currentChannelId, { content: "", tts: false, invalidEmojis: [] }], emoji, 1);
 									}
@@ -1885,6 +1894,9 @@ module.exports = (() => {
 
 								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
 								if (emojiUrl.startsWith("/assets/")) return;
+								if(emoji.animated){
+									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+								}
 
 								if (msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
 									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
@@ -1893,7 +1905,7 @@ module.exports = (() => {
 
 								//if ghost mode is not required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `)
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize} `)
 									return;
 								}
 								emojiGhostIteration++; //increment dummy value
@@ -1903,11 +1915,11 @@ module.exports = (() => {
 									//remove processed emoji from the message
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
 										//add to the end of the message
-										msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
+										msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&${emojiGhostIteration} `
 									return;
 								}
 								//if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize} `
 							});
 						}
 
@@ -1945,13 +1957,16 @@ module.exports = (() => {
 
 								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
 								if (emojiUrl.startsWith("/assets/")) return;
+								if(emoji.animated){
+									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+								}
 
 								if (msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
 									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
 									return //If there is a backslash before the emoji, skip it.
 								}
 								emojiGhostIteration++;
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&${emojiGhostIteration} `)
 							});
 						}
 
