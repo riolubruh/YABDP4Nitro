@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.6
+ * @version 5.5.7
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,16 +73,18 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.6",
+			"version": "5.5.7",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.6",
+				title: "5.5.7",
 				items: [
-					"Emoji bypass fix -- Animated emojis not animating."
+					"Clip bypass -- Fix Failed to load FFmpeg.wasm - unable to verify the first certificate.",
+					"Emoji bypasses -- Fix system emojis not being skipped due to a change by Discord resulting in errors."
+
 				]
 			}
 		],
@@ -709,10 +711,10 @@ module.exports = (() => {
 
 					try{
 						//load ffmpeg worker
-						const ffmpegWorkerURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/814.ffmpeg.js", {timeout: 100000})).blob());
+						const ffmpegWorkerURL = URL.createObjectURL(await (await fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/814.ffmpeg.js", {timeout: 100000})).blob());
 
 						//load FFmpeg.WASM
-						let ffmpegSrc = await (await Net.fetch("http://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js")).text();
+						let ffmpegSrc = await (await fetch("https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js")).text();
 						
 						//patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
 						ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
@@ -728,9 +730,9 @@ module.exports = (() => {
 
 						ffmpeg = new FFmpegWASM.FFmpeg();
 						
-						const ffmpegCoreURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
+						const ffmpegCoreURL = URL.createObjectURL(await (await fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js", {timeout: 100000})).blob());
 						
-						const ffmpegCoreWasmURL = URL.createObjectURL(await (await Net.fetch("http://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", {timeout: 100000})).blob());
+						const ffmpegCoreWasmURL = URL.createObjectURL(await (await fetch("https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm", {timeout: 100000})).blob());
 						
 						await ffmpeg.load({
 							coreURL: ffmpegCoreURL,
@@ -1769,6 +1771,7 @@ module.exports = (() => {
 							msg[1].validNonShortcutEmojis.forEach(emoji => {
 								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
 								if (emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
+								if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
 								if (this.settings.PNGemote) {
 									emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
 								}
@@ -1776,8 +1779,6 @@ module.exports = (() => {
 								if(emoji.animated){
 									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
 								}
-								if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
-								console.log(emojiUrl);
 
 								//If there is a backslash (\) before the emote we are processing,
 								if (msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
@@ -1825,7 +1826,7 @@ module.exports = (() => {
 										}
 
 										let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-										if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
+										if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
 										if(emoji.animated){
 											emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
 										}
@@ -1893,7 +1894,7 @@ module.exports = (() => {
 								if (self.settings.PNGemote) emoji.forcePNG = true;
 
 								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-								if (emojiUrl.startsWith("/assets/")) return;
+								if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
 								if(emoji.animated){
 									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
 								}
@@ -1956,7 +1957,7 @@ module.exports = (() => {
 								if (self.settings.PNGemote) emoji.forcePNG = true;
 
 								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-								if (emojiUrl.startsWith("/assets/")) return;
+								if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
 								if(emoji.animated){
 									emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
 								}
