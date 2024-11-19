@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.7
+ * @version 5.5.8
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,17 +73,16 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.7",
+			"version": "5.5.8",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.7",
+				title: "5.5.8",
 				items: [
-					"Clip bypass -- Fix Failed to load FFmpeg.wasm - unable to verify the first certificate.",
-					"Emoji bypasses -- Fix system emojis not being skipped due to a change by Discord resulting in errors."
+					"Attempt to workaround a Discord bug -- tried to fix some animated emoji links not appearing as animated"
 
 				]
 			}
@@ -1791,7 +1790,7 @@ module.exports = (() => {
 								runs++; // increment number of times the uploader has run for this message.
 
 								//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}`;
+								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&`;
 								//remove emote from message.
 								msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
 								//upload emote
@@ -1858,7 +1857,7 @@ module.exports = (() => {
 										}
 
 										//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}`;
+										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless&`;
 
 										this.UploadEmote(emojiUrl, currentChannelId, [currentChannelId, { content: "", tts: false, invalidEmojis: [] }], emoji, 1);
 									}
@@ -1906,7 +1905,7 @@ module.exports = (() => {
 
 								//if ghost mode is not required
 								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize} `)
+									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless& `)
 									return;
 								}
 								emojiGhostIteration++; //increment dummy value
@@ -1916,11 +1915,11 @@ module.exports = (() => {
 									//remove processed emoji from the message
 									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
 										//add to the end of the message
-										msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&${emojiGhostIteration} `
+										msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration}& `
 									return;
 								}
 								//if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize} `
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless& `
 							});
 						}
 
@@ -1967,7 +1966,7 @@ module.exports = (() => {
 									return //If there is a backslash before the emoji, skip it.
 								}
 								emojiGhostIteration++;
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&${emojiGhostIteration} `)
+								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration}& `)
 							});
 						}
 
@@ -1989,7 +1988,7 @@ module.exports = (() => {
 							if (msg.search(/\d{18}/g) == -1) return;
 							if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
 							msg.match(/<a:.+?:\d{18}>|<:.+?:\d{18}>/g).forEach(idfkAnymore => {
-								obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
+								obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}&quality=lossless&`)
 							})
 						});
 						return;
