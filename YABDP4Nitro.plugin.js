@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.5.8
+ * @version 5.5.9
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -73,16 +73,17 @@ module.exports = (() => {
 				"discord_id": "359063827091816448",
 				"github_username": "riolubruh"
 			}],
-			"version": "5.5.8",
+			"version": "5.5.9",
 			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
 			"github": "https://github.com/riolubruh/YABDP4Nitro",
 			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
 		},
 		changelog: [
 			{
-				title: "5.5.8",
+				title: "5.5.9",
 				items: [
-					"Attempt to workaround a Discord bug -- tried to fix some animated emoji links not appearing as animated"
+					"Fixed profile effects over the 99th not showing the correct one.",
+					"Performance optimizations."
 
 				]
 			}
@@ -1228,17 +1229,20 @@ module.exports = (() => {
 
 						//if profile effect 3y3 is detected
 						if (revealedText.includes("/fx")) {
-							let position = revealedText.indexOf("/fx");
-							if (position == undefined) return;
+							const regex = /\/fx\d+/;
+							let matches = revealedText.toString().match(regex);
+							if (matches == undefined) return;
+							let firstMatch = matches[0];
+							if (firstMatch == undefined) return;
 
-							//find the 2 characters after the /fx and parse int
-							let effectIndex = parseInt(revealedText.slice(position + 3, position + 5));
+							//slice the /fx and only take the number after it.
+							let effectIndex = parseInt(firstMatch.slice(3));
 							//ignore invalid data 
 							if (isNaN(effectIndex)) return;
 							//ignore if the profile effect id does not point to an actual profile effect
 							if (profileEffectIdList[effectIndex] == undefined) return;
-							//set the profile effect
-							ret.profileEffectId = profileEffectIdList[effectIndex];
+							//set the profile effect. stringify it.
+							ret.profileEffectId = profileEffectIdList[effectIndex] + "";
 
 							//if for some reason we dont know what this user's ID is, stop here
 							if (args == undefined) return;
@@ -1376,7 +1380,7 @@ module.exports = (() => {
 					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, [args], ret) => {
 						if (ret == undefined) return;
 						if (ret.userId == undefined) return;
-						if (downloadedUserProfiles.includes(args)) return;
+						if (downloadedUserProfiles[args]) return;
 						downloadedUserProfiles.push(ret.userId);
 					});
 
@@ -1392,7 +1396,7 @@ module.exports = (() => {
 							let revealedTextLocal = ""; //init empty string with local scope
 
 							//if this user's profile has been downloaded
-							if (downloadedUserProfiles.includes(args[0])) {
+							if (downloadedUserProfiles[args[0]]) {
 								//get the user's profile from the cached user profiles
 								let userProfile = userProfileMod.getUserProfile(args[0]);
 
@@ -2419,7 +2423,7 @@ module.exports = (() => {
 							//if we've fetched the userbg database
 							if (fetchedUserBg) {
 								//if user is in userBg database,
-								if (usrBgUsers.includes(user.userId)) {
+								if (usrBgUsers[user.userId]) {
 									profile.banner = "funky_kong_is_epic"; //set banner id to fake value
 									profile.premiumType = 2; //set this profile to appear with premium rendering
 									return `${endpoint}/${bucket}/${prefix}${user.userId}?${data.users[user.userId]}`; //return userBg banner URL and exit.
