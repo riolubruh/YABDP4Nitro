@@ -15,6 +15,7 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
      + [Upload Emotes](#upload-emotes)
      + [Ghost Mode](#ghost-mode)
      + [Classic Mode](#classic-mode)
+     + [Hyperlink / Vencord-like Mode](#hyperlink--vencord-like-mode)
    * [Profile](#profile)
      + [Profile Accents for All Users](#profile-accents-for-all-users)
      + [Fake Profile Themes](#fake-profile-themes)
@@ -41,11 +42,11 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
 
 Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 
-![Choosing Quality and FPS Options](https://user-images.githubusercontent.com/54255074/176584683-efe8eac3-8c6c-4100-9b98-0b2592fbb86f.png)
+![Choosing Quality and FPS Options](https://github.com/user-attachments/assets/db173a32-0eb9-4744-96e6-f0ab122b0d03)
 
 ![Another Image](https://user-images.githubusercontent.com/54255074/183275106-cbee28e6-d550-4637-ab06-0cb065c81283.png)
 
-![Bitrate Options](https://user-images.githubusercontent.com/54255074/191619975-64c61dc5-152a-4bec-995c-98661f823b53.png)
+![Bitrate Options](https://github.com/user-attachments/assets/b04b7685-0e55-4b40-ad0d-cad043dab229)
 
 ## Emoji Bypasses
 
@@ -64,6 +65,13 @@ Hide the link(s) to any emoji(s) you send by automatically using a "ghost messag
 
 ![Ghost Mode Image Demonstration](https://user-images.githubusercontent.com/54255074/166120840-50bd98c7-48d0-4772-8d9b-17280e247a02.png)
 ___
+
+### Hyperlink / Vencord-Like Mode
+
+Puts the emoji into a hyperlink like Vencord fakemojis.
+
+![vencord-like demo gif](https://github.com/user-attachments/assets/15df9ce9-cb2d-4ada-9070-2fd80e47db0e)
+
 
 ### Classic Mode
 
@@ -132,7 +140,8 @@ To use Fake Avatar Decorations, go to Settings>Profiles you should see a new but
 
 Clicking this button will reveal a menu with each of the avatar decorations in a grid.
 
-![avatar decorations](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/54597f3e-b115-44dd-9804-3aee5d9c99b3)
+![avatar decorations](https://github.com/user-attachments/assets/eff51466-6d05-4ab3-99f5-1308c04a9876)
+
 
 Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
 <br>Now follow one or both **(for the best effect, do both!)** of the following methods to apply the avatar decoration to your profile:
@@ -185,11 +194,12 @@ Uses invisible 3y3 encoding to allow setting profile effects by hiding IDs in yo
 
 To use Fake Profile Effects, first go to Settings>Profiles; you should see a Profile Effect section:
 
-![Profile Effect section](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/2030de16-4bec-4e55-96be-916c9cfb8090)
+![Profile Effect section]((https://github.com/user-attachments/assets/22b7473b-b1ad-4c7a-9cf4-922a8fd133a8)
 
 Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
 
-![profile effect section opened](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/20a4ee8d-afc6-4e78-a478-ded416172e56)
+![profile effect section opened](https://github.com/user-attachments/assets/c93e79c7-acfc-4464-8717-8114c7d18c32)
+
 <br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
 Clicking one of these profile effects will copy the invisible 3y3-encoded data into your clipboard.
