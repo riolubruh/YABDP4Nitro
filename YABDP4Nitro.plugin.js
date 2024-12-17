@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.6.0
+ * @version 5.6.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -126,23 +126,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.6.0",
+        "version": "5.6.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.6.0",
+            title: "5.6.1",
             items: [
-                "Removed dependency on ZeresPluginLibrary.",
-                "Fixed regression causing UsrBg profile banners to not work.",
-                "Changing emoji bypasses has been simplified into a dropdown menu instead of multiple switches.",
-                "Added a hyperlink / Vencord-like emoji bypass.",
-                "Implemented an update checker.",
-                "Added the ability to disable checking for updates on startup.",
-                "Implemented new changelog.",
-                "Fix messages not forwarding if Upload Emotes was enabled."
+                "Fixed an error where the plugin could not start if you had a fresh config."
             ]
         }
     ],
@@ -2736,18 +2729,24 @@ module.exports = class YABDP4Nitro {
     }
 
     async checkForUpdate() {
-        let fileContent = await (await fetch(this.meta.updateUrl)).text();
-        let remoteMeta = this.parseMeta(fileContent);
-        let remoteVersion = remoteMeta.version.trim().split('.');
-        let currentVersion = this.meta.version.trim().split('.');
-
-        if (parseInt(remoteVersion[0]) > parseInt(currentVersion[0])) {
-            this.newUpdateNotify(remoteMeta, fileContent);
-        } else if (remoteVersion[0] == currentVersion[0] && parseInt(remoteVersion[1]) > parseInt(currentVersion[1])) {
-            this.newUpdateNotify(remoteMeta, fileContent);
-        } else if (remoteVersion[0] == currentVersion[0] && remoteVersion[1] == currentVersion[1] && parseInt(remoteVersion[2]) > parseInt(currentVersion[2])) {
-            this.newUpdateNotify(remoteMeta, fileContent);
+        try{
+            let fileContent = await (await fetch(this.meta.updateUrl)).text();
+            let remoteMeta = this.parseMeta(fileContent);
+            let remoteVersion = remoteMeta.version.trim().split('.');
+            let currentVersion = this.meta.version.trim().split('.');
+    
+            if (parseInt(remoteVersion[0]) > parseInt(currentVersion[0])) {
+                this.newUpdateNotify(remoteMeta, fileContent);
+            } else if (remoteVersion[0] == currentVersion[0] && parseInt(remoteVersion[1]) > parseInt(currentVersion[1])) {
+                this.newUpdateNotify(remoteMeta, fileContent);
+            } else if (remoteVersion[0] == currentVersion[0] && remoteVersion[1] == currentVersion[1] && parseInt(remoteVersion[2]) > parseInt(currentVersion[2])) {
+                this.newUpdateNotify(remoteMeta, fileContent);
+            }
         }
+        catch(err){
+            Logger.error(this.meta.name, err);
+        }
+        
     }
 
     newUpdateNotify(remoteMeta, remoteFile) {
@@ -2769,26 +2768,32 @@ module.exports = class YABDP4Nitro {
     start() {
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has started.");
 
-        let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");
-        currentVersionInfo.version = this.meta.version;
-        Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
-
-        if (settings.checkForUpdates) this.checkForUpdate();
-
-        if (!currentVersionInfo.hasShownChangelog) {
-            UI.showChangelogModal({
-                title: "YABDP4Nitro Changelog",
-                subtitle: config.changelog[0].title,
-                changes: [{
-                    title: config.changelog[0].title,
-                    type: "changed",
-                    items: config.changelog[0].items
-                }]
-            });
-            currentVersionInfo.hasShownChangelog = true;
+        //update check
+        try{
+            let currentVersionInfo = Object.assign({}, {version: this.meta.version, hasShownChangelog: false}, Data.load("YABDP4Nitro", "currentVersionInfo"));
+            currentVersionInfo.version = this.meta.version;
             Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+    
+            if (settings.checkForUpdates) this.checkForUpdate();
+    
+            if (!currentVersionInfo.hasShownChangelog) {
+                UI.showChangelogModal({
+                    title: "YABDP4Nitro Changelog",
+                    subtitle: config.changelog[0].title,
+                    changes: [{
+                        title: config.changelog[0].title,
+                        type: "changed",
+                        items: config.changelog[0].items
+                    }]
+                });
+                currentVersionInfo.hasShownChangelog = true;
+                Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+            }
         }
-
+        catch(err){
+            Logger.error(this.meta.name, err);
+        }
+        
         this.saveAndUpdate();
     }
 
