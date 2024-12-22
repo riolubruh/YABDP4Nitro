@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.6.1
+ * @version 5.6.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -61,7 +61,7 @@ const LadderModule = Webpack.getModule(Webpack.Filters.byProps("calculateLadder"
 const FetchCollectibleCategories = Webpack.getByKeys("B1", "DR", "F$", "K$").F$;
 let ffmpeg = undefined;
 const MP4Box = Webpack.getByKeys("MP4BoxStream");
-const udta = new Uint8Array([0, 0, 0, 89, 109, 101, 116, 97, 0, 0, 0, 0, 0, 0, 0, 33, 104, 100, 108, 114, 0, 0, 0, 0, 0, 0, 0, 0, 109, 100, 105, 114, 97, 112, 112, 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44, 105, 108, 115, 116, 0, 0, 0, 36, 169, 116, 111, 111, 0, 0, 0, 28, 100, 97, 116, 97, 0, 0, 0, 1, 0, 0, 0, 0, 76, 97, 118, 102, 54, 49, 46, 51, 46, 49, 48, 51, 0, 0, 46, 46, 117, 117, 105, 100, 161, 200, 82, 153, 51, 70, 77, 184, 136, 240, 131, 245, 122, 117, 165, 239]);
+const udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
 const udtaBuffer = udta.buffer;
 const UserStatusStore = Webpack.getByKeys("getStatus", "getState");
 const SelectedGuildStore = Webpack.getStore("SelectedGuildStore");
@@ -116,7 +116,7 @@ const defaultSettings = {
     "checkForUpdates": true
 };
 
-let settings = Object.assign({}, defaultSettings, Data.load("YABDP4Nitro", "settings"));
+let settings = {};
 
 const config = {
     info: {
@@ -126,16 +126,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.6.1",
+        "version": "5.6.2",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.6.1",
+            title: "5.6.2",
             items: [
-                "Fixed an error where the plugin could not start if you had a fresh config."
+                "Made the plugin startable even if your config file is invalid.",
+                "Implemented functionality that will automatically reset your config file to default if it ever gets corrupted or is otherwise invalid.",
             ]
         }
     ],
@@ -265,8 +266,8 @@ module.exports = class YABDP4Nitro {
 
 
     saveAndUpdate() { //Saves and updates settings and runs functions
-        //Utilities.saveSettings(this.meta.name, this.settings);
         Data.save(this.meta.name, "settings", settings);
+        
         Patcher.unpatchAll(this.meta.name);
 
         if (settings.changePremiumType) {
@@ -310,7 +311,6 @@ module.exports = class YABDP4Nitro {
                 Logger.error(this.meta.name, err);
             }
         }
-
 
         if (settings.stickerBypass) {
             try {
@@ -490,7 +490,6 @@ module.exports = class YABDP4Nitro {
 
         //Name changed from "canUserUse"
         Patcher.instead(this.meta.name, canUserUseMod, "ks", (_, [feature, user], originalFunction) => {
-
             if (settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis")) {
                 return true;
             }
@@ -745,7 +744,6 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-
     clientThemes() {
         if (this.clientThemesModule == undefined) this.clientThemesModule = Webpack.getModule(Webpack.Filters.byProps("isPreview"));
 
@@ -865,7 +863,6 @@ module.exports = class YABDP4Nitro {
         });
     } //End of clientThemes()
 
-
     customProfilePictureDecoding() {
         if (this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
 
@@ -941,7 +938,6 @@ module.exports = class YABDP4Nitro {
             return originalFunction(userId, size, shouldAnimate);
         })
     }
-
 
     //Custom PFP profile customization buttons and encoding code.
     async customProfilePictureEncoding(secondsightifyEncodeOnly) {
@@ -1062,7 +1058,6 @@ module.exports = class YABDP4Nitro {
         }); //end of patch
     } //End of customProfilePictureEncoding()
 
-
     //Apply custom badges.
     honorBadge() {
 
@@ -1148,7 +1143,6 @@ module.exports = class YABDP4Nitro {
         }); //End of user profile badge patches
     } //End of honorBadge()
 
-
     secondsightifyRevealOnly(t) {
         if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
             // 3y3 text detected. Revealing...
@@ -1159,7 +1153,6 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-
     secondsightifyEncodeOnly(t) {
         if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
             // 3y3 text detected. returning...
@@ -1169,7 +1162,6 @@ module.exports = class YABDP4Nitro {
             return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
         }
     }
-
 
     //Everything related to Fake Profile Effects.
     async profileFX(secondsightifyEncodeOnly) {
@@ -1332,7 +1324,6 @@ module.exports = class YABDP4Nitro {
 
     } //End of profileFX()
 
-
     killProfileFX() { //self explanatory
         Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
             if (ret == undefined) return;
@@ -1343,7 +1334,6 @@ module.exports = class YABDP4Nitro {
     }
 
     //Everything related to fake avatar decorations.
-
     storeProductsFromCategories = event => {
         if (event.categories) {
             event.categories.forEach(category => {
@@ -1547,7 +1537,6 @@ module.exports = class YABDP4Nitro {
 
     } //End of fakeAvatarDecorations()
 
-
     async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
         if (emoji === undefined) {
             let emoji;
@@ -1598,7 +1587,6 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-
     //Whether we should skip the emoji bypass for a given emoji.
     // true = skip bypass
     // false = perform bypass
@@ -1613,13 +1601,9 @@ module.exports = class YABDP4Nitro {
                 // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration)
                 return true;
             }
-
-
-
         }
         return false;
     }
-
 
     customVideoSettings() { //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
@@ -1756,8 +1740,6 @@ module.exports = class YABDP4Nitro {
                         return;
                     }
                 }
-
-                console.log(msg);
 
                 const currentChannelId = msg[0];
                 let runs = 0; //number of times the uploader has run for this message
@@ -2033,7 +2015,6 @@ module.exports = class YABDP4Nitro {
         }
     } //End of emojiBypass()
 
-
     updateQuick() { //Function that runs when the resolution/fps quick menu is changed.
         //Refer to customVideoSettings function for comments on what this all does, since this code is just a copy-paste from there.
         const settings = BdApi.getData("YABDP4Nitro", "settings");
@@ -2102,7 +2083,6 @@ module.exports = class YABDP4Nitro {
         }
         Data.save("YABDP4Nitro", "settings", settings);
     } //End of updateQuick()
-
 
     videoQualityModule() { //Custom Bitrates, FPS, Resolution
         if (this.videoOptionFunctions == undefined) this.videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
@@ -2226,7 +2206,6 @@ module.exports = class YABDP4Nitro {
         });
     } //End of videoQualityModule()
 
-
     buttonCreate() { //Creates the FPS and Resolution Swapper
         let qualityButton = document.createElement('button');
         qualityButton.id = 'qualityButton';
@@ -2294,7 +2273,6 @@ module.exports = class YABDP4Nitro {
         qualityMenu.appendChild(qualityInputFPS);
     } //End of buttonCreate()
 
-
     async stickerSending() {
         if (this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = Webpack.getByKeys("cO", "eb", "kl");
 
@@ -2328,7 +2306,6 @@ module.exports = class YABDP4Nitro {
         });
     }
 
-
     decodeAndApplyProfileColors() {
         Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
             if (ret == undefined) return;
@@ -2346,7 +2323,6 @@ module.exports = class YABDP4Nitro {
             ret.premiumType = 2;
         });
     }
-
 
     //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
     //Replaced DOM manipulation with React patching 4/2/2024
@@ -2533,7 +2509,6 @@ module.exports = class YABDP4Nitro {
         });
     } //End of bannerUrlDecoding()
 
-
     //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
     //Documented/commented and partially rewritten to use React patching on 3/6/2024
     async bannerUrlEncoding(secondsightifyEncodeOnly) {
@@ -2661,7 +2636,6 @@ module.exports = class YABDP4Nitro {
 
     } //End of bannerUrlEncoding()
 
-
     appIcons() {
         settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
 
@@ -2757,9 +2731,15 @@ module.exports = class YABDP4Nitro {
             onConfirm: async (e) => {
                 if (remoteFile) {
                     await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
-                    let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");
-                    currentVersionInfo.hasShownChangelog = false;
-                    Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+                    try{
+                        let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");   
+                        currentVersionInfo.hasShownChangelog = false;
+                        Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+                    }catch(err){
+
+                    }
+                    
+                    
                 }
             }
         });
@@ -2768,9 +2748,29 @@ module.exports = class YABDP4Nitro {
     start() {
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has started.");
 
+        try{
+            //load settings from config
+            settings = Object.assign({}, defaultSettings, Data.load(this.meta.name, "settings"));
+        }catch(err){
+            //The super mega awesome data-unfucker 9000
+            Logger.warn(this.meta.name, err);
+            Logger.info(this.meta.name, "Error parsing JSON. Resetting file to default...");
+            //watch this shit yo
+            require("fs").rmSync(require("path").join(BdApi.Plugins.folder, `${this.meta.name}.config.json`));
+            BdApi.Plugins.reload(this.meta.name);
+            BdApi.Plugins.enable(this.meta.name);
+            return;
+        }
+
         //update check
         try{
-            let currentVersionInfo = Object.assign({}, {version: this.meta.version, hasShownChangelog: false}, Data.load("YABDP4Nitro", "currentVersionInfo"));
+            let currentVersionInfo = {};
+            try{
+                currentVersionInfo = Object.assign({}, {version: this.meta.version, hasShownChangelog: false}, Data.load("YABDP4Nitro", "currentVersionInfo"));
+            }catch(err){
+                currentVersionInfo = {version: this.meta.version, hasShownChangelog: false};
+            }
+            
             currentVersionInfo.version = this.meta.version;
             Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
     
@@ -2796,7 +2796,6 @@ module.exports = class YABDP4Nitro {
         
         this.saveAndUpdate();
     }
-
 
     stop() {
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
