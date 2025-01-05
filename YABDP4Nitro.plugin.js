@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.6.2
+ * @version 5.6.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -70,6 +70,9 @@ const MessageActions = Webpack.getByKeys("jumpToMessage", "_sendMessage");
 const SelectedChannelStore = Webpack.getStore("SelectedChannelStore");
 const UserStore = Webpack.getStore("UserStore");
 const AccountDetailsClasses = Webpack.getByKeys("container", "avatar", "hasBuildOverride");
+const MessageEmojiReact = Webpack.getAllByKeys("Y", "c").filter(obj => obj.Y.toString().includes("emoji"))[0].c;
+const messageRender = Webpack.getByKeys("HR", "L5", "ZP");
+const renderEmbedsMod = BdApi.Webpack.getByKeys("$p", "BB", "ZP").BB.prototype;
 //#endregion
 
 const defaultSettings = {
@@ -113,7 +116,8 @@ const defaultSettings = {
     "useClipBypass": true,
     "alwaysTransmuxClips": false,
     "forceClip": false,
-    "checkForUpdates": true
+    "checkForUpdates": true,
+    "fakeInlineVencordEmotes": true
 };
 
 let settings = {};
@@ -126,17 +130,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.6.2",
+        "version": "5.6.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.6.2",
+            title: "5.6.3",
             items: [
-                "Made the plugin startable even if your config file is invalid.",
-                "Implemented functionality that will automatically reset your config file to default if it ever gets corrupted or is otherwise invalid.",
+                "Added embedding hyperlink emojis as emojis in messages, similar to Vencord's FakeNitro emojis.",
+                "Made the changelog appear if you update manually."
             ]
         }
     ],
@@ -197,7 +201,8 @@ const config = {
                 { type: "switch", id: "PNGemote", name: "Use PNG instead of WEBP", note: "Use the PNG version of static emoji for higher quality!", value: () => settings.PNGemote },
                 { type: "switch", id: "stickerBypass", name: "Sticker Bypass", note: "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.", value: () => settings.stickerBypass },
                 { type: "switch", id: "uploadStickers", name: "Upload Stickers", note: "Upload stickers in the same way as emotes.", value: () => settings.uploadStickers },
-                { type: "switch", id: "forceStickersUnlocked", name: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked.", value: () => settings.forceStickersUnlocked }
+                { type: "switch", id: "forceStickersUnlocked", name: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked.", value: () => settings.forceStickersUnlocked },
+                { type: "switch", id: "fakeInlineVencordEmotes", name: "Fake Inline Hyperlink Emotes", note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.", value: () => settings.fakeInlineVencordEmotes }
             ]
         },
         {
@@ -517,6 +522,11 @@ module.exports = class YABDP4Nitro {
             } catch (err) {
                 Logger.error(this.meta.name, err);
             }
+        }
+
+        console.log(settings);
+        if(settings.fakeInlineVencordEmotes){
+            this.inlineFakemojiPatch();
         }
 
     } //End of saveAndUpdate()
@@ -2015,6 +2025,88 @@ module.exports = class YABDP4Nitro {
         }
     } //End of emojiBypass()
 
+    inlineFakemojiPatch(){
+        //Somehow, this is the first time I've had to actually patch message rendering.
+        Patcher.before(this.meta.name, messageRender.ZP, "type", (_,[args]) => {
+            //console.log(args);
+            for(let i = 0; i < args.content.length; i++){
+                let contentItem = args.content[i];
+                
+                if(contentItem.type.type?.toString().includes("MASKED_LINK")){ //is it a hyperlink? if so...
+
+                    if(contentItem.props.href.startsWith("https://cdn.discordapp.com/emojis/")){ //does this hyperlink have an emoji URL? if so...
+                        
+                        let emojiName = contentItem.props?.children[0]?.props?.children;
+                        if(emojiName == undefined) continue;
+                        
+                        let key = contentItem.key; //store key
+
+                        //create discord emoji react element
+                        let emoteElement = BdApi.React.createElement(MessageEmojiReact, {
+                            //self explanatory arguments
+                            node: {
+                                name: `:${emojiName}:`,
+                                src: contentItem.props.href,
+                                type: "emoji",
+                                jumboable: false //makes the emoji large or small. "jumboable" is a silly name from Wumpus or some shit.
+                            },
+                            channelId: args.message.channel_id,
+                            messageId: args.message.id,
+                            enableClick: true
+                        });
+                        
+                        //restore key
+                        emoteElement.key = key;
+                        //replace this content item with our fake emoji
+                        args.content[i] = emoteElement;
+                    }
+                }
+            }
+        });
+
+        //who knows what unholy compatibility issues this will bring me
+        Patcher.instead(this.meta.name, renderEmbedsMod, "renderEmbeds", (_, [message], originalFunction) => {
+            //get what the original function would have returned
+            let ret = originalFunction(message);
+            if(ret){
+                if(ret.length > 0){
+                    for(let i = 0; i < ret.length; i++){
+                        if(ret[i]){
+                            if(ret[i].props?.children?.props?.embed?.image?.url){
+
+                                let matches = ret[i].props.children.props.embed.image.url.startsWith("https://cdn.discordapp.com/emojis/");
+
+                                if(ret.length == 1){ //if there is only 1 fakemoji
+                                    
+                                    //matches and removes first instance of pattern [anyemojiname](https://cdn.discordapp.com/emojis/anynumber.ext)
+                                    //then checks if there is anything else in the message, and also checks if the embed image url starts with https://cdn.discordapp.com/emojis/ for some reason which idk if thats necessary but it doesnt cost much so might as well
+                                    if(message.content.replace(/\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif).*?\)/, "") //is a regex even necessary..?
+                                        .trim().length > 0 && matches){ //if there is other stuff in the message, delete the embed
+                                            delete ret[i];
+                                    }
+                                    //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
+                                    //for some reason, if the fakemoji is in a message alone, it disappears, so keeping the embed was the easiest solution
+                                }
+
+                                //if there is more than 1 hyperlink
+                                else{
+                                    if(matches) delete ret[i]; //if the hyperlink is an emoji url, delete the embed
+                                }
+                            }
+                        }
+                    }
+                }
+                //removes empty items from the array. def did not take from stackoverflow (trust)
+                ret = ret.filter(n => n); 
+
+                return ret;
+            }else{ //if the original function returns undefined/null
+                //this should never happen, but in case it does, return an empty array
+                return [];
+            }
+        });
+    }
+
     updateQuick() { //Function that runs when the resolution/fps quick menu is changed.
         //Refer to customVideoSettings function for comments on what this all does, since this code is just a copy-paste from there.
         const settings = BdApi.getData("YABDP4Nitro", "settings");
@@ -2770,7 +2862,7 @@ module.exports = class YABDP4Nitro {
             }catch(err){
                 currentVersionInfo = {version: this.meta.version, hasShownChangelog: false};
             }
-            
+            if(this.meta.version != currentVersionInfo.version) currentVersionInfo.hasShownChangelog = false;
             currentVersionInfo.version = this.meta.version;
             Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
     
