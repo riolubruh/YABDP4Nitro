@@ -16,6 +16,7 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
      + [Ghost Mode](#ghost-mode)
      + [Classic Mode](#classic-mode)
      + [Hyperlink / Vencord-like Mode](#hyperlink--vencord-like-mode)
+       - [Fake Inline Hyperlink Emojis](#fake-inline-hyperlink-emojis)
    * [Profile](#profile)
      + [Profile Accents for All Users](#profile-accents-for-all-users)
      + [Fake Profile Themes](#fake-profile-themes)
@@ -48,23 +49,29 @@ Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 
 ![Bitrate Options](https://github.com/user-attachments/assets/b04b7685-0e55-4b40-ad0d-cad043dab229)
 
+_________________________________________________________________________________________________________________
+
 ## Emoji Bypasses
 
 Allows you to seamlessly use animated emojis and emojis from any server you're in by linking or uploading them!
+
+_________________________________________________________________________________________________________________
 
 ### Upload Emotes
 
 Automatically uploads the emojis used in your message as an attachment!
 
 ![Uploading Demonstration](https://user-images.githubusercontent.com/54255074/191621033-da0db3f6-c5f6-4ba7-9c99-0c8ccf7ed864.gif)
-___
+
+_________________________________________________________________________________________________________________
 
 ### Ghost Mode 
 <!-- spoopy!!! -->
 Hide the link(s) to any emoji(s) you send by automatically using a "ghost message"! It is a bit more laggy and may be detected as spam by some bots.
 
 ![Ghost Mode Image Demonstration](https://user-images.githubusercontent.com/54255074/166120840-50bd98c7-48d0-4772-8d9b-17280e247a02.png)
-___
+
+_________________________________________________________________________________________________________________
 
 ### Hyperlink / Vencord-Like Mode
 
@@ -72,15 +79,31 @@ Puts the emoji into a hyperlink like Vencord fakemojis.
 
 ![vencord-like demo gif](https://github.com/user-attachments/assets/15df9ce9-cb2d-4ada-9070-2fd80e47db0e)
 
+#### Fake Inline Hyperlink Emojis
+
+The Fake Inline Hyperlink Emojis option will replace these hyperlinks with fake emojis on the client side.
+
+Disabled:
+
+![inline_off](https://github.com/user-attachments/assets/10e96b02-57ae-4346-bcf9-b8b9d758e918)
+
+Enabled:
+
+![inline_on](https://github.com/user-attachments/assets/86668cb7-2c69-4788-9b35-5c8e4d2dd5f9)
+
+_________________________________________________________________________________________________________________
 
 ### Classic Mode
 
-When both Ghost Mode and Upload Emotes are disabled, we simply replace the emoji in the message with its' URL. This is "classic mode".
-___
+Simply replaces the emoji in the message with its' URL. This is "classic mode".
+
+_________________________________________________________________________________________________________________
 
 #### Usage of the Emoji Bypass
 
 ![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
+
+_________________________________________________________________________________________________________________
 
 ## Profile
 
@@ -91,7 +114,7 @@ ___
 To clarify: What this does is make **all profiles** render with the gradient accent on the **client-side**.
 
 We'll get into profile accents that other users can see in a second.
-___
+_________________________________________________________________________________________________________________
 
 ### Fake Profile Themes
 
@@ -103,7 +126,8 @@ Works effectively exactly the same as FakeProfileThemes on Vencord, but on Bette
 Happy theming!
 
 **Note that only users that have either YABDP4Nitro, FakeProfileThemes (Vencord), UnrealProfileThemes (Enmity), or a similar plugin (that decodes 3y3-encoded profile colors) installed will be able to see the profile colors.**
-___
+
+_________________________________________________________________________________________________________________
 
 ### Fake Profile Banners
 
@@ -126,7 +150,7 @@ Then, click the "Copy 3y3" button to the right of the input area, paste your cli
 The banner should appear in the "Try It Out" preview to let you know that it is working correctly.
 
 **Note that only other users with YABDP4Nitro installed and enabled will be able to see this.**
-___
+_________________________________________________________________________________________________________________
 
 ### Fake Avatar Decorations
 
@@ -184,7 +208,7 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
 <br>
 Any other user of YABDP4Nitro with Fake Avatar Decorations enabled will now be able to see your avatar decoration.
 
-___
+_________________________________________________________________________________________________________________
 
 ## Fake Profile Effects
 
@@ -194,7 +218,7 @@ Uses invisible 3y3 encoding to allow setting profile effects by hiding IDs in yo
 
 To use Fake Profile Effects, first go to Settings>Profiles; you should see a Profile Effect section:
 
-![Profile Effect section]((https://github.com/user-attachments/assets/22b7473b-b1ad-4c7a-9cf4-922a8fd133a8)
+![Profile Effect section](https://github.com/user-attachments/assets/22b7473b-b1ad-4c7a-9cf4-922a8fd133a8)
 
 Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
 
@@ -209,7 +233,7 @@ Clicking one of these profile effects will copy the invisible 3y3-encoded data i
 
 Any other user of YABDP4Nitro with Fake Profile Effects enabled will now be able to see your profile effect!
 
-___
+_________________________________________________________________________________________________________________
 
 ## Fake Profile Pictures
 
@@ -241,7 +265,7 @@ Note that only other others of the plugin will be able to see your fake profile 
 
 **Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
 
-___
+_________________________________________________________________________________________________________________
 
 ## Clips
 
@@ -252,7 +276,7 @@ Increases the file upload limit for video files to 100 MB by sending them as "Di
 It works by first using FFmpeg.WASM to transmux to "isom"-branded MP4 without re-encoding (unless it's already an "isom"-branded MP4),
 and then appending a special tag that the Discord API specifically checks for to the file in order for it to be considered "valid".
 
-___
+_________________________________________________________________________________________________________________
 
 ## Miscellaneous
 
@@ -264,13 +288,13 @@ Allows you to use the Nitro-exclusive gradient client themes by Discord.
 
 ![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
 
-___
+_________________________________________________________________________________________________________________
 
 ### Remove Screenshare Nitro Upsell
 
 Removes the annoying Nitro upsell in the screen share quality menu.
 
-___
+_________________________________________________________________________________________________________________
 
 # Frequently Asked Questions
 [Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
@@ -280,13 +304,13 @@ If your question isn't there **and you think it should be there,** write a comme
 If you have any other questions, you may DM me directly if you wish, otherwise you can [make a new Issue](https://github.com/riolubruh/YABDP4Nitro/issues/new) 
 with your question, and I'll try to answer it to the best of my abilities.
 
-___
+_________________________________________________________________________________________________________________
 
 ## Reporting Issues
 To report an issue, please open a new issue on the [Issues page](https://github.com/YABDP4Nitro/YABDP4Nitro/issues)
 of this GitHub repository with a clear description of the problem and any steps to reproduce it.
 
-___
+_________________________________________________________________________________________________________________
 
 ## Contributing
 If you would like to contribute to the project, there are several ways to do so. You can:
@@ -296,7 +320,7 @@ If you would like to contribute to the project, there are several ways to do so.
 
 Thank you for your interest in contributing to YABDP4Nitro!
 
-___
+_________________________________________________________________________________________________________________
 
 ## Contributors
 Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
@@ -309,7 +333,7 @@ Special thanks to:
 
 Thank you all so much for your effort in making this plugin great!
 
-___
+_________________________________________________________________________________________________________________
 
 ## Recommended additional plugins for more Nitro features
 
@@ -319,7 +343,7 @@ ___
 
 [SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 25 megabyte chunks! YABDP4Nitro-compatible fork created by me.
 
-___
+_________________________________________________________________________________________________________________
 
 ## License
 
@@ -327,7 +351,7 @@ The plugin is licensed under the NPOSL Version 3 License. You can find it [here]
 
 This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
 
-___
+_________________________________________________________________________________________________________________
 
 ## Discord Server
 
@@ -335,33 +359,90 @@ Please read [this README](#readme) and [the FAQ](https://github.com/riolubruh/YA
 
 https://discord.gg/EFmGEWAUns
 
-___
+_________________________________________________________________________________________________________________
 
 ## Donate
 
 If you want to show your love for the plugin, (or just put a middle finger to Discord's face) it would really mean the world to me if you threw me a few bucks. Very few people actually donate, so I see and appreciate every last one.
 
+Methods of donations without fees are obviously preferred. See more info below.
+
+Generally though, a fee will be applied if you use a credit card (usually 3%).
+
+_________________________________________________________________________________________________________________
+
+### P2P
+
+Using a P2P payment processor will ensure that 100% of your donation will be received and none will be taken by transaction fees (unless you choose to use an instant transfer).
+
+
+### Venmo
+
+<a href="https://venmo.com/riolubruh" target='_blank'><img style="height:40px;" src="https://github.com/user-attachments/assets/cbea3de4-e504-45c4-94fa-9d38d2d371f7"></a><br>
+[Fees Info](https://venmo.com/resources/our-fees/)
+
+### Cashapp
+
+<a href="https://cash.app/$riolubruh" target='_blank'><img style="height:36px;" src="https://github.com/user-attachments/assets/ecc3aa78-4ba3-4b5b-93a6-3ba3a9fbb3c9"></a><br>
+[Fees Info](https://cash.app/legal/us/en-us/cashappterms#stored-balance-disclosures)
+
+QR Code:
+
+<a href="https://cash.app/$riolubruh" target='_blank'><img height='200' src="https://github.com/user-attachments/assets/745f778b-82e1-4cb8-93ca-f96d0fd10fc2"></a>
+
+_________________________________________________________________________________________________________________
+
+### Payment Processor(s) with no fee
+
+GitHub Sponsors is the only one I've found so far.
+
 #### GitHub Sponsors
 
-Either click the Sponsor button at the top of the page, or [click here](https://github.com/sponsors/riolubruh)
+-Have to use a credit or debit card.
+
+Apparently **no credit card fee** either? Someone test this for me ;)
+
+https://github.com/sponsors/riolubruh
+
+_________________________________________________________________________________________________________________
+
+### Payment Processors with a fee
+
+
+Using one of these will subtract some fee, either taking the fee from you or from me (usually from me).
 
 #### Ko-fi
 
-<a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img height='36px' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
+Routed through PayPal, so [same fee as PayPal](https://www.paypal.com/us/digital-wallet/paypal-consumer-fees#ReceivingDonations).
+
+<a href='https://ko-fi.com/N4N5L05NP' target='_blank'><img style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Send me some dosh at ko-fi.com' /></a>
 
 #### PayPal
 
-<a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a>
+I will be able to see your full name and email if PayPal is used.<br>
+Although I won't do anything with it, if this makes you uncomfortable, consider using something else.
 
-#### Venmo
+Donation fee of 2.89% of payment + $0.49 ( + 1.5% if you're not in the United States + currency conversion if applicable) taken from me.
 
-<a href="https://venmo.com/riolubruh" target='_blank'><img height='36' style="height:36px;" src="https://github.com/user-attachments/assets/cbea3de4-e504-45c4-94fa-9d38d2d371f7"></a>
+<a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a><br>
+[Fees Info](https://www.paypal.com/us/digital-wallet/paypal-consumer-fees#ReceivingDonations)
 
 #### Patreon
 
-<a href="https://patreon.com/riolubruh" target='_blank'>
-  <img height='36' style="height:48px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236">
-</a>
+8% fee + payment processing fees depending on what processor you used + currency conversion fees (if applicable).<br>
+Plus a $0.25 fee whenever I cash out.<br>
+Seriously dastardly fees, all taken from the creator! Shameful!<br>
+Stay away from this shit unless you have to for some reason!
+
+<a href="https://patreon.com/riolubruh" target='_blank'><img style="height:36px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236"> </a><br>
+[Fees Info](https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview#h_01HAM56C6VSN4AC0FAWNPWMNA1)
+_________________________________________________________________________________________________________________
+
+### Cryptocurrency
+___
+
+100% anonymous. Not sure if I set it up correctly, shoot me a DM if I screwed this up.<br>
+Some fees are involved with these, but if you're actually using this, you already knew that.
 
 #### BTC Address
 
