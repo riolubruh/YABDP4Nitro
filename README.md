@@ -367,7 +367,7 @@ If you want to show your love for the plugin, (or just put a middle finger to Di
 
 Methods of donations without fees are obviously preferred. See more info below.
 
-Generally though, a fee will be applied if you use a credit card (usually 3%).
+To avoid repeating myself, assume that an additional 3% fee will be applied if you use a credit card.
 
 _________________________________________________________________________________________________________________
 
