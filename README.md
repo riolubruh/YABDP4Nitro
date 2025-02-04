@@ -330,6 +330,7 @@ Special thanks to:
 - Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
 - Moeefa for [committing a bugfix](https://github.com/riolubruh/YABDP4Nitro/commits?author=Moeefa)!
 - HunBun for being the brains behind the Discord Clips Bypass!
+- Arven for teaching me how to use `BdApi.Webpack.getMangled`, giving code for improved module filters, and teaching me about some filter options I didn't know about.
 
 Thank you all so much for your effort in making this plugin great!
 
