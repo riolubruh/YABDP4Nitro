@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.6.7
+ * @version 5.6.8
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -98,6 +98,7 @@ const StreamSettingsMod = Webpack.getByStrings("StreamSettings: user cannot be u
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
 const appIconModule = Webpack.getByKeys("getCurrentDesktopIcon");
 const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons", {defaultExport:false});
+const addFilesMod = Webpack.getByKeys("addFiles");
 //#endregion
 
 const defaultSettings = {
@@ -162,18 +163,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.6.7",
+        "version": "5.6.8",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.6.7",
+            title: "5.6.8",
             items: [
-                "Fixed a regression where the upload emoji bypass would send doubled messages.",
-                "Fixed soundmoji text being doubled if you sent both an emoji with Upload Emotes enabled and sent a soundmoji at the same time.",
-                "Changed code in videoQualityModule that would set the video capture and video budget to the FPS and resolution in plugin settings even if you weren't using the custom quality option so that it instead sets it to the current resolution and framerate of the stream in index 0."
+                "Replaced accidentally hardcoded button size attributes with bd-button-small, which does nothing since the classes are correct, but Arven demanded it for some reason.",
+                "Removed UsrBG CSS which was doing seemingly nothing except causing unnecessary lag with forced reflows. Thanks UsrBG.",
+                "Removed a function that wasn't being run that I accidentally left in the file."
             ]
         }
     ],
@@ -451,26 +452,10 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        BdApi.DOM.removeStyle("UsrBGIntegration");
-
         if(settings.fakeProfileBanners){
             this.bannerUrlDecoding();
             this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
             if(settings.userBgIntegration){
-                BdApi.DOM.addStyle("UsrBGIntegration", `
-                    :is([class*="userProfile"], [class*="userPopout"]) [class*="bannerPremium"] {
-                        background: center / cover no-repeat;
-                    }
-
-                    [class*="NonPremium"]:has([class*="bannerPremium"]) [class*="avatarPositionNormal"],
-                    [class*="PremiumWithoutBanner"]:has([class*="bannerPremium"]) [class*="avatarPositionPremiumNoBanner"] {
-                        top: 76px;
-                    }
-
-                    [style*="background-image"] [class*="background_"] {
-                        background-color: transparent !important;
-                    }`
-                );
             }
         }
 
@@ -680,7 +665,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        Patcher.instead(this.meta.name, Webpack.getByKeys("addFiles"), "addFiles", async (_, [args], originalFunction) => {
+        Patcher.instead(this.meta.name, addFilesMod, "addFiles", async (_, [args], originalFunction) => {
             //for each file being added
             for(let i = 0; i < args.files.length; i++){
                 const currentFile = args.files[i];
@@ -1453,7 +1438,7 @@ module.exports = class YABDP4Nitro {
                 React.createElement("button", {
                     children: "Change Effect [YABDP4Nitro]",
                     className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-                    size: "sizeSmall__71a98",
+                    size: "bd-button-small",
                     id: "changeProfileEffectButton",
                     style: {
                         width: "100px",
@@ -2193,31 +2178,6 @@ module.exports = class YABDP4Nitro {
         //#endregion
     } //End of emojiBypass()
 
-    soundmojiMessageRenderPatch(){
-        const inlineSoundmoji = Webpack.getByStrings("SoundboardMentionInline", {searchExports:true})
-        Patcher.before(this.meta.name, messageRender.renderMessage, "type", (_, [args]) => {
-            for(let i = 0; i < args.content.length; i++){
-                let curContentObj = args.content[i];
-                if(typeof curContentObj.props?.children === "string"){
-                    let revealed = this.secondsightifyRevealOnly(args.content[i].props?.children);
-                    if(revealed?.includes("/snd")){
-                        let matches = revealed.match(/\/snd\d+/);
-                        if(matches){
-                            let match = matches[0];
-                            let id = match.replace("/snd","");
-                            args.content[i+1] = React.createElement(inlineSoundmoji, {
-                                channelId: args.message.channel_id,
-                                messageId: args.message.id,
-                                soundId: id,
-                                jumbo: false
-                            });
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     //#region Fake Inline Emoji
     inlineFakemojiPatch(){
         //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
@@ -2734,7 +2694,7 @@ module.exports = class YABDP4Nitro {
                     id: "profileBannerButton",
                     children: "Copy Banner 3y3",
                     className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-                    size: "sizeSmall__71a98",
+                    size: "bd-button-small",
                     style: {
                         whiteSpace: "nowrap",
                         marginLeft: "10px"
@@ -2998,7 +2958,6 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle(this.meta.name);
         DOM.removeStyle("YABDP4NitroBadges");
-        DOM.removeStyle("UsrBGIntegration");
         usrBgUsers = [];
         BdApi.unlinkJS("ffmpeg.js");
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has stopped.");
