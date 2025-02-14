@@ -28,6 +28,7 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
+     + [In-App Icons](#in-app-icons)
 - [FAQ & Installation (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -276,6 +277,8 @@ Increases the file upload limit for video files to 100 MB by sending them as "Di
 It works by first using FFmpeg.WASM to transmux to "isom"-branded MP4 without re-encoding (unless it's already an "isom"-branded MP4),
 and then appending a special tag that the Discord API specifically checks for to the file in order for it to be considered "valid".
 
+The plugin does everything automatically, so all you'll need to do is upload the video as you usually would, and enjoy the higher 100MB file limit!
+
 _________________________________________________________________________________________________________________
 
 ## Miscellaneous
@@ -294,7 +297,21 @@ ________________________________________________________________________________
 
 Removes the annoying Nitro upsell in the screen share quality menu.
 
+![Discord_voeTC4w6lE](https://github.com/user-attachments/assets/57c5a6cf-8c29-49eb-8171-857e91f9d163)
+![Discord_2s1O1PplCu](https://github.com/user-attachments/assets/ce84f0f5-776a-4f61-b184-05925fef25a0)
+
 _________________________________________________________________________________________________________________
+
+### In-App Icons
+
+Nitro In-App icons are unlocked.
+
+![App Icons](https://github.com/user-attachments/assets/810dfa79-3b73-420d-a795-1fe9e6780bc2)
+
+This feature is known to be buggy at times.
+
+_________________________________________________________________________________________________________________
+
 
 # Frequently Asked Questions
 [Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
