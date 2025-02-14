@@ -124,6 +124,7 @@ const defaultSettings = {
     "forceStickersUnlocked": false,
     "changePremiumType": false,
     "videoCodec2": -1,
+    "audioChannelType": "default",
     "clientThemes": true,
     "lastGradientSettingStore": -1,
     "fakeProfileThemes": true,
@@ -197,6 +198,17 @@ const config = {
                 { type: "text", id: "targetBitrate", name: "Target Bitrate", note: "The target bitrate (in kbps). If this is set to a negative number, the Discord default of 600kbps will be used.", value: () => settings.targetBitrate },
                 { type: "text", id: "maxBitrate", name: "Maximum Bitrate", note: "The maximum bitrate (in kbps). If this is set to a negative number, the Discord default of 2500kbps will be used.", value: () => settings.maxBitrate },
                 { type: "text", id: "voiceBitrate", name: "Voice Audio Bitrate", note: "Allows you to change the voice bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps). Disabled if this is set to 128 or -1.", value: () => settings.voiceBitrate },
+                {
+                    type: "dropdown", id: "audioChannelType", name: "Audio Channel Type", note: `
+                    Allows you to force a specified audio channel type to be used. Normally, Discord
+                    sets the channel to Mono(1.0).
+                    If a client does not support the codec you choose, the stream will infinitely load for them!`, value: () => settings.audioChannelType, options: [
+                        { label: "Default (automatic, normally mono)", value: "default" },
+                        { label: "Mono Sound", value: "1.0" },
+                        { label: "Stereo Sound", value: "2.0" },
+                        { label: "Surround Sound", value: "7.1" },
+                    ]
+                },
                 {
                     type: "dropdown", id: "videoCodec2", name: "Force Video Codec (Advanced Users Only)", note: `
                     Allows you to force a specified video codec to be used. Normally, Discord would automatically 
@@ -2453,6 +2465,27 @@ module.exports = class YABDP4Nitro {
                 e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
                 e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
             }
+        });
+        //Sets the audio channel (Mono/Stereo/Surround)
+        //Code inspired by edoStereo.plugin.js by edoderg at https://github.com/edoderg/edoStereo/blob/f78093fa9af95a9fa1b22c430b8fdb75c67655e5/edoStereo.plugin.js#L159-L179
+        Patcher.after(this.meta.name, videoOptionFunctions, "updateVideoQuality", (thisObj, _args, ret) => {
+            if (thisObj && settings.audioChannelType !== "default") {
+                const setTransportOptions = thisObj.conn.setTransportOptions;
+
+                thisObj.conn.setTransportOptions = (obj) => {
+                  if (obj.audioEncoder) {
+                    obj.audioEncoder.params = {
+                      stereo: settings.audioChannelType,
+                    };
+                    obj.audioEncoder.channels = parseFloat(settings.audioChannelType);
+                  }
+                  if (obj.fec) {
+                    obj.fec = false; // disable forward error correction (fec)
+                  }
+                  setTransportOptions.call(thisObj.conn, obj);
+                };
+                return ret;
+              }
         });
     } //End of videoQualityModule()
     //#endregion
