@@ -201,8 +201,7 @@ const config = {
                 {
                     type: "dropdown", id: "audioChannelType", name: "Audio Channel Type", note: `
                     Allows you to force a specified audio channel type to be used. Normally, Discord
-                    sets the channel to Mono(1.0).
-                    If a client does not support the codec you choose, the stream will infinitely load for them!`, value: () => settings.audioChannelType, options: [
+                    sets the channel to Mono(1.0).`, value: () => settings.audioChannelType, options: [
                         { label: "Default (automatic, normally mono)", value: "default" },
                         { label: "Mono Sound", value: "1.0" },
                         { label: "Stereo Sound", value: "2.0" },
