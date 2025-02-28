@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.6.8
+ * @version 5.7.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -60,10 +60,9 @@ const canUserUseMod = Webpack.getMangled(".getFeatureValue(", {
     canUserUse: Webpack.Filters.byStrings("getFeatureValue")
 });
 const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
-const LadderModule = Webpack.getModule(Webpack.Filters.byProps("calculateLadder"), { searchExports: true });
+const LadderModule = Webpack.getModule(Webpack.Filters.byKeys("calculateLadder"), { searchExports: true });
 const FetchCollectibleCategories = Webpack.getByStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"', { searchExports: true });
 let ffmpeg = undefined;
-const MP4Box = Webpack.getByKeys("MP4BoxStream");
 const udta = new Uint8Array([0, 0, 0, 89, 109, 101, 116, 97, 0, 0, 0, 0, 0, 0, 0, 33, 104, 100, 108, 114, 0, 0, 0, 0, 0, 0, 0, 0, 109, 100, 105, 114, 97, 112, 112, 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44, 105, 108, 115, 116, 0, 0, 0, 36, 169, 116, 111, 111, 0, 0, 0, 28, 100, 97, 116, 97, 0, 0, 0, 1, 0, 0, 0, 0, 76, 97, 118, 102, 54, 49, 46, 51, 46, 49, 48, 51, 0, 0, 46, 46, 117, 117, 105, 100, 161, 200, 82, 153, 51, 70, 77, 184, 136, 240, 131, 245, 122, 117, 165, 239]);
 const udtaBuffer = udta.buffer;
 const UserStatusStore = Webpack.getByKeys("getStatus", "getState");
@@ -81,7 +80,7 @@ const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD
     getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
     isSendableSticker: Webpack.Filters.byStrings(")=>0===")
 });
-const clientThemesModule = Webpack.getModule(Webpack.Filters.byProps("isPreview"));
+const clientThemesModule = Webpack.getModule(Webpack.Filters.byKeys("isPreview"));
 const streamSettingsMod = Webpack.getByPrototypeKeys("getCodecOptions").prototype;
 const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientThemeSettings:{", {
     saveClientTheme: Webpack.Filters.byStrings("changes:{appearance:{settings:{clientThemeSettings:{")
@@ -93,8 +92,6 @@ const getSoundMod = Webpack.getByKeys("getSoundById");
 const emojiMod = Webpack.getByKeys("getCustomEmojiById");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
 const TextClasses = Webpack.getByKeys("errorMessage", "h5");
-const FormModalClasses = Webpack.getByKeys("formItemTitleSlim", "modalContent");
-const StreamSettingsMod = Webpack.getByStrings("StreamSettings: user cannot be undefined", { defaultExport: false });
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
 const appIconModule = Webpack.getByKeys("getCurrentDesktopIcon");
 const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons", {defaultExport:false});
@@ -164,18 +161,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.6.8",
+        "version": "5.7.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.6.8",
+            title: "5.7.0",
             items: [
-                "Replaced accidentally hardcoded button size attributes with bd-button-small, which does nothing since the classes are correct, but Arven demanded it for some reason.",
-                "Removed UsrBG CSS which was doing seemingly nothing except causing unnecessary lag with forced reflows. Thanks UsrBG.",
-                "Removed a function that wasn't being run that I accidentally left in the file."
+                "Updated FFmpeg.js base to 0.12.8 and FFmpeg.js core to 0.12.10.",
+                "Fixed custom resolution/fps modal swapper not always appearing when it should due to some modules now being lazy-loaded.",
+                "Fixed MP4s over 10mb not being able to be sent with Clips Bypass enabled because Discord made MP4Box.js lazy loaded.",
+                "More random changes to Experiments code."
             ]
         }
     ],
@@ -449,11 +447,11 @@ module.exports = class YABDP4Nitro {
 
         }
 
-        BdApi.DOM.removeStyle(this.meta.name);
+        DOM.removeStyle(this.meta.name);
 
         if(settings.removeScreenshareUpsell){
             try {
-                BdApi.DOM.addStyle(this.meta.name, `
+                DOM.addStyle(this.meta.name, `
                 [class*="upsellBanner"] {
                   display: none;
                   visibility: hidden;
@@ -496,7 +494,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        BdApi.DOM.removeStyle("YABDP4NitroBadges");
+        DOM.removeStyle("YABDP4NitroBadges");
         try {
             this.honorBadge();
         } catch(err){
@@ -568,19 +566,25 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     // #region Resolution Swapper
-    resolutionSwapper(){
-        Patcher.after(this.meta.name, StreamSettingsMod, "Z", (_, [args], ret) => {
+    async resolutionSwapper(){
+        if(!this.StreamSettingsPanelMod)
+            this.StreamSettingsPanelMod = await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false});
+        
+        if(!this.FormModalClasses) 
+            this.FormModalClasses = Webpack.getByKeys("formItemTitleSlim", "modalContent");
+        
+        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, "Z", (_, [args], ret) => {
 
             //Only if the selected preset is "Custom"
             if(args.selectedPreset === 3){
                 //Preparations 
-                let streamQualityButtonsSection = ret.props.children.props.children.props.children[1].props.children[0].props.children;
+                const streamQualityButtonsSection = ret.props.children.props.children.props.children[1].props.children[0].props.children;
 
-                let resolutionButtonsSection = streamQualityButtonsSection[0].props;
-                let thirdResolutionButton = resolutionButtonsSection.children.props.buttons[2];
+                const resolutionButtonsSection = streamQualityButtonsSection[0].props;
+                const thirdResolutionButton = resolutionButtonsSection.children.props.buttons[2];
 
-                let fpsButtonsSection = streamQualityButtonsSection[1].props;
-                let thirdFpsButton = fpsButtonsSection.children.props.buttons[2];
+                const fpsButtonsSection = streamQualityButtonsSection[1].props;
+                const thirdFpsButton = fpsButtonsSection.children.props.buttons[2];
 
 
                 //make each section into arrays so we can add another element
@@ -592,7 +596,7 @@ module.exports = class YABDP4Nitro {
                     children: [
                         React.createElement("h1", {
                             children: "CUSTOM RESOLUTION",
-                            className: `${TextClasses.h5} ${TextClasses.eyebrow} ${FormModalClasses.formItemTitleSlim}`
+                            className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
                         }),
                         React.createElement(Components.NumberInput, {
                             value: settings.CustomResolution,
@@ -613,7 +617,7 @@ module.exports = class YABDP4Nitro {
                     children: [
                         React.createElement("h1", {
                             children: "CUSTOM FRAME RATE",
-                            className: `${TextClasses.h5} ${TextClasses.eyebrow} ${FormModalClasses.formItemTitleSlim}`
+                            className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
                         }),
                         React.createElement(Components.NumberInput, {
                             value: settings.CustomFPS,
@@ -660,6 +664,12 @@ module.exports = class YABDP4Nitro {
 
     // #region Clips Bypass
     async clipsBypass(){
+        if(!this.MP4Box){
+            try{
+                await Webpack.getByStrings("mp4boxInputFile.boxes")();
+            }catch(e){}
+            this.MP4Box = await Webpack.waitForModule(BdApi.Webpack.Filters.byKeys("MP4BoxStream"));
+        }
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
         async function ffmpegTransmux(arrayBuffer, fileName = "input.mp4"){
@@ -675,8 +685,14 @@ module.exports = class YABDP4Nitro {
                 return data.buffer;
             }
         }
-
         Patcher.instead(this.meta.name, addFilesMod, "addFiles", async (_, [args], originalFunction) => {
+            /* If ffmpeg isn't loaded, or was unloaded for some reason,
+               when the user adds a file, make sure to load it again if it's undefined
+               If we don't do this check, then the user would have to
+               trigger saveAndUpdate or restart the plugin to
+               make ffmpeg load if it wasn't loaded properly the first time. */
+            if(ffmpeg == undefined) await this.loadFFmpeg();
+
             //for each file being added
             for(let i = 0; i < args.files.length; i++){
                 const currentFile = args.files[i];
@@ -688,7 +704,7 @@ module.exports = class YABDP4Nitro {
                     //if this file is an mp4 file
                     if(currentFile.file.type == "video/mp4"){
                         let dontStopMeNow = true;
-                        let mp4BoxFile = MP4Box.createFile();
+                        let mp4BoxFile = this.MP4Box.createFile();
                         mp4BoxFile.onError = (e) => {
                             Logger.error(this.meta.name, e);
                             dontStopMeNow = false;
@@ -818,8 +834,8 @@ module.exports = class YABDP4Nitro {
         const defineTemp = window.global.define;
 
         try {
-            const ffmpeg_js_baseurl = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/";
-            const ffmpeg_js_core_baseurl = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/";
+            const ffmpeg_js_baseurl = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.8/dist/umd/";
+            const ffmpeg_js_core_baseurl = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/";
             //load ffmpeg worker
             const ffmpegWorkerURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "814.ffmpeg.js", { timeout: 100000 })).blob());
 
@@ -870,16 +886,16 @@ module.exports = class YABDP4Nitro {
             await Webpack.waitForModule(Webpack.Filters.byStoreName("ExperimentStore"));
             //code slightly modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
             let wpRequire;
-            webpackChunkdiscord_app.push([[Math.random()], {}, (req) => { wpRequire = req; }]);
-            let u = Object.values(wpRequire.c).find((x) => x?.exports?.default?.getCurrentUser && x?.exports?.default?._dispatcher?._actionHandlers).exports.default
+            webpackChunkdiscord_app.push([[Math.random()], {}, (req) => { wpRequire = req; }]); 
+            let u = Webpack.getByKeys("ASSISTANT_WUMPUS_VOICE_USER", "default").default;
             let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
 
-            u.getCurrentUser().flags |= 1;
+            CurrentUser.flags |= 1;
             m.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
             try { m.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
             m.find((x) => x.name === "ExperimentStore").storeDidChange();
         } catch(err){
-            //Logger.error(this.meta.name, err);
+            Logger.warn(this.meta.name, err);
         }
     }
     // #endregion
@@ -1319,7 +1335,7 @@ module.exports = class YABDP4Nitro {
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
         //wait for profile effects module
-        await Webpack.waitForModule(Webpack.Filters.byProps("profileEffects", "tryItOutId"));
+        await Webpack.waitForModule(Webpack.Filters.byKeys("profileEffects", "tryItOutId"));
 
         if (this.profileEffects == undefined) this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
 
@@ -1610,7 +1626,7 @@ module.exports = class YABDP4Nitro {
             );
 
 
-            let listOfDecorationIds = Object.keys(BdApi.getData(this.meta.name, "settings").avatarDecorations);
+            let listOfDecorationIds = Object.keys(Data.load(this.meta.name, "settings").avatarDecorations);
             let avatarDecorationChildren = [];
 
             //for each avatar decoration
@@ -2291,7 +2307,7 @@ module.exports = class YABDP4Nitro {
 
     //#region Streaming Unlock
     unlockAndCustomizeStreamButtons(){ //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
-        const settings = BdApi.getData("YABDP4Nitro", "settings"); //just in case we can't access "this";
+        const settings = Data.load("YABDP4Nitro", "settings"); //just in case we can't access "this";
 
         //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
         let resolutionToSet = parseInt(settings.CustomResolution);
@@ -2375,18 +2391,12 @@ module.exports = class YABDP4Nitro {
     videoQualityModule(){ //Custom Bitrates, FPS, Resolution
         Patcher.before(this.meta.name, videoOptionFunctions, "updateVideoQuality", (e) => {
 
-            if(!e.videoQualityManager.qualityOverwrite) e.videoQualityManager.qualityOverwrite = {};
-
             if(settings.minBitrate > 0 && settings.CustomBitrateEnabled){
                 //Minimum Bitrate
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (settings.minBitrate * 1000);
-                e.videoQualityManager.qualityOverwrite.bitrateMin = (settings.minBitrate * 1000);
                 e.videoQualityManager.options.videoBitrateFloor = (settings.minBitrate * 1000);
                 e.videoQualityManager.options.videoBitrate.min = (settings.minBitrate * 1000);
                 e.videoQualityManager.options.desktopBitrate.min = (settings.minBitrate * 1000);
             }else{
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = 150000;
-                e.videoQualityManager.qualityOverwrite.bitrateMin = 150000;
                 e.videoQualityManager.options.videoBitrateFloor = 150000;
                 e.videoQualityManager.options.videoBitrate.min = 150000;
                 e.videoQualityManager.options.desktopBitrate.min = 150000;
@@ -2394,27 +2404,19 @@ module.exports = class YABDP4Nitro {
 
             if(settings.maxBitrate > 0 && settings.CustomBitrateEnabled){
                 //Maximum Bitrate
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (settings.maxBitrate * 1000);
-                e.videoQualityManager.qualityOverwrite.bitrateMax = (settings.maxBitrate * 1000);
                 e.videoQualityManager.options.videoBitrate.max = (settings.maxBitrate * 1000);
                 e.videoQualityManager.options.desktopBitrate.max = (settings.maxBitrate * 1000);
             }else{
                 //Default max bitrate
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = 2500000;
-                e.videoQualityManager.qualityOverwrite.bitrateMax = 2500000;
                 e.videoQualityManager.options.videoBitrate.max = 2500000;
                 e.videoQualityManager.options.desktopBitrate.max = 2500000;
             }
 
             if(settings.targetBitrate > 0 && settings.CustomBitrateEnabled){
                 //Target Bitrate
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (settings.targetBitrate * 1000);
-                e.videoQualityManager.qualityOverwrite.bitrateTarget = (settings.targetBitrate * 1000);
                 e.videoQualityManager.options.desktopBitrate.target = (settings.targetBitrate * 1000);
             }else{
                 //Default target bitrate
-                e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = 600000;
-                e.videoQualityManager.qualityOverwrite.bitrateTarget = 600000;
                 e.videoQualityManager.options.desktopBitrate.target = 600000;
             }
 
@@ -2535,7 +2537,7 @@ module.exports = class YABDP4Nitro {
     async encodeProfileColors(){
 
         //wait for theme color picker module to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byProps("getTryItOutThemeColors"));
+        await Webpack.waitForModule(Webpack.Filters.byKeys("getTryItOutThemeColors"));
 
         //wait for color picker renderer module to be loaded
         await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"));
