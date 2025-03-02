@@ -308,8 +308,6 @@ Nitro In-App icons are unlocked.
 
 ![App Icons](https://github.com/user-attachments/assets/810dfa79-3b73-420d-a795-1fe9e6780bc2)
 
-This feature is known to be buggy at times.
-
 _________________________________________________________________________________________________________________
 
 
