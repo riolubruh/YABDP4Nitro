@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.0
+ * @version 5.7.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -93,9 +93,12 @@ const emojiMod = Webpack.getByKeys("getCustomEmojiById");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
 const TextClasses = Webpack.getByKeys("errorMessage", "h5");
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-const appIconModule = Webpack.getByKeys("getCurrentDesktopIcon");
 const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons", {defaultExport:false});
 const addFilesMod = Webpack.getByKeys("addFiles");
+const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon", "isEditorOpen", "isPremium", {defaultExport:false});
+const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2", {searchExports:true});
+const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
+const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
 //#endregion
 
 const defaultSettings = {
@@ -160,19 +163,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.0",
+        "version": "5.7.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.0",
+            title: "5.7.1",
             items: [
-                "Updated FFmpeg.js base to 0.12.8 and FFmpeg.js core to 0.12.10.",
-                "Fixed custom resolution/fps modal swapper not always appearing when it should due to some modules now being lazy-loaded.",
-                "Fixed MP4s over 10mb not being able to be sent with Clips Bypass enabled because Discord made MP4Box.js lazy loaded.",
-                "More random changes to Experiments code."
+                "Rewrite of In-App Icons. It will no longer enable Premium Type (nor require it to be enabled), and should be much more reliable.",
+                "Fixed error appearing in console when switching from a gradient theme to a default theme."
             ]
         }
     ],
@@ -293,7 +294,7 @@ const config = {
                 { type: "switch", id: "clientThemes", name: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes.", value: () => settings.clientThemes },
                 { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
                 { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
-                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled.", value: () => settings.unlockAppIcons },
+                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
                 { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Use at your own risk.", value: () => settings.experiments },
                 { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
             ]
@@ -513,7 +514,7 @@ module.exports = class YABDP4Nitro {
             if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                 return true;
 
-            if(settings.appIcons && feature.name == 'appIcons')
+            if(settings.unlockAppIcons && feature.name == 'appIcons')
                 return true;
 
             if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
@@ -928,8 +929,6 @@ module.exports = class YABDP4Nitro {
                             }
                         }
                     });
-                    //get rid of gradient theming.
-                    resetPreviewClientTheme();
                     return;
                 }
 
@@ -2794,41 +2793,29 @@ module.exports = class YABDP4Nitro {
 
     //#region App Icons
     appIcons(){
-        settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
-
-        try {
-            if(!(ORIGINAL_NITRO_STATUS > 1)){
-                CurrentUser.premiumType = 1;
-                setTimeout(() => {
-                    if(settings.changePremiumType){
-                        CurrentUser.premiumType = 1;
-                    }
-                }, 10000);
-            }
-        }
-        catch(err){
-            Logger.error(this.meta.name, "Error occurred changing premium type. " + err);
-        }
-
-        delete appIconModule.isUpsellPreview;
-        Object.defineProperty(appIconModule, "isUpsellPreview", {
-            value: false,
-            configurable: true,
-            enumerable: true,
-            writable: true,
-        });
-
-        delete appIconModule.isEditorOpen;
-        Object.defineProperty(appIconModule, "isEditorOpen", {
-            value: false,
-            configurable: true,
-            enumerable: true,
-            writable: true,
-        });
-
+        //technically don't need this anymore but i'll leave it in for the sake of redundancy
         Patcher.before(this.meta.name, appIconButtonsModule, "Z", (_, args) => {
             args[0].disabled = false; //force buttons clickable
         });
+
+        Patcher.instead(this.meta.name, AppIcon, "Z", (_, __, originalFunction) => {
+            const currentDesktopIcon = CurrentDesktopIcon.getCurrentDesktopIcon();
+            if(currentDesktopIcon == "AppIcon"){
+                return React.createElement(RegularAppIcon, {
+                    size: "custom",
+                    color: "currentColor",
+                    width: 30,
+                    height: 30
+                });
+            }else{
+                return React.createElement(CustomAppIcon, {
+                    id: currentDesktopIcon,
+                    width: 48
+                });
+            }
+            
+        });
+
     }
     //#endregion
 
