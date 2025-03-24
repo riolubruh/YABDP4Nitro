@@ -181,7 +181,7 @@ const config = {
         {
             title: "5.7.3",
             items: [
-                "Made it so that Clips are now (mostly) unlocked through patches rather than experiment overrides, which make the Clips Bypass much more reliable."
+                "Made it so that Clips are now (mostly) unlocked through patches rather than experiment overrides, which should make the Clips Bypass much more reliable."
             ]
         }
     ],
