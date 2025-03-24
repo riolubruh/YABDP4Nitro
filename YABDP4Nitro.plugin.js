@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.2
+ * @version 5.7.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -99,6 +99,15 @@ const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon", "isEditorOpen", "i
 const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2", {searchExports:true});
 const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
 const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
+const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"', {
+    useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
+    areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
+    isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
+});
+const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`, {
+    isClipsClientCapable: (x)=>x==x //just get the first result lol
+});
+const ClipsMod = Webpack.getByKeys(`isViewerClippingAllowedForUser`);
 //#endregion
 
 const defaultSettings = {
@@ -163,18 +172,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.2",
+        "version": "5.7.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.2",
+            title: "5.7.3",
             items: [
-                "Made it so that if you see a user with an avatar decoration, that avatar decoration is added to your list of available fake avatar decorations. Try and collect 'em all like Pokemon.",
-                "Made the plugin save settings on stop.",
-                "More changes to Experiments code."
+                "Made it so that Clips are now (mostly) unlocked through patches rather than experiment overrides, which make the Clips Bypass much more reliable."
             ]
         }
     ],
@@ -817,6 +824,30 @@ module.exports = class YABDP4Nitro {
             }
             originalFunction(args);
         });
+
+        Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", (_, args, ret) => {
+            //I have no earthly idea why but, instead patching this one causes React crashes./
+            // Luckily after-patching prevents it from crashing and it still unlocks it as it should
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsEnabledMod, "areClipsEnabled", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsEnabledMod, "isPremium", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsAllowedMod, "isClipsClientCapable", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isViewerClippingAllowedForUser", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isClipsEnabledForUser", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isVoiceRecordingAllowedForUser", () => {
+            return true;
+        });
     } //End of clipsBypass()
     // #endregion
 
@@ -872,18 +903,12 @@ module.exports = class YABDP4Nitro {
     // #region Experiments
     async experiments(){
         try {
-            //wait for modules to be loaded
-            await Webpack.waitForModule(Webpack.Filters.byStoreName("DeveloperExperimentStore"));
-            await Webpack.waitForModule(Webpack.Filters.byStoreName("ExperimentStore"));
-			await Webpack.waitForModule(Webpack.Filters.byStoreName("UserStore"));
             //code heavily modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
-          
-            let Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
-
             CurrentUser.flags |= 1;
+            const Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
             Stores.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
             try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
-            Stores.find((x) => x.name === "ExperimentStore").storeDidChange();
+            Stores.find((x) => x.name === "ExperimentStore").storeDidChange(); 
         } catch(err){
             Logger.warn(this.meta.name, err);
         }
