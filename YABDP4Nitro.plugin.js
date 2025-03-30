@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.0
+ * @version 5.7.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -93,9 +93,21 @@ const emojiMod = Webpack.getByKeys("getCustomEmojiById");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
 const TextClasses = Webpack.getByKeys("errorMessage", "h5");
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-const appIconModule = Webpack.getByKeys("getCurrentDesktopIcon");
 const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons", {defaultExport:false});
 const addFilesMod = Webpack.getByKeys("addFiles");
+const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon", "isEditorOpen", "isPremium", {defaultExport:false});
+const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2", {searchExports:true});
+const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
+const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
+const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"', {
+    useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
+    areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
+    isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
+});
+const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`, {
+    isClipsClientCapable: (x)=>x==x //just get the first result lol
+});
+const ClipsMod = Webpack.getByKeys(`isViewerClippingAllowedForUser`);
 //#endregion
 
 const defaultSettings = {
@@ -161,19 +173,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.0",
+        "version": "5.7.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.0",
+            title: "5.7.3",
             items: [
-                "Updated FFmpeg.js base to 0.12.8 and FFmpeg.js core to 0.12.10.",
-                "Fixed custom resolution/fps modal swapper not always appearing when it should due to some modules now being lazy-loaded.",
-                "Fixed MP4s over 10mb not being able to be sent with Clips Bypass enabled because Discord made MP4Box.js lazy loaded.",
-                "More random changes to Experiments code."
+                "Made it so that Clips are now (mostly) unlocked through patches rather than experiment overrides, which should make the Clips Bypass much more reliable."
             ]
         }
     ],
@@ -304,7 +313,7 @@ const config = {
                 { type: "switch", id: "clientThemes", name: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes.", value: () => settings.clientThemes },
                 { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
                 { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
-                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled.", value: () => settings.unlockAppIcons },
+                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
                 { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Use at your own risk.", value: () => settings.experiments },
                 { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
             ]
@@ -524,7 +533,7 @@ module.exports = class YABDP4Nitro {
             if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                 return true;
 
-            if(settings.appIcons && feature.name == 'appIcons')
+            if(settings.unlockAppIcons && feature.name == 'appIcons')
                 return true;
 
             if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
@@ -692,7 +701,7 @@ module.exports = class YABDP4Nitro {
                trigger saveAndUpdate or restart the plugin to
                make ffmpeg load if it wasn't loaded properly the first time. */
             if(ffmpeg == undefined) await this.loadFFmpeg();
-
+			
             //for each file being added
             for(let i = 0; i < args.files.length; i++){
                 const currentFile = args.files[i];
@@ -826,6 +835,30 @@ module.exports = class YABDP4Nitro {
             }
             originalFunction(args);
         });
+
+        Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", (_, args, ret) => {
+            //I have no earthly idea why but, instead patching this one causes React crashes./
+            // Luckily after-patching prevents it from crashing and it still unlocks it as it should
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsEnabledMod, "areClipsEnabled", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsEnabledMod, "isPremium", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsAllowedMod, "isClipsClientCapable", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isViewerClippingAllowedForUser", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isClipsEnabledForUser", () => {
+            return true;
+        });
+        Patcher.instead(this.meta.name, ClipsMod, "isVoiceRecordingAllowedForUser", () => {
+            return true;
+        });
     } //End of clipsBypass()
     // #endregion
 
@@ -881,19 +914,12 @@ module.exports = class YABDP4Nitro {
     // #region Experiments
     async experiments(){
         try {
-            //wait for modules to be loaded
-            await Webpack.waitForModule(Webpack.Filters.byStoreName("DeveloperExperimentStore"));
-            await Webpack.waitForModule(Webpack.Filters.byStoreName("ExperimentStore"));
-            //code slightly modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
-            let wpRequire;
-            webpackChunkdiscord_app.push([[Math.random()], {}, (req) => { wpRequire = req; }]); 
-            let u = Webpack.getByKeys("ASSISTANT_WUMPUS_VOICE_USER", "default").default;
-            let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
-
+            //code heavily modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
             CurrentUser.flags |= 1;
-            m.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
-            try { m.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
-            m.find((x) => x.name === "ExperimentStore").storeDidChange();
+            const Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
+            Stores.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
+            try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
+            Stores.find((x) => x.name === "ExperimentStore").storeDidChange(); 
         } catch(err){
             Logger.warn(this.meta.name, err);
         }
@@ -939,8 +965,6 @@ module.exports = class YABDP4Nitro {
                             }
                         }
                     });
-                    //get rid of gradient theming.
-                    resetPreviewClientTheme();
                     return;
                 }
 
@@ -1516,6 +1540,18 @@ module.exports = class YABDP4Nitro {
             if(ret == undefined) return;
             let avatarDecorations = settings.avatarDecorations;
 
+            //user has an avatar decoration
+            if(ret.avatarDecorationData){
+                //error check
+                if(avatarDecorations){
+                    //dont process fake avatar decorations
+                    if(ret.avatarDecorationData.sku_id != "0"){
+                        //cache avatar decoration
+                        avatarDecorations[ret.avatarDecorationData.skuId] = ret.avatarDecorationData.asset;
+                    }
+                }
+            }
+
             function getRevealedText(self){
                 let revealedTextLocal = ""; //init empty string with local scope
                 let userProfile = userProfileMod.getUserProfile(args[0]); //get the user's profile from the cached user profiles
@@ -1574,7 +1610,7 @@ module.exports = class YABDP4Nitro {
                 //set avatar decoration data to fake avatar decoration
                 ret.avatarDecorationData = {
                     asset: avatarDecorations[assetId],
-                    sku_id: "1144003461608906824" //dummy sku id
+                    sku_id: "0" //dummy sku id
                 };
 
                 //add user to the list of users to show with the YABDP4Nitro user badge if we haven't already.
@@ -2826,40 +2862,26 @@ module.exports = class YABDP4Nitro {
 
     //#region App Icons
     appIcons(){
-        settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
-
-        try {
-            if(!(ORIGINAL_NITRO_STATUS > 1)){
-                CurrentUser.premiumType = 1;
-                setTimeout(() => {
-                    if(settings.changePremiumType){
-                        CurrentUser.premiumType = 1;
-                    }
-                }, 10000);
-            }
-        }
-        catch(err){
-            Logger.error(this.meta.name, "Error occurred changing premium type. " + err);
-        }
-
-        delete appIconModule.isUpsellPreview;
-        Object.defineProperty(appIconModule, "isUpsellPreview", {
-            value: false,
-            configurable: true,
-            enumerable: true,
-            writable: true,
-        });
-
-        delete appIconModule.isEditorOpen;
-        Object.defineProperty(appIconModule, "isEditorOpen", {
-            value: false,
-            configurable: true,
-            enumerable: true,
-            writable: true,
-        });
-
+        //technically don't need this anymore but i'll leave it in for the sake of redundancy
         Patcher.before(this.meta.name, appIconButtonsModule, "Z", (_, args) => {
             args[0].disabled = false; //force buttons clickable
+        });
+
+        Patcher.instead(this.meta.name, AppIcon, "Z", (_, __, originalFunction) => {
+            const currentDesktopIcon = CurrentDesktopIcon.getCurrentDesktopIcon();
+            if(currentDesktopIcon == "AppIcon"){
+                return React.createElement(RegularAppIcon, {
+                    size: "custom",
+                    color: "currentColor",
+                    width: 30,
+                    height: 30
+                });
+            }else{
+                return React.createElement(CustomAppIcon, {
+                    id: currentDesktopIcon,
+                    width: 48
+                });
+            } 
         });
     }
     //#endregion
@@ -2994,6 +3016,7 @@ module.exports = class YABDP4Nitro {
         DOM.removeStyle("YABDP4NitroBadges");
         usrBgUsers = [];
         BdApi.unlinkJS("ffmpeg.js");
+        Data.save("YABDP4Nitro", "settings", settings);
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has stopped.");
     }
     // #endregion
