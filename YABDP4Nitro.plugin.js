@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.3
+ * @version 5.7.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -172,16 +172,21 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.3",
+        "version": "5.7.4",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.3",
+            title: "5.7.4",
             items: [
-                "Made it so that Clips are now (mostly) unlocked through patches rather than experiment overrides, which should make the Clips Bypass much more reliable."
+                "Made it so you can properly switch to and from the new Dark and Onyx themes from the Desktop Visual Refresh when Nitro Client Themes is enabled. I would've pushed this fix earlier, but I thought I already did for some reason.",
+                "Updated descriptions of the Clips and Soundmoji bypasses to mention that Experiments will be enabled if they are enabled.",
+                "Made it so FFmpeg.js is now loaded from GitHub instead of unpkg due to unpkg adding a CORS policy which was causing it to fail to load for some users. This also has the benefit of being (potentially) faster and more reliable than unpkg, so it's a win-win.",
+                "Made it so the Clips Bypass puts the name of the file without the extension as the title of the clip.",
+                "Removed the \"Transmuxing video...\" toast when using Clips since the transmux is so short that the message is basically pointless other than to confirm whether or not the bypass is loaded and enabled.",
+                "Added toast message if there is an error at some point when processing a non-MP4 file for the Clips Bypass."
             ]
         }
     ],
@@ -258,7 +263,7 @@ const config = {
                 { type: "switch", id: "uploadStickers", name: "Upload Stickers", note: "Upload stickers in the same way as emotes.", value: () => settings.uploadStickers },
                 { type: "switch", id: "forceStickersUnlocked", name: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked.", value: () => settings.forceStickersUnlocked },
                 { type: "switch", id: "fakeInlineVencordEmotes", name: "Fake Inline Hyperlink Emotes", note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.", value: () => settings.fakeInlineVencordEmotes },
-                { type: "switch", id:"soundmojiEnabled", name: "Soundmoji Bypass", note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side.", value: () => settings.soundmojiEnabled }
+                { type: "switch", id:"soundmojiEnabled", name: "Soundmoji Bypass", note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.", value: () => settings.soundmojiEnabled }
             ]
         },
         {
@@ -286,7 +291,7 @@ const config = {
             collapsible: true,
             shown: false,
             settings: [
-                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.", value: () => settings.useClipBypass },
+                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB. Enabling this option will also enable Experiments.", value: () => settings.useClipBypass },
                 { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42.", value: () => settings.alwaysTransmuxClips },
                 { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB.", value: () => settings.forceClip }
             ]
@@ -517,8 +522,6 @@ module.exports = class YABDP4Nitro {
         }
 
         Patcher.instead(this.meta.name, canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
-            //return true;
-
             if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                 return true;
 
@@ -530,6 +533,7 @@ module.exports = class YABDP4Nitro {
 
             if(settings.clientThemes && feature.name == 'clientThemes')
                 return true;
+
             if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
                 return true;
 
@@ -672,7 +676,7 @@ module.exports = class YABDP4Nitro {
 
         async function ffmpegTransmux(arrayBuffer, fileName = "input.mp4"){
             if(ffmpeg){
-                UI.showToast("Transmuxing video...", { type: "info" });
+                //UI.showToast("Transmuxing video...", { type: "info" });
                 ffmpeg.on("log", ({ message }) => {
                     console.log(message);
                 });
@@ -699,7 +703,22 @@ module.exports = class YABDP4Nitro {
 
                 //larger than 10mb
                 if(currentFile.file.size > 10485759 || settings.forceClip){
-                    //if this file is an mp4 file
+					const clipData = {
+                        "id": "",
+                        "version": 3,
+                        "applicationName": "",
+                        "applicationId": "1301689862256066560",
+                        "users": [
+							CurrentUser.id
+						],
+                        "clipMethod": "manual",
+                        "length": currentFile.file.size,
+                        "thumbnail": "",
+                        "filepath": "",
+                        "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
+                    };
+					
+					//if this file is an mp4 file
                     if(currentFile.file.type == "video/mp4"){
                         let dontStopMeNow = true;
                         let mp4BoxFile = this.MP4Box.createFile();
@@ -752,19 +771,7 @@ module.exports = class YABDP4Nitro {
                                 }
 
                                 //send as a "clip"
-                                currentFile.clip = {
-                                    "id": "",
-                                    "version": 3,
-                                    "applicationName": "",
-                                    "applicationId": "1301689862256066560",
-                                    "users": [
-                                        CurrentUser.id
-                                    ],
-                                    "clipMethod": "manual",
-                                    "length": currentFile.file.size,
-                                    "thumbnail": "",
-                                    "filepath": ""
-                                };
+                                currentFile.clip = clipData;
                             } catch(err){
                                 UI.showToast("Something went wrong. See console for details.", { type: "error" });
                                 Logger.error(this.meta.name, err);
@@ -802,20 +809,9 @@ module.exports = class YABDP4Nitro {
                             currentFile.file = video;
 
                             //send as a "clip"
-                            currentFile.clip = {
-                                "id": "",
-                                "version": 3,
-                                "applicationName": "",
-                                "applicationId": "1301689862256066560",
-                                "users": [
-                                    CurrentUser.id
-                                ],
-                                "clipMethod": "manual",
-                                "length": currentFile.file.size,
-                                "thumbnail": "",
-                                "filepath": ""
-                            };
+                            currentFile.clip = clipData;
                         } catch(err){
+                            UI.showToast("Something went wrong. See console for details.", { type: "error" });
                             Logger.error(this.meta.name, err);
                         }
                     }
@@ -856,8 +852,7 @@ module.exports = class YABDP4Nitro {
         const defineTemp = window.global.define;
 
         try {
-            const ffmpeg_js_baseurl = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.8/dist/umd/";
-            const ffmpeg_js_core_baseurl = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/";
+            const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
             //load ffmpeg worker
             const ffmpegWorkerURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "814.ffmpeg.js", { timeout: 100000 })).blob());
 
@@ -880,9 +875,9 @@ module.exports = class YABDP4Nitro {
 
             ffmpeg = new FFmpegWASM.FFmpeg();
 
-            const ffmpegCoreURL = URL.createObjectURL(await (await fetch(ffmpeg_js_core_baseurl + "ffmpeg-core.js", { timeout: 100000 })).blob());
+            const ffmpegCoreURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.js", { timeout: 100000 })).blob());
 
-            const ffmpegCoreWasmURL = URL.createObjectURL(await (await fetch(ffmpeg_js_core_baseurl + "ffmpeg-core.wasm", { timeout: 100000 })).blob());
+            const ffmpegCoreWasmURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.wasm", { timeout: 100000 })).blob());
 
             await ffmpeg.load({
                 coreURL: ffmpegCoreURL,
@@ -940,7 +935,7 @@ module.exports = class YABDP4Nitro {
                 Data.save(this.meta.name, "settings", this.settings);
 
                 //if user is trying to set the theme to the default dark theme
-                if(args.theme == 'dark'){
+                if(args.theme == 'dark' || args.theme == 'light' || args.theme == 'darker' || args.theme == 'midnight'){
                     //dispatch settings update to change to dark theme
                     Dispatcher.dispatch({
                         type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
@@ -948,30 +943,13 @@ module.exports = class YABDP4Nitro {
                             appearance: {
                                 shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
                                 settings: {
-                                    theme: 'dark', //default dark theme
+                                    theme: args.theme, //default dark theme
                                     developerMode: true //genuinely have no idea what this does.
                                 }
                             }
                         }
                     });
                     return;
-                }
-
-                //if user is trying to set the theme to the default light theme
-                if(args.theme == 'light'){
-                    //dispatch settings update event to change to light theme
-                    Dispatcher.dispatch({
-                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                        changes: {
-                            appearance: {
-                                shouldSync: false,  //prevent sync to stop discord api from butting in
-                                settings: {
-                                    theme: 'light', //default light theme
-                                    developerMode: true
-                                }
-                            }
-                        }
-                    });
                 }
                 return;
             }else{ //gradient themes
@@ -2303,7 +2281,7 @@ module.exports = class YABDP4Nitro {
                                                 .trim().length > 0){ //if there is other stuff in the message, delete the embed
                                                 delete ret[i];
                                             }
-            //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
+                                            //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
                                             //for some reason, if the fakemoji is in a message alone, it disappears, so keeping the embed was the easiest solution
                                         }
 
