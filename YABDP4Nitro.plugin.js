@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.4
+ * @version 5.7.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -33,7 +33,7 @@
 @else@*/
 
 //#region Module Hell
-const { Webpack, Patcher, Net, React, UI, Logger, Data, Components, DOM } = BdApi;
+const { Webpack, Patcher, Net, React, UI, Logger, Data, Components, DOM, Plugins } = BdApi;
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080", {
     ApplicationStreamFPS: Webpack.Filters.byKeys("FPS_30"),
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
@@ -172,21 +172,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.4",
+        "version": "5.7.5",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.4",
+            title: "5.7.5",
             items: [
-                "Made it so you can properly switch to and from the new Dark and Onyx themes from the Desktop Visual Refresh when Nitro Client Themes is enabled. I would've pushed this fix earlier, but I thought I already did for some reason.",
-                "Updated descriptions of the Clips and Soundmoji bypasses to mention that Experiments will be enabled if they are enabled.",
-                "Made it so FFmpeg.js is now loaded from GitHub instead of unpkg due to unpkg adding a CORS policy which was causing it to fail to load for some users. This also has the benefit of being (potentially) faster and more reliable than unpkg, so it's a win-win.",
-                "Made it so the Clips Bypass puts the name of the file without the extension as the title of the clip.",
-                "Removed the \"Transmuxing video...\" toast when using Clips since the transmux is so short that the message is basically pointless other than to confirm whether or not the bypass is loaded and enabled.",
-                "Added toast message if there is an error at some point when processing a non-MP4 file for the Clips Bypass."
+                "Fixed copying 3y3 to clipboard no longer working.",
+                "Removed usage of the function BdApi.linkJS (previously used for loading FFmpeg) since it has been removed from BD canary for a while and will be removed from BD stable soon."
             ]
         }
     ],
@@ -851,6 +847,11 @@ module.exports = class YABDP4Nitro {
     async loadFFmpeg(){
         const defineTemp = window.global.define;
 
+        let ffmpegScript = document.getElementById("ffmpegScript");
+        if(ffmpegScript){
+            ffmpegScript.remove();
+        }
+
         try {
             const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
             //load ffmpeg worker
@@ -868,8 +869,15 @@ module.exports = class YABDP4Nitro {
             // since for a brief moment it is undefined, any function that uses it may throw an error during that window.
             window.global.define = undefined;
 
-            //deprecated function, but uhhhh fuck you we need it
-            await BdApi.linkJS("ffmpeg.js", ffmpegURL);
+            //load external JS as a script
+            await new Promise((load, err) => {
+                const ffmpegScriptElem = document.getElementById("ffmpegScript") || document.createElement("script");
+                ffmpegScriptElem.id = "ffmpegScript";
+                ffmpegScriptElem.src = ffmpegURL;
+                ffmpegScriptElem.onload = load;
+                ffmpegScriptElem.onerror = err;
+                document.head.appendChild(ffmpegScriptElem);
+            });
 
             window.global.define = defineTemp;
 
@@ -926,31 +934,30 @@ module.exports = class YABDP4Nitro {
 
         //Patching saveClientTheme function.
         Patcher.instead(this.meta.name, themesModule, "saveClientTheme", (_, [args]) => {
+
+            //if user is trying to set the theme to a default theme
             if(args.backgroundGradientPresetId == undefined){
 
                 //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
                 settings.lastGradientSettingStore = -1;
-                //save any changes to settings
-                //Utilities.saveSettings(this.meta.name, this.settings);
-                Data.save(this.meta.name, "settings", this.settings);
 
-                //if user is trying to set the theme to the default dark theme
-                if(args.theme == 'dark' || args.theme == 'light' || args.theme == 'darker' || args.theme == 'midnight'){
-                    //dispatch settings update to change to dark theme
-                    Dispatcher.dispatch({
-                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                        changes: {
-                            appearance: {
-                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
-                                settings: {
-                                    theme: args.theme, //default dark theme
-                                    developerMode: true //genuinely have no idea what this does.
-                                }
+                //save any changes to settings
+                Data.save(this.meta.name, "settings", this.settings);
+                
+                //dispatch settings update to change themes
+                Dispatcher.dispatch({
+                    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                    changes: {
+                        appearance: {
+                            shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+                            settings: {
+                                theme: args.theme,
+                                developerMode: true //genuinely have no idea what this does.
                             }
                         }
-                    });
-                    return;
-                }
+                    }
+                });
+                
                 return;
             }else{ //gradient themes
                 //Store the last gradient setting used in settings
@@ -1182,8 +1189,6 @@ module.exports = class YABDP4Nitro {
                             stringToEncode = "P{" + stringToEncode.replace("imgur.com/", "") + "}";
                             //finally encode the string, adding a space before it so nothing fucks up
                             encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-                            //let the user know what has happened
-                            BdApi.UI.showToast("3y3 copied to clipboard!", { type: "info" });
 
                             //If this is not an Imgur URL, yell at the user.
                         }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
@@ -1194,15 +1199,14 @@ module.exports = class YABDP4Nitro {
                         //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
                         if(encodedStr == "") return;
 
-                        //Do this stupid shit that Chrome forces you to do to copy text to the clipboard.
-                        const clipboardTextElem = document.createElement("textarea"); //create a textarea
-                        clipboardTextElem.style.position = 'fixed'; //this is so that the rest of the document doesn't try to format itself to fit a textarea in it
-                        clipboardTextElem.value = encodedStr; //add the encoded string to the textarea
-                        document.body.appendChild(clipboardTextElem); //add the textarea to the document
-                        clipboardTextElem.select(); //focus the textarea?
-                        clipboardTextElem.setSelectionRange(0, 99999); //select all of the text in the textarea
-                        document.execCommand('copy'); //finally send the copy command
-                        document.body.removeChild(clipboardTextElem); //get rid of the evidence	
+                        //copy to clipboard
+                        try{
+                            DiscordNative.clipboard.copy(encodedStr);
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                        }catch(err){
+                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            Logger.error(this.meta.name, err);
+                        }
                     } //end copy pfp 3y3 click event
                 }) //end of react createElement
             ); //end of element push
@@ -1396,18 +1400,16 @@ module.exports = class YABDP4Nitro {
                 let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
                 let title = this.profileEffects[i].config.title;
                 //encode 3y3
-                let encodedText = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
+                let encodedStr = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
                 //javascript that runs onclick for each profile effect button
                 let copyDecoration3y3 = function(){
-                    const clipboardTextElem = document.createElement("textarea");
-                    clipboardTextElem.style.position = "fixed";
-                    clipboardTextElem.value = ` ${encodedText}`;
-                    document.body.appendChild(clipboardTextElem);
-                    clipboardTextElem.select();
-                    clipboardTextElem.setSelectionRange(0, 99999);
-                    document.execCommand("copy");
-                    BdApi.UI.showToast("3y3 copied to clipboard!", { type: "info" });
-                    document.body.removeChild(clipboardTextElem);
+                    try{
+                        DiscordNative.clipboard.copy(" " + encodedStr);
+                        UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                    }catch(err){
+                        UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                        Logger.error(this.meta.name, err);
+                    }
                 };
 
                 profileEffectChildren.push(
@@ -1635,20 +1637,9 @@ module.exports = class YABDP4Nitro {
             //for each avatar decoration
             for(let i = 0; i < listOfDecorationIds.length; i++){
 
-                //text to encode to 3y3
-                let encodedText = this.secondsightifyEncodeOnly("/a" + listOfDecorationIds[i]); // /a[id]
+                //encode to 3y3 and store clipboard copy in onclick event
+                let encodedStr = this.secondsightifyEncodeOnly("/a" + listOfDecorationIds[i]); // /a[id]
                 //javascript that runs onclick for each avatar decoration button
-                let copyDecoration3y3 = function(){
-                    const clipboardTextElem = document.createElement("textarea");
-                    clipboardTextElem.style.position = "fixed";
-                    clipboardTextElem.value = ` ${encodedText}`;
-                    document.body.appendChild(clipboardTextElem);
-                    clipboardTextElem.select();
-                    clipboardTextElem.setSelectionRange(0, 99999);
-                    document.execCommand("copy");
-                    BdApi.UI.showToast("3y3 copied to clipboard!", { type: "info" });
-                    document.body.removeChild(clipboardTextElem);
-                };
                 let child = React.createElement("img", {
                     style: {
                         width: "23%",
@@ -1658,7 +1649,15 @@ module.exports = class YABDP4Nitro {
                         borderRadius: "4px",
                         backgroundColor: "var(--background-tertiary)"
                     },
-                    onClick: copyDecoration3y3,
+                    onClick: () => {
+                        try{
+                            DiscordNative.clipboard.copy(" " + encodedStr);
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                        }catch(err){
+                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            Logger.error("YABDP4Nitro", err);
+                        }
+                    },
                     src: "https://cdn.discordapp.com/avatar-decoration-presets/" + settings.avatarDecorations[listOfDecorationIds[i]] + ".png?size=64"
                 });
                 avatarDecorationChildren.push(child);
@@ -2567,16 +2566,13 @@ module.exports = class YABDP4Nitro {
 
                         let encodedStr = ((padding || "") + " " + encoded);
 
-                        //do this stupid shit Chrome makes you do to copy text to the clipboard.
-                        const clipboardTextElem = document.createElement("textarea");
-                        clipboardTextElem.style.position = 'fixed';
-                        clipboardTextElem.value = encodedStr;
-                        document.body.appendChild(clipboardTextElem);
-                        clipboardTextElem.select();
-                        clipboardTextElem.setSelectionRange(0, 99999);
-                        document.execCommand('copy');
-                        UI.showToast("3y3 copied to clipboard!", { type: "info" });
-                        document.body.removeChild(clipboardTextElem);
+                        try{
+                            DiscordNative.clipboard.copy(encodedStr);
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                        }catch(err){
+                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            Logger.error("YABDP4Nitro", err);
+                        }
                     }
                 })
             );
@@ -2775,8 +2771,6 @@ module.exports = class YABDP4Nitro {
                             stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
                             //finally encode the string, adding a space before it so nothing fucks up
                             encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-                            //let the user know what has happened
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });
 
                             //If this is not an Imgur URL, yell at the user.
                         }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
@@ -2787,16 +2781,15 @@ module.exports = class YABDP4Nitro {
                         //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
                         if(encodedStr == "") return;
 
-                        //Do this stupid shit that Chrome forces you to do to copy text to the clipboard.
-                        const clipboardTextElem = document.createElement("textarea"); //create a textarea
-                        clipboardTextElem.style.position = 'fixed'; //this is so that the rest of the document doesn't try to format itself to fit a textarea in it
-                        clipboardTextElem.value = encodedStr; //add the encoded string to the textarea
-                        document.body.appendChild(clipboardTextElem); //add the textarea to the document
-                        clipboardTextElem.select(); //focus the textarea?
-                        clipboardTextElem.setSelectionRange(0, 99999); //select all of the text in the textarea
-                        document.execCommand('copy'); //finally send the copy command
-                        document.body.removeChild(clipboardTextElem); //get rid of the evidence
-
+                        //copy to clipboard
+                        try{
+                            DiscordNative.clipboard.copy(encodedStr);
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                        }catch(err){
+                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            Logger.error("YABDP4Nitro", err);
+                        }
+                        
                     } //end of onClick function
                 }) //end of react createElement
             ); //end of profileBannerButton element push
@@ -2887,7 +2880,7 @@ module.exports = class YABDP4Nitro {
             confirmText: "Download Now",
             onConfirm: async (e) => {
                 if(remoteFile){
-                    await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
+                    await new Promise(r => require("fs").writeFile(require("path").join(Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
                     try {
                         let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");
                         currentVersionInfo.hasShownChangelog = false;
@@ -2913,9 +2906,9 @@ module.exports = class YABDP4Nitro {
             Logger.warn(this.meta.name, err);
             Logger.info(this.meta.name, "Error parsing JSON. Resetting file to default...");
             //watch this shit yo
-            require("fs").rmSync(require("path").join(BdApi.Plugins.folder, `${this.meta.name}.config.json`));
-            BdApi.Plugins.reload(this.meta.name);
-            BdApi.Plugins.enable(this.meta.name);
+            require("fs").rmSync(require("path").join(Plugins.folder, `${this.meta.name}.config.json`));
+            Plugins.reload(this.meta.name);
+            Plugins.enable(this.meta.name);
             return;
         }
 
@@ -2961,7 +2954,12 @@ module.exports = class YABDP4Nitro {
         DOM.removeStyle(this.meta.name);
         DOM.removeStyle("YABDP4NitroBadges");
         usrBgUsers = [];
-        BdApi.unlinkJS("ffmpeg.js");
+        
+        let ffmpegScript = document.getElementById("ffmpegScript");
+        if(ffmpegScript){
+            ffmpegScript.remove();
+        }
+
         Data.save("YABDP4Nitro", "settings", settings);
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has stopped.");
     }
