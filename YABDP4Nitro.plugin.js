@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.7.5
+ * @version 5.8.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -153,7 +153,9 @@ const defaultSettings = {
     "forceClip": false,
     "checkForUpdates": true,
     "fakeInlineVencordEmotes": true,
-    "soundmojiEnabled": true
+    "soundmojiEnabled": true,
+    "useAudioClipBypass": true,
+    "forceAudioClip": false
 };
 
 //Plugin-wide variables
@@ -172,17 +174,24 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.7.5",
+        "version": "5.8.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.7.5",
+            title: "5.8.0",
             items: [
-                "Fixed copying 3y3 to clipboard no longer working.",
-                "Removed usage of the function BdApi.linkJS (previously used for loading FFmpeg) since it has been removed from BD canary for a while and will be removed from BD stable soon."
+                "Added Audio Clips Bypass! Send audio files up to (nearly) 100MB for free! Nitro users should disable this. WAV, AIFF, and WMA will mux as .MOV files, the rest as MP4.",
+                "Added Audio Clips Bypass and Force Audio Clip settings.",
+                "Improved console output for errors relating to clips.",
+                "Added some older types of video files to skip for the Clips Bypass that would cause an error.",
+                "Set all error toasts to force show since they're error messages and ought to be seen even if you have BD toasts disabled.",
+                "Added more error checking for clips.",
+                "Made FLV, OGV, WMV, and MOV video files mux to MOV, which should improve compatibility with those video types.",
+                "Set cache policy to force-cache when fetching FFmpeg.js to make it load just a little faster.",
+                "Made the Clips Bypass ignore .MOD files which Chromium thinks are video files for some reason.",
             ]
         }
     ],
@@ -289,7 +298,9 @@ const config = {
             settings: [
                 { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB. Enabling this option will also enable Experiments.", value: () => settings.useClipBypass },
                 { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42.", value: () => settings.alwaysTransmuxClips },
-                { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB.", value: () => settings.forceClip }
+                { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
+                { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
+                { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
             ]
         },
         {
@@ -537,7 +548,7 @@ module.exports = class YABDP4Nitro {
         });
 
         //Clips Bypass
-        if(settings.useClipBypass){
+        if(settings.useClipBypass || settings.useAudioClipBypass){
             try {
                 this.experiments();
                 this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
@@ -660,7 +671,7 @@ module.exports = class YABDP4Nitro {
         });
     }
 
-    // #region Clips Bypass
+    // #region Clips Bypasses
     async clipsBypass(){
         if(!this.MP4Box){
             try{
@@ -670,19 +681,42 @@ module.exports = class YABDP4Nitro {
         }
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
-        async function ffmpegTransmux(arrayBuffer, fileName = "input.mp4"){
+        async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
             if(ffmpeg){
-                //UI.showToast("Transmuxing video...", { type: "info" });
-                ffmpeg.on("log", ({ message }) => {
-                    console.log(message);
-                });
-                await ffmpeg.writeFile(fileName, new Uint8Array(arrayBuffer));
-                await ffmpeg.exec(["-i", fileName, "-codec", "copy", "-brand", "isom/avc1", "-movflags", "+faststart", "-map", "0", "-map_metadata", "-1", "-map_chapters", "-1", "output.mp4"]);
-                const data = await ffmpeg.readFile('output.mp4');
+                if(!ffmpegArguments)
+                    ffmpegArguments = ["-i",inFileName,"-codec","copy","-brand","isom/avc1","-movflags","+faststart",
+                                       "-map","0","-map_metadata","-1","-map_chapters","-1",outFileName];
+                
+                await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+                console.log("Approximately equivalent ffmpeg command:");
+                console.log("ffmpeg " + ffmpegArguments.join(" "));
+                await ffmpeg.exec(ffmpegArguments);
+                const data = await ffmpeg.readFile(outFileName);
+                
+                ffmpeg.deleteFile(inFileName);
+                ffmpeg.deleteFile(outFileName);
+                
+                if(data.length == 0){
+                    throw new Error(`An error occurred during muxing/encoding: Output file ended up empty or doesn't exist,
+                                    likely due to an FFmpeg error. Please check the FFmpeg logs above. If you need assistance,
+                                    please use the support channel in the Discord server.`);
+                }
 
                 return data.buffer;
             }
         }
+        async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
+
+            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=500x2","-i",inFileName,"-shortest","-fflags","+shortest", 
+                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-map_chapters","-1",
+                "-preset","ultrafast","-c:a","copy","-strict","-2", outFileName];
+
+            return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
+        }
+
+        const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
+        const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
+
         Patcher.instead(this.meta.name, addFilesMod, "addFiles", async (_, [args], originalFunction) => {
             /* If ffmpeg isn't loaded, or was unloaded for some reason,
                when the user adds a file, make sure to load it again if it's undefined
@@ -690,6 +724,16 @@ module.exports = class YABDP4Nitro {
                trigger saveAndUpdate or restart the plugin to
                make ffmpeg load if it wasn't loaded properly the first time. */
             if(ffmpeg == undefined) await this.loadFFmpeg();
+
+            function errorHandler(err, currentFile, name) {
+                UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
+                Logger.error(name, err);
+                if(currentFile) {
+                    Logger.info(name, "Current file information for debugging:");
+                    Logger.info(name, currentFile);
+                    Logger.info(name, `File Type: "${currentFile.file?.type}"`);
+                }
+            }
 			
             //for each file being added
             for(let i = 0; i < args.files.length; i++){
@@ -697,23 +741,23 @@ module.exports = class YABDP4Nitro {
 
                 if(currentFile.file.name.endsWith(".dlfc")) return;
 
-                //larger than 10mb
-                if(currentFile.file.size > 10485759 || settings.forceClip){
-					const clipData = {
-                        "id": "",
-                        "version": 3,
-                        "applicationName": "",
-                        "applicationId": "1301689862256066560",
-                        "users": [
-							CurrentUser.id
-						],
-                        "clipMethod": "manual",
-                        "length": currentFile.file.size,
-                        "thumbnail": "",
-                        "filepath": "",
-                        "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
-                    };
-					
+                const clipData = {
+                    "id": "",
+                    "version": 3,
+                    "applicationName": "",
+                    "applicationId": "1301689862256066560",
+                    "users": [
+                        CurrentUser.id
+                    ],
+                    "clipMethod": "manual",
+                    "length": currentFile.file.size,
+                    "thumbnail": "",
+                    "filepath": "",
+                    "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
+                };
+
+                //larger than 10mb or force video clip enabled AND video clip bypass enabled
+                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass){
 					//if this file is an mp4 file
                     if(currentFile.file.type == "video/mp4"){
                         let dontStopMeNow = true;
@@ -727,7 +771,7 @@ module.exports = class YABDP4Nitro {
 
                             try {
                                 //check if file is H264 or H265
-                                if(info.videoTracks[0].codec.startsWith("avc") || info.videoTracks[0].codec.startsWith("hev1")){
+                                if(info.videoTracks[0]?.codec?.startsWith("avc") || info.videoTracks[0]?.codec?.startsWith("hev1")){
 
                                     let hasTransmuxed = false;
                                     if(!info.brands.includes("avc1") || info.brands.includes("mp42") || settings.alwaysTransmuxClips){
@@ -769,8 +813,7 @@ module.exports = class YABDP4Nitro {
                                 //send as a "clip"
                                 currentFile.clip = clipData;
                             } catch(err){
-                                UI.showToast("Something went wrong. See console for details.", { type: "error" });
-                                Logger.error(this.meta.name, err);
+                                errorHandler(err, currentFile, this.meta.name);
                             } finally {
                                 dontStopMeNow = false;
                             }
@@ -789,17 +832,31 @@ module.exports = class YABDP4Nitro {
                         while (dontStopMeNow){
                             await new Promise(r => setTimeout(r, 10));
                         }
-                    }else if(currentFile.file.type.startsWith("video/")){
+                    
+                    }
+                    else if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
+                        continue;
+                    }
+                    else if(currentFile.file.type.startsWith("video/") && !skippedVideoTypes.includes(currentFile.file.type)){
                         //Is a video file, but not MP4
 
+                        let outFileName = "output.mp4";
+
                         //AVI file warning
-                        if(currentFile.file.type == "video/x-msvideo"){
-                            UI.showToast("[YABDP4Nitro] NOTE: AVI Files will send, but HTML5 does not support playing AVI video codecs!", { type: "warning" });
+                        if(currentFile.file.type == "video/avi"){
+                            UI.showToast("[YABDP4Nitro] NOTE: AVI Files may send, but HTML5 and MP4 do not support all AVI video codecs, it may not play and FFmpeg may error!", { type: "warning" });
                         }
                         try {
                             let arrayBuffer = await currentFile.file.arrayBuffer();
+                            const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov"];
+                            if(movTypes.includes(currentFile.file.type)){
+                                Logger.info(this.meta.name, 'Using MOV format for clip.');
+                                
+                                outFileName = "output.mov";
+                            }
 
-                            let array1 = ArrayBuffer.concat(await ffmpegTransmux(arrayBuffer, currentFile.file.name), udtaBuffer);
+                            let array1 = ArrayBuffer.concat(await ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
+
                             let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", { type: "video/mp4" });
 
                             currentFile.file = video;
@@ -807,12 +864,42 @@ module.exports = class YABDP4Nitro {
                             //send as a "clip"
                             currentFile.clip = clipData;
                         } catch(err){
-                            UI.showToast("Something went wrong. See console for details.", { type: "error" });
-                            Logger.error(this.meta.name, err);
+                            errorHandler(err, currentFile, this.meta.name);
+                            continue;
                         }
                     }
-                    currentFile.platform = 1;
                 }
+                //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true
+                if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
+                   (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type))){
+
+                    try {
+                        let arrayBuffer = await currentFile.file.arrayBuffer();
+
+                        let outFileName = "output.mp4";
+
+                        if(['audio/wav', 'audio/aiff', 'audio/x-ms-wma'].includes(currentFile.file.type)){
+                            Logger.info("YABDP4Nitro", 'Using MOV format for audio clip.');
+                            outFileName = 'output.mov';
+                        }
+                        if(currentFile.file.type == 'audio/vnd.dolby.dd-raw'){
+                            UI.showToast("AC3 should send but playback is not supported!", {type: "warn"});
+                        }
+
+                        let array1 = ArrayBuffer.concat(await ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
+
+                        let video = new File([new Uint8Array(array1)], clipData.name + ".mp4", { type: "video/mp4" });
+
+                        currentFile.file = video;
+
+                        //send as a "clip"
+                        currentFile.clip = clipData;
+                    } catch(err){
+                        errorHandler(err, currentFile, this.meta.name);
+                        continue;
+                    }
+                }
+                currentFile.platform = 1;
             }
             originalFunction(args);
         });
@@ -855,7 +942,7 @@ module.exports = class YABDP4Nitro {
         try {
             const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
             //load ffmpeg worker
-            const ffmpegWorkerURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "814.ffmpeg.js", { timeout: 100000 })).blob());
+            const ffmpegWorkerURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "814.ffmpeg.js", { timeout: 100000, cache: "force-cache" })).blob());
 
             //load FFmpeg.WASM
             let ffmpegSrc = await (await fetch(ffmpeg_js_baseurl + "ffmpeg.js")).text();
@@ -883,17 +970,20 @@ module.exports = class YABDP4Nitro {
 
             ffmpeg = new FFmpegWASM.FFmpeg();
 
-            const ffmpegCoreURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.js", { timeout: 100000 })).blob());
+            const ffmpegCoreURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.js", { timeout: 100000, cache: "force-cache" })).blob());
 
-            const ffmpegCoreWasmURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.wasm", { timeout: 100000 })).blob());
+            const ffmpegCoreWasmURL = URL.createObjectURL(await (await fetch(ffmpeg_js_baseurl + "ffmpeg-core.wasm", { timeout: 100000, cache: "force-cache" })).blob());
 
             await ffmpeg.load({
                 coreURL: ffmpegCoreURL,
                 wasmURL: ffmpegCoreWasmURL
             });
             Logger.info(this.meta.name, "FFmpeg load success!");
+            ffmpeg.on("log", ({ message }) => {
+                console.log(message);
+            });
         } catch(err){
-            UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error" });
+            UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
             Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Error details below.");
             Logger.error(this.meta.name, err);
         } finally {
@@ -1176,12 +1266,12 @@ module.exports = class YABDP4Nitro {
                                         .split("?")[0]; //remove any URL parameters since we don't want or need them
                                 } catch(err){
                                     Logger.error(this.meta.name, err);
-                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error" });
+                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
                                     return;
                                 }
                             }
                             if(stringToEncode == ""){
-                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error" });
+                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
                                 Logger.error(this.meta.name, "Couldn't find file name for some reason. Contact Riolubruh!");
                             }
 
@@ -1204,7 +1294,7 @@ module.exports = class YABDP4Nitro {
                             DiscordNative.clipboard.copy(encodedStr);
                             UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                         }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                             Logger.error(this.meta.name, err);
                         }
                     } //end copy pfp 3y3 click event
@@ -1407,7 +1497,7 @@ module.exports = class YABDP4Nitro {
                         DiscordNative.clipboard.copy(" " + encodedStr);
                         UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                     }catch(err){
-                        UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                        UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                         Logger.error(this.meta.name, err);
                     }
                 };
@@ -1654,7 +1744,7 @@ module.exports = class YABDP4Nitro {
                             DiscordNative.clipboard.copy(" " + encodedStr);
                             UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                         }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                             Logger.error("YABDP4Nitro", err);
                         }
                     },
@@ -2570,7 +2660,7 @@ module.exports = class YABDP4Nitro {
                             DiscordNative.clipboard.copy(encodedStr);
                             UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                         }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                             Logger.error("YABDP4Nitro", err);
                         }
                     }
@@ -2759,12 +2849,12 @@ module.exports = class YABDP4Nitro {
                                         .split("?")[0]; //remove any URL parameters since we don't want or need them
                                 } catch(err){
                                     Logger.error(this.meta.name, err);
-                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error" });
+                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
                                     return;
                                 }
                             }
                             if(stringToEncode == ""){
-                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error" });
+                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
                                 Logger.error(this.meta.name, "Couldn't find file name for some reason. Contact Riolubruh.");
                             }
                             //add starting "B{" , remove "imgur.com/" , and add ending "}"
@@ -2786,7 +2876,7 @@ module.exports = class YABDP4Nitro {
                             DiscordNative.clipboard.copy(encodedStr);
                             UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                         }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error" });   
+                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                             Logger.error("YABDP4Nitro", err);
                         }
                         
@@ -2886,7 +2976,7 @@ module.exports = class YABDP4Nitro {
                         currentVersionInfo.hasShownChangelog = false;
                         Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
                     } catch(err){
-                        UI.showToast("An error occurred when trying to download the update!", { type: "error" });
+                        UI.showToast("An error occurred when trying to download the update!", { type: "error", forceShow: true });
                     }
                 }
             }
