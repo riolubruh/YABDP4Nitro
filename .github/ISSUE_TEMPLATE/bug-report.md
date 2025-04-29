@@ -9,6 +9,9 @@ assignees: ''
 
 DELETE this template when you go to submit it, just follow these guidelines:
 
+0. Make absolutely sure that you are on the latest version of the plugin.
+Delete and redownload it just in case!
+
 1. Explain how you got the error. If there were multiple steps, list them.
 
 2. Provide screenshots of console output and/or error messages including before *and* after the error occurred.
