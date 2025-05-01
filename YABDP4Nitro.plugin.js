@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.9.0
+ * @version 5.9.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -178,22 +178,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.9.0",
+        "version": "5.9.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.9.0",
+            title: "5.9.1",
             items: [
-                "Added bitrate options to Resolution Swapper if Custom Bitrate is enabled.",
-                "More changes to loadFFmpeg function to (hopefully) improve reliability and (certainly) greatly improve console output in the event of an error.",
-                "Fixed max bitrate not being set properly. PLEASE NOTE: Setting the max bitrate will cause issues such as your preview not working when you perform certain actions. I can't figure out why this happens. The description for the option has been updated to warn users of this.",
-                "Fixed min, target, and max bitrates setting incorrect default bitrates when set to a negative number with Custom Bitrate on.",
-                "Updated min, target, and max bitrate descriptions. (The Discord default bitrate changes depending on what quality settings you use)",
-                "Added NaN checks to the resolution swapper.",
-                "Added a warning message if you press Copy 3y3 when the PFP or Banner textareas are empty"
+                "Fixed an issue in both the FFmpeg and update fetching code that could result in unnecessary error messages.",
+                "Improved the update-checking code."
             ]
         }
     ],
@@ -817,6 +812,7 @@ module.exports = class YABDP4Nitro {
 
                 return data.buffer;
             }
+            //else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
         }
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
 
@@ -1074,12 +1070,12 @@ module.exports = class YABDP4Nitro {
         async function fetchAndRetryWithNetFetch(filename){
             const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
             let res = await fetch(ffmpeg_js_baseurl + filename, { timeout: 100000, cache: "force-cache" });
-            if(res.ok) {
+            if(res.ok || res.status == 200) {
                 return res;
             } else {
                 Logger.warn("YABDP4Nitro", res);
                 res = await Net.fetch(ffmpeg_js_baseurl + filename, { timeout: 100000 });
-                if(res.ok){
+                if(res.ok || res.status == 200){
                     return res;
                 }else{
                     Logger.error("YABDP4Nitro", res);
@@ -1143,7 +1139,7 @@ module.exports = class YABDP4Nitro {
             }
         } catch(err) {
             UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
-            Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Error details below.");
+            Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages when reporting!");
             Logger.error(this.meta.name, err);
         } finally {
             //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
@@ -3042,7 +3038,7 @@ module.exports = class YABDP4Nitro {
                         //copy to clipboard
                         try{
                             DiscordNative.clipboard.copy(encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });
                         }catch(err){
                             UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
                             Logger.error("YABDP4Nitro", err);
@@ -3112,7 +3108,20 @@ module.exports = class YABDP4Nitro {
 
     async checkForUpdate(){
         try {
-            let fileContent = await (await fetch(this.meta.updateUrl)).text();
+            let res = await fetch(this.meta.updateUrl);
+
+            if(!res.ok && res.status != 200){
+                Logger.warn("YABDP4Nitro", res);
+                res = await Net.fetch(this.meta.updateUrl);
+                if(res.ok || res.status == 200){
+                    return res;
+                }else{
+                    Logger.error("YABDP4Nitro", res);
+                    throw new Error("Failed to check for updates!");
+                }
+            }
+
+            let fileContent = await res.text();
             let remoteMeta = this.parseMeta(fileContent);
             let remoteVersion = remoteMeta.version.trim().split('.');
             let currentVersion = this.meta.version.trim().split('.');
@@ -3126,6 +3135,7 @@ module.exports = class YABDP4Nitro {
             }
         }
         catch(err){
+            UI.showToast("[YABDP4Nitro] Failed to check for updates", { type: "error" });
             Logger.error(this.meta.name, err);
         }
 
