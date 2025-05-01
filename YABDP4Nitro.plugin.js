@@ -3113,9 +3113,7 @@ module.exports = class YABDP4Nitro {
             if(!res.ok && res.status != 200){
                 Logger.warn("YABDP4Nitro", res);
                 res = await Net.fetch(this.meta.updateUrl);
-                if(res.ok || res.status == 200){
-                    return res;
-                }else{
+                if(!res.ok && res.status != 200){
                     Logger.error("YABDP4Nitro", res);
                     throw new Error("Failed to check for updates!");
                 }
