@@ -24,7 +24,10 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
      + [Fake Avatar Decorations](#fake-avatar-decorations)
      + [Fake Profile Effects](#fake-profile-effects)
      + [Fake Profile Pictures](#fake-profile-pictures)
-   * [Clips 100MB Video File Bypass](#clips)
+   * [Clips 100MB Limit Bypasses](#clips)
+     + [Video Files](#videos)
+     + [Audio Files](#audio)
+     + [Other Files](#zipclips-any-file)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
@@ -270,6 +273,8 @@ ________________________________________________________________________________
 
 ## Clips
 
+### Videos
+
 ![Clips Kung Fu Panda Example](https://github.com/user-attachments/assets/b140c90a-4688-4e91-b696-97f01d314e5c)
 
 Increases the file upload limit for video files to 100 MB by sending them as "Discord Clip"s.
@@ -280,6 +285,47 @@ and then appending a special tag that the Discord API specifically checks for to
 The plugin does everything automatically, so all you'll need to do is upload the video as you usually would, and enjoy the higher 100MB file limit!
 
 _________________________________________________________________________________________________________________
+
+### Audio
+
+![Audio Clips Example](https://github.com/user-attachments/assets/2ff4c762-fe0b-48c0-a450-ff2259c31d61)
+
+Increases the file upload limit for audio files to 100 MB by sending them as "Discord Clip"s.
+
+Using FFmpeg.WASM, the audio is muxed into a new video file with a new video track filled with empty/black frames,
+and then a special tag that the Discord API specifically checks for is appended to the file in order for it to be considered "valid".
+
+The plugin does everything automatically, just like as for videos!
+
+_________________________________________________________________________________________________________________
+
+### ZipClips (Any File)
+
+![ZipClip_Example](https://github.com/user-attachments/assets/edc8277c-f6ec-4f7c-a7ca-ad1ed531ea41)
+
+Increases the file upload limit for *any* file to 100 MB by sending them as "Discord Clip"s.
+
+How does it work? We make a polyglot file which functions as both a valid clip (MP4 video file with proper tags and branding) **AND** an archive (zip, 7z, rar, etc.).
+
+To use it, simply send any file between 10MB and 100MB with the option enabled in settings.
+
+To extract the file, remove the `.mp4` from the file name and open it in 7-Zip, WinRAR, etc.
+
+In 7-Zip, it's a bit more of a hassle since it doesn't automatically recognize it as an archive, so you need to specifically tell it which type it is, ex:
+![7zip_method1](https://github.com/user-attachments/assets/d569b105-b197-4476-9d1e-d7e7497502d8)
+
+Alternatively you can navigate to the containing folder, right-click the file, press `Open Inside #` and pick the second option, ex:
+![7zip_method2_step1](https://github.com/user-attachments/assets/fd40b301-b8f2-482e-8733-8e83208d8cdf)
+<br>
+![7zip_method2_step2](https://github.com/user-attachments/assets/12f558db-150b-4a91-bef3-6f268f5dd961)
+
+In WinRAR, simply remove the `.mp4` from the file name and open it as you usually would!
+![winrar](https://github.com/user-attachments/assets/4df0d760-837a-4e92-8fcd-bd5824be48a3)
+
+If your file is already an archive (7z, zip, rar, tar, gz, bz2), it will simply add the archive to the special video file.
+
+Otherwise, it will ***create a new zip that contains your file automatically!*** 
+<br><sub>(Note: No compression will be done since it would just take too long. If you want compression, zip the file yourself.)</sub>
 
 ## Miscellaneous
 
