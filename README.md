@@ -322,6 +322,7 @@ Alternatively you can navigate to the containing folder, right-click the file, p
 ![7zip_method2_step2](https://github.com/user-attachments/assets/12f558db-150b-4a91-bef3-6f268f5dd961)
 
 In WinRAR, simply remove the `.mp4` from the file name and open it as you usually would!
+
 ![winrar](https://github.com/user-attachments/assets/4df0d760-837a-4e92-8fcd-bd5824be48a3)
 
 If your file is already an archive (7z, zip, rar, tar, gz, bz2), it will simply add the archive to the special video file.
