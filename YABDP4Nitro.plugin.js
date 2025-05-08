@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.9.1
+ * @version 6.0.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -33,8 +33,8 @@
 @else@*/
 
 //#region Module Hell
-const { Webpack, Patcher, Net, React, UI, Logger, Data, Components, DOM, Plugins } = BdApi;
-const StreamButtons = Webpack.getMangled("RESOLUTION_1080", {
+const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins} = BdApi;
+const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamFPS: Webpack.Filters.byKeys("FPS_30"),
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
     ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
@@ -45,73 +45,75 @@ const StreamButtons = Webpack.getMangled("RESOLUTION_1080", {
     getApplicationResolution: Webpack.Filters.byStrings('"Unknown resolution: ".concat('),
     getApplicationFramerate: Webpack.Filters.byStrings('"Unknown frame rate: ".concat('),
 });
-const { ApplicationStreamFPS, ApplicationStreamFPSButtons, ApplicationStreamFPSButtonsWithSuffixLabel,
-    ApplicationStreamResolutionButtons, ApplicationStreamResolutionButtonsWithSuffixLabel,
-    ApplicationStreamResolutions, ApplicationStreamSettingRequirements } = StreamButtons;
-const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), { searchExports: true });
-const Uploader = Webpack.getByKeys("uploadFiles", "upload");
+const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
+    ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
+    ApplicationStreamResolutions,ApplicationStreamSettingRequirements} = StreamButtons;
+const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
+const Uploader = Webpack.getByKeys("uploadFiles","upload");
 const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
 const userProfileMod = Webpack.getByKeys("getUserProfile");
-const buttonClassModule = Webpack.getByKeys("lookFilled", "button", "contents");
-const Dispatcher = Webpack.getByKeys("subscribe", "dispatch");
-const canUserUseMod = Webpack.getMangled(".getFeatureValue(", {
+const buttonClassModule = Webpack.getByKeys("lookFilled","button","contents");
+const Dispatcher = Webpack.getByKeys("subscribe","dispatch");
+const canUserUseMod = Webpack.getMangled(".getFeatureValue(",{
     canUserUse: Webpack.Filters.byStrings("getFeatureValue")
 });
 const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
-const LadderModule = Webpack.getModule(Webpack.Filters.byKeys("calculateLadder"), { searchExports: true });
-const FetchCollectibleCategories = Webpack.getByStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"', { searchExports: true });
+const LadderModule = Webpack.getModule(Webpack.Filters.byKeys("calculateLadder"),{searchExports: true});
+const FetchCollectibleCategories = Webpack.getByStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"',{searchExports: true});
 let ffmpeg = undefined;
-const udta = new Uint8Array([0, 0, 0, 89, 109, 101, 116, 97, 0, 0, 0, 0, 0, 0, 0, 33, 104, 100, 108, 114, 0, 0, 0, 0, 0, 0, 0, 0, 109, 100, 105, 114, 97, 112, 112, 108, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 44, 105, 108, 115, 116, 0, 0, 0, 36, 169, 116, 111, 111, 0, 0, 0, 28, 100, 97, 116, 97, 0, 0, 0, 1, 0, 0, 0, 0, 76, 97, 118, 102, 54, 49, 46, 51, 46, 49, 48, 51, 0, 0, 46, 46, 117, 117, 105, 100, 161, 200, 82, 153, 51, 70, 77, 184, 136, 240, 131, 245, 122, 117, 165, 239]);
+const udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
 const udtaBuffer = udta.buffer;
-const UserStatusStore = Webpack.getByKeys("getStatus", "getState");
+const UserStatusStore = Webpack.getByKeys("getStatus","getState");
 const SelectedGuildStore = Webpack.getStore("SelectedGuildStore");
 const ChannelStore = Webpack.getStore("ChannelStore");
-const MessageActions = Webpack.getByKeys("jumpToMessage", "_sendMessage");
+const MessageActions = Webpack.getByKeys("jumpToMessage","_sendMessage");
 const SelectedChannelStore = Webpack.getStore("SelectedChannelStore");
 const UserStore = Webpack.getStore("UserStore");
-const MessageEmojiReact = Webpack.getByStrings(',nudgeAlignIntoViewport:!0,position:', 'jumboable?', { searchExports: true });
-const renderEmbedsMod = Webpack.getByPrototypeKeys('renderSocialProofingFileSizeNitroUpsell', { searchExports: true }).prototype;
-const messageRender = Webpack.getMangled('.SEND_FAILED,', {
+const MessageEmojiReact = Webpack.getByStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?',{searchExports: true});
+const renderEmbedsMod = Webpack.getByPrototypeKeys('renderSocialProofingFileSizeNitroUpsell',{searchExports: true}).prototype;
+const messageRender = Webpack.getMangled('.SEND_FAILED,',{
     renderMessage: o => typeof o === "object"
 });
-const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD", {
+const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD",{
     getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
     isSendableSticker: Webpack.Filters.byStrings(")=>0===")
 });
 const clientThemesModule = Webpack.getModule(Webpack.Filters.byKeys("isPreview"));
 const streamSettingsMod = Webpack.getByPrototypeKeys("getCodecOptions").prototype;
-const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientThemeSettings:{", {
+const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientThemeSettings:{",{
     saveClientTheme: Webpack.Filters.byStrings("changes:{appearance:{settings:{clientThemeSettings:{")
 });
-const accountSwitchModule = Webpack.getByKeys("startSession", "login");
+const accountSwitchModule = Webpack.getByKeys("startSession","login");
 const getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
-const fetchProfileEffects = Webpack.getByStrings("USER_PROFILE_EFFECTS_FETCH", { searchExports: true });
+const fetchProfileEffects = Webpack.getByStrings("USER_PROFILE_EFFECTS_FETCH",{searchExports: true});
 const getSoundMod = Webpack.getByKeys("getSoundById");
 const emojiMod = Webpack.getByKeys("getCustomEmojiById");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
-const TextClasses = Webpack.getByKeys("errorMessage", "h5");
+const TextClasses = Webpack.getByKeys("errorMessage","h5");
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons", {defaultExport:false});
+const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons",{defaultExport: false});
 const addFilesMod = Webpack.getByKeys("addFiles");
-const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon", "isEditorOpen", "isPremium", {defaultExport:false});
-const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2", {searchExports:true});
+const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon","isEditorOpen","isPremium",{defaultExport: false});
+const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2",{searchExports: true});
 const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
 const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
-const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"', {
+const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"',{
     useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
     areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
     isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
 });
-const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`, {
-    isClipsClientCapable: (x)=>x==x //just get the first result lol
+const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`,{
+    isClipsClientCapable: (x) => x == x //just get the first result lol
 });
 const ClipsMod = Webpack.getByKeys(`isViewerClippingAllowedForUser`);
-/* const FileTooLargeMod = BdApi.Webpack.getMangled(/\.push\(.{1,3}\.item\.file\),/, {
-    isOversize: BdApi.Webpack.Filters.byStrings("||")
-}); */
 //#endregion
+
+// Calc CRC32 Table
+const crcTable = Array.from({ length: 256 }, (_, i) =>
+    Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
+        (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
 
 const defaultSettings = {
     "emojiSize": 64,
@@ -159,6 +161,7 @@ const defaultSettings = {
     "soundmojiEnabled": true,
     "useAudioClipBypass": true,
     "forceAudioClip": false,
+    "zipClip": true
     //"enableClipsExperiment": true
 };
 
@@ -178,17 +181,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "5.9.1",
+        "version": "6.0.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "5.9.1",
+            title: "6.0.0",
             items: [
-                "Fixed an issue in both the FFmpeg and update fetching code that could result in unnecessary error messages.",
-                "Improved the update-checking code."
+                "Added ZipClip. ON BY DEFAULT! Nitro users should disable it. Send ANY file up to 100MB by creating a polyglot mp4-zip hybrid. To use it, simply send any file between 10MB and 100MB and the plugin will automatically convert the file. Requires some archive utility or extracting software, ex: WinRAR or 7-Zip. WinRAR works better, however. More info in settings.",
+                "Fixed Audio Clips not being playable on mobile."
             ]
         }
     ],
@@ -305,6 +308,7 @@ const config = {
                 { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
                 { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
                 { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
+                { type: "switch", id: "zipClip", name: "ZipClip", note: "Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit \"Open Inside\", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.", value: () => settings.zipClip },
                 // { type: "switch", id: "enableClipsExperiment", name: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. Doesn't disable on the fly, reload your client.", value: () => settings.enableClipsExperiment}
             ]
         },
@@ -781,6 +785,18 @@ module.exports = class YABDP4Nitro {
 
     // #region Clips Bypasses
     async clipsBypass(){
+
+        //base64 for file clipping mp4
+        const clipMe = "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";
+
+        //convert base64 to ArrayBuffer
+        var binaryString = atob(clipMe);
+        var bytes = new Uint8Array(binaryString.length);
+        for(var i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const clipMaBuffer = bytes.buffer;
+
         if(!this.MP4Box){
             try{
                 await Webpack.getByStrings("mp4boxInputFile.boxes")();
@@ -816,9 +832,9 @@ module.exports = class YABDP4Nitro {
         }
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
 
-            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=500x2","-i",inFileName,"-shortest","-fflags","+shortest", 
+            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=400x50","-i",inFileName,"-shortest","-fflags","+shortest", 
                 "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-map_chapters","-1",
-                "-preset","ultrafast","-c:a","copy","-strict","-2", outFileName];
+                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune", "stillimage","-r","1", outFileName];
 
             return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
         }
@@ -848,7 +864,7 @@ module.exports = class YABDP4Nitro {
             for(let i = 0; i < args.files.length; i++){
                 const currentFile = args.files[i];
 
-                if(currentFile.file.name.endsWith(".dlfc")) return;
+               if(currentFile.file.name.endsWith(".dlfc")) return;
 
                 const clipData = {
                     "id": "",
@@ -865,8 +881,9 @@ module.exports = class YABDP4Nitro {
                     "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
                 };
 
-                //larger than 10mb or force video clip enabled AND video clip bypass enabled
-                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass){
+                // #region MP4 Clip
+                //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip
+                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") && !skippedVideoTypes.includes(currentFile.file.type)){
 					//if this file is an mp4 file
                     if(currentFile.file.type == "video/mp4"){
                         let dontStopMeNow = true;
@@ -943,10 +960,12 @@ module.exports = class YABDP4Nitro {
                         }
                     
                     }
+                    // #endregion
+                    // #region Other Video Clip
                     else if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
                         continue;
                     }
-                    else if(currentFile.file.type.startsWith("video/") && !skippedVideoTypes.includes(currentFile.file.type)){
+                    else{
                         //Is a video file, but not MP4
 
                         let outFileName = "output.mp4";
@@ -977,9 +996,11 @@ module.exports = class YABDP4Nitro {
                             continue;
                         }
                     }
+                    //#endregion
                 }
+                // #region Audio Clip
                 //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true
-                if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
+                else if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
                    (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type))){
 
                     try {
@@ -1008,6 +1029,119 @@ module.exports = class YABDP4Nitro {
                         continue;
                     }
                 }
+                //#endregion
+
+                // #region File Clip
+
+                //any file above 10mb and below 100mb that does not fit any previous criteria
+                else if(currentFile.file.size > 10485759 && currentFile.file.size < 104857590 && settings.zipClip) {
+                    const archiveMimeTypes = ['x-7z-compressed', 'x-bzip', 'x-bzip2', 'x-rar-compressed', 'x-tar', 'gzip', 'x-gzip', 'zip', 'x-zip-compressed'];
+                    
+                    let zipFile;
+                    let fileArrayBuffer = await currentFile.file.arrayBuffer();
+
+                    //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
+                    if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
+                        //console.log('File is already an archive file.');
+
+                        zipFile = fileArrayBuffer;
+                        clipData.name = currentFile.file.name;
+                    }else{
+                        //console.log('Creating zip file for added file.');
+
+                        /* DeepSeek-R1 helped to write this createZip function.
+                        Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
+                        I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
+                        An explanation of the function is below (yes I wrote the explanation):
+                        The function creates a basic zip file containing the data variable as a file with no compression and returns a Uint8Array of the zip file.
+                        The name variable is the file name of the file within the zip.
+                        The data variable can be ArrayBuffer, Uint8Array, or string.
+                        To make a zip file, a bunch of headers and data descriptors, including a CRC checksum and a bunch of info about the file, must be created, so that's what we're doing.
+                        https://en.wikipedia.org/wiki/ZIP_(file_format)#File_headers for more information on that.
+                        Writing all this shit would've been pretty tedious so yea. */
+                        function createZip(name, data) {
+
+                            // Convert input to Uint8Array
+                            const enc = new TextEncoder();
+                            const nameBytes = enc.encode(name);
+                            const dataBytes = data instanceof ArrayBuffer ? new Uint8Array(data) :
+                                data instanceof Uint8Array ? data : enc.encode(data);
+
+                            // Calculate CRC and lengths
+                            let crc = -1;  // Initial value
+                            const len = dataBytes.length;
+
+                            // Process bytes in chunks
+                            for(let i = 0; i < len; i++) {
+                                crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
+                            }
+
+                            // Finalize CRC and convert to unsigned int
+                            crc = (crc ^ -1) >>> 0;
+
+                            const dataLength = dataBytes.length;
+                            const headerLength = 30 + nameBytes.length;
+
+                            // Local File Header (starts at 0)
+                            const localHeader = new DataView(new ArrayBuffer(headerLength));
+                            localHeader.setUint32(0, 0x04034B50, true);  // Signature
+                            localHeader.setUint16(4, 0x0A00, true);      // Version needed
+                            localHeader.setUint32(14, crc, true);        // CRC-32
+                            localHeader.setUint32(18, dataLength, true); // Compressed size
+                            localHeader.setUint32(22, dataLength, true); // Uncompressed size
+                            localHeader.setUint16(26, nameBytes.length, true);
+                            new Uint8Array(localHeader.buffer).set(nameBytes, 30);
+
+                            // Central Directory (starts after file data)
+                            // Note: Omitted fields default to 0, since the length is set manually.
+                            const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
+                            centralDir.setUint32(0, 0x02014B50, true);   // Signature
+                            centralDir.setUint16(6, 0x0A00, true);       // Version needed
+                            centralDir.setUint32(16, crc, true);         // CRC-32
+                            centralDir.setUint32(20, dataLength, true);  // Sizes
+                            centralDir.setUint32(24, dataLength, true);
+                            centralDir.setUint16(28, nameBytes.length, true);
+                            new Uint8Array(centralDir.buffer).set(nameBytes, 46);
+
+                            // End of Central Directory
+                            const end = new DataView(new ArrayBuffer(22));
+                            end.setUint32(0, 0x06054B50, true);         // Signature
+                            end.setUint16(8, 1, true);                  // Entry count
+                            end.setUint16(10, 1, true);                 // Total entries
+                            end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
+                            end.setUint32(16, headerLength + dataLength, true);    // Dir offset
+
+                            //Allocating a Uint8Array large enough for the file
+                            const totalSize = localHeader.buffer.byteLength + dataBytes.length +
+                                centralDir.buffer.byteLength + end.buffer.byteLength;
+                            const result = new Uint8Array(totalSize);
+
+                            //Putting all the data together
+                            let offset = 0;
+                            [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
+                                result.set(new Uint8Array(buf), offset);
+                                offset += buf.byteLength || buf.length;
+                            });
+
+                            return result;
+                        }
+
+                        zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
+                        
+                        clipData.name += ".zip";
+                    }
+
+                    try {
+                        let newArrBuf = ArrayBuffer.concat(clipMaBuffer, zipFile);
+                        
+                        let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
+                        currentFile.file = newFile;
+                        currentFile.clip = clipData;
+                    } catch(err) {
+                        errorHandler(err, currentFile, this.meta.name);
+                    }
+                }
+                //#endregion
                 currentFile.platform = 1;
             }
             originalFunction(args);
@@ -1036,25 +1170,6 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(this.meta.name, ClipsMod, "isVoiceRecordingAllowedForUser", () => {
             return true;
         });
-        /* Patcher.instead(this.meta.name, FileTooLargeMod, "isOversize", (_, [fileList, id], originalFunction) => {
-            let isClip = false;
-            for(let i = 0; i < fileList.length; i++){
-                let file = fileList[i];
-                if(settings.useClipBypass){
-                    if(file.type.startsWith("video/")){
-                        isClip = true;
-                    }
-                }
-                if(settings.useAudioClipBypass){
-                    if(file.type.startsWith("audio/")){
-                        isClip = true;
-                    }
-                }
-            }
-            if(isClip) return false;
-            else return originalFunction(fileList, id);
-        }); */
-        
     } //End of clipsBypass()
     // #endregion
 
