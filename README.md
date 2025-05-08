@@ -312,9 +312,11 @@ To use it, simply send any file between 10MB and 100MB with the option enabled i
 To extract the file, remove the `.mp4` from the file name and open it in 7-Zip, WinRAR, etc.
 
 In 7-Zip, it's a bit more of a hassle since it doesn't automatically recognize it as an archive, so you need to specifically tell it which type it is, ex:
+
 ![7zip_method1](https://github.com/user-attachments/assets/d569b105-b197-4476-9d1e-d7e7497502d8)
 
 Alternatively you can navigate to the containing folder, right-click the file, press `Open Inside #` and pick the second option, ex:
+
 ![7zip_method2_step1](https://github.com/user-attachments/assets/fd40b301-b8f2-482e-8733-8e83208d8cdf)
 <br>
 ![7zip_method2_step2](https://github.com/user-attachments/assets/12f558db-150b-4a91-bef3-6f268f5dd961)
