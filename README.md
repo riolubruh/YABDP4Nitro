@@ -492,6 +492,9 @@ Donation fee of 2.89% of payment + $0.49 ( + 1.5% if you're not in the United St
 
 #### Patreon
 
+Patreon unpublished my page automatically from inactivity. To be honest, I was going to do it myself eventually anyway,
+and you're about to see why with the fees info (which I will not remove for informational purposes):
+
 8% fee + payment processing fees depending on what processor you used + currency conversion fees (if applicable).<br>
 Plus a $0.25 fee whenever I cash out.<br>
 Seriously dastardly fees, all taken from the creator! Shameful!<br>
