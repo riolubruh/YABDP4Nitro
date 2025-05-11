@@ -226,7 +226,7 @@ To use Fake Profile Effects, first go to Settings>Profiles; you should see a Pro
 
 Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
 
-![profile effect section opened](https://github.com/user-attachments/assets/c93e79c7-acfc-4464-8717-8114c7d18c32)
+![profile effect section opened](https://github.com/user-attachments/assets/101ff527-6811-457b-ae80-dc55cd9e88b3)
 
 <br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
