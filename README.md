@@ -402,7 +402,7 @@ ________________________________________________________________________________
 
 ## Recommended additional plugins for more Nitro features
 
-[FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked until the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is fixed)
+[FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked since the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is abandoned)
 
 [SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
 
