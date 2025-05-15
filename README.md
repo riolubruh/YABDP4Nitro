@@ -418,7 +418,7 @@ ________________________________________________________________________________
 
 ## Discord Server
 
-Please read [this README](#readme) and [the FAQ](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
+Please read [this README](#readme) and [the FAQ / Installation Instructions](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
 
 https://discord.gg/EFmGEWAUns
 
