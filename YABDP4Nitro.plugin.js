@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 6.0.1
+ * @version 6.0.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -189,23 +189,24 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.1",
+        "version": "6.0.2",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.1",
+            title: "6.0.2",
             items: [
-                "Disabled file upload limit modals when a Clips Bypass of any type is enabled as a fallback for when the Clips Experiments fail to be overridden, making the Clips Bypasses more reliable. (Nothing changes when the Experiments are working as intended since having the \"Staff\" flag does the same thing)",
-                "Added an option to disable the Clips-related experiment overrides and Experiments tabs in Settings from appearing due to Clips being enabled. Note: doing this will cause the Action Bar \"Save Clip\" button and the Clips menu button to vanish after a refresh.",
-                'Added CSS to remove new "Stream in HD with your Nitro trial" thing in Go Live Modal V1 as part of the "Remove Screen Share Nitro Upsell" option.',
-                "Added an option to disable the YABDP4Nitro User Badge (client-side).",
-                "Added support for Go Live Modal V2 (currently in experimental phase, probably will break soon).",
-                "In the process, replaced the old code for unlocking Nitro and custom resolutions/FPSes with a much better alternative.",
-                "Fixed some old error handlers that wouldn't have worked properly if they were triggered somehow.",
-                "Random other code changes."
+                "(6.0.1) Disabled file upload limit modals when a Clips Bypass of any type is enabled as a fallback for when the Clips Experiments fail to be overridden, making the Clips Bypasses more reliable. (Nothing changes when the Experiments are working as intended since having the \"Staff\" flag does the same thing)",
+                "(6.0.1) Added an option to disable the Clips-related experiment overrides and Experiments tabs in Settings from appearing due to Clips being enabled. Note: doing this will cause the Action Bar \"Save Clip\" button and the Clips menu button to vanish after a refresh.",
+                '(6.0.1) Added CSS to remove new "Stream in HD with your Nitro trial" thing in Go Live Modal V1 as part of the "Remove Screen Share Nitro Upsell" option.',
+                "(6.0.1) Added an option to disable the YABDP4Nitro User Badge (client-side).",
+                "(6.0.1) Added support for Go Live Modal V2 (currently in experimental phase, probably will break soon).",
+                "(6.0.1) In the process, replaced the old code for unlocking Nitro and custom resolutions/FPSes with a much better alternative.",
+                "(6.0.1) Fixed some old error handlers that wouldn't have worked properly if they were triggered somehow.",
+                "(6.0.1) Random other code changes.",
+                "(6.0.2) Made it so that the stream unlocking code runs when High Quality Screen-Share is enabled instead of when Resolution Swapper is."
             ]
         }
     ],
@@ -458,6 +459,11 @@ module.exports = class YABDP4Nitro {
             }
             try {
                 this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
+
+                //disable resolution / fps check
+                Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "Z", (_, args, originalFunction) => {
+                    return true;
+                });
             } catch(err){
                 Logger.error(this.meta.name, "Error occurred during videoQualityModule() " + err);
             }
@@ -1002,11 +1008,6 @@ module.exports = class YABDP4Nitro {
                 }
                 ));
             }
-        });
-
-        //disable resolution / fps check
-        Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "Z", (_, args, originalFunction) => {
-            return true;
         });
     }
     // #endregion
