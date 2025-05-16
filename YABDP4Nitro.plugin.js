@@ -1,7 +1,7 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 6.0.0
+ * @version 6.0.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -107,7 +107,14 @@ const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableCl
 const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`,{
     isClipsClientCapable: (x) => x == x //just get the first result lol
 });
-const ClipsMod = Webpack.getByKeys(`isViewerClippingAllowedForUser`);
+const ClipsStore = Webpack.getStore("ClipsStore");
+const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
+    getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
+    exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
+});
+const InvalidStreamSettingsModal = Webpack.getBySource('preset||', 'resolution&&', '.fps&&(0,');
+// const GoLiveModalV2UpsellMod = Webpack.getBySource("GO_LIVE_MODAL_V2", "premiumSubscribeButton");
+
 //#endregion
 
 // Calc CRC32 Table
@@ -161,8 +168,9 @@ const defaultSettings = {
     "soundmojiEnabled": true,
     "useAudioClipBypass": true,
     "forceAudioClip": false,
-    "zipClip": true
-    //"enableClipsExperiment": true
+    "zipClip": true,
+    "enableClipsExperiment": true,
+    "disableUserBadge": false
 };
 
 //Plugin-wide variables
@@ -181,17 +189,23 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.0",
+        "version": "6.0.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.0",
+            title: "6.0.1",
             items: [
-                "Added ZipClip. ON BY DEFAULT! Nitro users should disable it. Send ANY file up to 100MB by creating a polyglot mp4-zip hybrid. To use it, simply send any file between 10MB and 100MB and the plugin will automatically convert the file. Requires some archive utility or extracting software, ex: WinRAR or 7-Zip. WinRAR works better, however. More info in settings.",
-                "Fixed Audio Clips not being playable on mobile."
+                "Disabled file upload limit modals when a Clips Bypass of any type is enabled as a fallback for when the Clips Experiments fail to be overridden, making the Clips Bypasses more reliable. (Nothing changes when the Experiments are working as intended since having the \"Staff\" flag does the same thing)",
+                "Added an option to disable the Clips-related experiment overrides and Experiments tabs in Settings from appearing due to Clips being enabled. Note: doing this will cause the Action Bar \"Save Clip\" button and the Clips menu button to vanish after a refresh.",
+                'Added CSS to remove new "Stream in HD with your Nitro trial" thing in Go Live Modal V1 as part of the "Remove Screen Share Nitro Upsell" option.',
+                "Added an option to disable the YABDP4Nitro User Badge (client-side).",
+                "Added support for Go Live Modal V2 (currently in experimental phase, probably will break soon).",
+                "In the process, replaced the old code for unlocking Nitro and custom resolutions/FPSes with a much better alternative.",
+                "Fixed some old error handlers that wouldn't have worked properly if they were triggered somehow.",
+                "Random other code changes."
             ]
         }
     ],
@@ -294,6 +308,7 @@ const config = {
                 { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
                 { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
                 { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
+                { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
             ]
         },
         {
@@ -309,7 +324,7 @@ const config = {
                 { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
                 { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
                 { type: "switch", id: "zipClip", name: "ZipClip", note: "Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit \"Open Inside\", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.", value: () => settings.zipClip },
-                // { type: "switch", id: "enableClipsExperiment", name: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. Doesn't disable on the fly, reload your client.", value: () => settings.enableClipsExperiment}
+                { type: "switch", id: "enableClipsExperiment", name: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings.", value: () => settings.enableClipsExperiment}
             ]
         },
         {
@@ -394,6 +409,7 @@ module.exports = class YABDP4Nitro {
         if(settings.ResolutionSwapper){
             try {
                 this.resolutionSwapper();
+                this.resolutionSwapperV2();
             } catch(err){
                 Logger.error(this.meta.name, err);
             }
@@ -436,12 +452,12 @@ module.exports = class YABDP4Nitro {
 
         if(settings.screenSharing){
             try {
-                this.customVideoSettings(); //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
+                this.customizeStreamButtons(); //Apply custom resolution and fps options for Go Live Modal V1
             } catch(err){
-                Logger.error(this.meta.name, "Error occurred during customVideoSettings() " + err);
+                Logger.error(this.meta.name, "Error occurred during customizeStreamButtons() " + err);
             }
             try {
-                this.videoQualityModule(); //Custom bitrate, fps, resolution module
+                this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
             } catch(err){
                 Logger.error(this.meta.name, "Error occurred during videoQualityModule() " + err);
             }
@@ -470,30 +486,46 @@ module.exports = class YABDP4Nitro {
         if(settings.removeScreenshareUpsell){
             try {
                 DOM.addStyle(this.meta.name, `
-                [class*="upsellBanner"] {
-                  display: none;
-                  visibility: hidden;
-                }`);
+                    [class*="upsellBanner"], [class*="reverseTrialEducationBannerContainer"] {
+                        display: none;
+                        visibility: hidden;
+                    }
+                `);
+
+                //Disable GoLiveModalV2 upsell
+                /* Patcher.instead(this.meta.name, GoLiveModalV2UpsellMod, "Z", () => {
+                    return;
+                }); */
             } catch(err){
                 Logger.error(this.meta.name, err);
             }
         }
 
         if(settings.fakeProfileBanners){
-            this.bannerUrlDecoding();
-            this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
-            if(settings.userBgIntegration){
+            try{
+                this.bannerUrlDecoding();
+                this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
+            }catch(err){
+                Logger.error(this.meta.name, err);
             }
         }
 
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         if(settings.fakeAvatarDecorations){
-            this.fakeAvatarDecorations();
+            try{
+                this.fakeAvatarDecorations();
+            }catch(err){
+                Logger.error(this.meta.name, err);
+            }
         }
 
         if(settings.unlockAppIcons){
-            this.appIcons();
+            try{
+                this.appIcons();
+            }catch(err){
+                Logger.error(this.meta.name, err);
+            }
         }
 
         if(settings.profileEffects){
@@ -558,14 +590,6 @@ module.exports = class YABDP4Nitro {
         //Clips Bypass
         if(settings.useClipBypass || settings.useAudioClipBypass){
             try {
-                //if(settings.enableClipsExperiment){
-                this.experiments();
-                this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
-                this.overrideExperiment("2022-11_clips_experiment", 1);
-                this.overrideExperiment("2023-10_viewer_clipping", 1);
-                //}
-                
-
                 this.clipsBypass();
             } catch(err){
                 Logger.error(this.meta.name, err);
@@ -573,14 +597,28 @@ module.exports = class YABDP4Nitro {
         }
 
         if(settings.fakeInlineVencordEmotes){
-            this.inlineFakemojiPatch();
+            try{
+                this.inlineFakemojiPatch();
+            }catch(err){
+                Logger.error(this.meta.name, err);
+            }
         }
 
-        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0))
-            this._sendMessageInsteadPatch();
+        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0)){
+            try{
+                this._sendMessageInsteadPatch();
+            }catch(err){
+                Logger.error(this.meta.name, err);
+            }
+        }
 
-        if(settings.videoCodec2 > -1)
-            this.videoCodecs();
+        if(settings.videoCodec2 > -1){
+            try{
+                this.videoCodecs();
+            }catch(err){
+                Logger.error(this.meta.name, err);
+            }
+        }            
 
     } //End of saveAndUpdate()
     // #endregion
@@ -608,7 +646,9 @@ module.exports = class YABDP4Nitro {
                 //Resolution input
                 if(resolutionButtonsSection?.children){
                     //make each section into arrays so we can add another element
-                    resolutionButtonsSection.children = [resolutionButtonsSection.children];
+                    if(!Array.isArray(resolutionButtonsSection.children))
+                        resolutionButtonsSection.children = [resolutionButtonsSection.children];
+
                     const thirdResolutionButton = resolutionButtonsSection?.children[0]?.props?.buttons[2];
 
                     resolutionButtonsSection?.children?.push(React.createElement("div", {
@@ -627,7 +667,7 @@ module.exports = class YABDP4Nitro {
                                     //updates visual
                                     thirdResolutionButton.value = input;
                                     //sets values and saves to settings
-                                    this.unlockAndCustomizeStreamButtons();
+                                    this.customizeStreamButtons();
                                     //simulate click on button -- serves to both select it and to make react re-render it.
                                     thirdResolutionButton.onClick();
                                 }
@@ -658,7 +698,7 @@ module.exports = class YABDP4Nitro {
                                     //updates visual
                                     thirdFpsButton.value = input;
                                     //sets values and saves to settings
-                                    this.unlockAndCustomizeStreamButtons();
+                                    this.customizeStreamButtons();
                                     //simulate click on button -- serves to both select it and to make react re-render it.
                                     thirdFpsButton.onClick();
                                 }
@@ -757,6 +797,218 @@ module.exports = class YABDP4Nitro {
             }
         });
     }
+
+    //#region Go Live Modal V2
+    async resolutionSwapperV2(){
+
+        //wait for lazy loaded modules
+        await Webpack.waitForModule(Webpack.Filters.bySource("golivemodalv2"));
+        if(this.GoLiveModalMod == undefined) 
+            this.GoLiveModalMod = Webpack.getMangled("golivemodalv2", {
+                goLiveModalV2: Webpack.Filters.byStrings("golivemodalv2")
+            });
+
+        await Webpack.waitForModule(Webpack.Filters.byKeys("streamOptionsButton", "settingsIcon"));
+        if(this.SteamOptionsButtonClassesMod == undefined) this.SteamOptionsButtonClassesMod = Webpack.getByKeys("streamOptionsButton", "settingsIcon");
+
+        //the sign of janky code inbound
+        let GLMV2Opt = {
+            resolutionToSet: undefined,
+            fpsToSet: undefined,
+            minBitrateToSet: undefined,
+            targetBitrateToSet: undefined,
+            maxBitrateToSet: undefined
+        };
+
+        Patcher.after(this.meta.name, this.GoLiveModalMod, "goLiveModalV2", (_,args,ret) => {
+            //maybe the worst amalgamation in this whole plugin?
+
+            if(GLMV2Opt.resolutionToSet != undefined) {
+                ret.props.state.resolution = GLMV2Opt.resolutionToSet;
+                settings.CustomResolution = GLMV2Opt.resolutionToSet;
+                GLMV2Opt.resolutionToSet = undefined;
+            }
+            if(GLMV2Opt.fpsToSet != undefined) {
+                ret.props.state.fps = GLMV2Opt.fpsToSet;
+                settings.CustomFPS = GLMV2Opt.fpsToSet;
+                GLMV2Opt.fpsToSet = undefined;
+            }
+
+            const ModalFooter = ret?.props?.children?.props?.children[2]?.props?.children[0]?.props?.children[1]?.props?.children;
+            
+            if(ModalFooter) {
+                ModalFooter.splice(2,0,React.createElement("button",{
+                    class: `${this.SteamOptionsButtonClassesMod.streamOptionsButton} ${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorPrimary} ${buttonClassModule.sizeIcon} ${buttonClassModule.grow}`,
+                    style: {
+                        height: "46px",
+                        width: "46px"
+                    },
+                    children: 'YABD',
+                    onClick: () => {
+                        let localStreamOptions = {
+                            resolutionToSet: undefined,
+                            fpsToSet: undefined,
+                            minBitrateToSet: undefined,
+                            targetBitrateToSet: undefined,
+                            maxBitrateToSet: undefined
+                        }
+
+                        //defaults
+                        if(settings.ResolutionEnabled) localStreamOptions.resolutionToSet = settings.CustomResolution;
+                        if(settings.CustomFPSEnabled) localStreamOptions.fpsToSet = settings.CustomFPS;
+                        if(settings.CustomBitrateEnabled) {
+                            localStreamOptions.minBitrateToSet = settings.minBitrate;
+                            localStreamOptions.targetBitrateToSet = settings.targetBitrate;
+                            localStreamOptions.maxBitrateToSet = settings.maxBitrate;
+                        }
+
+                        UI.showConfirmationModal("Configure Stream Settings",[
+                            React.createElement('div', {
+                                children: [
+                                    React.createElement('div', {
+                                        style: {
+                                            display: "flex",
+                                            width: "100%",
+                                            justifyContent: "space-around"
+                                        },
+                                        children: [
+                                            React.createElement("h1",{
+                                                children: "Resolution",
+                                                className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                            }),
+                                            React.createElement("h1",{
+                                                children: "FPS",
+                                                className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                            }),
+                                        ]
+                                    }),
+                                    React.createElement('div', {
+                                        style: {
+                                            display: "flex",
+                                            width: "100%",
+                                            justifyContent: "space-around"
+                                        },
+                                        children: [
+                                            React.createElement(Components.NumberInput,{
+                                                value: settings.CustomResolution,
+                                                min: -1,
+                                                onChange: (input) => {
+                                                    input = parseInt(input);
+                                                    if(isNaN(input)) input = 1440;
+                
+                                                    localStreamOptions.resolutionToSet = input;
+                                                }
+                                            }),
+                                            React.createElement(Components.NumberInput,{
+                                                value: settings.CustomFPS,
+                                                min: -1,
+                                                onChange: (input) => {
+                                                    input = parseInt(input);
+                                                    if(isNaN(input)) input = 60;
+                
+                                                    localStreamOptions.fpsToSet = input;
+                                                }
+                                            }),
+                                        ]
+                                    }),
+                                ]
+                            }),
+                            settings.CustomBitrateEnabled ? React.createElement("br") : undefined,
+                            settings.CustomBitrateEnabled ? React.createElement("h1",{
+                                children: "Custom Bitrate (kbps)",
+                                className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                            }) : undefined,
+                            settings.CustomBitrateEnabled ? React.createElement('div', {
+                                style: {
+                                    display: "flex",
+                                    width: "100%",
+                                    justifyContent: "space-around"
+                                },
+                                children: [
+                                    React.createElement("h1", {
+                                        children: "Min",
+                                        style: {
+                                            marginBlock: "0 5px",
+                                        },
+                                        className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                    }),
+                                    React.createElement("h1", {
+                                        children: "Target",
+                                        style: {
+                                            marginBlock: "0 5px",
+                                        },
+                                        className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                    }),
+                                    React.createElement("h1", {
+                                        children: "Max",
+                                        style: {
+                                            marginBlock: "0 5px",
+                                        },
+                                        className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                    }),
+                                ]
+                            }) : undefined,
+                            React.createElement('div',{
+                                style: {
+                                    display: "flex",
+                                    width: "100%",
+                                    justifyContent: "space-around",
+                                    marginBottom: "5px"
+                                },
+                                children: settings.CustomBitrateEnabled ? [
+                                    React.createElement(Components.NumberInput,{
+                                        value: settings.minBitrate,
+                                        min: -1,
+                                        onChange: (input) => {
+                                            input = parseInt(input);
+                                            if(isNaN(input)) input = -1;
+                                            localStreamOptions.minBitrateToSet = input;
+                                        }
+                                    }),
+                                    React.createElement(Components.NumberInput,{
+                                        value: settings.targetBitrate,
+                                        min: -1,
+                                        onChange: (input) => {
+                                            input = parseInt(input);
+                                            if(isNaN(input)) input = -1;
+                                            localStreamOptions.targetBitrateToSet = input;
+                                        }
+                                    }),
+                                    React.createElement(Components.NumberInput,{
+                                        value: settings.maxBitrate,
+                                        min: -1,
+                                        onChange: (input) => {
+                                            input = parseInt(input);
+                                            if(isNaN(input)) input = -1;
+                                            localStreamOptions.maxBitrateToSet = input;
+                                        }
+                                    }),
+                                ] : undefined
+                            })
+                        ],
+                        {
+                            confirmText: "Apply",
+                            onConfirm: () => {
+                                GLMV2Opt = localStreamOptions;
+
+                                if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
+                                if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
+                                if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
+                                Data.save(this.meta.name,"settings",settings);
+                            }
+                        }
+                        )
+                    }
+                }
+                ));
+            }
+        });
+
+        //disable resolution / fps check
+        Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "Z", (_, args, originalFunction) => {
+            return true;
+        });
+    }
     // #endregion
 
     unlockStickers(){
@@ -774,17 +1026,29 @@ module.exports = class YABDP4Nitro {
         });
     }
 
-    overrideExperiment(type, bucket){
-        //console.log("applying experiment override " + type + "; bucket " + bucket);
-        Dispatcher.dispatch({
-            type: "EXPERIMENT_OVERRIDE_BUCKET",
-            experimentId: type,
-            experimentBucket: bucket
-        });
-    }
-
     // #region Clips Bypasses
     async clipsBypass(){
+
+        if(settings.enableClipsExperiment){
+            this.experiments();
+            this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
+            this.overrideExperiment("2022-11_clips_experiment", 1);
+            this.overrideExperiment("2023-10_viewer_clipping", 1);
+        }
+        //spoof nitro file size limit
+        Patcher.instead(this.meta.name, MaxFileSizeMod, "getMaxFileSize", (_,args) => {
+            return 500 * 1024 * 1024; //512 MB
+        });
+
+        //disable max file size message
+        Patcher.instead(this.meta.name, MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
+            return false;
+        });
+
+        // todo: maybe fix ActionBarClipsButton and ClipsButton button not appearing with experiments disabled eventually
+        // currently they use useExperiment to check if they should appear, which is a function that I can't patch
+        // and remaking the respective React elements sounds really difficult
+
 
         //base64 for file clipping mp4
         const clipMe = "AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAABbBtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAyAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAACUXRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAMgAAADIAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAMgAAAAAAAEAAAAAAcltZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAADIAAAAKAFXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAF0bWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAABNHN0YmwAAADAc3RzZAAAAAAAAAABAAAAsG1wNHYAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAMgAyAEgAAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAsZXNkcwAAAAADgICAGwABAASAgIANbBEAAAAAAMmQAADJkAaAgIABAgAAAApmaWVsAQAAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAADJkAAAyZAAAAAYc3R0cwAAAAAAAAABAAAABQAAAgAAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAEAAAABAAAAFHN0c3oAAAAAAAABAgAAAAUAAAAkc3RjbwAAAAAAAAAFAAAF8QAABvsAAAgFAAAJDwAAChUAAAKJdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAgAAAAAAAAC6AAAAAAAAAAAAAAABAQAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAJGVkdHMAAAAcZWxzdAAAAAAAAAABAAAAuQAABAAAAQAAAAACAW1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAArEQAACPfVcQAAAAAAC1oZGxyAAAAAAAAAABzb3VuAAAAAAAAAAAAAAAAU291bmRIYW5kbGVyAAAAAaxtaW5mAAAAEHNtaGQAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAXBzdGJsAAAAfnN0c2QAAAAAAAAAAQAAAG5tcDRhAAAAAAAAAAEAAAAAAAAAAAACABAAAAAArEQAAAAAADZlc2RzAAAAAAOAgIAlAAIABICAgBdAFQAAAAAAB/QAAAf0BYCAgAUSCFblAAaAgIABAgAAABRidHJ0AAAAAAAAB/QAAAf0AAAAIHN0dHMAAAAAAAAAAgAAAAgAAAQAAAAAAQAAA98AAAA0c3RzYwAAAAAAAAADAAAAAQAAAAEAAAABAAAAAgAAAAIAAAABAAAABQAAAAEAAAABAAAAOHN0c3oAAAAAAAAAAAAAAAkAAAAVAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAoc3RjbwAAAAAAAAAGAAAF3AAABvMAAAf9AAAJBwAAChEAAAsXAAAAGnNncGQBAAAAcm9sbAAAAAIAAAAB//8AAAAcc2JncAAAAAByb2xsAAAAAQAAAAkAAAABAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY1OS4yNy4xMDAAAAAIZnJlZQAABUdtZGF03gIATGF2YzU5LjM3LjEwMAACMEAO/9j/4AAQSkZJRgABAgAAAQABAAD//gAQTGF2YzU5LjM3LjEwMAD//gAMQ1M9SVRVNjAxAP/bAEMACAQEBAQEBQUFBQUFBgYGBgYGBgYGBgYGBgcHBwgICAcHBwYGBwcICAgICQkJCAgICAkJCgoKDAwLCw4ODhERFP/EAEsAAQEAAAAAAAAAAAAAAAAAAAAHAQEAAAAAAAAAAAAAAAAAAAAAEAEAAAAAAAAAAAAAAAAAAAAAEQEAAAAAAAAAAAAAAAAAAAAA/8AAEQgAMgAyAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8Ah4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/ZARggBwEYIAf/2P/gABBKRklGAAECAAABAAEAAP/+ABBMYXZjNTkuMzcuMTAwAP/+AAxDUz1JVFU2MDEA/9sAQwAIBAQEBAQFBQUFBQUGBgYGBgYGBgYGBgYGBwcHCAgIBwcHBgYHBwgICAgJCQkICAgICQkKCgoMDAsLDg4OEREU/8QASwABAQAAAAAAAAAAAAAAAAAAAAcBAQAAAAAAAAAAAAAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAARAQAAAAAAAAAAAAAAAAAAAAD/wAARCAAyADIDASIAAhEAAxEA/9oADAMBAAIRAxEAPwCHgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/9kBGCAHARggB//Y/+AAEEpGSUYAAQIAAAEAAQAA//4AEExhdmM1OS4zNy4xMDAA//4ADENTPUlUVTYwMQD/2wBDAAgEBAQEBAUFBQUFBQYGBgYGBgYGBgYGBgYHBwcICAgHBwcGBgcHCAgICAkJCQgICAgJCQoKCgwMCwsODg4RERT/xABLAAEBAAAAAAAAAAAAAAAAAAAABwEBAAAAAAAAAAAAAAAAAAAAABABAAAAAAAAAAAAAAAAAAAAABEBAAAAAAAAAAAAAAAAAAAAAP/AABEIADIAMgMBIgACEQADEQD/2gAMAwEAAhEDEQA/AIeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/2QEYIAcBGCAH/9j/4AAQSkZJRgABAgAAAQABAAD//gAQTGF2YzU5LjM3LjEwMAD//gAMQ1M9SVRVNjAxAP/bAEMACAQEBAQEBQUFBQUFBgYGBgYGBgYGBgYGBgcHBwgICAcHBwYGBwcICAgICQkJCAgICAkJCgoKDAwLCw4ODhERFP/EAEsAAQEAAAAAAAAAAAAAAAAAAAAHAQEAAAAAAAAAAAAAAAAAAAAAEAEAAAAAAAAAAAAAAAAAAAAAEQEAAAAAAAAAAAAAAAAAAAAA/8AAEQgAMgAyAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8Ah4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/ZARggB//Y/+AAEEpGSUYAAQIAAAEAAQAA//4AEExhdmM1OS4zNy4xMDAA//4ADENTPUlUVTYwMQD/2wBDAAgEBAQEBAUFBQUFBQYGBgYGBgYGBgYGBgYHBwcICAgHBwcGBgcHCAgICAkJCQgICAgJCQoKCgwMCwsODg4RERT/xABLAAEBAAAAAAAAAAAAAAAAAAAABwEBAAAAAAAAAAAAAAAAAAAAABABAAAAAAAAAAAAAAAAAAAAABEBAAAAAAAAAAAAAAAAAAAAAP/AABEIADIAMgMBIgACEQADEQD/2gAMAwEAAhEDEQA/AIeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/2QEYIAcAAABZbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAsaWxzdAAAACSpdG9vAAAAHGRhdGEAAAABAAAAAExhdmY2MS4zLjEwMwAALi51dWlkochSmTNGTbiI8IP1enWl7w==";
@@ -801,7 +1065,7 @@ module.exports = class YABDP4Nitro {
             try{
                 await Webpack.getByStrings("mp4boxInputFile.boxes")();
             }catch(e){}
-            this.MP4Box = await Webpack.waitForModule(BdApi.Webpack.Filters.byKeys("MP4BoxStream"));
+            this.MP4Box = await Webpack.waitForModule(Webpack.Filters.byKeys("MP4BoxStream"));
         }
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
@@ -828,7 +1092,7 @@ module.exports = class YABDP4Nitro {
 
                 return data.buffer;
             }
-            //else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
+            else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
         }
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
 
@@ -1161,13 +1425,13 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(this.meta.name, ClipsAllowedMod, "isClipsClientCapable", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsMod, "isViewerClippingAllowedForUser", () => {
+        Patcher.instead(this.meta.name, ClipsStore, "isViewerClippingAllowedForUser", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsMod, "isClipsEnabledForUser", () => {
+        Patcher.instead(this.meta.name, ClipsStore, "isClipsEnabledForUser", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsMod, "isVoiceRecordingAllowedForUser", () => {
+        Patcher.instead(this.meta.name, ClipsStore, "isVoiceRecordingAllowedForUser", () => {
             return true;
         });
     } //End of clipsBypass()
@@ -1275,6 +1539,15 @@ module.exports = class YABDP4Nitro {
         } catch(err){
             Logger.warn(this.meta.name, err);
         }
+    }
+
+    overrideExperiment(type, bucket){
+        //console.log("applying experiment override " + type + "; bucket " + bucket);
+        Dispatcher.dispatch({
+            type: "EXPERIMENT_OVERRIDE_BUCKET",
+            experimentId: type,
+            experimentBucket: bucket
+        });
     }
     // #endregion
 
@@ -1541,14 +1814,14 @@ module.exports = class YABDP4Nitro {
                                         .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
                                         .split("?")[0]; //remove any URL parameters since we don't want or need them
                                 } catch(err){
-                                    Logger.error(this.meta.name, err);
-                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                    Logger.error("YABDP4Nitro", err);
+                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
                                     return;
                                 }
                             }
                             if(stringToEncode == ""){
-                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                Logger.error(this.meta.name, "Couldn't find file name for some reason. Contact Riolubruh!");
+                                UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                Logger.error("YABDP4Nitro", "Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
                             }
 
                             //add starting "P{" , remove "imgur.com/" , and add ending "}"
@@ -1558,7 +1831,7 @@ module.exports = class YABDP4Nitro {
 
                             //If this is not an Imgur URL, yell at the user.
                         }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-                            BdApi.UI.showToast("Please use Imgur!", { type: "warning" });
+                            UI.showToast("Please use Imgur!", { type: "warning" });
                             return;
                         }
 
@@ -1571,7 +1844,7 @@ module.exports = class YABDP4Nitro {
                             UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                         }catch(err){
                             UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error(this.meta.name, err);
+                            Logger.error("YABDP4Nitro", err);
                         }
                     } //end copy pfp 3y3 click event
                 }) //end of react createElement
@@ -1620,8 +1893,10 @@ module.exports = class YABDP4Nitro {
                 badgesList.push(ret.badges[i].id); //add each of this user's badge IDs to badgesList
             }
 
-            //if list of users that should have yabdp_user badge includes current user, and they don't already have the badge applied,
-            if(badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user")){
+            // if list of users that should have yabdp_user badge includes current user,
+            // and they don't already have the badge applied,
+            // and the user badge isn't disabled,
+            if(badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user") && !settings.disableUserBadge){
                 //add the yabdp user badge to the user's list of badges.
                 ret.badges.push({
                     id: "yabdp_user",
@@ -1629,6 +1904,15 @@ module.exports = class YABDP4Nitro {
                     description: "A fellow YABDP4Nitro user!",
                     link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
                 });
+            }
+
+            //remove user badge if it is disabled
+            if(settings.disableUserBadge){
+                let userBadgeIndex = ret.badges.findIndex(badge => badge.id == "yabdp_user");
+                if(userBadgeIndex > -1){
+                    ret.badges.splice(userBadgeIndex, 1);
+                    badgesList.splice(userBadgeIndex, 1);
+                }
             }
 
             //if this user is Riolubruh, and they don't already have the badge applied,
@@ -1683,7 +1967,7 @@ module.exports = class YABDP4Nitro {
             // 3y3 text detected. returning...
             return;
         }else{
-            //3y3 text detected. revealing...
+            // no 3y3 text detected. encoding...
             return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
         }
     }
@@ -1774,7 +2058,7 @@ module.exports = class YABDP4Nitro {
                         UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                     }catch(err){
                         UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                        Logger.error(this.meta.name, err);
+                        Logger.error("YABDP4Nitro", err);
                     }
                 };
 
@@ -2158,23 +2442,65 @@ module.exports = class YABDP4Nitro {
     }
     // #endregion
 
+    //#region Customize Go Live V1
+    customizeStreamButtons(){ //Apply custom resolution and fps options for Go Live Modal V1
 
-    customVideoSettings(){
+        //This also effects Go Live Modal V2 but only after a refresh, not much I can do about that
+
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
         //console.log(StreamButtons);
 
-        //Nice try, Discord.
-        Patcher.instead(this.meta.name, StreamButtons, "getApplicationFramerate", (_, [args]) => {
-            return args;
-        });
-        Patcher.instead(this.meta.name, StreamButtons, "getApplicationResolution", (_, [args]) => {
-            return args;
-        });
+        const settings = Data.load("YABDP4Nitro", "settings"); //just in case we can't access "this";
 
-        this.unlockAndCustomizeStreamButtons();
+        //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
+        let resolutionToSet = parseInt(settings.CustomResolution);
+        if(!settings.ResolutionEnabled || settings.CustomResolution == 0)
+            resolutionToSet = 1440;
+
+        //Some of these properties are marked as read only, but they still allow you to delete them
+        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.
+
+        //Set resolution buttons and requirements
+
+        delete ApplicationStreamResolutions.RESOLUTION_1440;
+        //Change 1440p resolution internally to custom resolution
+        ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
 
 
-    } //End of customVideoSettings()
+        //************************************Buttons below this point*****************************************
+        //Set resolution button value to custom resolution
+        ApplicationStreamResolutionButtons[2].value = resolutionToSet;
+        delete ApplicationStreamResolutionButtons[2].label;
+        //Set label of resolution button to custom resolution. This one is used in the popup window that appears before you start streaming.
+        ApplicationStreamResolutionButtons[2].label = resolutionToSet.toString();
+
+        //Set value of button with suffix label to custom resolution
+        ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
+        delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
+        //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
+        //This one is used in the dropdown kind of menu after you've started streaming
+        ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
+
+        let fpsToSet = parseInt(settings.CustomFPS);
+        //If custom FPS toggle is disabled, set to the default 60.
+        if(!settings.CustomFPSEnabled)
+            fpsToSet = 60;
+
+        //set suffix label button value to the custom number
+        ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
+        delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
+        //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
+        ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
+        //set fps button value to the correct number.
+        ApplicationStreamFPSButtons[2].value = fpsToSet;
+        delete ApplicationStreamFPSButtons[2].label;
+        //set fps button label to the correct number. This one is used in the popup window that appears before you start streaming.
+        ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
+        ApplicationStreamFPS.FPS_60 = fpsToSet;
+
+        Data.save("YABDP4Nitro", "settings", settings);
+    } //End of customizeStreamButtons()
+    //#endregion
 
     // #region Emoji Bypass-related
 
@@ -2673,88 +2999,6 @@ module.exports = class YABDP4Nitro {
     }
     //#endregion
 
-    //#region Streaming Unlock
-    unlockAndCustomizeStreamButtons(){ //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
-        const settings = Data.load("YABDP4Nitro", "settings"); //just in case we can't access "this";
-
-        //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
-        let resolutionToSet = parseInt(settings.CustomResolution);
-        if(!settings.ResolutionEnabled || settings.CustomResolution == 0)
-            resolutionToSet = 1440;
-
-        //Some of these properties are marked as read only, but they still allow you to delete them
-        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.
-
-        //Set resolution buttons and requirements
-
-        delete ApplicationStreamResolutions.RESOLUTION_1440;
-        //Change 1440p resolution internally to custom resolution
-        ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
-
-        //********************************** Requirements below this point*************************************
-        ApplicationStreamSettingRequirements[4].resolution = resolutionToSet;
-        ApplicationStreamSettingRequirements[5].resolution = resolutionToSet;
-        ApplicationStreamSettingRequirements[6].resolution = resolutionToSet;
-
-
-        //************************************Buttons below this point*****************************************
-        //Set resolution button value to custom resolution
-        ApplicationStreamResolutionButtons[2].value = resolutionToSet;
-        delete ApplicationStreamResolutionButtons[2].label;
-        //Set label of resolution button to custom resolution. This one is used in the popup window that appears before you start streaming.
-        ApplicationStreamResolutionButtons[2].label = resolutionToSet.toString();
-
-        //Set value of button with suffix label to custom resolution
-        ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
-        delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-        //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
-        //This one is used in the dropdown kind of menu after you've started streaming
-        ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
-
-        //Removes stream setting requirements
-        function removeQualityParameters(x){
-            try {
-                delete x.quality;
-            } catch(err){}
-            try {
-                delete x.guildPremiumTier;
-            } catch(err){}
-        }
-
-        /*Remove each of the stream setting requirements 
-        which normally tell the client what premiumType / guildPremiumTier you need to access that resolution.
-        Removing the setting requirements makes it default to thinking that every premiumType can use it.*/
-        ApplicationStreamSettingRequirements.forEach(removeQualityParameters);
-
-        function replace60FPSRequirements(x){
-            if(x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = fpsToSet;
-        }
-
-        let fpsToSet = parseInt(settings.CustomFPS);
-        //If custom FPS toggle is disabled, set to the default 60.
-        if(!settings.CustomFPSEnabled)
-            fpsToSet = 60;
-
-        //Set FPS buttons and requirements
-
-        //remove FPS nitro requirements
-        ApplicationStreamSettingRequirements.forEach(replace60FPSRequirements);
-        //set suffix label button value to the custom number
-        ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
-        delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-        //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
-        ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
-        //set fps button value to the correct number.
-        ApplicationStreamFPSButtons[2].value = fpsToSet;
-        delete ApplicationStreamFPSButtons[2].label;
-        //set fps button label to the correct number. This one is used in the popup window that appears before you start streaming.
-        ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
-        ApplicationStreamFPS.FPS_60 = fpsToSet;
-
-        Data.save("YABDP4Nitro", "settings", settings);
-    } //End of unlockAndCustomizeStreamButtons()
-    //#endregion
-
     //#region Video Quality Patch
     videoQualityModule(){ //Custom Bitrates, FPS, Resolution
         Patcher.before(this.meta.name, videoOptionFunctions, "updateVideoQuality", (e) => {
@@ -2764,6 +3008,15 @@ module.exports = class YABDP4Nitro {
                     e.videoQualityManager.options.videoBitrateFloor = (settings.minBitrate * 1000);
                     e.videoQualityManager.options.videoBitrate.min = (settings.minBitrate * 1000);
                     e.videoQualityManager.options.desktopBitrate.min = (settings.minBitrate * 1000);
+                }else{
+                    e.videoQualityManager.options.videoBitrateFloor = 5e5;
+                    e.videoQualityManager.options.videoBitrate.min = 5e5;
+                    e.videoQualityManager.options.desktopBitrate.min = 5e5;
+                }
+
+                if(settings.targetBitrate > 0){
+                    //Target Bitrate
+                    e.videoQualityManager.options.desktopBitrate.target = (settings.targetBitrate * 1000);
                 }
     
                 if(settings.maxBitrate > 0){
@@ -2771,11 +3024,6 @@ module.exports = class YABDP4Nitro {
                     e.videoQualityManager.options.videoBitrate.max = (settings.maxBitrate * 1000);
                     e.videoQualityManager.options.desktopBitrate.max = (settings.maxBitrate * 1000);
                     e.videoQualityManager.goliveMaxQuality.bitrateMax = (settings.maxBitrate * 1000);
-                }
-    
-                if(settings.targetBitrate > 0){
-                    //Target Bitrate
-                    e.videoQualityManager.options.desktopBitrate.target = (settings.targetBitrate * 1000);
                 }
             }
 
@@ -2825,8 +3073,6 @@ module.exports = class YABDP4Nitro {
                 e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
                 e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
             }
-
-            console.log(e);
         });
     } //End of videoQualityModule()
     //#endregion
@@ -2900,13 +3146,13 @@ module.exports = class YABDP4Nitro {
                         try {
                             themeColors = Webpack.getStore("UserSettingsAccountStore").getAllTryItOut().tryItOutThemeColors;
                         } catch(err){
-                            Logger.warn(this.meta.name, err);
+                            Logger.warn("YABDP4Nitro", err);
                         }
                         if(themeColors == null){
                             try {
                                 themeColors = Webpack.getStore("UserSettingsAccountStore").getAllPending().pendingThemeColors;
                             } catch(err){
-                                Logger.error(this.meta.name, err);
+                                Logger.error("YABDP4Nitro", err);
                             }
                         }
                         if(themeColors == undefined){
@@ -2983,10 +3229,9 @@ module.exports = class YABDP4Nitro {
                     if(usrBgUsers.includes(user.userId)){
                         profile.banner = "funky_kong_is_epic"; //set banner id to fake value
                         profile.premiumType = 2; //set this profile to appear with premium rendering
-                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${data.users[user.userId]}`; //return userBg banner URL and exit.
+                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${data?.users[user.userId]}`; //return userBg banner URL and exit.
                     }
                 }
-
             }
 
             //do original function if we don't have the user's bio
@@ -3127,14 +3372,15 @@ module.exports = class YABDP4Nitro {
                                         .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
                                         .split("?")[0]; //remove any URL parameters since we don't want or need them
                                 } catch(err){
-                                    Logger.error(this.meta.name, err);
-                                    BdApi.UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                    Logger.error("YABDP4Nitro", err);
+                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
                                     return;
                                 }
                             }
                             if(stringToEncode == ""){
-                                BdApi.UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                Logger.error(this.meta.name, "Couldn't find file name for some reason. Contact Riolubruh.");
+                                UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                Logger.error("YABDP4Nitro", "Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
+                                return;
                             }
                             //add starting "B{" , remove "imgur.com/" , and add ending "}"
                             stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
