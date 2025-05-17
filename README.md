@@ -511,9 +511,8 @@ Patreon unpublished my page automatically from inactivity. To be honest, I was g
 and you're about to see why with the fees info (which I will not remove for informational purposes):
 
 8% fee + payment processing fees depending on what processor you used + currency conversion fees (if applicable).<br>
-Plus a $0.25 fee whenever I cash out.<br>
+Plus a $0.25 fee whenever you cash out.<br>
 Seriously dastardly fees, all taken from the creator! Shameful!<br>
-Stay away from this shit unless you have to for some reason!
 
 <a href="https://patreon.com/riolubruh" target='_blank'><img style="height:36px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236"> </a><br>
 [Fees Info](https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview#h_01HAM56C6VSN4AC0FAWNPWMNA1)
