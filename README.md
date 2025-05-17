@@ -509,17 +509,6 @@ Donation fee of 2.89% of payment + $0.49 ( + 1.5% if you're not in the United St
 <a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a><br>
 [Fees Info](https://www.paypal.com/us/digital-wallet/paypal-consumer-fees#ReceivingDonations)
 
-#### Patreon
-
-Patreon unpublished my page automatically from inactivity. To be honest, I was going to do it myself eventually anyway,
-and you're about to see why with the fees info (which I will not remove for informational purposes):
-
-8% fee + payment processing fees depending on what processor you used + currency conversion fees (if applicable).<br>
-Plus a $0.25 fee whenever you cash out.<br>
-Seriously dastardly fees, all taken from the creator! Shameful!<br>
-
-<a href="https://patreon.com/riolubruh" target='_blank'><img style="height:36px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236"> </a><br>
-[Fees Info](https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview#h_01HAM56C6VSN4AC0FAWNPWMNA1)
 _________________________________________________________________________________________________________________
 
 ### Cryptocurrency
