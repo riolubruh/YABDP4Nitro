@@ -439,16 +439,17 @@ ________________________________________________________________________________
 
 ## Donate
 
-If you want to show your love for the plugin, (or just put a middle finger to Discord's face) it would really mean the world to me if you threw me a few bucks. Very few people actually donate, so I see and appreciate every last one.
+If you want to show your love for the plugin or my other open-source works, it would really mean the world to me if you put a few bucks in the tip jar!
+Very few people actually donate, so I see and appreciate every last one.
 
-*Donations are voluntary and do not affect software access or functionality.<br>
+*This project is licensed under NPOSL-3.0, which prohibits the licensor from deriving revenue from the software or related services.<br>
+By donating, you agree that funds are non-refundable and grant no rights to software or services.<br>
+Donations are voluntary and do not affect software access or functionality.<br>
 All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.*
 
 *Donations to this project do not support Discord Inc. or its services.*
 
 Methods of donations without fees are obviously preferred. See more info below.
-
-To avoid repeating myself, assume that an additional 3% fee will be applied if you use a credit card.
 
 _________________________________________________________________________________________________________________
 
