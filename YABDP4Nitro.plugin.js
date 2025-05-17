@@ -1,12 +1,12 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 6.0.2
+ * @version 6.0.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
- * @description Unlock all screensharing modes, and use cross-server & GIF emotes!
+ * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
 /*@cc_on
 @if(@_jscript)
@@ -32,6 +32,29 @@
 
 @else@*/
 
+/*    ***** ATTRIBUTION NOTICE *****
+ *
+ * YABDP4Nitro is a free BetterDiscord plugin that bypasses and unlocks Nitro-locked features in the Discord client.
+ *
+ * Copyright (c) 2025 Riolubruh and contributors
+ *
+ * Licensed under the Non-Profit Open Software License version 3.0 (NPOSL-3.0).
+ * You may use, distribute, and modify this code under the terms of this license.
+ *
+ * Derivative works must be licensed under NPOSL-3.0 (or OSL-3.0 for for-profit use).
+ *
+ * Removal or modification of this notice in the source code of any Derivative Work
+ * of this software violates the terms of the license.
+ *
+ * This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied,
+ * including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose.
+ * THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU.
+ *
+ * You should have received a copy of the license agreement alongside this file.
+ * If not, please visit https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md
+ *
+*/
+
 //#region Module Hell
 const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins} = BdApi;
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
@@ -41,13 +64,13 @@ const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamResolutionButtons: o => Array.isArray(o) && o[0]?.value !== undefined,
     ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
     ApplicationStreamResolutions: Webpack.Filters.byKeys("RESOLUTION_1080"),
-    ApplicationStreamSettingRequirements: o => Array.isArray(o) && o[0]?.resolution !== undefined,
-    getApplicationResolution: Webpack.Filters.byStrings('"Unknown resolution: ".concat('),
-    getApplicationFramerate: Webpack.Filters.byStrings('"Unknown frame rate: ".concat('),
+    // ApplicationStreamSettingRequirements: o => Array.isArray(o) && o[0]?.resolution !== undefined,
+    // getApplicationResolution: Webpack.Filters.byStrings('"Unknown resolution: ".concat('),
+    // getApplicationFramerate: Webpack.Filters.byStrings('"Unknown frame rate: ".concat('),
 });
 const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
-    ApplicationStreamResolutions,ApplicationStreamSettingRequirements} = StreamButtons;
+    ApplicationStreamResolutions} = StreamButtons;
 const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
 const Uploader = Webpack.getByKeys("uploadFiles","upload");
 const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
@@ -93,9 +116,13 @@ const emojiMod = Webpack.getByKeys("getCustomEmojiById");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
 const TextClasses = Webpack.getByKeys("errorMessage","h5");
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-const appIconButtonsModule = Webpack.getByStrings("renderCTAButtons",{defaultExport: false});
+const appIconButtonsModule = Webpack.getMangled(/isEditor:.{1,3},renderCTAButtons/,{
+    CTAButtons: x=>x
+});
 const addFilesMod = Webpack.getByKeys("addFiles");
-const AppIcon = Webpack.getByStrings("getCurrentDesktopIcon","isEditorOpen","isPremium",{defaultExport: false});
+const AppIcon = Webpack.getMangled("AppIconHome", {
+    AppIconHome: x=>x
+});
 const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2",{searchExports: true});
 const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
 const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
@@ -112,7 +139,9 @@ const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
     getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
     exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
 });
-const InvalidStreamSettingsModal = Webpack.getBySource('preset||', 'resolution&&', '.fps&&(0,');
+const InvalidStreamSettingsModal = Webpack.getMangled(/\.preset\)&&.{1,3}?===.{1,3}?resolution&&/, {
+    areStreamSettingsAllowed: x=>x
+});
 // const GoLiveModalV2UpsellMod = Webpack.getBySource("GO_LIVE_MODAL_V2", "premiumSubscribeButton");
 
 //#endregion
@@ -189,24 +218,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.2",
+        "version": "6.0.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.2",
+            title: "6.0.3",
             items: [
-                "(6.0.1) Disabled file upload limit modals when a Clips Bypass of any type is enabled as a fallback for when the Clips Experiments fail to be overridden, making the Clips Bypasses more reliable. (Nothing changes when the Experiments are working as intended since having the \"Staff\" flag does the same thing)",
-                "(6.0.1) Added an option to disable the Clips-related experiment overrides and Experiments tabs in Settings from appearing due to Clips being enabled. Note: doing this will cause the Action Bar \"Save Clip\" button and the Clips menu button to vanish after a refresh.",
-                '(6.0.1) Added CSS to remove new "Stream in HD with your Nitro trial" thing in Go Live Modal V1 as part of the "Remove Screen Share Nitro Upsell" option.',
-                "(6.0.1) Added an option to disable the YABDP4Nitro User Badge (client-side).",
-                "(6.0.1) Added support for Go Live Modal V2 (currently in experimental phase, probably will break soon).",
-                "(6.0.1) In the process, replaced the old code for unlocking Nitro and custom resolutions/FPSes with a much better alternative.",
-                "(6.0.1) Fixed some old error handlers that wouldn't have worked properly if they were triggered somehow.",
-                "(6.0.1) Random other code changes.",
-                "(6.0.2) Made it so that the stream unlocking code runs when High Quality Screen-Share is enabled instead of when Resolution Swapper is."
+                "Improved some Webpack filters.",
+                "Added attribution notice in plugin file to further discourage people from trying to sell this plugin."
             ]
         }
     ],
@@ -461,7 +483,7 @@ module.exports = class YABDP4Nitro {
                 this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
 
                 //disable resolution / fps check
-                Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "Z", (_, args, originalFunction) => {
+                Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "areStreamSettingsAllowed", (_, args, originalFunction) => {
                     return true;
                 });
             } catch(err){
@@ -631,13 +653,17 @@ module.exports = class YABDP4Nitro {
 
     // #region Resolution Swapper
     async resolutionSwapper(){
-        if(!this.StreamSettingsPanelMod)
-            this.StreamSettingsPanelMod = await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false});
-        
+        if(!this.StreamSettingsPanelMod){
+            await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false});
+            this.StreamSettingsPanelMod = Webpack.getMangled("StreamSettings: user cannot be undefined", {
+                GoLiveModal: Webpack.Filters.byStrings("StreamSettings: user cannot be undefined")
+            });
+        }
+
         if(!this.FormModalClasses) 
             this.FormModalClasses = Webpack.getByKeys("formItemTitleSlim", "modalContent");
         
-        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, "Z", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, "GoLiveModal", (_, [args], ret) => {
 
             //Only if the selected preset is "Custom"
             if(args.selectedPreset === 3){
@@ -1735,15 +1761,17 @@ module.exports = class YABDP4Nitro {
     async customProfilePictureEncoding(secondsightifyEncodeOnly){
 
         //wait for avatar customization section renderer to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", "isTryItOutFlow"));
+        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOutFlow"));
         //store avatar customization section renderer module
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getByStrings("showRemoveAvatarButton", "isTryItOutFlow", { defaultExport: false });
+        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getMangled(/showRemoveAvatarButton:.{1,3},errors:.{1,3},onAvatarChange/, {
+            AvatarSection: x=>x
+        });
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, "Z", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, "AvatarSection", (_, [args], ret) => {
 
             //don't need to do anything if this is the "Try out Nitro" flow.
             if(args.isTryItOutFlow) return;
@@ -2032,13 +2060,17 @@ module.exports = class YABDP4Nitro {
         }); //end of getUserProfile patch.
 
         //wait for profile effect section renderer to be loaded.
-        await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId"));
+        await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId", "isTryItOutFlow"));
 
         //fetch the module now that it's loaded
-        if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getByStrings("initialSelectedEffectId", { defaultExport: false });
+        if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getMangled(/isTryItOutFlow:.{1,3}=!1,initialSelectedEffectId/, {
+            ProfileEffectSection: x=>x
+        });
 
         //patch profile effect section renderer function to run the following code after the function runs
-        Patcher.after(this.meta.name, this.profileEffectSectionRenderer, "Z", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.profileEffectSectionRenderer, "ProfileEffectSection", (_, [args], ret) => {
+            console.log(args);
+            console.log(ret);
             //if this is the tryItOut flow, don't do anything.
             if(args.isTryItOutFlow) return;
 
@@ -2252,13 +2284,14 @@ module.exports = class YABDP4Nitro {
         );
 
         //Wait for avatar decor customization section render module to be loaded.
-        await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration"));
+        await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", "pendingAvatarDecoration"));
 
         //Avatar decoration customization section render module/function.
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getByStrings("userAvatarDecoration", { defaultExport: false });
-
+        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getMangled(/guildAvatarDecoration:.{1,3}?,pendingAvatarDecoration/, {
+            AvatarDecorationSection: x=>x
+        });
         //Avatar decoration customization section patch
-        Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, "Z", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, "AvatarDecorationSection", (_, [args], ret) => {
             //don't run if this is the try out nitro flow.
             if(args.isTryItOutFlow) return;
 
@@ -3129,9 +3162,11 @@ module.exports = class YABDP4Nitro {
         //wait for color picker renderer module to be loaded
         await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"));
 
-        if(this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = Webpack.getByStrings("__invalid_profileThemesSection", {defaultExport:false});
+        if(this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = Webpack.getMangled("__invalid_profileThemesSection", {
+            ProfileThemesSection: x=>x
+        });
 
-        Patcher.after(this.meta.name, this.colorPickerRendererMod, "Z", (_, args, ret) => {
+        Patcher.after(this.meta.name, this.colorPickerRendererMod, "ProfileThemesSection", (_, args, ret) => {
 
             ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
@@ -3285,13 +3320,15 @@ module.exports = class YABDP4Nitro {
 
         //wait for banner customization renderer module to be loaded
         await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer"));
-        if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getByStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer", {defaultExport:false});
+        if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getMangled(/showRemoveBannerButton:.{1,3}?,errors:.{1,3}?,onBannerChange/, {
+            BannerSection: x=>x
+        });
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.meta.name, this.profileBannerSectionRenderer, "Z", (_, args, ret) => {
+        Patcher.after(this.meta.name, this.profileBannerSectionRenderer, "BannerSection", (_, args, ret) => {
             //create and append profileBannerUrlInput input element.
             let profileBannerUrlInput = React.createElement("input", {
                 id: "profileBannerUrlInput",
@@ -3418,11 +3455,11 @@ module.exports = class YABDP4Nitro {
     //#region App Icons
     appIcons(){
         //technically don't need this anymore but i'll leave it in for the sake of redundancy
-        Patcher.before(this.meta.name, appIconButtonsModule, "Z", (_, args) => {
+        Patcher.before(this.meta.name, appIconButtonsModule, "CTAButtons", (_, args) => {
             args[0].disabled = false; //force buttons clickable
         });
 
-        Patcher.instead(this.meta.name, AppIcon, "Z", (_, __, originalFunction) => {
+        Patcher.instead(this.meta.name, AppIcon, "AppIconHome", (_, __, originalFunction) => {
             const currentDesktopIcon = CurrentDesktopIcon.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
                 return React.createElement(RegularAppIcon, {
