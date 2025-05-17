@@ -39,7 +39,9 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
 - [Additional Plugins I Recommend](#recommended-additional-plugins-for-more-nitro-features)
 - [License Agreement](#license)
 - [Discord Server](#discord-server)
+- [Trademark Notice](#trademark-notice)
 - [Donate](#donate)
+
   
 ## Features
 
@@ -424,9 +426,22 @@ https://discord.gg/EFmGEWAUns
 
 _________________________________________________________________________________________________________________
 
+## Trademark Notice
+
+*"Discord," "Nitro," and related trademarks are the property of Discord Inc.  
+This project is not affiliated with, endorsed by, or monetarily benefiting from Discord Inc.  
+It does not provide official Discord Nitro services or features.*
+
+_________________________________________________________________________________________________________________
+
 ## Donate
 
 If you want to show your love for the plugin, (or just put a middle finger to Discord's face) it would really mean the world to me if you threw me a few bucks. Very few people actually donate, so I see and appreciate every last one.
+
+*Donations are voluntary and do not affect software access or functionality.<br>
+All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.*
+
+*Donations to this project do not support Discord Inc. or its services.*
 
 Methods of donations without fees are obviously preferred. See more info below.
 
