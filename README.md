@@ -8,6 +8,9 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
 
 Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js)
 
+*"Discord" and "Nitro" are trademarks of Discord Inc. This project is unaffiliated with Discord Inc.* <br>
+See full trademark notice [here.](#trademark-notice)
+
 ## Table of Contents:
 - [Features](#features)
   * [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
