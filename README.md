@@ -480,9 +480,7 @@ GitHub Sponsors is the only one I've found so far.
 
 #### GitHub Sponsors
 
--Have to use a credit or debit card.
-
-Apparently **no credit card fee** either? Someone test this for me ;)
+Only downside is you have to use a credit or debit card.
 
 https://github.com/sponsors/riolubruh
 
