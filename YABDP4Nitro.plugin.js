@@ -1,7 +1,8 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 6.0.3
+ * @authorLink https://github.com/riolubruh
+ * @version 6.0.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -63,10 +64,7 @@ const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
     ApplicationStreamResolutionButtons: o => Array.isArray(o) && o[0]?.value !== undefined,
     ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
-    ApplicationStreamResolutions: Webpack.Filters.byKeys("RESOLUTION_1080"),
-    // ApplicationStreamSettingRequirements: o => Array.isArray(o) && o[0]?.resolution !== undefined,
-    // getApplicationResolution: Webpack.Filters.byStrings('"Unknown resolution: ".concat('),
-    // getApplicationFramerate: Webpack.Filters.byStrings('"Unknown frame rate: ".concat('),
+    ApplicationStreamResolutions: Webpack.Filters.byKeys("RESOLUTION_1080")
 });
 const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
@@ -142,7 +140,9 @@ const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
 const InvalidStreamSettingsModal = Webpack.getMangled(/\.preset\)&&.{1,3}?===.{1,3}?resolution&&/, {
     areStreamSettingsAllowed: x=>x
 });
-// const GoLiveModalV2UpsellMod = Webpack.getBySource("GO_LIVE_MODAL_V2", "premiumSubscribeButton");
+const GoLiveModalV2UpsellMod = BdApi.Webpack.getMangled("onNitroClick:function", {
+    GoLiveModalV2Upsell: x=>x==x
+});
 
 //#endregion
 
@@ -218,17 +218,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.3",
+        "version": "6.0.4",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.3",
+            title: "6.0.4",
             items: [
-                "Improved some Webpack filters.",
-                "Added attribution notice in plugin file to further discourage people from trying to sell this plugin."
+                "Added a search function to the Fake Profile Effects picker modal.",
+                "Changed the Fake Avatar Decorations modal to only load the animated PNG version of a decoration upon hover, now defaulting to using a 128px WEBP, fixing the issue of it taking a really long time to load everything.",
+                "Fixed an issue causing errors to appear in console upon opening the Fake Avatar Decorations modal due to nameplates being added to the list of decorations caused by similarities in their shop data format.",
+                "Added Go Live Modal V2 support to Remove Screen Share Nitro Upsell option."
             ]
         }
     ],
@@ -410,6 +412,8 @@ module.exports = class YABDP4Nitro {
 
         Patcher.unpatchAll(this.meta.name);
 
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+
         if(settings.changePremiumType){
             try {
                 if(!(ORIGINAL_NITRO_STATUS > 1)){
@@ -521,9 +525,9 @@ module.exports = class YABDP4Nitro {
                 `);
 
                 //Disable GoLiveModalV2 upsell
-                /* Patcher.instead(this.meta.name, GoLiveModalV2UpsellMod, "Z", () => {
+                Patcher.instead(this.meta.name, GoLiveModalV2UpsellMod, "GoLiveModalV2Upsell", () => {
                     return;
-                }); */
+                });
             } catch(err){
                 Logger.error(this.meta.name, err);
             }
@@ -1333,13 +1337,10 @@ module.exports = class YABDP4Nitro {
 
                     //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
                     if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
-                        //console.log('File is already an archive file.');
 
                         zipFile = fileArrayBuffer;
                         clipData.name = currentFile.file.name;
                     }else{
-                        //console.log('Creating zip file for added file.');
-
                         /* DeepSeek-R1 helped to write this createZip function.
                         Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
                         I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
@@ -1726,7 +1727,7 @@ module.exports = class YABDP4Nitro {
                 //if there is no 3y3 encoded text, return original function.
                 if(revealedText == undefined) return originalFunction(userId, size, shouldAnimate);
 
-                //This regex matches /P{*} . (Do not fuck with this)
+                //This regex matches P{*} . (Do not fuck with this)
                 let regex = /P\{[^}]*?\}/;
 
                 //Check if there are any matches in the custom status.
@@ -2069,59 +2070,81 @@ module.exports = class YABDP4Nitro {
 
         //patch profile effect section renderer function to run the following code after the function runs
         Patcher.after(this.meta.name, this.profileEffectSectionRenderer, "ProfileEffectSection", (_, [args], ret) => {
-            console.log(args);
-            console.log(ret);
-            //if this is the tryItOut flow, don't do anything.
-            if(args.isTryItOutFlow) return;
 
-            let profileEffectChildren = [];
+            const profileEffects = this.profileEffects;
 
-            //for each profile effect
-            for(let i = 0; i < this.profileEffects.length; i++){
+            function ProfileEffects({query}){
+                //if this is the tryItOut flow, don't do anything.
+                if(args.isTryItOutFlow) return;
 
-                //get preview image url
-                let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
-                let title = this.profileEffects[i].config.title;
-                //encode 3y3
-                let encodedStr = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
-                //javascript that runs onclick for each profile effect button
-                let copyDecoration3y3 = function(){
-                    try{
-                        DiscordNative.clipboard.copy(" " + encodedStr);
-                        UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                    }catch(err){
-                        UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                        Logger.error("YABDP4Nitro", err);
+                let profileEffectChildren = [];
+                let actualRuns = 0;
+
+                //for each profile effect
+                for(let i = 0; i < profileEffects.length; i++){
+
+                    //get preview image url
+                    let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
+                    let title = profileEffects[i].config.title;
+
+                    //search
+                    if(query.trim() != "") {
+                        if(title) {
+                            if(!title.toLowerCase().includes(query)) continue;
+                        } else continue;
                     }
-                };
 
-                profileEffectChildren.push(
-                    React.createElement("img", {
-                        className: "riolubruhsSecretStuff",
-                        onClick: copyDecoration3y3,
-                        src: previewURL,
-                        title,
-                        style: {
-                            width: "22.5%",
-                            cursor: "pointer",
-                            marginBottom: "0.5em",
-                            marginLeft: "0.5em",
-                            backgroundColor: "var(--background-tertiary)"
+                    //encode 3y3
+                    let encodedStr = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
+                    //javascript that runs onclick for each profile effect button
+                    let copyDecoration3y3 = function(){
+                        try{
+                            DiscordNative.clipboard.copy(" " + encodedStr);
+                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                        }catch(err){
+                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
+                            Logger.error("YABDP4Nitro", err);
                         }
-                    })
-                );
+                    };
 
-                //add newline every 4th profile effect
-                if((i + 1) % 4 == 0){
                     profileEffectChildren.push(
-                        React.createElement("br")
+                        React.createElement("img", {
+                            className: "riolubruhsSecretStuff",
+                            onClick: copyDecoration3y3,
+                            src: previewURL,
+                            title,
+                            style: {
+                                width: "22.5%",
+                                cursor: "pointer",
+                                marginBottom: "0.5em",
+                                marginLeft: "0.5em",
+                                backgroundColor: "var(--background-tertiary)"
+                            }
+                        })
                     );
+
+                    //add newline every 4th profile effect
+                    if((actualRuns + 1) % 4 == 0){
+                        profileEffectChildren.push(
+                            React.createElement("br")
+                        );
+                    }
+
+                    actualRuns++;
                 }
+                return React.createElement('div', {
+                    children: profileEffectChildren,
+                    style: {
+                        paddingTop: "10px"
+                    }
+                });
             }
 
             //Profile Effects Modal
             function EffectsModal(){
-                const elem = React.createElement("div", {
+                const [query, setQuery] = React.useState("");
+
+                return React.createElement("div", {
                     style: {
                         width: "100%",
                         display: "block",
@@ -2130,9 +2153,16 @@ module.exports = class YABDP4Nitro {
                         overflow: "visible",
                         marginTop: ".5em"
                     },
-                    children: profileEffectChildren
+                    children: [
+                        React.createElement(Components.TextInput, {
+                            value: query,
+                            placeholder: "Search...",
+                            onChange: (input) => setQuery(input)
+                        }),
+                        React.createElement('br'),
+                        React.createElement(ProfileEffects, {query})
+                    ]
                 });
-                return elem;
             }
 
             //Append Change Effect button
@@ -2175,6 +2205,9 @@ module.exports = class YABDP4Nitro {
                 category.products.forEach(product => {
                     product.items.forEach(item => {
                         if(item.asset){
+                            //fix nameplates appearing in decoration list, causing error messages in console
+                            if(item.asset.startsWith('nameplates/nameplates/')) return;
+                            
                             Object.assign(settings.avatarDecorations)[item.id] = item.asset;
                         }
                     });
@@ -2274,14 +2307,12 @@ module.exports = class YABDP4Nitro {
         Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         //trigger decorations fetch
-        FetchCollectibleCategories(
-            {
-                includeBundles: true,
-                includeUnpublished: false,
-                noCache: false,
-                paymentGateway: undefined
-            }
-        );
+        FetchCollectibleCategories({
+            includeBundles: true,
+            includeUnpublished: false,
+            noCache: false,
+            paymentGateway: undefined
+        });
 
         //Wait for avatar decor customization section render module to be loaded.
         await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", "pendingAvatarDecoration"));
@@ -2314,46 +2345,69 @@ module.exports = class YABDP4Nitro {
                 })
             );
 
+            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
 
-            let listOfDecorationIds = Object.keys(Data.load(this.meta.name, "settings").avatarDecorations);
-            let avatarDecorationChildren = [];
+            function AvatarDecorations(){
+                let listOfDecorationIds = Object.keys(settings.avatarDecorations);
+                let avatarDecorationChildren = [];
 
-            //for each avatar decoration
-            for(let i = 0; i < listOfDecorationIds.length; i++){
+                //for each avatar decoration
+                for(let i = 0; i < listOfDecorationIds.length; i++){
 
-                //encode to 3y3 and store clipboard copy in onclick event
-                let encodedStr = this.secondsightifyEncodeOnly("/a" + listOfDecorationIds[i]); // /a[id]
-                //javascript that runs onclick for each avatar decoration button
-                let child = React.createElement("img", {
-                    style: {
-                        width: "23%",
-                        cursor: "pointer",
-                        marginLeft: "5px",
-                        marginBottom: "10px",
-                        borderRadius: "4px",
-                        backgroundColor: "var(--background-tertiary)"
-                    },
-                    onClick: () => {
-                        try{
-                            DiscordNative.clipboard.copy(" " + encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                        }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error("YABDP4Nitro", err);
-                        }
-                    },
-                    src: "https://cdn.discordapp.com/avatar-decoration-presets/" + settings.avatarDecorations[listOfDecorationIds[i]] + ".png?size=64"
-                });
-                avatarDecorationChildren.push(child);
+                    const decorationId = listOfDecorationIds[i];
+                    const assetHash = settings.avatarDecorations[decorationId];
 
-                //add newline every 4th decoration
-                if((i + 1) % 4 == 0){
-                    //avatarDecorationsHTML += "<br>"
-                    avatarDecorationChildren.push(React.createElement("br"));
+                    //remove existing nameplates from decoration list
+                    if(assetHash.startsWith('nameplates/nameplates/')){
+                        delete settings.avatarDecorations[decorationId];
+                        continue;
+                    }
+
+                    //encode to 3y3 and store clipboard copy in onclick event
+                    let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
+                    //javascript that runs onclick for each avatar decoration button
+                    
+                    let child = React.createElement("img", {
+                        style: {
+                            width: "23%",
+                            cursor: "pointer",
+                            marginLeft: "5px",
+                            marginBottom: "10px",
+                            borderRadius: "4px",
+                            backgroundColor: "var(--background-tertiary)"
+                        },
+                        onClick: () => {
+                            try{
+                                DiscordNative.clipboard.copy(" " + encodedStr);
+                                UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                            }catch(err){
+                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
+                                Logger.error("YABDP4Nitro", err);
+                            }
+                        },
+                        onMouseOver: (e) => {
+                            e.target.src = e.target.src.replace('.webp','.png');
+                        },
+                        onMouseLeave: (e) => {
+                            e.target.src = e.target.src.replace('.png','.webp');
+                        },
+                        src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
+                    });
+                    avatarDecorationChildren.push(child);
+
+                    //add newline every 4th decoration
+                    if((i + 1) % 4 == 0){
+                        //avatarDecorationsHTML += "<br>"
+                        avatarDecorationChildren.push(React.createElement("br"));
+                    }
                 }
+                return React.createElement('div', {
+                    children: avatarDecorationChildren
+                });
             }
 
             function DecorModal(){
+
                 return React.createElement("div", {
                     style: {
                         width: "100%",
@@ -2363,7 +2417,7 @@ module.exports = class YABDP4Nitro {
                         overflow: "visible",
                         marginTop: ".5em"
                     },
-                    children: avatarDecorationChildren
+                    children: React.createElement(AvatarDecorations)
                 });
             }
 
@@ -3278,7 +3332,7 @@ module.exports = class YABDP4Nitro {
             //if there is no 3y3 encoded text, return original function
             if(parsed == undefined) return ogFunction(args);
 
-            //This regex matches /B{*} . Do not touch unless you know what you are doing.
+            //This regex matches B{*} . Do not touch unless you know what you are doing.
             let regex = /B\{[^}]*?\}/;
 
             //find banner url in parsed bio
