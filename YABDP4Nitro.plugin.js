@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.0.4
+ * @version 6.0.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -70,7 +70,7 @@ const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButt
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions} = StreamButtons;
 const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
-const Uploader = Webpack.getByKeys("uploadFiles","upload");
+const Uploader = Webpack.getByKeys("uploadFiles","cancel");
 const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
@@ -218,19 +218,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.4",
+        "version": "6.0.5",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.4",
+            title: "6.0.5",
             items: [
-                "Added a search function to the Fake Profile Effects picker modal.",
-                "Changed the Fake Avatar Decorations modal to only load the animated PNG version of a decoration upon hover, now defaulting to using a 128px WEBP, fixing the issue of it taking a really long time to load everything.",
-                "Fixed an issue causing errors to appear in console upon opening the Fake Avatar Decorations modal due to nameplates being added to the list of decorations caused by similarities in their shop data format.",
-                "Added Go Live Modal V2 support to Remove Screen Share Nitro Upsell option."
+                "Fixed file uploader not found."
             ]
         }
     ],
