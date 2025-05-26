@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.0.5
+ * @version 6.1.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -71,10 +71,11 @@ const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButt
     ApplicationStreamResolutions} = StreamButtons;
 const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
 const Uploader = Webpack.getByKeys("uploadFiles","cancel");
-const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
+const UserStore = Webpack.getStore("UserStore");
+const CurrentUser = UserStore.getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
-const userProfileMod = Webpack.getByKeys("getUserProfile");
+const UserProfileStore = Webpack.getStore("UserProfileStore");
 const buttonClassModule = Webpack.getByKeys("lookFilled","button","contents");
 const Dispatcher = Webpack.getByKeys("subscribe","dispatch");
 const canUserUseMod = Webpack.getMangled(".getFeatureValue(",{
@@ -86,12 +87,11 @@ const FetchCollectibleCategories = Webpack.getByStrings('{type:"COLLECTIBLES_CAT
 let ffmpeg = undefined;
 const udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
 const udtaBuffer = udta.buffer;
-const UserStatusStore = Webpack.getByKeys("getStatus","getState");
+const PresenceStore = Webpack.getStore("PresenceStore");
 const SelectedGuildStore = Webpack.getStore("SelectedGuildStore");
 const ChannelStore = Webpack.getStore("ChannelStore");
 const MessageActions = Webpack.getByKeys("jumpToMessage","_sendMessage");
 const SelectedChannelStore = Webpack.getStore("SelectedChannelStore");
-const UserStore = Webpack.getStore("UserStore");
 const MessageEmojiReact = Webpack.getByStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?',{searchExports: true});
 const renderEmbedsMod = Webpack.getByPrototypeKeys('renderSocialProofingFileSizeNitroUpsell',{searchExports: true}).prototype;
 const messageRender = Webpack.getMangled('.SEND_FAILED,',{
@@ -109,8 +109,8 @@ const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientTh
 const accountSwitchModule = Webpack.getByKeys("startSession","login");
 const getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
 const fetchProfileEffects = Webpack.getByStrings("USER_PROFILE_EFFECTS_FETCH",{searchExports: true});
-const getSoundMod = Webpack.getByKeys("getSoundById");
-const emojiMod = Webpack.getByKeys("getCustomEmojiById");
+const SoundboardStore = Webpack.getStore("SoundboardStore");
+const EmojiStore = Webpack.getStore("EmojiStore");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
 const TextClasses = Webpack.getByKeys("errorMessage","h5");
 const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
@@ -122,7 +122,7 @@ const AppIcon = Webpack.getMangled("AppIconHome", {
     AppIconHome: x=>x
 });
 const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2",{searchExports: true});
-const CurrentDesktopIcon = Webpack.getByKeys("getCurrentDesktopIcon");
+const CurrentDesktopIcon = Webpack.getStore("AppIconPersistedStoreState");
 const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
 const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"',{
     useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
@@ -143,7 +143,14 @@ const InvalidStreamSettingsModal = Webpack.getMangled(/\.preset\)&&.{1,3}?===.{1
 const GoLiveModalV2UpsellMod = BdApi.Webpack.getMangled("onNitroClick:function", {
     GoLiveModalV2Upsell: x=>x==x
 });
-
+const fs = require("fs");
+const path = require("path");
+const NameplateSectionMod = Webpack.getMangled(/\{pendingNameplate:.{1,3}?,pendingErrors:.{1,3}?\}=\(/, {
+    NameplateSection: x=>x
+});
+const UserSettingsAccountStore = Webpack.getStore("UserSettingsAccountStore");
+const NameplatePalettes = Webpack.getBySource('Crimson', "darkBackground", "lightBackground", {searchExports:true});
+const NameplatePreview = Webpack.getByRegex(/user:.{1,3}?,nameplate:.{1,3}?,nameplateData:/);
 //#endregion
 
 // Calc CRC32 Table
@@ -184,7 +191,6 @@ const defaultSettings = {
     "unlockAppIcons": false,
     "profileEffects": true,
     "killProfileEffects": false,
-    "avatarDecorations": {},
     "customPFPs": true,
     "experiments": false,
     "userPfpIntegration": true,
@@ -199,11 +205,17 @@ const defaultSettings = {
     "forceAudioClip": false,
     "zipClip": true,
     "enableClipsExperiment": true,
-    "disableUserBadge": false
+    "disableUserBadge": false,
+    "nameplatesEnabled": true
 };
+const defaultData = {
+    avatarDecorations: {},
+    nameplates: {}
+}
 
 //Plugin-wide variables
 let settings = {};
+let data = {};
 let usrBgUsers = [];
 let badgeUserIDs = [];
 let fetchedUserBg = false;
@@ -218,16 +230,21 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.0.5",
+        "version": "6.1.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.0.5",
+            title: "6.1.0",
             items: [
-                "Fixed file uploader not found."
+                "Added Fake Nameplates bypass using 3y3 encoding.",
+                "Migrated avatar decoration data out of the config file and into a new YABDP4Nitro.data.json file. Nameplate data will also be stored there.",
+                "Removed \"Cancel\" button on modals where it doesn't make sense to have one.",
+                "Fixed an issue that was causing the UI for Fake Profile Colors to copy random colors in the Nitro version of the Profile Customization screen.",
+                "Changed some module filters to use getStore if the module was actually a data store and renamed their variables to reflect that. Overall should be faster and clearer.",
+                "Slightly reduced amount of repeated code."
             ]
         }
     ],
@@ -331,6 +348,7 @@ const config = {
                 { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
                 { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
                 { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
+                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled }
             ]
         },
         {
@@ -405,7 +423,20 @@ module.exports = class YABDP4Nitro {
 
     // #region Save and Update
     saveAndUpdate(){ //Saves and updates settings and runs functions
+
+        //migrate settings.avatarDecorations to data.avatarDecorations
+        if(settings.avatarDecorations){
+            try{
+                data.avatarDecorations = settings.avatarDecorations;
+                this.saveDataFile();
+                delete settings.avatarDecorations;
+            }catch(err){
+                Logger.error(this.meta.name, "Data migration failed.");
+            }
+        }
+
         Data.save(this.meta.name, "settings", settings);
+        this.saveDataFile();
 
         Patcher.unpatchAll(this.meta.name);
 
@@ -465,7 +496,7 @@ module.exports = class YABDP4Nitro {
 
         if(settings.profileV2){
             try {
-                Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
+                Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
                     if(ret == undefined) return;
                     ret.premiumType = 2;
                 });
@@ -647,10 +678,221 @@ module.exports = class YABDP4Nitro {
             }catch(err){
                 Logger.error(this.meta.name, err);
             }
-        }            
+        }
+        
+        if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
+            //subscribe to successful collectible category fetch event
+            Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+
+            //trigger collectibles fetch
+            FetchCollectibleCategories({
+                includeBundles: true,
+                includeUnpublished: false,
+                noCache: false,
+                paymentGateway: undefined
+            });
+        }
+
+        if(settings.nameplatesEnabled){
+            this.nameplates();
+        }
 
     } //End of saveAndUpdate()
     // #endregion
+
+    getRevealedText(userId, shouldInclude=""){
+        let revealedText = ""; //init variable
+
+        //get the user's profile from the cached user profiles
+        let userProfile = UserProfileStore.getUserProfile(userId);
+        //if this user's profile has been downloaded
+        if(userProfile){
+            //if their bio is empty, move on to the next check.
+            if(userProfile?.bio != undefined){
+                //reveal 3y3 encoded text
+                revealedText = this.secondsightifyRevealOnly(String(userProfile.bio));
+                //if there's no 3y3 text, move on to the next check.
+                if(revealedText != undefined && revealedText != ""){
+                    if(revealedText.includes(shouldInclude)){
+                        //return bio with the 3y3 decoded
+                        return revealedText;
+                    }
+                }
+            }
+        }
+        //get Custom Status
+        let customStatusActivity = PresenceStore.findActivity(userId,(e) => e.name == "Custom Status" || e.id == "custom");
+        //if the user has a custom status
+        if(customStatusActivity) {
+            //grab the text from the custom status
+            let customStatus = customStatusActivity.state;
+            //if something has gone horribly wrong, stop processing.
+            if(customStatus == undefined) return;
+            //reveal 3y3 encoded text
+            revealedText = this.secondsightifyRevealOnly(String(customStatus));
+            //return custom status with the 3y3 decoded
+            if(revealedText?.includes(shouldInclude)) {
+                return revealedText;
+            }
+        }
+    }
+
+    //#region Nameplates
+    // nameplate 3y3 format: n{asset/palette}
+    nameplates(){
+        Patcher.after(this.meta.name, UserStore, "getUser", (_, [userId], ret) => {
+            if(!ret || !userId) return;
+            
+            let userNameplate = ret?.collectibles?.nameplate;
+
+            //if user has a nameplate
+            if(userNameplate){
+                //filter out bad or existing nameplate
+                if(userNameplate.sku_id != 0 && userNameplate.sku_id != undefined && userNameplate.sku_id != null && data.nameplates[userNameplate.skuId] == undefined){
+                    //get shortened asset name
+                    let nameplateAsset = userNameplate.asset.replaceAll('nameplates/', '').replaceAll('/','');
+                    //create name for nameplate since it's not provided through getUser
+                    let nameplateName = nameplateAsset.replaceAll('_', ' '); //replace _ with space
+                    nameplateName = nameplateName.replace(/(^\w|\s\w)/g, m => m.toUpperCase()); //make every word start with uppercase letter
+
+                    //store seen nameplate
+                    data.nameplates[userNameplate.sku_id] = {
+                        asset: nameplateAsset,
+                        palette: userNameplate.palette,
+                        name: nameplateName
+                    }
+                } 
+            }
+
+            //Nameplate decoding
+
+            let revealedText = this.getRevealedText(userId, "n{");
+
+            //if nothing's returned, or an empty string is returned, stop processing.
+            if(revealedText == undefined) return;
+            if(revealedText == "") return;
+            
+            //This regex matches n{*} . (Do not fuck with this)
+            let regex = /n\{[^}]*?\}/;
+
+            //Check if there are any matches in the revealed text.
+            let matches = revealedText.match(regex);
+            if(matches == undefined) return;
+
+            let firstMatch = matches[0];
+            if(firstMatch == undefined) return;
+
+            //slice off the n{ and the ending }
+            let nameplate = firstMatch.slice(2,-1);
+            if(nameplate){
+                let [asset, palette] = nameplate.split('/');
+                if(asset != undefined && palette != undefined){
+                    if(ret.collectibles == undefined) ret.collectibles = {};
+                    ret.collectibles.nameplate = {
+                        asset: `nameplates/nameplates/${asset}/`,
+                        palette,
+                        sku_id: 0
+                    }
+                }
+            }
+        });
+
+        const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+        
+        //#region Nameplates UI
+        function NameplateList(){
+            let [query, setQuery] = React.useState("");
+
+            let nameplatesList = [];
+
+            if(!data?.nameplates || data?.nameplates?.length < 1){
+                return React.createElement('h1', {
+                    children: "No nameplates were found!",
+                    style: {
+                        color: "red",
+                        fontWeight: "bold"
+                    }
+                });
+            } else{
+                const listOfNameplatesBySku = Object.keys(data.nameplates);
+                for(let i = 0; i < listOfNameplatesBySku.length; i++){
+                    let sku = listOfNameplatesBySku[i];
+                    let nameplate = data.nameplates[sku];
+                    if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
+                        continue;
+                    }
+
+                    nameplatesList.push(React.createElement('div', {
+                        children: React.createElement(NameplatePreview, {
+                            user: CurrentUser,
+                            isHighlighted: true,
+                            nameplateData: {
+                                imgAlt: nameplate.name,
+                                src: `nameplates/nameplates/${nameplate.asset}/`,
+                                palette: NameplatePalettes[nameplate.palette]
+                            },
+                        }),
+                        style: {
+                            borderRadius: "10px",
+                            width: "95%",
+                            marginLeft: "auto",
+                            marginRight: "auto",
+                            height: "42px",
+                            marginTop: "10px",
+                            position: "relative",
+                            top: '5px',
+                            cursor: "pointer",
+                        },
+                        onClick: () => {
+                            //make 3y3 string
+                            let strToEncode = `n{${nameplate.asset}/${nameplate.palette}}`;
+                            let encodedStr = secondsightifyEncodeOnly(strToEncode);
+
+                            //copy to clipboard
+                            try{
+                                DiscordNative.clipboard.copy(" " + encodedStr);
+                                UI.showToast("3y3 copied to clipboard!", { type: "info" });    
+                            }catch(err){
+                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
+                                Logger.error("YABDP4Nitro", err);
+                            }
+                        },
+                        title: nameplate.name
+                    }));
+                }
+                return React.createElement('div', {
+                    children: [
+                        React.createElement(Components.TextInput, {
+                            value: query,
+                            placeholder: "Search...",
+                            onChange: (input) => setQuery(input)
+                        }),
+                        React.createElement('br'),
+                        React.createElement('div', {
+                            children: nameplatesList
+                        })
+                    ],
+                });
+            }
+        }
+
+        Patcher.after(this.meta.name, NameplateSectionMod, "NameplateSection", (_, args, ret) => {
+            const ButtonsSection = ret.props.children.props.children;
+            ButtonsSection.push(React.createElement("button",{
+                className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
+                style: {
+                    marginLeft: "10px",
+                    whiteSpace: "nowrap"
+                },
+                children: "Change Nameplate [YABDP4Nitro]",
+                onClick: () => {
+                    UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList), {cancelText: ""})
+                }
+            }))
+        });
+        //#endregion
+    }
+    //#endregion
 
     // #region Resolution Swapper
     async resolutionSwapper(){
@@ -1707,49 +1949,33 @@ module.exports = class YABDP4Nitro {
                     return this.userPfps[user.id];
                 }
             }
+            //get revealed text
 
-            //get user activities
-            let activities = UserStatusStore.getActivities(user.id);
+            let revealedText = this.getRevealedText(user.id, "P{");
+            //if there is no 3y3 encoded text, return original function.
+            if(revealedText == undefined) return originalFunction(userId,size,shouldAnimate);
 
-            if(activities.length > 0){
-                //if user does not have a custom status, return original function.
-                if(activities[0].name != "Custom Status") return originalFunction(userId, size, shouldAnimate);
+            //This regex matches P{*} . (Do not fuck with this)
+            let regex = /P\{[^}]*?\}/;
 
-                //if user does have a custom status, assign it to customStatus variable.
-                let customStatus = activities[0].state;
-                //checking if anything went wrong
-                if(customStatus == undefined) return originalFunction(userId, size, shouldAnimate);
-                //decode any 3y3 text
-                let revealedText = this.secondsightifyRevealOnly(String(customStatus));
-                //if there is no 3y3 encoded text, return original function.
-                if(revealedText == undefined) return originalFunction(userId, size, shouldAnimate);
+            //Check if there are any matches in the custom status.
+            let matches = revealedText.toString().match(regex);
+            //if not, return orig function
+            if(matches == undefined || matches == "") return originalFunction(userId,size,shouldAnimate);
 
-                //This regex matches P{*} . (Do not fuck with this)
-                let regex = /P\{[^}]*?\}/;
+            //if there is a match, take the first match and remove the starting "P{ and ending "}"
+            let matchedText = matches[0].replace("P{","").replace("}","");
 
-                //Check if there are any matches in the custom status.
-                let matches = revealedText.toString().match(regex);
-                //if not, return orig function
-                if(matches == undefined) return originalFunction(userId, size, shouldAnimate);
-                if(matches == "") return originalFunction(userId, size, shouldAnimate);
-
-                //if there is a match, take the first match and remove the starting "P{ and ending "}"
-                let matchedText = matches[0].replace("P{", "").replace("}", "");
-
-                //look for a file extension. If omitted, fallback to .gif .
-                if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
-                    matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
-                }
-
-                //add this user to the list of users who have the YABDP4Nitro user badge if we haven't added them already.
-                if(!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
-
-                //return imgur url
-                return `https://i.imgur.com/${matchedText}`;
+            //look for a file extension. If omitted, fallback to .gif .
+            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
+                matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
             }
 
-            //if user does not have any activities active, return original function.
-            return originalFunction(userId, size, shouldAnimate);
+            //add this user to the list of users who have the YABDP4Nitro user badge if we haven't added them already.
+            if(!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
+
+            //return imgur url
+            return `https://i.imgur.com/${matchedText}`;
         });
     }
     // #endregion
@@ -1908,7 +2134,7 @@ module.exports = class YABDP4Nitro {
         `);
 
         //User profile badge patches
-        Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
+        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
             //bad data checks
             if(ret == undefined) return;
             if(ret.userId == undefined) return;
@@ -2024,7 +2250,7 @@ module.exports = class YABDP4Nitro {
             profileEffectIdList.push(this.profileEffects[i].id);
         }
 
-        Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, [args], ret) => {
+        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, [args], ret) => {
             //error prevention
             if(ret == undefined) return;
             if(ret.bio == undefined) return;
@@ -2177,7 +2403,7 @@ module.exports = class YABDP4Nitro {
                         marginLeft: "10px"
                     },
                     onClick: () => {
-                        UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal));
+                        UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal), {cancelText:""});
                     }
 
                 })
@@ -2187,31 +2413,41 @@ module.exports = class YABDP4Nitro {
     } //End of profileFX()
 
     killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
-        Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
+        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
             if(ret?.profileEffectID === undefined) return;
             ret.profileEffectID = undefined;
         });
     }
     // #endregion
 
-    // #region Avatar Decorations
-    //Everything related to fake avatar decorations.
+    //fetch collectibles - decorations and nameplates are stored in data
     storeProductsFromCategories = event => {
         if(event.categories){
             event.categories.forEach(category => {
                 category.products.forEach(product => {
                     product.items.forEach(item => {
                         if(item.asset){
-                            //fix nameplates appearing in decoration list, causing error messages in console
-                            if(item.asset.startsWith('nameplates/nameplates/')) return;
-                            
-                            Object.assign(settings.avatarDecorations)[item.id] = item.asset;
+                            //store nameplates
+                            if(item.asset.startsWith('nameplates/nameplates/')){
+                                data.nameplates[item.skuId] = {
+                                    asset: item.asset.replaceAll('nameplates/', '').replaceAll('/',''),
+                                    palette: item.palette,
+                                    name: product.name
+                                };
+                                return;
+                            } else if(item.asset.startsWith("a_")){ //store avatar decorations assets
+                                data.avatarDecorations[item.id] = item.asset;
+                                return;
+                            }
                         }
                     });
                 });
             });
         }
     };
+
+    // #region Avatar Decorations
+    //Everything related to fake avatar decorations.
 
     async fakeAvatarDecorations(){
         //apply decorations
@@ -2220,7 +2456,10 @@ module.exports = class YABDP4Nitro {
             if(args == undefined) return;
             if(args[0] == undefined) return;
             if(ret == undefined) return;
-            let avatarDecorations = settings.avatarDecorations;
+
+            let avatarDecorations = data.avatarDecorations;
+
+            if(!avatarDecorations) return;
 
             //user has an avatar decoration
             if(ret.avatarDecorationData){
@@ -2234,42 +2473,7 @@ module.exports = class YABDP4Nitro {
                 }
             }
 
-            function getRevealedText(self){
-                let revealedTextLocal = ""; //init empty string with local scope
-                let userProfile = userProfileMod.getUserProfile(args[0]); //get the user's profile from the cached user profiles
-
-                //if this user's profile has been downloaded
-                if(userProfile){
-                    //if their bio is empty, move on to the next check.
-                    if(userProfile?.bio != undefined){
-                        //reveal 3y3 encoded text
-                        revealedTextLocal = self.secondsightifyRevealOnly(String(userProfile.bio));
-                        //if there's no 3y3 text, move on to the next check.
-                        if(revealedTextLocal != undefined){
-                            if(String(revealedTextLocal).includes("/a")){
-                                //return bio with the 3y3 decoded
-                                return revealedTextLocal;
-                            }
-                        }
-                    }
-                }
-                let activities = UserStatusStore.getActivities(args[0]);
-                if(activities.length > 0){
-                    //grab user's activities (this includes custom status)
-
-                    //if they don't have a custom status, stop processing.
-                    if(activities[0].name != "Custom Status") return;
-                    //otherwise, grab the text from the custom status
-                    let customStatus = activities[0].state;
-                    //if something has gone horribly wrong, stop processing.
-                    if(customStatus == undefined) return;
-                    //finally reveal 3y3 encoded text
-                    revealedTextLocal = self.secondsightifyRevealOnly(String(customStatus));
-                    //return custom status with the 3y3 decoded
-                    return revealedTextLocal;
-                }
-            }
-            let revealedText = getRevealedText(this);
+            let revealedText = this.getRevealedText(args[0], "/a");
             //if nothing's returned, or an empty string is returned, stop processing.
             if(revealedText == undefined) return;
             if(revealedText == "") return;
@@ -2300,17 +2504,6 @@ module.exports = class YABDP4Nitro {
             }
         }); //end of getUser patch for avatar decorations
 
-        //subscribe to successful collectible category fetch event
-        Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
-        //trigger decorations fetch
-        FetchCollectibleCategories({
-            includeBundles: true,
-            includeUnpublished: false,
-            noCache: false,
-            paymentGateway: undefined
-        });
-
         //Wait for avatar decor customization section render module to be loaded.
         await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", "pendingAvatarDecoration"));
 
@@ -2337,7 +2530,7 @@ module.exports = class YABDP4Nitro {
                     },
                     className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
                     onClick: () => {
-                        UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal));
+                        UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
                     }
                 })
             );
@@ -2345,18 +2538,19 @@ module.exports = class YABDP4Nitro {
             const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
 
             function AvatarDecorations(){
-                let listOfDecorationIds = Object.keys(settings.avatarDecorations);
+                if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
+                let listOfDecorationIds = Object.keys(data.avatarDecorations);
                 let avatarDecorationChildren = [];
 
                 //for each avatar decoration
                 for(let i = 0; i < listOfDecorationIds.length; i++){
 
                     const decorationId = listOfDecorationIds[i];
-                    const assetHash = settings.avatarDecorations[decorationId];
+                    const assetHash = data.avatarDecorations[decorationId];
 
                     //remove existing nameplates from decoration list
                     if(assetHash.startsWith('nameplates/nameplates/')){
-                        delete settings.avatarDecorations[decorationId];
+                        delete data.avatarDecorations[decorationId];
                         continue;
                     }
 
@@ -2535,7 +2729,7 @@ module.exports = class YABDP4Nitro {
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
         //console.log(StreamButtons);
 
-        const settings = Data.load("YABDP4Nitro", "settings"); //just in case we can't access "this";
+        const settings = Data.load("YABDP4Nitro", "settings"); //just in case we can't access this;
 
         //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
         let resolutionToSet = parseInt(settings.CustomResolution);
@@ -2614,7 +2808,7 @@ module.exports = class YABDP4Nitro {
         //#region _sendMessage Patch
         Patcher.instead(this.meta.name, MessageActions, "_sendMessage", async (_, msg, send) => {
             if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
-                send(msg[0], msg[1], msg[2], msg[3]);
+                send.apply(_, msg);
                 return;
             }
 
@@ -2677,7 +2871,7 @@ module.exports = class YABDP4Nitro {
                 if(soundmojis) {
                     for(let i = 0; i < soundmojis.length; i++) {
                         let id = soundmojis[i].slice(-20, -1);
-                        let sound = getSoundMod.getSoundById(id);
+                        let sound = SoundboardStore.getSoundById(id);
                         if(sound) {
                             sounds.push(sound);
                             ids.push(id);
@@ -2685,7 +2879,7 @@ module.exports = class YABDP4Nitro {
                                 msg[1].content = msg[1].content.replace(soundmojis[i], `( ${sound.emojiName} ${sound.name} )`);
                             }
                             else if(sound?.emojiId != null) { // custom emoji
-                                let emoji = emojiMod.getCustomEmojiById(sound.emojiId);
+                                let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
                                 msg[1].content = msg[1].content.replace(soundmojis[i], `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](https://cdn.discordapp.com/emojis/${sound.emojiId}.${emoji?.animated ? "gif" : "png"}) ${sound.name} ) `);
                             }
                             else { //no emoji
@@ -2712,7 +2906,7 @@ module.exports = class YABDP4Nitro {
             }
 
             if(emojis.length == 0 && sounds.length == 0){
-                send(msg[0], msg[1], msg[2], msg[3]);
+                send.apply(_, msg);
             }
             
         });
@@ -3186,7 +3380,7 @@ module.exports = class YABDP4Nitro {
 
     //#region 3y3 Profile Colors
     decodeAndApplyProfileColors(){
-        Patcher.after(this.meta.name, userProfileMod, "getUserProfile", (_, args, ret) => {
+        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
             if(ret == undefined) return;
             if(ret.bio == null) return;
             const colorString = ret.bio.match(
@@ -3229,20 +3423,11 @@ module.exports = class YABDP4Nitro {
                         marginTop: "10px"
                     },
                     onClick: () => {
-                        let themeColors = null;
-                        try {
-                            themeColors = Webpack.getStore("UserSettingsAccountStore").getAllTryItOut().tryItOutThemeColors;
-                        } catch(err){
-                            Logger.warn("YABDP4Nitro", err);
-                        }
-                        if(themeColors == null){
-                            try {
-                                themeColors = Webpack.getStore("UserSettingsAccountStore").getAllPending().pendingThemeColors;
-                            } catch(err){
-                                Logger.error("YABDP4Nitro", err);
-                            }
-                        }
-                        if(themeColors == undefined){
+                        let themeColors;
+                        themeColors = UserSettingsAccountStore.getAllPending().pendingThemeColors;
+                        if(!themeColors && (CurrentUser.premiumType == null || CurrentUser.premiumType == undefined) && !settings.removeProfileUpsell)
+                            themeColors = UserSettingsAccountStore.getAllTryItOut().tryItOutThemeColors;
+                        if(!themeColors){
                             UI.showToast("Nothing has been copied. Is the selected color identical to your current color?", { type: "warning" });
                             return;
                         }
@@ -3596,7 +3781,7 @@ module.exports = class YABDP4Nitro {
             confirmText: "Download Now",
             onConfirm: async (e) => {
                 if(remoteFile){
-                    await new Promise(r => require("fs").writeFile(require("path").join(Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
+                    await new Promise(r => fs.writeFile(path.join(Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
                     try {
                         let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");
                         currentVersionInfo.hasShownChangelog = false;
@@ -3610,6 +3795,38 @@ module.exports = class YABDP4Nitro {
     }
     //#endregion
 
+    saveDataFile(){
+        const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
+        try{
+            fs.writeFileSync(dataFilePath, JSON.stringify(data));
+        }catch(err){
+            UI.showToast(`[${this.meta.name}] Error saving dava JSON. See console for error message.`, { type: "error", forceShow: true });
+            Logger.error(this.meta.name, err);
+        }
+    }
+
+    loadDataFile(){
+        try{
+            const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
+            if(!fs.existsSync(dataFilePath)){
+                fs.writeFileSync(dataFilePath, '{}');
+            }
+
+            try{
+                data = Object.assign({}, defaultData, JSON.parse(fs.readFileSync(dataFilePath)));
+            }catch(err){
+                UI.showToast(`[${this.meta.name}] Error parsing or reading data JSON.`, { type: "error", forceShow: true });
+                Logger.warn(this.meta.name, "Error parsing or reading data JSON.");
+                Logger.warn(this.meta.name, err);
+                data = {};
+            }
+        }catch(err){
+            UI.showToast(`[${this.meta.name}] An error occurred loading the data file.`, { type: "error", forceShow: true });
+            Logger.error(this.meta.name, "An error occurred loading the data file.");
+            Logger.error(this.meta.name, err);
+        }
+    }
+
     //#region Start, Stop
     start(){
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has started.");
@@ -3622,11 +3839,13 @@ module.exports = class YABDP4Nitro {
             Logger.warn(this.meta.name, err);
             Logger.info(this.meta.name, "Error parsing JSON. Resetting file to default...");
             //watch this shit yo
-            require("fs").rmSync(require("path").join(Plugins.folder, `${this.meta.name}.config.json`));
+            fs.rmSync(path.join(Plugins.folder, `${this.meta.name}.config.json`));
             Plugins.reload(this.meta.name);
             Plugins.enable(this.meta.name);
             return;
         }
+
+        this.loadDataFile();
 
         //update check
         try {
@@ -3677,6 +3896,7 @@ module.exports = class YABDP4Nitro {
         }
 
         Data.save("YABDP4Nitro", "settings", settings);
+        this.saveDataFile();
         Logger.info(this.meta.name, "(v" + this.meta.version + ") has stopped.");
     }
     // #endregion
