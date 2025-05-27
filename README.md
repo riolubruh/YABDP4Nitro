@@ -27,6 +27,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Fake Avatar Decorations](#fake-avatar-decorations)
      + [Fake Profile Effects](#fake-profile-effects)
      + [Fake Profile Pictures](#fake-profile-pictures)
+     + [Fake Nameplates](#fake-nameplates)
    * [Clips 100MB Limit Bypasses](#clips)
      + [Video Files](#videos)
      + [Audio Files](#audio)
@@ -273,6 +274,34 @@ You should now see your profile picture change to the desired image!
 Note that only other others of the plugin will be able to see your fake profile picture.
 
 **Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
+
+_________________________________________________________________________________________________________________
+
+## Fake Nameplates
+
+Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio.
+
+To use Fake Nameplates, enable it and go into Profile Settings. A button should appear in the Nameplates section:
+
+![nameplates button](https://github.com/user-attachments/assets/78c5b88a-d04e-49e6-86e3-b13e769c03a0)
+
+Clicking the button will reveal a modal like this:
+
+![nameplates modal](https://github.com/user-attachments/assets/cd952a04-3c76-4cb0-9d3a-2b58af6e5254)
+
+Click on your desired nameplate. You will see a message that says "3y3 copied to clipboard!"
+
+Finally, paste the 3y3 in your custom status and/or bio.
+
+Pasting it in your custom status means it will appear as expected in the user / friends list when you are online.
+
+Pasting it in your bio means that people will be able to see it when you are offline if they click your profile.
+
+For the best effect, doing it in both is recommended.
+
+Demonstration:<br>
+![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
+
 
 _________________________________________________________________________________________________________________
 
