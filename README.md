@@ -293,11 +293,10 @@ Click on your desired nameplate. You will see a message that says "3y3 copied to
 
 Finally, paste the 3y3 in your custom status and/or bio.
 
-Pasting it in your custom status means it will appear as expected in the user / friends list when you are online.
-
+Pasting it in your custom status means it will appear as expected in the user / friends list when you are online.<br>
 Pasting it in your bio means that people will be able to see it when you are offline if they click your profile.
 
-For the best effect, doing it in both is recommended.
+For the best effect, pasting it in both is recommended.
 
 Demonstration:<br>
 ![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
