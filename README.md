@@ -8,6 +8,9 @@ YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Disc
 
 Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js)
 
+*"Discord" and "Nitro" are trademarks of Discord Inc. This project is not affiliated with Discord Inc. <br>
+See full trademark notice [here.](#trademark-notice)*
+
 ## Table of Contents:
 - [Features](#features)
   * [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
@@ -24,7 +27,11 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
      + [Fake Avatar Decorations](#fake-avatar-decorations)
      + [Fake Profile Effects](#fake-profile-effects)
      + [Fake Profile Pictures](#fake-profile-pictures)
-   * [Clips 100MB Video File Bypass](#clips)
+     + [Fake Nameplates](#fake-nameplates)
+   * [Clips 100MB Limit Bypasses](#clips)
+     + [Video Files](#videos)
+     + [Audio Files](#audio)
+     + [Other Files](#zipclips-any-file)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
@@ -36,7 +43,9 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
 - [Additional Plugins I Recommend](#recommended-additional-plugins-for-more-nitro-features)
 - [License Agreement](#license)
 - [Discord Server](#discord-server)
+- [Trademark Notice](#trademark-notice)
 - [Donate](#donate)
+
   
 ## Features
 
@@ -223,7 +232,7 @@ To use Fake Profile Effects, first go to Settings>Profiles; you should see a Pro
 
 Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
 
-![profile effect section opened](https://github.com/user-attachments/assets/c93e79c7-acfc-4464-8717-8114c7d18c32)
+![profile effect section opened](https://github.com/user-attachments/assets/101ff527-6811-457b-ae80-dc55cd9e88b3)
 
 <br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
@@ -268,7 +277,36 @@ Note that only other others of the plugin will be able to see your fake profile 
 
 _________________________________________________________________________________________________________________
 
+## Fake Nameplates
+
+Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio.
+
+To use Fake Nameplates, enable it and go into Profile Settings. A button should appear in the Nameplates section:
+
+![nameplates button](https://github.com/user-attachments/assets/78c5b88a-d04e-49e6-86e3-b13e769c03a0)
+
+Clicking the button will reveal a modal like this:
+
+![nameplates modal](https://github.com/user-attachments/assets/cd952a04-3c76-4cb0-9d3a-2b58af6e5254)
+
+Click on your desired nameplate. You will see a message that says "3y3 copied to clipboard!"
+
+Finally, paste the 3y3 in your custom status and/or bio.
+
+Pasting it in your custom status means it will appear as expected in the user / friends list when you are online.<br>
+Pasting it in your bio means that people will be able to see it when you are offline if they click your profile.
+
+For the best effect, pasting it in both is recommended.
+
+Demonstration:<br>
+![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
+
+
+_________________________________________________________________________________________________________________
+
 ## Clips
+
+### Videos
 
 ![Clips Kung Fu Panda Example](https://github.com/user-attachments/assets/b140c90a-4688-4e91-b696-97f01d314e5c)
 
@@ -280,6 +318,50 @@ and then appending a special tag that the Discord API specifically checks for to
 The plugin does everything automatically, so all you'll need to do is upload the video as you usually would, and enjoy the higher 100MB file limit!
 
 _________________________________________________________________________________________________________________
+
+### Audio
+
+![Audio Clips Example](https://github.com/user-attachments/assets/2ff4c762-fe0b-48c0-a450-ff2259c31d61)
+
+Increases the file upload limit for audio files to 100 MB by sending them as "Discord Clip"s.
+
+Using FFmpeg.WASM, the audio is muxed into a new video file with a new video track filled with empty/black frames,
+and then a special tag that the Discord API specifically checks for is appended to the file in order for it to be considered "valid".
+
+The plugin does everything automatically, just like as for videos!
+
+_________________________________________________________________________________________________________________
+
+### ZipClips (Any File)
+
+![ZipClip_Example](https://github.com/user-attachments/assets/edc8277c-f6ec-4f7c-a7ca-ad1ed531ea41)
+
+Increases the file upload limit for *any* file to 100 MB by sending them as "Discord Clip"s.
+
+How does it work? We make a polyglot file which functions as both a valid clip (MP4 video file with proper tags and branding) **AND** an archive (zip, 7z, rar, etc.).
+
+To use it, simply send any file between 10MB and 100MB with the option enabled in settings.
+
+To extract the file, remove the `.mp4` from the file name and open it in 7-Zip, WinRAR, etc.
+
+In 7-Zip, it's a bit more of a hassle since it doesn't automatically recognize it as an archive, so you need to specifically tell it which type it is, ex:
+
+![7zip_method1](https://github.com/user-attachments/assets/d569b105-b197-4476-9d1e-d7e7497502d8)
+
+Alternatively you can navigate to the containing folder, right-click the file, press `Open Inside #` and pick the second option, ex:
+
+![7zip_method2_step1](https://github.com/user-attachments/assets/fd40b301-b8f2-482e-8733-8e83208d8cdf)
+<br>
+![7zip_method2_step2](https://github.com/user-attachments/assets/12f558db-150b-4a91-bef3-6f268f5dd961)
+
+In WinRAR, simply remove the `.mp4` from the file name and open it as you usually would!
+
+![winrar](https://github.com/user-attachments/assets/4df0d760-837a-4e92-8fcd-bd5824be48a3)
+
+If your file is already an archive (7z, zip, rar, tar, gz, bz2), it will simply add the archive to the special video file.
+
+Otherwise, it will ***create a new zip that contains your file automatically!*** 
+<br><sub>(Note: No compression will be done since it would just take too long. If you want compression, zip the file yourself.)</sub>
 
 ## Miscellaneous
 
@@ -353,11 +435,9 @@ ________________________________________________________________________________
 
 ## Recommended additional plugins for more Nitro features
 
-[FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked until the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is fixed)
+[FreeStickers by An00nymushun](https://github.com/riolubruh/DiscordFreeStickers) - Unlocked Sticker sending through converting to and uploading as a GIF. (Fixed fork is linked since the [original repository](https://github.com/An00nymushun/DiscordFreeStickers) is abandoned)
 
 [SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
-
-[SplitLargeFiles by ImTheSquid](https://github.com/riolubruh/SplitLargeFiles) - Send large files by splitting them up into 25 megabyte chunks! YABDP4Nitro-compatible fork created by me.
 
 _________________________________________________________________________________________________________________
 
@@ -371,19 +451,33 @@ ________________________________________________________________________________
 
 ## Discord Server
 
-Please read [this README](#readme) and [the FAQ](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
+Please read [this README](#readme) and [the FAQ / Installation Instructions](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
 
 https://discord.gg/EFmGEWAUns
 
 _________________________________________________________________________________________________________________
 
+## Trademark Notice
+
+*"Discord," "Nitro," and related trademarks are the property of Discord Inc.  
+This project is not affiliated with, endorsed by, or monetarily benefiting from Discord Inc.  
+It does not provide official Discord Nitro services or features.*
+
+_________________________________________________________________________________________________________________
+
 ## Donate
 
-If you want to show your love for the plugin, (or just put a middle finger to Discord's face) it would really mean the world to me if you threw me a few bucks. Very few people actually donate, so I see and appreciate every last one.
+If you want to show your love for the plugin or my other open-source works, it would really mean the world to me if you put a few bucks in the tip jar!
+Very few people actually donate, so I see and appreciate every last one.
+
+*This project is licensed under NPOSL-3.0, which prohibits the licensor from deriving revenue from the software or related services.<br>
+By donating, you agree that funds are non-refundable and grant no rights to software or services.<br>
+Donations are voluntary and do not affect software access or functionality.<br>
+All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.*
+
+*Donations to this project do not support Discord Inc. or its services.*
 
 Methods of donations without fees are obviously preferred. See more info below.
-
-To avoid repeating myself, assume that an additional 3% fee will be applied if you use a credit card.
 
 _________________________________________________________________________________________________________________
 
@@ -414,9 +508,7 @@ GitHub Sponsors is the only one I've found so far.
 
 #### GitHub Sponsors
 
--Have to use a credit or debit card.
-
-Apparently **no credit card fee** either? Someone test this for me ;)
+Only downside is you have to use a credit or debit card.
 
 https://github.com/sponsors/riolubruh
 
@@ -443,15 +535,6 @@ Donation fee of 2.89% of payment + $0.49 ( + 1.5% if you're not in the United St
 <a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a><br>
 [Fees Info](https://www.paypal.com/us/digital-wallet/paypal-consumer-fees#ReceivingDonations)
 
-#### Patreon
-
-8% fee + payment processing fees depending on what processor you used + currency conversion fees (if applicable).<br>
-Plus a $0.25 fee whenever I cash out.<br>
-Seriously dastardly fees, all taken from the creator! Shameful!<br>
-Stay away from this shit unless you have to for some reason!
-
-<a href="https://patreon.com/riolubruh" target='_blank'><img style="height:36px;" src="https://github.com/user-attachments/assets/a88b4199-454c-43b5-bf96-e80690837236"> </a><br>
-[Fees Info](https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview#h_01HAM56C6VSN4AC0FAWNPWMNA1)
 _________________________________________________________________________________________________________________
 
 ### Cryptocurrency
