@@ -265,7 +265,8 @@ Assuming nothing goes wrong, you should see "3y3 copied to clipboard!" appear at
 Now, close Settings and click your profile in the bottom left of the window.
 <br>You should see the following:
 
-![profile](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/60173742-79bb-4dfe-9a99-1aed2a250682)
+![profile](https://github.com/user-attachments/assets/ecb441fe-a5af-4bfb-a08e-e0fe4be42065)
+
 
 Choose the option to set your custom status, and paste your clipboard anywhere into your custom status.
 
