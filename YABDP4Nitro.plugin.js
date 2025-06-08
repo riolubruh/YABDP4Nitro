@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.0
+ * @version 6.1.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -210,13 +210,12 @@ const defaultSettings = {
 };
 const defaultData = {
     avatarDecorations: {},
-    nameplates: {}
+    nameplatesV2: {}
 }
 
 //Plugin-wide variables
 let settings = {};
 let data = {};
-let usrBgUsers = [];
 let badgeUserIDs = [];
 let fetchedUserBg = false;
 let fetchedUserPfp = false;
@@ -230,21 +229,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.0",
+        "version": "6.1.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.0",
+            title: "6.1.1",
             items: [
-                "Added Fake Nameplates bypass using 3y3 encoding.",
-                "Migrated avatar decoration data out of the config file and into a new YABDP4Nitro.data.json file. Nameplate data will also be stored there.",
-                "Removed \"Cancel\" button on modals where it doesn't make sense to have one.",
-                "Fixed an issue that was causing the UI for Fake Profile Colors to copy random colors in the Nitro version of the Profile Customization screen.",
-                "Changed some module filters to use getStore if the module was actually a data store and renamed their variables to reflect that. Overall should be faster and clearer.",
-                "Slightly reduced amount of repeated code."
+                "Optimized 3y3 decoding to only go through with decoding if the respective 3y3 is present in the string.",
+                "Reworked nameplates to work with Nameplates Volume 2 and hopefully further volumes. Please delete your existing 3y3 and re-apply it.",
+                "Applied an optimization to the UsrBg compatibility system which should reduce lag from fetching users when it is enabled."
             ]
         }
     ],
@@ -434,6 +430,9 @@ module.exports = class YABDP4Nitro {
                 Logger.error(this.meta.name, "Data migration failed.");
             }
         }
+
+        //delete old nameplate data
+        if(data.nameplates) delete data.nameplates;
 
         Data.save(this.meta.name, "settings", settings);
         this.saveDataFile();
@@ -700,6 +699,10 @@ module.exports = class YABDP4Nitro {
     } //End of saveAndUpdate()
     // #endregion
 
+    //shouldInclude is a string containing the characters that the encoded text should contain
+    //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
+    //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
+    //if shouldInclude is blank, always return the revealed text if there is revealed text
     getRevealedText(userId, shouldInclude=""){
         let revealedText = ""; //init variable
 
@@ -709,11 +712,11 @@ module.exports = class YABDP4Nitro {
         if(userProfile){
             //if their bio is empty, move on to the next check.
             if(userProfile?.bio != undefined){
-                //reveal 3y3 encoded text
-                revealedText = this.secondsightifyRevealOnly(String(userProfile.bio));
-                //if there's no 3y3 text, move on to the next check.
-                if(revealedText != undefined && revealedText != ""){
-                    if(revealedText.includes(shouldInclude)){
+                if(userProfile.bio.includes(shouldInclude)){
+                    //reveal 3y3 encoded text
+                    revealedText = this.secondsightifyRevealOnly(String(userProfile.bio));
+                    //if there's no 3y3 text, move on to the next check.
+                    if(revealedText != undefined && revealedText != ""){
                         //return bio with the 3y3 decoded
                         return revealedText;
                     }
@@ -729,9 +732,9 @@ module.exports = class YABDP4Nitro {
             //if something has gone horribly wrong, stop processing.
             if(customStatus == undefined) return;
             //reveal 3y3 encoded text
-            revealedText = this.secondsightifyRevealOnly(String(customStatus));
-            //return custom status with the 3y3 decoded
-            if(revealedText?.includes(shouldInclude)) {
+            if(customStatus.includes(shouldInclude)){
+                revealedText = this.secondsightifyRevealOnly(String(customStatus));
+                //return custom status with the 3y3 decoded
                 return revealedText;
             }
         }
@@ -746,27 +749,27 @@ module.exports = class YABDP4Nitro {
             let userNameplate = ret?.collectibles?.nameplate;
 
             //if user has a nameplate
-            if(userNameplate){
+            if(userNameplate) {
                 //filter out bad or existing nameplate
-                if(userNameplate.sku_id != 0 && userNameplate.sku_id != undefined && userNameplate.sku_id != null && data.nameplates[userNameplate.skuId] == undefined){
+                if(userNameplate.sku_id != 0 && userNameplate.sku_id != undefined && userNameplate.sku_id != null && data.nameplatesV2[userNameplate.skuId] == undefined) {
                     //get shortened asset name
-                    let nameplateAsset = userNameplate.asset.replaceAll('nameplates/', '').replaceAll('/','');
+                    let nameplateAsset = userNameplate.asset.replace('nameplates/','').replaceAll('/','');
                     //create name for nameplate since it's not provided through getUser
-                    let nameplateName = nameplateAsset.replaceAll('_', ' '); //replace _ with space
-                    nameplateName = nameplateName.replace(/(^\w|\s\w)/g, m => m.toUpperCase()); //make every word start with uppercase letter
+                    let nameplateName = nameplateAsset.replaceAll('_',' '); //replace _ with space
+                    nameplateName = nameplateName.replace(/(^\w|\s\w)/g,m => m.toUpperCase()); //make every word start with uppercase letter
 
                     //store seen nameplate
-                    data.nameplates[userNameplate.sku_id] = {
-                        asset: nameplateAsset,
+                    data.nameplatesV2[userNameplate.sku_id] = {
+                        asset: userNameplate.asset.replace('nameplates/',''),
                         palette: userNameplate.palette,
                         name: nameplateName
                     }
-                } 
+                }
             }
 
             //Nameplate decoding
-
-            let revealedText = this.getRevealedText(userId, "n{");
+                                    // check if it includes /n encoded
+            let revealedText = this.getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
 
             //if nothing's returned, or an empty string is returned, stop processing.
             if(revealedText == undefined) return;
@@ -785,11 +788,11 @@ module.exports = class YABDP4Nitro {
             //slice off the n{ and the ending }
             let nameplate = firstMatch.slice(2,-1);
             if(nameplate){
-                let [asset, palette] = nameplate.split('/');
+                let [asset, palette] = nameplate.split(',');
                 if(asset != undefined && palette != undefined){
                     if(ret.collectibles == undefined) ret.collectibles = {};
                     ret.collectibles.nameplate = {
-                        asset: `nameplates/nameplates/${asset}/`,
+                        asset: `nameplates/${asset}`,
                         palette,
                         sku_id: 0
                     }
@@ -805,7 +808,7 @@ module.exports = class YABDP4Nitro {
 
             let nameplatesList = [];
 
-            if(!data?.nameplates || data?.nameplates?.length < 1){
+            if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1){
                 return React.createElement('h1', {
                     children: "No nameplates were found!",
                     style: {
@@ -814,10 +817,10 @@ module.exports = class YABDP4Nitro {
                     }
                 });
             } else{
-                const listOfNameplatesBySku = Object.keys(data.nameplates);
+                const listOfNameplatesBySku = Object.keys(data.nameplatesV2);
                 for(let i = 0; i < listOfNameplatesBySku.length; i++){
                     let sku = listOfNameplatesBySku[i];
-                    let nameplate = data.nameplates[sku];
+                    let nameplate = data.nameplatesV2[sku];
                     if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
                         continue;
                     }
@@ -828,7 +831,7 @@ module.exports = class YABDP4Nitro {
                             isHighlighted: true,
                             nameplateData: {
                                 imgAlt: nameplate.name,
-                                src: `nameplates/nameplates/${nameplate.asset}/`,
+                                src: `nameplates/${nameplate.asset}`,
                                 palette: NameplatePalettes[nameplate.palette]
                             },
                         }),
@@ -845,7 +848,7 @@ module.exports = class YABDP4Nitro {
                         },
                         onClick: () => {
                             //make 3y3 string
-                            let strToEncode = `n{${nameplate.asset}/${nameplate.palette}}`;
+                            let strToEncode = `n{${nameplate.asset},${nameplate.palette}}`;
                             let encodedStr = secondsightifyEncodeOnly(strToEncode);
 
                             //copy to clipboard
@@ -1949,9 +1952,8 @@ module.exports = class YABDP4Nitro {
                     return this.userPfps[user.id];
                 }
             }
-            //get revealed text
-
-            let revealedText = this.getRevealedText(user.id, "P{");
+            //get revealed text                               includes P{ encoded
+            let revealedText = this.getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function.
             if(revealedText == undefined) return originalFunction(userId,size,shouldAnimate);
 
@@ -2255,31 +2257,34 @@ module.exports = class YABDP4Nitro {
             if(ret == undefined) return;
             if(ret.bio == undefined) return;
 
-            //reveal 3y3 encoded text. this string will also include the rest of the bio
-            let revealedText = this.secondsightifyRevealOnly(ret.bio);
-            if(revealedText == undefined) return;
+            //if bio includes encoded /fx 
+            if(ret.bio.includes(`\uDB40\uDC2F\uDB40\uDC66\uDB40\uDC78`)){
+                //reveal 3y3 encoded text. this string will also include the rest of the bio
+                let revealedText = this.secondsightifyRevealOnly(ret.bio);
+                if(revealedText == undefined) return;
 
-            //if profile effect 3y3 is detected
-            if(revealedText.includes("/fx")){
-                const regex = /\/fx\d+/;
-                let matches = revealedText.toString().match(regex);
-                if(matches == undefined) return;
-                let firstMatch = matches[0];
-                if(firstMatch == undefined) return;
+                //if profile effect 3y3 is detected
+                if(revealedText.includes("/fx")){
+                    const regex = /\/fx\d+/;
+                    let matches = revealedText.toString().match(regex);
+                    if(matches == undefined) return;
+                    let firstMatch = matches[0];
+                    if(firstMatch == undefined) return;
 
-                //slice the /fx and only take the number after it.
-                let effectIndex = parseInt(firstMatch.slice(3));
-                //ignore invalid data 
-                if(isNaN(effectIndex)) return;
-                //ignore if the profile effect id does not point to an actual profile effect
-                if(profileEffectIdList[effectIndex] == undefined) return;
-                //set the profile effect. stringify it.
-                ret.profileEffectId = profileEffectIdList[effectIndex] + "";
+                    //slice the /fx and only take the number after it.
+                    let effectIndex = parseInt(firstMatch.slice(3));
+                    //ignore invalid data 
+                    if(isNaN(effectIndex)) return;
+                    //ignore if the profile effect id does not point to an actual profile effect
+                    if(profileEffectIdList[effectIndex] == undefined) return;
+                    //set the profile effect. stringify it.
+                    ret.profileEffectId = profileEffectIdList[effectIndex] + "";
 
-                //if for some reason we dont know what this user's ID is, stop here
-                if(args == undefined) return;
-                //otherwise add them to the list of users who show up with the YABDP4Nitro user badge
-                if(!badgeUserIDs.includes(args)) badgeUserIDs.push(args);
+                    //if for some reason we dont know what this user's ID is, stop here
+                    if(args == undefined) return;
+                    //otherwise add them to the list of users who show up with the YABDP4Nitro user badge
+                    if(!badgeUserIDs.includes(args)) badgeUserIDs.push(args);
+                }
             }
         }); //end of getUserProfile patch.
 
@@ -2428,9 +2433,9 @@ module.exports = class YABDP4Nitro {
                     product.items.forEach(item => {
                         if(item.asset){
                             //store nameplates
-                            if(item.asset.startsWith('nameplates/nameplates/')){
-                                data.nameplates[item.skuId] = {
-                                    asset: item.asset.replaceAll('nameplates/', '').replaceAll('/',''),
+                            if(item.asset.startsWith('nameplates')){
+                                data.nameplatesV2[item.skuId] = {
+                                    asset: item.asset.replace('nameplates/', ''),
                                     palette: item.palette,
                                     name: product.name
                                 };
@@ -2448,7 +2453,7 @@ module.exports = class YABDP4Nitro {
 
     // #region Avatar Decorations
     //Everything related to fake avatar decorations.
-
+    
     async fakeAvatarDecorations(){
         //apply decorations
         Patcher.after(this.meta.name, UserStore, "getUser", (_, args, ret) => {
@@ -2473,7 +2478,8 @@ module.exports = class YABDP4Nitro {
                 }
             }
 
-            let revealedText = this.getRevealedText(args[0], "/a");
+            //                                      includes /a encoded?
+            let revealedText = this.getRevealedText(args[0], `\uDB40\uDC50\uDB40\uDC7B`);
             //if nothing's returned, or an empty string is returned, stop processing.
             if(revealedText == undefined) return;
             if(revealedText == "") return;
@@ -3462,7 +3468,7 @@ module.exports = class YABDP4Nitro {
     //Decode 3y3 from profile bio and apply fake banners.
     bannerUrlDecoding(){
 
-        let endpoint, bucket, prefix, data;
+        let endpoint, bucket, prefix, usrBgData;
 
         //if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
         if(settings.userBgIntegration && !fetchedUserBg){
@@ -3472,11 +3478,10 @@ module.exports = class YABDP4Nitro {
 
             //download, then store json
             Net.fetch(userBgJsonUrl, { timeout: 100000 }).then(res => res.json().then(res => {
-                data = res;
+                usrBgData = res;
                 endpoint = res.endpoint;
                 bucket = res.bucket;
                 prefix = res.prefix;
-                usrBgUsers = Object.keys(res.users);
                 //mark db as fetched so we only fetch it once per load of the plugin
                 fetchedUserBg = true;
             }));
@@ -3498,53 +3503,54 @@ module.exports = class YABDP4Nitro {
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
                     //if user is in userBg database,
-                    if(usrBgUsers.includes(user.userId)){
+                    if(usrBgData?.users[user.userId]){
                         profile.banner = "funky_kong_is_epic"; //set banner id to fake value
                         profile.premiumType = 2; //set this profile to appear with premium rendering
-                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${data?.users[user.userId]}`; //return userBg banner URL and exit.
+                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${usrBgData?.users[user.userId]}`; //return userBg banner URL and exit.
                     }
                 }
             }
 
             //do original function if we don't have the user's bio
             if(profile.bio == undefined) return ogFunction(args);
+            //              includes /B encoded?
+            if(profile.bio.includes(`\uDB40\uDC42\uDB40\uDC7B`)){
+                //reveal 3y3 encoded text, store as parsed
+                let parsed = this.secondsightifyRevealOnly(profile.bio);
+                //if there is no 3y3 encoded text, return original function
+                if(parsed == undefined) return ogFunction(args);
 
-            //reveal 3y3 encoded text, store as parsed
-            let parsed = this.secondsightifyRevealOnly(profile.bio);
-            //if there is no 3y3 encoded text, return original function
-            if(parsed == undefined) return ogFunction(args);
+                //This regex matches B{*} . Do not touch unless you know what you are doing.
+                let regex = /B\{[^}]*?\}/;
 
-            //This regex matches B{*} . Do not touch unless you know what you are doing.
-            let regex = /B\{[^}]*?\}/;
+                //find banner url in parsed bio
+                let matches = parsed.toString().match(regex);
 
-            //find banner url in parsed bio
-            let matches = parsed.toString().match(regex);
+                //if there's no matches, return original function
+                if(matches == undefined) return ogFunction(args);
+                if(matches == "") return ogFunction(args);
 
-            //if there's no matches, return original function
-            if(matches == undefined) return ogFunction(args);
-            if(matches == "") return ogFunction(args);
+                //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
+                let matchedText = matches[0].replace("B{", "").replace("}", "");
 
-            //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
-            let matchedText = matches[0].replace("B{", "").replace("}", "");
+                //Checking for file extension. 
+                if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
+                    matchedText += ".gif"; //Fallback to a default file extension if one is not found.
 
-            //Checking for file extension. 
-            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
-                matchedText += ".gif"; //Fallback to a default file extension if one is not found.
+                }
 
+                //set banner id to fake value
+                profile.banner = "funky_kong_is_epic";
+
+                //set this profile to appear with premium rendering
+                profile.premiumType = 2;
+
+                //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
+                if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
+
+                //return final banner URL.
+                return `https://i.imgur.com/${matchedText}`;
             }
-
-            //set banner id to fake value
-            profile.banner = "funky_kong_is_epic";
-
-            //set this profile to appear with premium rendering
-            profile.premiumType = 2;
-
-            //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-            if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
-
-            //return final banner URL.
-            return `https://i.imgur.com/${matchedText}`;
-
         }); //End of patch for getBannerURL
     } //End of bannerUrlDecoding()
     //#endregion
@@ -3888,7 +3894,6 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle(this.meta.name);
         DOM.removeStyle("YABDP4NitroBadges");
-        usrBgUsers = [];
         
         let ffmpegScript = document.getElementById("ffmpegScript");
         if(ffmpegScript){
