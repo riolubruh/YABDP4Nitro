@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.1
+ * @version 6.1.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -229,18 +229,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.1",
+        "version": "6.1.2",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.1",
+            title: "6.1.2",
             items: [
-                "Optimized 3y3 decoding to only go through with decoding if the respective 3y3 is present in the string.",
-                "Reworked nameplates to work with Nameplates Volume 2 and hopefully further volumes. Please delete your existing 3y3 and re-apply it.",
-                "Applied an optimization to the UsrBg compatibility system which should reduce lag from fetching users when it is enabled."
+                "Fixed regression in 6.1.1 that made Fake Avatar Decorations stop working."
             ]
         }
     ],
@@ -2479,7 +2477,7 @@ module.exports = class YABDP4Nitro {
             }
 
             //                                      includes /a encoded?
-            let revealedText = this.getRevealedText(args[0], `\uDB40\uDC50\uDB40\uDC7B`);
+            let revealedText = this.getRevealedText(args[0], `\uDB40\uDC2F\uDB40\uDC61`);
             //if nothing's returned, or an empty string is returned, stop processing.
             if(revealedText == undefined) return;
             if(revealedText == "") return;
