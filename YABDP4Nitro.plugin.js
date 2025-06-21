@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.2
+ * @version 6.1.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -70,7 +70,6 @@ const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButt
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions} = StreamButtons;
 const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
-const Uploader = Webpack.getByKeys("uploadFiles","cancel");
 const UserStore = Webpack.getStore("UserStore");
 const CurrentUser = UserStore.getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
@@ -229,16 +228,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.2",
+        "version": "6.1.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.2",
+            title: "6.1.3",
             items: [
-                "Fixed regression in 6.1.1 that made Fake Avatar Decorations stop working."
+                "Fixed Upload Emoji, Soundmoji, and Stickers after Discord update."
             ]
         }
     ],
@@ -661,7 +660,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0)){
+        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0) || settings.stickerBypass){
             try{
                 this._sendMessageInsteadPatch();
             }catch(err){
@@ -2622,13 +2621,15 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     //#region Emote Uploader
-    async UploadEmote(url, channelIdLmao, msg, emoji, runs){
+    async UploadEmote(url, channelIdLmao, msg, emoji, runs, send){
+
+        if(!msg[2].attachmentsToUpload) msg[2].attachmentsToUpload = [];
         if(emoji === undefined){
-            let emoji;
+            let emoji = {animated: true, name: "default"};
         }
 
         if(msg === undefined){
-            let msg;
+            let msg = [channelIdLmao, {content: ""}, []];
         }
 
         let extension = ".gif";
@@ -2648,25 +2649,23 @@ module.exports = class YABDP4Nitro {
         let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelIdLmao, false, 0);
         fileUp.isImage = true;
 
-        //Options for the upload
-        let uploadOptions = new Object();
-        uploadOptions.channelId = channelIdLmao; //Upload to current channel
-        uploadOptions.uploads = [fileUp]; //The file from before
-        uploadOptions.draftType = 0; // Not sure what this does.
-        uploadOptions.options = {
-            stickerIds: [] //No stickers in the message
-        };
-        //Message attached to the upload.
-        uploadOptions.parsedMessage = { channelId: channelIdLmao, content: msg[1].content, tts: false, invalidEmojis: [] };
-
         //if this is not the first emoji uploaded
-        if(runs > 1){
+        if(runs >= 1){
             //make the message attached to the upload have no text
-            uploadOptions.parsedMessage = { channelId: channelIdLmao, content: "", tts: false, invalidEmojis: [] };
+            msg[1].content = "";
+            //clear nonce so this is sent as a new message
+            msg[2].nonce = "";
+            //clear list of attachments
+            msg[2].attachmentsToUpload = [];
         }
 
         try {
-            await Uploader.uploadFiles(uploadOptions); //finally finish the process of uploading
+            //add attachment
+            msg[2].attachmentsToUpload.unshift(fileUp);
+
+            //send and wait till its sent before moving on
+            await send.apply(undefined, msg);
+           
         } catch(err){
             Logger.error(this.meta.name, err);
         }
@@ -2674,7 +2673,7 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     //#region Soundmoji Uploader
-    async UploadSoundmojis(ids, channelId, msg, sounds){
+    async UploadSoundmojis(ids, channelId, msg, sounds, send){
 
         if(ids != undefined && channelId != undefined && msg != undefined){
             let files = [];
@@ -2688,17 +2687,10 @@ module.exports = class YABDP4Nitro {
                 files.push(fileUp);
                 fileUp.isAudio = true;
             }
-            let uploadOptions = new Object();
-            uploadOptions.channelId = channelId;
-            uploadOptions.draftType = 0;
-            uploadOptions.options = {
-                stickerIds: []
-            };
             if(files.length <= 10){
-                uploadOptions.uploads = files;
-                uploadOptions.parsedMessage = { channelId, content: msg.content, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
+                
                 try {
-                    await Uploader.uploadFiles(uploadOptions); //finally finish the process of uploading
+                    send(channelId, msg, {attachmentsToUpload: files}) //finally finish the process of uploading
                 } catch(err){
                     Logger.error(this.meta.name, err);
                 }
@@ -2707,13 +2699,10 @@ module.exports = class YABDP4Nitro {
                 let firstTime = true;
                 while (files.length){
                     let tenFiles = files.splice(0, 10);
-                    uploadOptions.uploads = tenFiles;
-                    if(firstTime)
-                        uploadOptions.parsedMessage = { channelId, content: msg.content, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
-                    else
-                        uploadOptions.parsedMessage = { channelId, content: "", tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
+                    // uploadOptions.uploads = tenFiles;
+                    if(!firstTime) msg.content = ""
                     try {
-                        await Uploader.uploadFiles(uploadOptions); //finally finish the process of uploading
+                        send(channelId, msg, {attachmentsToUpload: tenFiles});
                     } catch(err){
                         Logger.error(this.meta.name, err);
                     }
@@ -2897,7 +2886,7 @@ module.exports = class YABDP4Nitro {
                 if(emojis.length > 0){
                     //upload all emotes
                     for(let i = 0; i < emojis.length; i++){
-                        await this.UploadEmote(emojiUrls[i], currentChannelId, msg, emojis[i], i)
+                        await this.UploadEmote(emojiUrls[i], currentChannelId, msg, emojis[i], i, send)
                     }
                     //reset message content since we dont want a repeated message if soundmoji upload happens next
                     msg[1].content = "";
@@ -2906,7 +2895,35 @@ module.exports = class YABDP4Nitro {
             
             if(settings.soundmojiEnabled){
                 if(sounds.length > 0)
-                    await this.UploadSoundmojis(ids, channelId, msg[1], sounds);
+                    await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
+            }
+
+            if(settings.stickerBypass){
+                let stickerIds = msg[2]?.stickerIds;
+                let currentChannelId = SelectedChannelStore.getChannelId();
+                if(stickerIds){
+                    for(let i = 0; i < stickerIds.length; i++){
+                        let stickerId = stickerIds[i];
+                        let stickerURL = "https://media.discordapp.net/stickers/" + stickerId + ".png?size=4096&quality=lossless";
+                        let msgtemp = [...msg];
+                        msgtemp[2].stickerIds = [];
+                        if(i > 0) msgtemp[1].content = "";
+        
+                        if(settings.uploadStickers){
+                            let emoji = new Object();
+                            emoji.animated = false;
+                            emoji.name = "sticker";
+                            this.UploadEmote(stickerURL, currentChannelId, msgtemp, emoji, 0, send);
+                            return;
+                        } else{
+                            let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
+                            MessageActions.sendMessage(currentChannelId, messageContent, undefined, {});
+                            return;
+                        }
+                    }
+                }
+    
+                
             }
 
             if(emojis.length == 0 && sounds.length == 0){
@@ -2933,81 +2950,6 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(this.meta.name, isEmojiAvailableMod, "getEmojiUnavailableReason", () => {
             return;
         });
-
-        if(settings.emojiBypassType == 0){
-
-            //#region uploadFiles Upload
-            Patcher.instead(this.meta.name, Uploader, "uploadFiles", (_, [args], originalFunction) => {
-
-                if(document.getElementsByClassName("sdc-tooltip").length > 0){
-                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
-                        //SDC Encryption Enabled
-                        originalFunction(args);
-                        return;
-                    }
-                }
-                const currentChannelId = args.channelId;
-                let emojis = [];
-                let runs = 0;
-
-                if(args.parsedMessage.validNonShortcutEmojis != undefined){
-                    if(args.parsedMessage.validNonShortcutEmojis.length > 0){
-                        args.parsedMessage.validNonShortcutEmojis.forEach(emoji => {
-                            if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
-                            if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
-                            if(settings.PNGemote){
-                                emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
-                            }
-
-                            let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-                            if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
-                            if(emoji.animated){
-                                emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
-                            }
-
-                            //If there is a backslash (\) before the emote we are processing,
-                            if(args.parsedMessage.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
-                                //remove the backslash
-                                args.parsedMessage.content = args.parsedMessage.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-                                //and skip bypass for that emote
-                                return;
-                            }
-
-                            //add to list of emojis
-                            emojis.push(emoji);
-
-                            //remove emote from message.
-                            args.parsedMessage.content = args.parsedMessage.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
-                        });
-
-                        //send file with text and shit
-                        originalFunction(args);
-
-                        //loop through emotes to send one at a time. this has technically no delay so it may trigger anti-spam.
-                        for(let i = 0; i < emojis.length; i++){
-                            let emoji = emojis[i];
-                            let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-                            if(emoji.animated){
-                                emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
-                            }
-
-                            //remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-                            emojiUrl = emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&`;
-
-                            this.UploadEmote(emojiUrl, currentChannelId, [currentChannelId, { content: "", tts: false, invalidEmojis: [] }], emoji, 1);
-                        }
-
-                    }else{
-                        originalFunction(args);
-                    }
-                }else{
-                    originalFunction(args);
-                }
-
-            });
-            //#endregion
-        }
 
         //#region Ghost Mode Patch
         //Ghost mode method
@@ -3065,13 +3007,6 @@ module.exports = class YABDP4Nitro {
                 ghostModeMethod(msg, currentChannelId, this);
             });
 
-            //uploading file with emoji in the message in ghost mode.
-            Patcher.before(this.meta.name, Uploader, "uploadFiles", (_, [args], originalFunction) => {
-                const currentChannelId = args.channelId;
-                const msg = args.parsedMessage;
-                ghostModeMethod(msg, currentChannelId, this);
-            });
-
         }
         //#endregion
 
@@ -3111,13 +3046,6 @@ module.exports = class YABDP4Nitro {
 
             //sending message in classic mode
             Patcher.before(this.meta.name, MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-                classicModeMethod(msg, currentChannelId, this);
-            });
-
-            //uploading file with emoji in the message in classic mode.
-            Patcher.before(this.meta.name, Uploader, "uploadFiles", (_, [args], originalFunction) => {
-                const msg = args.parsedMessage;
-                const currentChannelId = args.channelId;
                 classicModeMethod(msg, currentChannelId, this);
             });
 
@@ -3169,13 +3097,6 @@ module.exports = class YABDP4Nitro {
 
             //sending message in vencord-like mode
             Patcher.before(this.meta.name, MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-                vencordModeMethod(msg, currentChannelId, this);
-            });
-
-            //uploading file with emoji in the message in vencord-like mode.
-            Patcher.before(this.meta.name, Uploader, "uploadFiles", (_, [args], originalFunction) => {
-                const msg = args.parsedMessage;
-                const currentChannelId = args.channelId;
                 vencordModeMethod(msg, currentChannelId, this);
             });
         }
@@ -3372,7 +3293,7 @@ module.exports = class YABDP4Nitro {
                 emoji.animated = false;
                 emoji.name = args[0];
                 let msg = [undefined, { content: "" }];
-                this.UploadEmote(stickerURL, currentChannelId, [undefined, { content: "" }], emoji);
+                this.UploadEmote(stickerURL, currentChannelId, msg, emoji, 1, send);
                 return;
             }
             if(!settings.uploadStickers){
@@ -3417,7 +3338,7 @@ module.exports = class YABDP4Nitro {
 
         Patcher.after(this.meta.name, this.colorPickerRendererMod, "ProfileThemesSection", (_, args, ret) => {
 
-            ret.props.children.props.children.push( //append copy colors 3y3 button
+            ret.props.children.props.children.push.push( //append copy colors 3y3 button
                 React.createElement("button", {
                     id: "copy3y3button",
                     children: "Copy Colors 3y3",
