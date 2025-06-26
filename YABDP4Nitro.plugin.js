@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.3
+ * @version 6.1.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -139,7 +139,7 @@ const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
 const InvalidStreamSettingsModal = Webpack.getMangled(/\.preset\)&&.{1,3}?===.{1,3}?resolution&&/, {
     areStreamSettingsAllowed: x=>x
 });
-const GoLiveModalV2UpsellMod = BdApi.Webpack.getMangled("onNitroClick:function", {
+const GoLiveModalV2UpsellMod = Webpack.getMangled("onNitroClick:function", {
     GoLiveModalV2Upsell: x=>x==x
 });
 const fs = require("fs");
@@ -228,16 +228,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.3",
+        "version": "6.1.4",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.3",
+            title: "6.1.4",
             items: [
-                "Fixed Upload Emoji, Soundmoji, and Stickers after Discord update."
+                "Fixed Fake Profile Themes Copy 3y3 Button not appearing due to a typo.",
+                "Fixed regression causing Fake Profile Themes colors to not be copied in certain scenarios."
             ]
         }
     ],
@@ -3337,8 +3338,7 @@ module.exports = class YABDP4Nitro {
         });
 
         Patcher.after(this.meta.name, this.colorPickerRendererMod, "ProfileThemesSection", (_, args, ret) => {
-
-            ret.props.children.props.children.push.push( //append copy colors 3y3 button
+            ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
                     id: "copy3y3button",
                     children: "Copy Colors 3y3",
@@ -3350,7 +3350,7 @@ module.exports = class YABDP4Nitro {
                     onClick: () => {
                         let themeColors;
                         themeColors = UserSettingsAccountStore.getAllPending().pendingThemeColors;
-                        if(!themeColors && (CurrentUser.premiumType == null || CurrentUser.premiumType == undefined) && !settings.removeProfileUpsell)
+                        if(!themeColors)
                             themeColors = UserSettingsAccountStore.getAllTryItOut().tryItOutThemeColors;
                         if(!themeColors){
                             UI.showToast("Nothing has been copied. Is the selected color identical to your current color?", { type: "warning" });
