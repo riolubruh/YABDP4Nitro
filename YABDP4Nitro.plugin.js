@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.4
+ * @version 6.1.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -228,17 +228,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.4",
+        "version": "6.1.5",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.4",
+            title: "6.1.5",
             items: [
-                "Fixed Fake Profile Themes Copy 3y3 Button not appearing due to a typo.",
-                "Fixed regression causing Fake Profile Themes colors to not be copied in certain scenarios."
+                "Fixed regression causing real Nitro banners to not appear."
             ]
         }
     ],
@@ -3413,6 +3412,7 @@ module.exports = class YABDP4Nitro {
 
         //Patch getBannerURL function
         Patcher.instead(this.meta.name, getBannerURL, "getBannerURL", (user, [args], ogFunction) => {
+
             let profile = user._userProfile;
 
             //Returning ogFunction with the same arguments that were passed to this function will do the vanilla check for a legit banner.
@@ -3469,7 +3469,7 @@ module.exports = class YABDP4Nitro {
 
                 //return final banner URL.
                 return `https://i.imgur.com/${matchedText}`;
-            }
+            }else return ogFunction(args);
         }); //End of patch for getBannerURL
     } //End of bannerUrlDecoding()
     //#endregion
