@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.1.5
+ * @version 6.2.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -205,7 +205,8 @@ const defaultSettings = {
     "zipClip": true,
     "enableClipsExperiment": true,
     "disableUserBadge": false,
-    "nameplatesEnabled": true
+    "nameplatesEnabled": true,
+    "clipTimestamp": 2
 };
 const defaultData = {
     avatarDecorations: {},
@@ -228,16 +229,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.1.5",
+        "version": "6.2.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.1.5",
+            title: "6.2.0",
             items: [
-                "Fixed regression causing real Nitro banners to not appear."
+                "Added the ability to load FFmpeg.js from the local disk if it is placed in the BD plugins folder in a folder named ffmpeg.",
+                "Updated Experiments option description to be more helpful.",
+                "Added the ability to change how the timestamp on Clips is determined between Zero, Current, and Last Modified Date.",
+                "Fixed Fake Inline Hyperlink Emotes sometimes putting error messages in console."
             ]
         }
     ],
@@ -352,6 +356,12 @@ const config = {
             shown: false,
             settings: [
                 { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB. Enabling this option will also enable Experiments.", value: () => settings.useClipBypass },
+                { type: "dropdown", id: "clipTimestamp", name: "Timestamp", note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.", value: () => settings.clipTimestamp, options: [
+                        { label: "Zero (January 1st, 2015)", value: 0 },
+                        { label: "Current Date/Time", value: 1 },
+                        { label: "Last Modified Date/Time of File", value: 2 },
+                    ]
+                },
                 { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42.", value: () => settings.alwaysTransmuxClips },
                 { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
                 { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
@@ -372,7 +382,7 @@ const config = {
                 { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
                 { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
                 { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
-                { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Use at your own risk.", value: () => settings.experiments },
+                { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.", value: () => (settings.experiments || settings.soundmojiEnabled || (settings.useClipBypass && settings.enableClipsExperiment))},
                 { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
             ]
         }
@@ -1400,8 +1410,10 @@ module.exports = class YABDP4Nitro {
 
                if(currentFile.file.name.endsWith(".dlfc")) return;
 
+               console.log(currentFile);
+
                 const clipData = {
-                    "id": "",
+                    "id": 0,
                     "version": 3,
                     "applicationName": "",
                     "applicationId": "1301689862256066560",
@@ -1414,6 +1426,18 @@ module.exports = class YABDP4Nitro {
                     "filepath": "",
                     "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
                 };
+
+                switch(settings.clipTimestamp){
+                    default:
+                    case 0: //Zero
+                        break;
+                    case 1: //Current Time
+                        clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
+                        break;
+                    case 2: //Last Modified Date
+                        clipData.id = (BigInt(currentFile.file.lastModified) - 1420070400000n) << 22n;
+                        break;
+                }
 
                 // #region MP4 Clip
                 //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip
@@ -1713,7 +1737,22 @@ module.exports = class YABDP4Nitro {
             ffmpegScript.remove();
         }
 
-        async function fetchAndRetryWithNetFetch(filename){
+        function tryFetchFromDisk(filename, encoding){
+            const basepath = path.join(BdApi.Plugins.folder, "ffmpeg");
+            let filepath = path.join(basepath, filename);
+            try{
+                if(fs.existsSync(filepath)){
+                    let file = fs.readFileSync(filepath, encoding);
+                    Logger.info("YABDP4Nitro", `Fetch from disk for file ${filename} succeeded.`);
+                    return file;
+                }
+            }catch(err){
+                Logger.warn("YABDP4Nitro", "Tried to read " + filename + "from disk but an error occurred.");
+                Logger.warn("YABDP4Nitro", err);
+            }
+        }
+
+        async function fetchAndRetryWithNetFetch(filename){            
             const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
             let res = await fetch(ffmpeg_js_baseurl + filename, { timeout: 100000, cache: "force-cache" });
             if(res.ok || res.status == 200) {
@@ -1730,14 +1769,34 @@ module.exports = class YABDP4Nitro {
             }
         }
 
+        async function fetchBlobUrl(filename){
+            try{
+                let blobUrl;
+                let file = tryFetchFromDisk(filename, "");
+                if(file) blobUrl = URL.createObjectURL(new Blob([file]));
+                else blobUrl = URL.createObjectURL(await (await fetchAndRetryWithNetFetch(filename)).blob());
+                return blobUrl;
+            }catch(err){
+                Logger.error(this.meta.name, "An error occurred while fetching " + filename);
+                throw err;
+            }
+        }
+
         try {
 
             //load 814.ffmpeg.js (ffmpeg worker)
-            let ffmpegWorkerURL = URL.createObjectURL(await (await fetchAndRetryWithNetFetch("814.ffmpeg.js")).blob());
-            
+            let ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
 
             //load FFmpeg.js as text
-            let ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
+            let ffmpegSrc;
+            try{
+                let file = tryFetchFromDisk("ffmpeg.js");
+                if(file) ffmpegSrc = file;
+                else ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
+            }catch(err){
+                Logger.error(this.meta.name, "An error occurred while fetching ffmpeg.js");
+                throw err;
+            }
 
             //patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
             ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
@@ -1761,9 +1820,9 @@ module.exports = class YABDP4Nitro {
             window.global.define = defineTemp;
 
             //load ffmpeg core
-            let ffmpegCoreURL = URL.createObjectURL(await (await fetchAndRetryWithNetFetch("ffmpeg-core.js")).blob());
+            let ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
 
-            let ffmpegCoreWasmURL = URL.createObjectURL(await (await fetchAndRetryWithNetFetch("ffmpeg-core.wasm")).blob());
+            let ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
 
             if(FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
                 ffmpeg = new FFmpegWASM.FFmpeg();
@@ -1785,7 +1844,7 @@ module.exports = class YABDP4Nitro {
             }
         } catch(err) {
             UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
-            Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages when reporting!");
+            Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
             Logger.error(this.meta.name, err);
         } finally {
             //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
@@ -3110,7 +3169,7 @@ module.exports = class YABDP4Nitro {
             for(let i = 0; i < args.content.length; i++){
                 let contentItem = args.content[i];
 
-                if(contentItem.type.type?.toString().includes("MASKED_LINK")){ //is it a hyperlink?
+                if(contentItem?.type?.type?.toString?.().includes?.("MASKED_LINK")){ //is it a hyperlink?
 
                     if(contentItem.props.href.startsWith("https://cdn.discordapp.com/emojis/")){ //does this hyperlink have an emoji URL?
 
