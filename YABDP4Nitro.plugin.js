@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.0
+ * @version 6.2.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -229,19 +229,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.0",
+        "version": "6.2.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.0",
+            title: "6.2.1",
             items: [
-                "Added the ability to load FFmpeg.js from the local disk if it is placed in the BD plugins folder in a folder named ffmpeg.",
-                "Updated Experiments option description to be more helpful.",
-                "Added the ability to change how the timestamp on Clips is determined between Zero, Current, and Last Modified Date.",
-                "Fixed Fake Inline Hyperlink Emotes sometimes putting error messages in console."
+                "Fixed incompatibility issue between Upload Emoji and FreeStickers.",
+                "Fixed FFmpeg output error message having newlines.",
+                "Fixed FFmpeg transmux failing if the video file contains a data stream."
             ]
         }
     ],
@@ -1352,7 +1351,7 @@ module.exports = class YABDP4Nitro {
         async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
             if(ffmpeg){
                 if(!ffmpegArguments)
-                    ffmpegArguments = ["-i",inFileName,"-codec","copy","-brand","isom/avc1","-movflags","+faststart",
+                    ffmpegArguments = ["-i",inFileName,"-codec","copy","-dn","-map_chapters","-1","-brand","isom/avc1","-movflags","+faststart",
                                        "-map","0","-map_metadata","-1","-map_chapters","-1",outFileName];
                 
                 await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
@@ -1365,9 +1364,9 @@ module.exports = class YABDP4Nitro {
                 ffmpeg.deleteFile(outFileName);
                 
                 if(data.length == 0){
-                    throw new Error(`An error occurred during muxing/encoding: Output file ended up empty or doesn't exist,
-                                    likely due to an FFmpeg error. Please check the FFmpeg logs above. If you need assistance,
-                                    please use the support channel in the Discord server.`);
+                    throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + 
+                                    "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
+                                    "If you need assistance, please use the support channel in the Discord server.");
                 }
 
                 return data.buffer;
@@ -1377,7 +1376,7 @@ module.exports = class YABDP4Nitro {
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
 
             let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=400x50","-i",inFileName,"-shortest","-fflags","+shortest", 
-                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-map_chapters","-1",
+                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
                 "-preset","ultrafast","-c:a","copy","-strict","-2","-tune", "stillimage","-r","1", outFileName];
 
             return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
@@ -2880,7 +2879,7 @@ module.exports = class YABDP4Nitro {
                 }    
 
                 if(!SDCEnabled){
-                    msg[1].validNonShortcutEmojis.forEach(async emoji => {
+                    msg[1].validNonShortcutEmojis?.forEach?.(async emoji => {
                         if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
                         if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
                         if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
