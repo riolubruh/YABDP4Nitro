@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.1
+ * @version 6.2.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -11,26 +11,7 @@
  */
 /*@cc_on
 @if(@_jscript)
-	
-    // Offer to self-install for clueless users that try to run this directly.
-    var shell = WScript.CreateObject("WScript.Shell");
-    var fs = new ActiveXObject("Scripting.FileSystemObject");
-    var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
-    var pathSelf = WScript.ScriptFullName;
-    // Put the user at ease by addressing them in the first person
-    shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
-    if(fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)){
-        shell.Popup("I'm in the correct folder already.", 0, "I'm already installed", 0x40);
-    }else if(!fs.FolderExists(pathPlugins)){
-        shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
-    }else if(shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6){
-        fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
-        // Show the user where to put plugins in the future
-        shell.Exec("explorer " + pathPlugins);
-        shell.Popup("I'm installed!", 0, "Successfully installed", 0x40);
-    }
     WScript.Quit();
-
 @else@*/
 
 /*    ***** ATTRIBUTION NOTICE *****
@@ -107,7 +88,7 @@ const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientTh
 });
 const accountSwitchModule = Webpack.getByKeys("startSession","login");
 const getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
-const fetchProfileEffects = Webpack.getByStrings("USER_PROFILE_EFFECTS_FETCH",{searchExports: true});
+const fetchProfileEffects = Webpack.getByStrings("PROFILE_EFFECTS_FETCH_ALL",{searchExports: true});
 const SoundboardStore = Webpack.getStore("SoundboardStore");
 const EmojiStore = Webpack.getStore("EmojiStore");
 const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
@@ -144,7 +125,7 @@ const GoLiveModalV2UpsellMod = Webpack.getMangled("onNitroClick:function", {
 });
 const fs = require("fs");
 const path = require("path");
-const NameplateSectionMod = Webpack.getMangled(/\{pendingNameplate:.{1,3}?,pendingErrors:.{1,3}?\}=\(/, {
+const NameplateSectionMod = Webpack.getMangled(/pendingNameplate:.{1,3}?,pendingErrors:.{1,3}?/, {
     NameplateSection: x=>x
 });
 const UserSettingsAccountStore = Webpack.getStore("UserSettingsAccountStore");
@@ -229,18 +210,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.1",
+        "version": "6.2.2",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.1",
+            title: "6.2.2",
             items: [
-                "Fixed incompatibility issue between Upload Emoji and FreeStickers.",
-                "Fixed FFmpeg output error message having newlines.",
-                "Fixed FFmpeg transmux failing if the video file contains a data stream."
+                "Fixed Change Nameplate button no longer appearing after Discord updates.",
+                "Fixed Change Profile Effect button not appearing after Discord updated profile effect fetching slightly.",
+                "Removed JScript self-install helper tool (now instead it immediately exits if it is run that way) to see if it will reduce AV false positives as AV software doesn't seem to like it(?)."
             ]
         }
     ],
@@ -2344,8 +2325,7 @@ module.exports = class YABDP4Nitro {
         }); //end of getUserProfile patch.
 
         //wait for profile effect section renderer to be loaded.
-        await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId", "isTryItOutFlow"));
-
+        await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId", "isTryItOutFlow", "pendingProfileEffectId"));
         //fetch the module now that it's loaded
         if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getMangled(/isTryItOutFlow:.{1,3}=!1,initialSelectedEffectId/, {
             ProfileEffectSection: x=>x
