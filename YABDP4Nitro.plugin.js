@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.2
+ * @version 6.2.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -210,19 +210,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.2",
+        "version": "6.2.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.2",
+            title: "6.2.3",
             items: [
-                "Fixed Change Nameplate button no longer appearing after Discord updates.",
-                "Fixed Change Profile Effect button not appearing after Discord updated profile effect fetching slightly.",
-                "Removed JScript self-install helper tool (now instead it immediately exits if it is run that way) to see if it will reduce AV false positives as AV software doesn't seem to like it(?)."
-            ]
+                "Fixed a freeze caused by an infinite loop if DevilBro's ChatFilter is installed and enabled at the same time as either Fake Nameplates or Fake Avatar Decorations.",
+                ]
         }
     ],
     settingsPanel: [
@@ -710,8 +708,17 @@ module.exports = class YABDP4Nitro {
                 }
             }
         }
+
+        
+        let customStatusActivity;
+        try{
+            //avoid using findActivity function due to conflict with ChatFilter (#290)
+            customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+        }catch(err){
+            Logger.error(this.meta.name, "Couldn't get custom status, oh god oh shit!", err);
+        }
         //get Custom Status
-        let customStatusActivity = PresenceStore.findActivity(userId,(e) => e.name == "Custom Status" || e.id == "custom");
+        
         //if the user has a custom status
         if(customStatusActivity) {
             //grab the text from the custom status
