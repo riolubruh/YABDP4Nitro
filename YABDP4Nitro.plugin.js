@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.3
+ * @version 6.2.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -50,30 +50,81 @@ const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
 const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions} = StreamButtons;
-const CloudUploader = Webpack.getModule(Webpack.Filters.byPrototypeKeys("uploadFileToCloud"),{searchExports: true});
-const UserStore = Webpack.getStore("UserStore");
+
+const [
+    UserStore,
+    getBannerURLMod,
+    UserProfileStore,
+    buttonClassModule,
+    Dispatcher,
+    AvatarDefaults,
+    LadderModule,
+    FetchCollectibleCategories,
+    PresenceStore,
+    SelectedGuildStore,
+    ChannelStore,
+    MessageActions,
+    SelectedChannelStore,
+    MessageEmojiReact,
+    renderEmbedsMod,
+    clientThemesModule,
+    streamSettingsMod,
+    accountSwitchModule,
+    getAvatarUrlModule,
+    fetchProfileEffects,
+    SoundboardStore,
+    EmojiStore,
+    isEmojiAvailableMod,
+    TextClasses,
+    videoOptionFunctions,
+    addFilesMod,
+    RegularAppIcon,
+    CurrentDesktopIcon,
+    CustomAppIcon,
+    ClipsStore,
+    UserSettingsAccountStore,
+    NameplatePreview,
+    CloudUploader
+] = Webpack.getBulk(
+    {filter: Webpack.Filters.byStoreName('UserStore')},
+    {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
+    {filter: Webpack.Filters.byStoreName('UserProfileStore')},
+    {filter: Webpack.Filters.byKeys("lookFilled","button","contents")}, //buttonClassModule
+    {filter: Webpack.Filters.byKeys("subscribe","dispatch")}, 
+    {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
+    {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
+    {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
+    {filter: Webpack.Filters.byStoreName('PresenceStore')},
+    {filter: Webpack.Filters.byStoreName('SelectedGuildStore')},
+    {filter: Webpack.Filters.byStoreName('ChannelStore')},
+    {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")}, 
+    {filter: Webpack.Filters.byStoreName('SelectedChannelStore')},
+    {filter: Webpack.Filters.byStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?'), searchExports: true}, //MessageEmojiReact
+    {filter: Webpack.Filters.byPrototypeKeys('renderSocialProofingFileSizeNitroUpsell'), searchExports:true}, //renderEmbedsMod
+    {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
+    {filter: Webpack.Filters.byPrototypeKeys('getCodecOptions')}, //streamSettingsMod
+    {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
+    {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
+    {filter: Webpack.Filters.byStrings('{type:"PROFILE_EFFECTS_FETCH_ALL"'), searchExports: true},
+    {filter: Webpack.Filters.byStoreName('SoundboardStore')},
+    {filter: Webpack.Filters.byStoreName('EmojiStore')},
+    {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
+    {filter: Webpack.Filters.byKeys("errorMessage","h5")},
+    {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
+    {filter: Webpack.Filters.byKeys("addFiles")},
+    {filter: Webpack.Filters.byStrings('M19.73 4.87a18.2'), searchExports: true}, //RegularAppIcon
+    {filter: Webpack.Filters.byStoreName('AppIconPersistedStoreState')},
+    {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
+    {filter: Webpack.Filters.byStoreName('ClipsStore')},
+    {filter: Webpack.Filters.byStoreName('UserSettingsAccountStore')},
+    {filter: Webpack.Filters.byStrings('nameplate', 'nameplateData', 'nameplatePreview', 'nameplatePurchased')}, //NameplatePreview
+    {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true}
+);
 const CurrentUser = UserStore.getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
-const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
-const UserProfileStore = Webpack.getStore("UserProfileStore");
-const buttonClassModule = Webpack.getByKeys("lookFilled","button","contents");
-const Dispatcher = Webpack.getByKeys("subscribe","dispatch");
 const canUserUseMod = Webpack.getMangled(".getFeatureValue(",{
     canUserUse: Webpack.Filters.byStrings("getFeatureValue")
 });
-const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
-const LadderModule = Webpack.getModule(Webpack.Filters.byKeys("calculateLadder"),{searchExports: true});
-const FetchCollectibleCategories = Webpack.getByStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"',{searchExports: true});
-let ffmpeg = undefined;
-const udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
-const udtaBuffer = udta.buffer;
-const PresenceStore = Webpack.getStore("PresenceStore");
-const SelectedGuildStore = Webpack.getStore("SelectedGuildStore");
-const ChannelStore = Webpack.getStore("ChannelStore");
-const MessageActions = Webpack.getByKeys("jumpToMessage","_sendMessage");
-const SelectedChannelStore = Webpack.getStore("SelectedChannelStore");
-const MessageEmojiReact = Webpack.getByStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?',{searchExports: true});
-const renderEmbedsMod = Webpack.getByPrototypeKeys('renderSocialProofingFileSizeNitroUpsell',{searchExports: true}).prototype;
 const messageRender = Webpack.getMangled('.SEND_FAILED,',{
     renderMessage: o => typeof o === "object"
 });
@@ -81,62 +132,42 @@ const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD
     getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
     isSendableSticker: Webpack.Filters.byStrings(")=>0===")
 });
-const clientThemesModule = Webpack.getModule(Webpack.Filters.byKeys("isPreview"));
-const streamSettingsMod = Webpack.getByPrototypeKeys("getCodecOptions").prototype;
 const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientThemeSettings:{",{
     saveClientTheme: Webpack.Filters.byStrings("changes:{appearance:{settings:{clientThemeSettings:{")
 });
-const accountSwitchModule = Webpack.getByKeys("startSession","login");
-const getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
-const fetchProfileEffects = Webpack.getByStrings("PROFILE_EFFECTS_FETCH_ALL",{searchExports: true});
-const SoundboardStore = Webpack.getStore("SoundboardStore");
-const EmojiStore = Webpack.getStore("EmojiStore");
-const isEmojiAvailableMod = Webpack.getByKeys("isEmojiFilteredOrLocked");
-const TextClasses = Webpack.getByKeys("errorMessage","h5");
-const videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-const appIconButtonsModule = Webpack.getMangled(/isEditor:.{1,3},renderCTAButtons/,{
+const appIconButtonsModule = Webpack.getMangled(Webpack.Filters.byStrings("isEditor","renderCTAButtons"),{
     CTAButtons: x=>x
 });
-const addFilesMod = Webpack.getByKeys("addFiles");
 const AppIcon = Webpack.getMangled("AppIconHome", {
     AppIconHome: x=>x
 });
-const RegularAppIcon = Webpack.getByStrings("M19.73 4.87a18.2",{searchExports: true});
-const CurrentDesktopIcon = Webpack.getStore("AppIconPersistedStoreState");
-const CustomAppIcon = Webpack.getByStrings(".iconSource,width:");
 const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"',{
     useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
     areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
     isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
 });
 const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`,{
-    isClipsClientCapable: (x) => x == x //just get the first result lol
+    isClipsClientCapable: x=>x //just get the first result lol
 });
-const ClipsStore = Webpack.getStore("ClipsStore");
 const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
     getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
     exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
 });
-const InvalidStreamSettingsModal = Webpack.getMangled(/\.preset\)&&.{1,3}?===.{1,3}?resolution&&/, {
+const InvalidStreamSettingsModal = Webpack.getMangled(Webpack.Filters.byStrings("preset)&&","resolution&&","fps&&"), {
     areStreamSettingsAllowed: x=>x
 });
 const GoLiveModalV2UpsellMod = Webpack.getMangled("onNitroClick:function", {
-    GoLiveModalV2Upsell: x=>x==x
+    GoLiveModalV2Upsell: x=>x
 });
 const fs = require("fs");
 const path = require("path");
-const NameplateSectionMod = Webpack.getMangled(/pendingNameplate:.{1,3}?,pendingErrors:.{1,3}?/, {
+const NameplateSectionMod = Webpack.getMangled(Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate"), {
     NameplateSection: x=>x
 });
-const UserSettingsAccountStore = Webpack.getStore("UserSettingsAccountStore");
-const NameplatePalettes = Webpack.getBySource('Crimson', "darkBackground", "lightBackground", {searchExports:true});
-const NameplatePreview = Webpack.getByRegex(/user:.{1,3}?,nameplate:.{1,3}?,nameplateData:/);
 //#endregion
 
-// Calc CRC32 Table
-const crcTable = Array.from({ length: 256 }, (_, i) =>
-    Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
-        (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
+//clips related variables
+let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
 
 const defaultSettings = {
     "emojiSize": 64,
@@ -210,17 +241,22 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.3",
+        "version": "6.2.4",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.3",
+            title: "6.2.4",
             items: [
-                "Fixed a freeze caused by an infinite loop if DevilBro's ChatFilter is installed and enabled at the same time as either Fake Nameplates or Fake Avatar Decorations.",
-                ]
+                "Changed 21 module fetches to be done in bulk rather than one after the other to reduce initial plugin load time.",
+                "Changed CRC Table calculation to be done on-demand when you first use ZipClips rather than on plugin load which will reduce the lag on load.",
+                "Changed conversion of Base64 data for ZipClips to only occur once it's necessary (slight optimization).",
+                "Fixed module filter for NameplatePreview fetching the wrong function after a Discord update.",
+                "Made Stream Settings Quick Swapper no longer show Custom Resolution or Custom FPS if the respective option is disabled to prevent confusion.",
+                "Replaced regex module filters with alternatives cause regex is slow."
+            ]
         }
     ],
     settingsPanel: [
@@ -712,12 +748,12 @@ module.exports = class YABDP4Nitro {
         
         let customStatusActivity;
         try{
+            //get Custom Status
             //avoid using findActivity function due to conflict with ChatFilter (#290)
             customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
         }catch(err){
-            Logger.error(this.meta.name, "Couldn't get custom status, oh god oh shit!", err);
+            Logger.error(this.meta.name, "Something went wrong getting custom status, oh god oh shit!", err);
         }
-        //get Custom Status
         
         //if the user has a custom status
         if(customStatusActivity) {
@@ -823,11 +859,13 @@ module.exports = class YABDP4Nitro {
                         children: React.createElement(NameplatePreview, {
                             user: CurrentUser,
                             isHighlighted: true,
-                            nameplateData: {
-                                imgAlt: nameplate.name,
-                                src: `nameplates/${nameplate.asset}`,
-                                palette: NameplatePalettes[nameplate.palette]
+                            nameplate: {
+                                asset: `nameplates/${nameplate.asset}`,
+                                palette: nameplate.palette,
+                                type: 2,
+                                label: nameplate.label
                             },
+                            isPurchased: true
                         }),
                         style: {
                             borderRadius: "10px",
@@ -910,73 +948,75 @@ module.exports = class YABDP4Nitro {
                 //Preparations 
                 const childrenOfParentOfQualityButtonsSection = ret?.props?.children?.props?.children?.props?.children[1]?.props?.children;
                 const streamQualityButtonsSection = childrenOfParentOfQualityButtonsSection[0]?.props?.children;
-
-                const resolutionButtonsSection = streamQualityButtonsSection[0]?.props;
-
-                const fpsButtonsSection = streamQualityButtonsSection[1]?.props;
-
-                //Resolution input
-                if(resolutionButtonsSection?.children){
-                    //make each section into arrays so we can add another element
-                    if(!Array.isArray(resolutionButtonsSection.children))
-                        resolutionButtonsSection.children = [resolutionButtonsSection.children];
-
-                    const thirdResolutionButton = resolutionButtonsSection?.children[0]?.props?.buttons[2];
-
-                    resolutionButtonsSection?.children?.push(React.createElement("div", {
-                        children: [
-                            React.createElement("h1", {
-                                children: "CUSTOM RESOLUTION",
-                                className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
-                            }),
-                            React.createElement(Components.NumberInput, {
-                                value: settings.CustomResolution,
-                                min: -1,
-                                onChange: (input) => {
-                                    input = parseInt(input);
-                                    if(isNaN(input)) input = 1440;
-                                    settings.CustomResolution = input;
-                                    //updates visual
-                                    thirdResolutionButton.value = input;
-                                    //sets values and saves to settings
-                                    this.customizeStreamButtons();
-                                    //simulate click on button -- serves to both select it and to make react re-render it.
-                                    thirdResolutionButton.onClick();
-                                }
-                            })
-                        ]
-                    }));
-                }
                 
-                if(fpsButtonsSection?.children){
+                if(settings.ResolutionEnabled){
+                    const resolutionButtonsSection = streamQualityButtonsSection[0]?.props;
+                    //Resolution input
+                    if(resolutionButtonsSection?.children){
+                        //make each section into arrays so we can add another element
+                        if(!Array.isArray(resolutionButtonsSection.children))
+                            resolutionButtonsSection.children = [resolutionButtonsSection.children];
+    
+                        const thirdResolutionButton = resolutionButtonsSection?.children[0]?.props?.buttons[2];
+    
+                        resolutionButtonsSection?.children?.push(React.createElement("div", {
+                            children: [
+                                React.createElement("h1", {
+                                    children: "CUSTOM RESOLUTION",
+                                    className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                }),
+                                React.createElement(Components.NumberInput, {
+                                    value: settings.CustomResolution,
+                                    min: -1,
+                                    onChange: (input) => {
+                                        input = parseInt(input);
+                                        if(isNaN(input)) input = 1440;
+                                        settings.CustomResolution = input;
+                                        //updates visual
+                                        thirdResolutionButton.value = input;
+                                        //sets values and saves to settings
+                                        this.customizeStreamButtons();
+                                        //simulate click on button -- serves to both select it and to make react re-render it.
+                                        thirdResolutionButton.onClick();
+                                    }
+                                })
+                            ]
+                        }));
+                    }
+                }
 
-                    fpsButtonsSection.children = [fpsButtonsSection.children];
+                if(settings.CustomFPSEnabled){
+                    const fpsButtonsSection = streamQualityButtonsSection[1]?.props;
+                    if(fpsButtonsSection?.children){
 
-                    const thirdFpsButton = fpsButtonsSection?.children[0]?.props?.buttons[2];
-
-                    fpsButtonsSection?.children.push(React.createElement("div", {
-                        children: [
-                            React.createElement("h1", {
-                                children: "CUSTOM FRAME RATE",
-                                className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
-                            }),
-                            React.createElement(Components.NumberInput, {
-                                value: settings.CustomFPS,
-                                min: -1,
-                                onChange: (input) => {
-                                    input = parseInt(input);
-                                    if(isNaN(input)) input = 60;
-                                    settings.CustomFPS = input;
-                                    //updates visual
-                                    thirdFpsButton.value = input;
-                                    //sets values and saves to settings
-                                    this.customizeStreamButtons();
-                                    //simulate click on button -- serves to both select it and to make react re-render it.
-                                    thirdFpsButton.onClick();
-                                }
-                            })
-                        ]
-                    }));
+                        fpsButtonsSection.children = [fpsButtonsSection.children];
+    
+                        const thirdFpsButton = fpsButtonsSection?.children[0]?.props?.buttons[2];
+    
+                        fpsButtonsSection?.children.push(React.createElement("div", {
+                            children: [
+                                React.createElement("h1", {
+                                    children: "CUSTOM FRAME RATE",
+                                    className: `${TextClasses.h5} ${TextClasses.eyebrow} ${this.FormModalClasses.formItemTitleSlim}`
+                                }),
+                                React.createElement(Components.NumberInput, {
+                                    value: settings.CustomFPS,
+                                    min: -1,
+                                    onChange: (input) => {
+                                        input = parseInt(input);
+                                        if(isNaN(input)) input = 60;
+                                        settings.CustomFPS = input;
+                                        //updates visual
+                                        thirdFpsButton.value = input;
+                                        //sets values and saves to settings
+                                        this.customizeStreamButtons();
+                                        //simulate click on button -- serves to both select it and to make react re-render it.
+                                        thirdFpsButton.onClick();
+                                    }
+                                })
+                            ]
+                        }));
+                    }
                 }
 
                 if(settings.CustomBitrateEnabled){
@@ -1288,7 +1328,7 @@ module.exports = class YABDP4Nitro {
     }
 
     videoCodecs(){
-        Patcher.after(this.meta.name, streamSettingsMod, "getCodecOptions", (_, args, ret) => {
+        Patcher.after(this.meta.name, streamSettingsMod.prototype, "getCodecOptions", (_, args, ret) => {
             ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
         });
     }
@@ -1319,14 +1359,6 @@ module.exports = class YABDP4Nitro {
 
         //base64 for file clipping mp4
         const clipMe = "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";
-
-        //convert base64 to ArrayBuffer
-        var binaryString = atob(clipMe);
-        var bytes = new Uint8Array(binaryString.length);
-        for(var i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        const clipMaBuffer = bytes.buffer;
 
         if(!this.MP4Box){
             try{
@@ -1381,6 +1413,12 @@ module.exports = class YABDP4Nitro {
                make ffmpeg load if it wasn't loaded properly the first time. */
             if(ffmpeg == undefined) await this.loadFFmpeg();
 
+            //load append data only on first added file
+            if(!udta || !udtaBuffer){
+                udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
+                udtaBuffer = udta.buffer;
+            }
+
             function errorHandler(err, currentFile, name) {
                 UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
                 Logger.error(name, err);
@@ -1396,8 +1434,6 @@ module.exports = class YABDP4Nitro {
                 const currentFile = args.files[i];
 
                if(currentFile.file.name.endsWith(".dlfc")) return;
-
-               console.log(currentFile);
 
                 const clipData = {
                     "id": 0,
@@ -1580,6 +1616,25 @@ module.exports = class YABDP4Nitro {
 
                 //any file above 10mb and below 100mb that does not fit any previous criteria
                 else if(currentFile.file.size > 10485759 && currentFile.file.size < 104857590 && settings.zipClip) {
+
+                    //Calculate crcTable only once it's necessary
+                    if(crcTable == undefined){
+                        crcTable = Array.from({ length: 256 }, (_, i) =>
+                        Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
+                            (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
+                    }
+
+                    //Convert base64 to ArrayBuffer only once it's necessary
+                    if(!clipMaBuffer){
+                        var binaryString = atob(clipMe);
+                        var bytes = new Uint8Array(binaryString.length);
+                        for(let j = 0; j < binaryString.length; j++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        clipMaBuffer = bytes.buffer;
+                    }
+
+
                     const archiveMimeTypes = ['x-7z-compressed', 'x-bzip', 'x-bzip2', 'x-rar-compressed', 'x-tar', 'gzip', 'x-gzip', 'zip', 'x-zip-compressed'];
                     
                     let zipFile;
@@ -2032,7 +2087,7 @@ module.exports = class YABDP4Nitro {
         //wait for avatar customization section renderer to be loaded
         await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOutFlow"));
         //store avatar customization section renderer module
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getMangled(/showRemoveAvatarButton:.{1,3},errors:.{1,3},onAvatarChange/, {
+        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getMangled(Webpack.Filters.byStrings("showRemoveAvatarButton:",",errors:","onAvatarChange"), {
             AvatarSection: x=>x
         });
 
@@ -2334,7 +2389,7 @@ module.exports = class YABDP4Nitro {
         //wait for profile effect section renderer to be loaded.
         await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId", "isTryItOutFlow", "pendingProfileEffectId"));
         //fetch the module now that it's loaded
-        if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getMangled(/isTryItOutFlow:.{1,3}=!1,initialSelectedEffectId/, {
+        if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getMangled(Webpack.Filters.byStrings("isTryItOutFlow:","=!1,initialSelectedEffectId"), {
             ProfileEffectSection: x=>x
         });
 
@@ -2556,7 +2611,7 @@ module.exports = class YABDP4Nitro {
         await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", "pendingAvatarDecoration"));
 
         //Avatar decoration customization section render module/function.
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getMangled(/guildAvatarDecoration:.{1,3}?,pendingAvatarDecoration/, {
+        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getMangled(Webpack.Filters.byStrings("guildAvatarDecoration", ',pendingAvatarDecoration'), {
             AvatarDecorationSection: x=>x
         });
         //Avatar decoration customization section patch
@@ -3190,7 +3245,7 @@ module.exports = class YABDP4Nitro {
 
         //who knows what unholy compatibility issues this will bring me
         //this code fucking sucks i think
-        Patcher.instead(this.meta.name, renderEmbedsMod, "renderEmbeds", (_, [message], originalFunction) => {
+        Patcher.instead(this.meta.name, renderEmbedsMod.prototype, "renderEmbeds", (_, [message], originalFunction) => {
             //get what the original function would have returned
             let ret = originalFunction(message);
             if(ret){
@@ -3250,7 +3305,7 @@ module.exports = class YABDP4Nitro {
 
     //#region Video Quality Patch
     videoQualityModule(){ //Custom Bitrates, FPS, Resolution
-        Patcher.before(this.meta.name, videoOptionFunctions, "updateVideoQuality", (e) => {
+        Patcher.before(this.meta.name, videoOptionFunctions.prototype, "updateVideoQuality", (e) => {
             if(settings.CustomBitrateEnabled){
                 if(settings.minBitrate > 0){
                     //Minimum Bitrate
@@ -3456,7 +3511,7 @@ module.exports = class YABDP4Nitro {
         });
 
         //Patch getBannerURL function
-        Patcher.instead(this.meta.name, getBannerURL, "getBannerURL", (user, [args], ogFunction) => {
+        Patcher.instead(this.meta.name, getBannerURLMod.prototype, "getBannerURL", (user, [args], ogFunction) => {
 
             let profile = user._userProfile;
 
@@ -3525,8 +3580,8 @@ module.exports = class YABDP4Nitro {
     async bannerUrlEncoding(secondsightifyEncodeOnly){
 
         //wait for banner customization renderer module to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer"));
-        if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getMangled(/showRemoveBannerButton:.{1,3}?,errors:.{1,3}?,onBannerChange/, {
+        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer", 'isTryItOutFlow'));
+        if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getMangled(Webpack.Filters.byStrings('showRemoveBannerButton', 'errors:', 'onBannerChange'), {
             BannerSection: x=>x
         });
 
