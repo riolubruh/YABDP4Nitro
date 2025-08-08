@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.4
+ * @version 6.2.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -79,12 +79,19 @@ const [
     videoOptionFunctions,
     addFilesMod,
     RegularAppIcon,
-    CurrentDesktopIcon,
+    AppIconPersistedStoreState,
     CustomAppIcon,
     ClipsStore,
     UserSettingsAccountStore,
     NameplatePreview,
-    CloudUploader
+    CloudUploader,
+    messageRenderMod,
+    InvalidStreamSettingsModal,
+    themesModule,
+    NameplateSectionMod,
+    AppIcon,
+    CanUserUseMod,
+    loadMP4Box
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byStoreName('UserStore')},
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
@@ -118,52 +125,35 @@ const [
     {filter: Webpack.Filters.byStoreName('ClipsStore')},
     {filter: Webpack.Filters.byStoreName('UserSettingsAccountStore')},
     {filter: Webpack.Filters.byStrings('nameplate', 'nameplateData', 'nameplatePreview', 'nameplatePurchased')}, //NameplatePreview
-    {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true}
+    {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
+    {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
+    {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
+    {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
+    {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate"), defaultExport:false},
+    {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
+    {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
+    {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")} //load MP4Box
 );
+
+const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
 const CurrentUser = UserStore.getCurrentUser();
+
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
-const canUserUseMod = Webpack.getMangled(".getFeatureValue(",{
-    canUserUse: Webpack.Filters.byStrings("getFeatureValue")
-});
-const messageRender = Webpack.getMangled('.SEND_FAILED,',{
-    renderMessage: o => typeof o === "object"
-});
 const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD",{
     getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
     isSendableSticker: Webpack.Filters.byStrings(")=>0===")
-});
-const themesModule = Webpack.getMangled("changes:{appearance:{settings:{clientThemeSettings:{",{
-    saveClientTheme: Webpack.Filters.byStrings("changes:{appearance:{settings:{clientThemeSettings:{")
-});
-const appIconButtonsModule = Webpack.getMangled(Webpack.Filters.byStrings("isEditor","renderCTAButtons"),{
-    CTAButtons: x=>x
-});
-const AppIcon = Webpack.getMangled("AppIconHome", {
-    AppIconHome: x=>x
 });
 const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"',{
     useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
     areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
     isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
 });
-const ClipsAllowedMod = Webpack.getMangled(`let{ignorePlatformRestriction:`,{
-    isClipsClientCapable: x=>x //just get the first result lol
-});
 const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
     getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
     exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
 });
-const InvalidStreamSettingsModal = Webpack.getMangled(Webpack.Filters.byStrings("preset)&&","resolution&&","fps&&"), {
-    areStreamSettingsAllowed: x=>x
-});
-const GoLiveModalV2UpsellMod = Webpack.getMangled("onNitroClick:function", {
-    GoLiveModalV2Upsell: x=>x
-});
 const fs = require("fs");
 const path = require("path");
-const NameplateSectionMod = Webpack.getMangled(Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate"), {
-    NameplateSection: x=>x
-});
 //#endregion
 
 //clips related variables
@@ -225,6 +215,8 @@ const defaultData = {
     nameplatesV2: {}
 }
 
+let controller = new AbortController();
+
 //Plugin-wide variables
 let settings = {};
 let data = {};
@@ -241,21 +233,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.4",
+        "version": "6.2.5",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.4",
+            title: "6.2.5",
             items: [
-                "Changed 21 module fetches to be done in bulk rather than one after the other to reduce initial plugin load time.",
-                "Changed CRC Table calculation to be done on-demand when you first use ZipClips rather than on plugin load which will reduce the lag on load.",
-                "Changed conversion of Base64 data for ZipClips to only occur once it's necessary (slight optimization).",
-                "Fixed module filter for NameplatePreview fetching the wrong function after a Discord update.",
-                "Made Stream Settings Quick Swapper no longer show Custom Resolution or Custom FPS if the respective option is disabled to prevent confusion.",
-                "Replaced regex module filters with alternatives cause regex is slow."
+                "Further optimizations to module fetching. (Replaced most uses of getMangled with faster alternatives)",
+                "Fixed App Icons no longer working.",
+                "Fixed modified UI elements sometimes having a bunch of repeated buttons or other elements if you reloaded the plugin or changed settings before the related lazy-loaded modules were loaded.",
+                "Removed the stupid 4KB Base64 string and replaced it with code that will generate the file using FFmpeg when you first use ZipClips. As a result, ZipClips now requires FFmpeg to be loaded to work. This reduces file size by quite a bit (and also it's just obviously the proper thing to do)."
             ]
         }
     ],
@@ -441,6 +431,9 @@ module.exports = class YABDP4Nitro {
     // #region Save and Update
     saveAndUpdate(){ //Saves and updates settings and runs functions
 
+        controller.abort();
+        controller = new AbortController();
+
         //migrate settings.avatarDecorations to data.avatarDecorations
         if(settings.avatarDecorations){
             try{
@@ -534,10 +527,15 @@ module.exports = class YABDP4Nitro {
             try {
                 this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
 
-                //disable resolution / fps check
-                Patcher.instead(this.meta.name, InvalidStreamSettingsModal, "areStreamSettingsAllowed", (_, args, originalFunction) => {
-                    return true;
-                });
+                if(InvalidStreamSettingsModal){
+                    let areStreamSettingsAllowed = this.findMangledName(InvalidStreamSettingsModal, x=>x, "areStreamSettingsAllowed");
+                    if(areStreamSettingsAllowed){
+                        //disable resolution / fps check
+                        Patcher.instead(this.meta.name, InvalidStreamSettingsModal, areStreamSettingsAllowed, () => {
+                            return true;
+                        });
+                    }
+                }
             } catch(err){
                 Logger.error(this.meta.name, "Error occurred during videoQualityModule() " + err);
             }
@@ -565,17 +563,7 @@ module.exports = class YABDP4Nitro {
 
         if(settings.removeScreenshareUpsell){
             try {
-                DOM.addStyle(this.meta.name, `
-                    [class*="upsellBanner"], [class*="reverseTrialEducationBannerContainer"] {
-                        display: none;
-                        visibility: hidden;
-                    }
-                `);
-
-                //Disable GoLiveModalV2 upsell
-                Patcher.instead(this.meta.name, GoLiveModalV2UpsellMod, "GoLiveModalV2Upsell", () => {
-                    return;
-                });
+                this.patchGoLiveModalUpsells();
             } catch(err){
                 Logger.error(this.meta.name, err);
             }
@@ -648,24 +636,31 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        Patcher.instead(this.meta.name, canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
-            if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
-                return true;
-
-            if(settings.unlockAppIcons && feature.name == 'appIcons')
-                return true;
-
-            if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
-                return true;
-
-            if(settings.clientThemes && feature.name == 'clientThemes')
-                return true;
-
-            if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
-                return true;
-
-            return originalFunction(feature, user);
-        });
+        try{
+            let canUserUse = this.findMangledName(CanUserUseMod, x=>typeof x === "function" && x.toString?.().includes?.('getFeatureValue'), "canUserUse");
+            if(canUserUse){
+                Patcher.instead(this.meta.name, CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
+                    if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
+                        return true;
+        
+                    if(settings.unlockAppIcons && feature.name == 'appIcons')
+                        return true;
+        
+                    if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
+                        return true;
+        
+                    if(settings.clientThemes && feature.name == 'clientThemes')
+                        return true;
+        
+                    if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
+                        return true;
+        
+                    return originalFunction(feature, user);
+                });
+            }
+        }catch(err){
+            Logger.error(this.meta.name, err);
+        }
 
         //Clips Bypass
         if(settings.useClipBypass || settings.useAudioClipBypass){
@@ -700,25 +695,72 @@ module.exports = class YABDP4Nitro {
             }
         }
         
-        if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
-            //subscribe to successful collectible category fetch event
-            Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
-            //trigger collectibles fetch
-            FetchCollectibleCategories({
-                includeBundles: true,
-                includeUnpublished: false,
-                noCache: false,
-                paymentGateway: undefined
-            });
+        try{
+            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
+                //subscribe to successful collectible category fetch event
+                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+    
+                //trigger collectibles fetch
+                FetchCollectibleCategories({
+                    includeBundles: true,
+                    includeUnpublished: false,
+                    noCache: false,
+                    paymentGateway: undefined
+                });
+            }
+        }catch(err){
+            Logger.error(this.meta.name, err);
         }
 
-        if(settings.nameplatesEnabled){
-            this.nameplates();
+        try{
+            if(settings.nameplatesEnabled){
+                this.nameplates();
+            }
+        }catch(err){
+            Logger.error(this.meta.name, err);
         }
 
     } //End of saveAndUpdate()
     // #endregion
+
+    async patchGoLiveModalUpsells() {
+        DOM.addStyle(this.meta.name, `
+            [class*="upsellBanner"], [class*="reverseTrialEducationBannerContainer"] {
+                display: none;
+                visibility: hidden;
+            }
+        `);
+
+        if(!this.GoLiveModalV2UpsellMod) this.GoLiveModalV2UpsellMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GO_LIVE_MODAL_V2", "onNitroClick:function(){"), {defaultExport:false, signal: controller.signal});
+
+        let renderFn = this.findMangledName(this.GoLiveModalV2UpsellMod, x=>x, "GoLiveModalV2Upsell");
+        if(!renderFn) return;
+
+        //Disable GoLiveModalV2 upsell
+        Patcher.instead(this.meta.name, this.GoLiveModalV2UpsellMod, renderFn, () => {
+            return;
+        });
+    }
+
+    findMangledName(module, filter, debugInfo){
+        if(module){
+            if(typeof filter === "string"){
+                filter = (x) => x.toString?.().includes?.(filter);
+            }
+            let keys = Object.keys(module);
+            let values = Object.values(module);
+            
+            let index = values.findIndex(filter);
+    
+            if(index >= 0) return keys[index];
+            else{
+                Logger.warn(this.meta.name, `Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
+                return null;
+            };
+        }else{
+            return null;
+        }
+    }
 
     //shouldInclude is a string containing the characters that the encoded text should contain
     //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
@@ -888,7 +930,7 @@ module.exports = class YABDP4Nitro {
                                 DiscordNative.clipboard.copy(" " + encodedStr);
                                 UI.showToast("3y3 copied to clipboard!", { type: "info" });    
                             }catch(err){
-                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
+                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });
                                 Logger.error("YABDP4Nitro", err);
                             }
                         },
@@ -910,8 +952,11 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }
+ 
+        let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
+        if(!NameplateSection) return;
 
-        Patcher.after(this.meta.name, NameplateSectionMod, "NameplateSection", (_, args, ret) => {
+        Patcher.after(this.meta.name, NameplateSectionMod, NameplateSection, (_, args, ret) => {
             const ButtonsSection = ret.props.children.props.children;
             ButtonsSection.push(React.createElement("button",{
                 className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
@@ -931,17 +976,16 @@ module.exports = class YABDP4Nitro {
 
     // #region Resolution Swapper
     async resolutionSwapper(){
-        if(!this.StreamSettingsPanelMod){
-            await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false});
-            this.StreamSettingsPanelMod = Webpack.getMangled("StreamSettings: user cannot be undefined", {
-                GoLiveModal: Webpack.Filters.byStrings("StreamSettings: user cannot be undefined")
-            });
-        }
+        if(!this.StreamSettingsPanelMod) 
+            this.StreamSettingsPanelMod = await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false, signal: controller.signal});
 
         if(!this.FormModalClasses) 
             this.FormModalClasses = Webpack.getByKeys("formItemTitleSlim", "modalContent");
         
-        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, "GoLiveModal", (_, [args], ret) => {
+        let GoLiveModal = this.findMangledName(this.StreamSettingsPanelMod, Webpack.Filters.byStrings("StreamSettings"), "GoLiveModal");
+        if(!GoLiveModal) return;
+
+        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, GoLiveModal, (_, [args], ret) => {
 
             //Only if the selected preset is "Custom"
             if(args.selectedPreset === 3){
@@ -1114,14 +1158,9 @@ module.exports = class YABDP4Nitro {
     async resolutionSwapperV2(){
 
         //wait for lazy loaded modules
-        await Webpack.waitForModule(Webpack.Filters.bySource("golivemodalv2"));
-        if(this.GoLiveModalMod == undefined) 
-            this.GoLiveModalMod = Webpack.getMangled("golivemodalv2", {
-                goLiveModalV2: Webpack.Filters.byStrings("golivemodalv2")
-            });
+        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.byStrings("golivemodalv2"), {defaultExport:false, signal: controller.signal});
 
-        await Webpack.waitForModule(Webpack.Filters.byKeys("streamOptionsButton", "settingsIcon"));
-        if(this.SteamOptionsButtonClassesMod == undefined) this.SteamOptionsButtonClassesMod = Webpack.getByKeys("streamOptionsButton", "settingsIcon");
+        if(this.StreamOptionsButtonClassesMod == undefined) this.StreamOptionsButtonClassesMod = await Webpack.waitForModule(Webpack.Filters.byKeys("streamOptionsButton", "settingsIcon"), {signal: controller.signal});
 
         //the sign of janky code inbound
         let GLMV2Opt = {
@@ -1132,7 +1171,10 @@ module.exports = class YABDP4Nitro {
             maxBitrateToSet: undefined
         };
 
-        Patcher.after(this.meta.name, this.GoLiveModalMod, "goLiveModalV2", (_,args,ret) => {
+        let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "goLiveModalV2");
+        if(!goLiveModalV2FnName) return;
+
+        Patcher.after(this.meta.name, this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
             //maybe the worst amalgamation in this whole plugin?
 
             if(GLMV2Opt.resolutionToSet != undefined) {
@@ -1150,7 +1192,7 @@ module.exports = class YABDP4Nitro {
             
             if(ModalFooter) {
                 ModalFooter.splice(2,0,React.createElement("button",{
-                    class: `${this.SteamOptionsButtonClassesMod.streamOptionsButton} ${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorPrimary} ${buttonClassModule.sizeIcon} ${buttonClassModule.grow}`,
+                    class: `${this.StreamOptionsButtonClassesMod.streamOptionsButton} ${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorPrimary} ${buttonClassModule.sizeIcon} ${buttonClassModule.grow}`,
                     style: {
                         height: "46px",
                         width: "46px"
@@ -1357,14 +1399,11 @@ module.exports = class YABDP4Nitro {
         // and remaking the respective React elements sounds really difficult
 
 
-        //base64 for file clipping mp4
-        const clipMe = "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";
-
         if(!this.MP4Box){
             try{
-                await Webpack.getByStrings("mp4boxInputFile.boxes")();
+                await loadMP4Box();
             }catch(e){}
-            this.MP4Box = await Webpack.waitForModule(Webpack.Filters.byKeys("MP4BoxStream"));
+            this.MP4Box = Webpack.getByKeys('MP4BoxStream');
         }
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
@@ -1374,14 +1413,16 @@ module.exports = class YABDP4Nitro {
                     ffmpegArguments = ["-i",inFileName,"-codec","copy","-dn","-map_chapters","-1","-brand","isom/avc1","-movflags","+faststart",
                                        "-map","0","-map_metadata","-1","-map_chapters","-1",outFileName];
                 
-                await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+                if(arrayBuffer && inFileName){
+                    await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+                }
                 console.log("Approximately equivalent ffmpeg command:");
                 console.log("ffmpeg " + ffmpegArguments.join(" "));
                 await ffmpeg.exec(ffmpegArguments);
                 const data = await ffmpeg.readFile(outFileName);
                 
-                ffmpeg.deleteFile(inFileName);
-                ffmpeg.deleteFile(outFileName);
+                if(inFileName) ffmpeg.deleteFile(inFileName);
+                if(outFileName) ffmpeg.deleteFile(outFileName);
                 
                 if(data.length == 0){
                     throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + 
@@ -1624,128 +1665,130 @@ module.exports = class YABDP4Nitro {
                             (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
                     }
 
-                    //Convert base64 to ArrayBuffer only once it's necessary
+                    //generate clipMaBuffer
                     if(!clipMaBuffer){
-                        var binaryString = atob(clipMe);
-                        var bytes = new Uint8Array(binaryString.length);
-                        for(let j = 0; j < binaryString.length; j++) {
-                            bytes[i] = binaryString.charCodeAt(i);
-                        }
-                        clipMaBuffer = bytes.buffer;
+                        let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=128x96:duration=1","-f","lavfi",
+                            "-i","anullsrc=r=44100:cl=mono","-shortest","-fflags","+shortest",
+                            "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1",
+                            "-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4"];
+
+                        clipMaBuffer = await ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
+                        clipMaBuffer = ArrayBuffer.concat(clipMaBuffer, udtaBuffer);
                     }
 
+                    if(clipMaBuffer){
+                        const archiveMimeTypes = ['x-7z-compressed','x-bzip','x-bzip2','x-rar-compressed','x-tar','gzip','x-gzip','zip','x-zip-compressed'];
 
-                    const archiveMimeTypes = ['x-7z-compressed', 'x-bzip', 'x-bzip2', 'x-rar-compressed', 'x-tar', 'gzip', 'x-gzip', 'zip', 'x-zip-compressed'];
-                    
-                    let zipFile;
-                    let fileArrayBuffer = await currentFile.file.arrayBuffer();
+                        let zipFile;
+                        let fileArrayBuffer = await currentFile.file.arrayBuffer();
 
-                    //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
-                    if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
+                        //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
+                        if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
 
-                        zipFile = fileArrayBuffer;
-                        clipData.name = currentFile.file.name;
-                    }else{
-                        /* DeepSeek-R1 helped to write this createZip function.
-                        Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
-                        I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
-                        An explanation of the function is below (yes I wrote the explanation):
-                        The function creates a basic zip file containing the data variable as a file with no compression and returns a Uint8Array of the zip file.
-                        The name variable is the file name of the file within the zip.
-                        The data variable can be ArrayBuffer, Uint8Array, or string.
-                        To make a zip file, a bunch of headers and data descriptors, including a CRC checksum and a bunch of info about the file, must be created, so that's what we're doing.
-                        https://en.wikipedia.org/wiki/ZIP_(file_format)#File_headers for more information on that.
-                        Writing all this shit would've been pretty tedious so yea. */
-                        function createZip(name, data) {
+                            zipFile = fileArrayBuffer;
+                            clipData.name = currentFile.file.name;
+                        }else{
+                            /* DeepSeek-R1 helped to write this createZip function.
+                            Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
+                            I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
+                            An explanation of the function is below (yes I wrote the explanation):
+                            The function creates a basic zip file containing the data variable as a file with no compression and returns a Uint8Array of the zip file.
+                            The name variable is the file name of the file within the zip.
+                            The data variable can be ArrayBuffer, Uint8Array, or string.
+                            To make a zip file, a bunch of headers and data descriptors, including a CRC checksum and a bunch of info about the file, must be created, so that's what we're doing.
+                            https://en.wikipedia.org/wiki/ZIP_(file_format)#File_headers for more information on that.
+                            Writing all this shit would've been pretty tedious so yea. */
+                            function createZip(name, data) {
 
-                            // Convert input to Uint8Array
-                            const enc = new TextEncoder();
-                            const nameBytes = enc.encode(name);
-                            const dataBytes = data instanceof ArrayBuffer ? new Uint8Array(data) :
-                                data instanceof Uint8Array ? data : enc.encode(data);
-
-                            // Calculate CRC and lengths
-                            let crc = -1;  // Initial value
-                            const len = dataBytes.length;
-
-                            // Process bytes in chunks
-                            for(let i = 0; i < len; i++) {
-                                crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
+                                // Convert input to Uint8Array
+                                const enc = new TextEncoder();
+                                const nameBytes = enc.encode(name);
+                                const dataBytes = data instanceof ArrayBuffer ? new Uint8Array(data) :
+                                    data instanceof Uint8Array ? data : enc.encode(data);
+    
+                                // Calculate CRC and lengths
+                                let crc = -1;  // Initial value
+                                const len = dataBytes.length;
+    
+                                // Process bytes in chunks
+                                for(let i = 0; i < len; i++) {
+                                    crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
+                                }
+    
+                                // Finalize CRC and convert to unsigned int
+                                crc = (crc ^ -1) >>> 0;
+    
+                                const dataLength = dataBytes.length;
+                                const headerLength = 30 + nameBytes.length;
+    
+                                // Local File Header (starts at 0)
+                                const localHeader = new DataView(new ArrayBuffer(headerLength));
+                                localHeader.setUint32(0, 0x04034B50, true);  // Signature
+                                localHeader.setUint16(4, 0x0A00, true);      // Version needed
+                                localHeader.setUint32(14, crc, true);        // CRC-32
+                                localHeader.setUint32(18, dataLength, true); // Compressed size
+                                localHeader.setUint32(22, dataLength, true); // Uncompressed size
+                                localHeader.setUint16(26, nameBytes.length, true);
+                                new Uint8Array(localHeader.buffer).set(nameBytes, 30);
+    
+                                // Central Directory (starts after file data)
+                                // Note: Omitted fields default to 0, since the length is set manually.
+                                const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
+                                centralDir.setUint32(0, 0x02014B50, true);   // Signature
+                                centralDir.setUint16(6, 0x0A00, true);       // Version needed
+                                centralDir.setUint32(16, crc, true);         // CRC-32
+                                centralDir.setUint32(20, dataLength, true);  // Sizes
+                                centralDir.setUint32(24, dataLength, true);
+                                centralDir.setUint16(28, nameBytes.length, true);
+                                new Uint8Array(centralDir.buffer).set(nameBytes, 46);
+    
+                                // End of Central Directory
+                                const end = new DataView(new ArrayBuffer(22));
+                                end.setUint32(0, 0x06054B50, true);         // Signature
+                                end.setUint16(8, 1, true);                  // Entry count
+                                end.setUint16(10, 1, true);                 // Total entries
+                                end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
+                                end.setUint32(16, headerLength + dataLength, true);    // Dir offset
+    
+                                //Allocating a Uint8Array large enough for the file
+                                const totalSize = localHeader.buffer.byteLength + dataBytes.length +
+                                    centralDir.buffer.byteLength + end.buffer.byteLength;
+                                const result = new Uint8Array(totalSize);
+    
+                                //Putting all the data together
+                                let offset = 0;
+                                [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
+                                    result.set(new Uint8Array(buf), offset);
+                                    offset += buf.byteLength || buf.length;
+                                });
+    
+                                return result;
                             }
-
-                            // Finalize CRC and convert to unsigned int
-                            crc = (crc ^ -1) >>> 0;
-
-                            const dataLength = dataBytes.length;
-                            const headerLength = 30 + nameBytes.length;
-
-                            // Local File Header (starts at 0)
-                            const localHeader = new DataView(new ArrayBuffer(headerLength));
-                            localHeader.setUint32(0, 0x04034B50, true);  // Signature
-                            localHeader.setUint16(4, 0x0A00, true);      // Version needed
-                            localHeader.setUint32(14, crc, true);        // CRC-32
-                            localHeader.setUint32(18, dataLength, true); // Compressed size
-                            localHeader.setUint32(22, dataLength, true); // Uncompressed size
-                            localHeader.setUint16(26, nameBytes.length, true);
-                            new Uint8Array(localHeader.buffer).set(nameBytes, 30);
-
-                            // Central Directory (starts after file data)
-                            // Note: Omitted fields default to 0, since the length is set manually.
-                            const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
-                            centralDir.setUint32(0, 0x02014B50, true);   // Signature
-                            centralDir.setUint16(6, 0x0A00, true);       // Version needed
-                            centralDir.setUint32(16, crc, true);         // CRC-32
-                            centralDir.setUint32(20, dataLength, true);  // Sizes
-                            centralDir.setUint32(24, dataLength, true);
-                            centralDir.setUint16(28, nameBytes.length, true);
-                            new Uint8Array(centralDir.buffer).set(nameBytes, 46);
-
-                            // End of Central Directory
-                            const end = new DataView(new ArrayBuffer(22));
-                            end.setUint32(0, 0x06054B50, true);         // Signature
-                            end.setUint16(8, 1, true);                  // Entry count
-                            end.setUint16(10, 1, true);                 // Total entries
-                            end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
-                            end.setUint32(16, headerLength + dataLength, true);    // Dir offset
-
-                            //Allocating a Uint8Array large enough for the file
-                            const totalSize = localHeader.buffer.byteLength + dataBytes.length +
-                                centralDir.buffer.byteLength + end.buffer.byteLength;
-                            const result = new Uint8Array(totalSize);
-
-                            //Putting all the data together
-                            let offset = 0;
-                            [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
-                                result.set(new Uint8Array(buf), offset);
-                                offset += buf.byteLength || buf.length;
-                            });
-
-                            return result;
+    
+                            zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
+                            
+                            clipData.name += ".zip";
                         }
-
-                        zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
-                        
-                        clipData.name += ".zip";
+    
+                        try {
+                            let newArrBuf = ArrayBuffer.concat(clipMaBuffer, zipFile);
+                            
+                            let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
+                            currentFile.file = newFile;
+                            currentFile.clip = clipData;
+                        } catch(err) {
+                            errorHandler(err, currentFile, this.meta.name);
+                        }
                     }
-
-                    try {
-                        let newArrBuf = ArrayBuffer.concat(clipMaBuffer, zipFile);
-                        
-                        let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
-                        currentFile.file = newFile;
-                        currentFile.clip = clipData;
-                    } catch(err) {
-                        errorHandler(err, currentFile, this.meta.name);
-                    }
+                    //#endregion
+                    currentFile.platform = 1;
                 }
-                //#endregion
-                currentFile.platform = 1;
             }
             originalFunction(args);
         });
 
         Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", (_, args, ret) => {
-            //I have no earthly idea why but, instead patching this one causes React crashes./
+            //I have no earthly idea why but, instead patching this one causes React crashes.
             // Luckily after-patching prevents it from crashing and it still unlocks it as it should
             return true;
         });
@@ -1753,9 +1796,6 @@ module.exports = class YABDP4Nitro {
             return true;
         });
         Patcher.instead(this.meta.name, ClipsEnabledMod, "isPremium", () => {
-            return true;
-        });
-        Patcher.instead(this.meta.name, ClipsAllowedMod, "isClipsClientCapable", () => {
             return true;
         });
         Patcher.instead(this.meta.name, ClipsStore, "isViewerClippingAllowedForUser", () => {
@@ -1933,65 +1973,68 @@ module.exports = class YABDP4Nitro {
             writable: true,
         });
 
-        //Patching saveClientTheme function.
-        Patcher.instead(this.meta.name, themesModule, "saveClientTheme", (_, [args]) => {
+        
+        let saveClientTheme = this.findMangledName(themesModule,x=>typeof x === "function" && x.toString?.().includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),"saveClientTheme");
 
-            //if user is trying to set the theme to a default theme
-            if(args.backgroundGradientPresetId == undefined){
-
-                //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
-                settings.lastGradientSettingStore = -1;
-
-                //save any changes to settings
-                Data.save(this.meta.name, "settings", this.settings);
-                
-                //dispatch settings update to change themes
-                Dispatcher.dispatch({
-                    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                    changes: {
-                        appearance: {
-                            shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
-                            settings: {
-                                theme: args.theme,
-                                developerMode: true //genuinely have no idea what this does.
+        if(saveClientTheme){
+            //Patching saveClientTheme function.
+            Patcher.instead(this.meta.name, themesModule, saveClientTheme, (_, [args]) => {
+                //if user is trying to set the theme to a default theme
+                if(args.backgroundGradientPresetId == undefined){
+    
+                    //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
+                    settings.lastGradientSettingStore = -1;
+    
+                    //save any changes to settings
+                    Data.save(this.meta.name, "settings", this.settings);
+                    
+                    //dispatch settings update to change themes
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+                                settings: {
+                                    theme: args.theme,
+                                    developerMode: true //genuinely have no idea what this does.
+                                }
                             }
                         }
-                    }
-                });
-                
-                return;
-            }else{ //gradient themes
-                //Store the last gradient setting used in settings
-                settings.lastGradientSettingStore = args.backgroundGradientPresetId;
-                
-                //save any changes to settings
-                Data.save(this.meta.name, "settings", this.settings);
-
-                //dispatch settings update event to change to the gradient the user chose
-                Dispatcher.dispatch({
-                    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                    changes: {
-                        appearance: {
-                            shouldSync: false,  //prevent sync to stop discord api from butting in
-                            settings: {
-                                theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
-                                clientThemeSettings: {
-                                    backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
-                                },
-                                developerMode: true
+                    });
+                    
+                    return;
+                }else{ //gradient themes
+                    //Store the last gradient setting used in settings
+                    settings.lastGradientSettingStore = args.backgroundGradientPresetId;
+                    
+                    //save any changes to settings
+                    Data.save(this.meta.name, "settings", this.settings);
+    
+                    //dispatch settings update event to change to the gradient the user chose
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false,  //prevent sync to stop discord api from butting in
+                                settings: {
+                                    theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
+                                    clientThemeSettings: {
+                                        backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
+                                    },
+                                    developerMode: true
+                                }
                             }
                         }
-                    }
-                });
-
-                //update background gradient preset to the one that was just chosen.
-                Dispatcher.dispatch({
-                    type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
-                    presetId: settings.lastGradientSettingStore
-                });
-            }
-        }); //End of saveClientTheme patch.
-
+                    });
+    
+                    //update background gradient preset to the one that was just chosen.
+                    Dispatcher.dispatch({
+                        type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+                        presetId: settings.lastGradientSettingStore
+                    });
+                }
+            }); //End of saveClientTheme patch.
+        }
 
         //If last appearance choice was a nitro client theme
         if(settings.lastGradientSettingStore != -1){
@@ -2084,18 +2127,17 @@ module.exports = class YABDP4Nitro {
     //Custom PFP profile customization buttons and encoding code.
     async customProfilePictureEncoding(secondsightifyEncodeOnly){
 
-        //wait for avatar customization section renderer to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOutFlow"));
-        //store avatar customization section renderer module
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getMangled(Webpack.Filters.byStrings("showRemoveAvatarButton:",",errors:","onAvatarChange"), {
-            AvatarSection: x=>x
-        });
+        //wait for avatar customization section renderer to be loaded and store
+        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOutFlow"), {defaultExport:false, signal: controller.signal});
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, "AvatarSection", (_, [args], ret) => {
+        let AvatarSectionFnName = this.findMangledName(this.customPFPSettingsRenderMod, x=>x, "AvatarSection");
+        if(!AvatarSectionFnName) return;
+
+        Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
 
             //don't need to do anything if this is the "Try out Nitro" flow.
             if(args.isTryItOutFlow) return;
@@ -2333,7 +2375,7 @@ module.exports = class YABDP4Nitro {
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
         //wait for profile effects module
-        await Webpack.waitForModule(Webpack.Filters.byKeys("profileEffects", "tryItOutId"));
+        await Webpack.waitForModule(Webpack.Filters.byKeys("profileEffects", "tryItOutId"), {signal: controller.signal});
 
         if (this.profileEffects == undefined) this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
 
@@ -2386,15 +2428,14 @@ module.exports = class YABDP4Nitro {
             }
         }); //end of getUserProfile patch.
 
-        //wait for profile effect section renderer to be loaded.
-        await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId", "isTryItOutFlow", "pendingProfileEffectId"));
-        //fetch the module now that it's loaded
-        if(this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getMangled(Webpack.Filters.byStrings("isTryItOutFlow:","=!1,initialSelectedEffectId"), {
-            ProfileEffectSection: x=>x
-        });
+        //wait for profile effect section renderer to be loaded and store
+        if(!this.profileEffectSectionRenderer)
+            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("isTryItOutFlow:","=!1,initialSelectedEffectId"), {defaultExport:false, signal: controller.signal});
 
+        let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
+        if(!ProfileEffectSectionFnName) return;
         //patch profile effect section renderer function to run the following code after the function runs
-        Patcher.after(this.meta.name, this.profileEffectSectionRenderer, "ProfileEffectSection", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
 
             const profileEffects = this.profileEffects;
 
@@ -2607,15 +2648,14 @@ module.exports = class YABDP4Nitro {
             }
         }); //end of getUser patch for avatar decorations
 
-        //Wait for avatar decor customization section render module to be loaded.
-        await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", "pendingAvatarDecoration"));
+        //Wait for avatar decor customization section render module to be loaded and store
+        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", ",pendingAvatarDecoration"), {defaultExport:false, signal: controller.signal});
 
-        //Avatar decoration customization section render module/function.
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getMangled(Webpack.Filters.byStrings("guildAvatarDecoration", ',pendingAvatarDecoration'), {
-            AvatarDecorationSection: x=>x
-        });
+        let fnName = this.findMangledName(this.decorationCustomizationSectionMod, x=>x, "DecorationCustomizationSection");
+        if(!fnName) return;
+
         //Avatar decoration customization section patch
-        Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, "AvatarDecorationSection", (_, [args], ret) => {
+        Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, fnName, (_, [args], ret) => {
             //don't run if this is the try out nitro flow.
             if(args.isTryItOutFlow) return;
 
@@ -3206,7 +3246,7 @@ module.exports = class YABDP4Nitro {
     //#region Fake Inline Emoji
     inlineFakemojiPatch(){
         //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
-        Patcher.before(this.meta.name, messageRender.renderMessage, "type", (_, [args]) => {
+        Patcher.before(this.meta.name, messageRender, "type", (_, [args]) => {
             for(let i = 0; i < args.content.length; i++){
                 let contentItem = args.content[i];
 
@@ -3423,20 +3463,15 @@ module.exports = class YABDP4Nitro {
     }
 
     //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
-    //Replaced DOM manipulation with React patching 4/2/2024
     async encodeProfileColors(){
 
-        //wait for theme color picker module to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byKeys("getTryItOutThemeColors"));
-
         //wait for color picker renderer module to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"));
+        if(!this.colorPickerRendererMod) this.colorPickerRendererMod = await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"), {defaultExport:false, signal: controller.signal});
 
-        if(this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = Webpack.getMangled("__invalid_profileThemesSection", {
-            ProfileThemesSection: x=>x
-        });
+        let profileThemesSectionFnName = this.findMangledName(this.colorPickerRendererMod, x=>x, "ProfileThemesSection");
+        if(!profileThemesSectionFnName) return;
 
-        Patcher.after(this.meta.name, this.colorPickerRendererMod, "ProfileThemesSection", (_, args, ret) => {
+        Patcher.after(this.meta.name, this.colorPickerRendererMod, profileThemesSectionFnName, (_, args, ret) => {
             ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
                     id: "copy3y3button",
@@ -3580,16 +3615,16 @@ module.exports = class YABDP4Nitro {
     async bannerUrlEncoding(secondsightifyEncodeOnly){
 
         //wait for banner customization renderer module to be loaded
-        await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "buttonsContainer", 'isTryItOutFlow'));
-        if(this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getMangled(Webpack.Filters.byStrings('showRemoveBannerButton', 'errors:', 'onBannerChange'), {
-            BannerSection: x=>x
-        });
+        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "onBannerChange"), {defaultExport:false, signal: controller.signal});
+
+        let BannerSectionFnName = this.findMangledName(this.profileBannerSectionRenderer, x=>x, "BannerSection");
+        if(!BannerSectionFnName) return;
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.meta.name, this.profileBannerSectionRenderer, "BannerSection", (_, args, ret) => {
+        Patcher.after(this.meta.name, this.profileBannerSectionRenderer, BannerSectionFnName, (_, args, ret) => {
             //create and append profileBannerUrlInput input element.
             let profileBannerUrlInput = React.createElement("input", {
                 id: "profileBannerUrlInput",
@@ -3715,19 +3750,18 @@ module.exports = class YABDP4Nitro {
 
     //#region App Icons
     appIcons(){
-        //technically don't need this anymore but i'll leave it in for the sake of redundancy
-        Patcher.before(this.meta.name, appIconButtonsModule, "CTAButtons", (_, args) => {
-            args[0].disabled = false; //force buttons clickable
-        });
 
-        Patcher.instead(this.meta.name, AppIcon, "AppIconHome", (_, __, originalFunction) => {
-            const currentDesktopIcon = CurrentDesktopIcon.getCurrentDesktopIcon();
+        let renderFn = this.findMangledName(AppIcon, x=>x, "AppIcon");
+        if(!renderFn) return;
+
+        Patcher.instead(this.meta.name, AppIcon, renderFn, () => {
+            const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
                 return React.createElement(RegularAppIcon, {
                     size: "custom",
                     color: "currentColor",
-                    width: 30,
-                    height: 30
+                    width: 24,
+                    height: 24
                 });
             }else{
                 return React.createElement(CustomAppIcon, {
@@ -3908,6 +3942,7 @@ module.exports = class YABDP4Nitro {
     }
 
     stop(){
+        controller.abort();
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         Patcher.unpatchAll(this.meta.name);
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
