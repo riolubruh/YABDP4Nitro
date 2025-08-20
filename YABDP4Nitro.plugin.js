@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.5
+ * @version 6.2.6
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -233,19 +233,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.5",
+        "version": "6.2.6",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.5",
+            title: "6.2.6",
             items: [
-                "Further optimizations to module fetching. (Replaced most uses of getMangled with faster alternatives)",
-                "Fixed App Icons no longer working.",
-                "Fixed modified UI elements sometimes having a bunch of repeated buttons or other elements if you reloaded the plugin or changed settings before the related lazy-loaded modules were loaded.",
-                "Removed the stupid 4KB Base64 string and replaced it with code that will generate the file using FFmpeg when you first use ZipClips. As a result, ZipClips now requires FFmpeg to be loaded to work. This reduces file size by quite a bit (and also it's just obviously the proper thing to do)."
+                "Fixed regression from 6.2.4: Fake PFPs not working due to a mistake in the switch to getBulk."
             ]
         }
     ],
@@ -2065,8 +2062,7 @@ module.exports = class YABDP4Nitro {
 
     // #region Custom PFP Decode
     customProfilePictureDecoding(){
-
-        Patcher.instead(this.meta.name, getAvatarUrlModule, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
+        Patcher.instead(this.meta.name, getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
 
             //userpfp closer integration
             //if we haven't fetched userPFP database yet and it's enabled
