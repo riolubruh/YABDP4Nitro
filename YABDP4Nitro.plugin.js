@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.6
+ * @version 6.2.7
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -91,7 +91,9 @@ const [
     NameplateSectionMod,
     AppIcon,
     CanUserUseMod,
-    loadMP4Box
+    loadMP4Box,
+    ProfileEffectStore,
+    DMTag
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byStoreName('UserStore')},
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
@@ -112,7 +114,7 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys('getCodecOptions')}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
-    {filter: Webpack.Filters.byStrings('{type:"PROFILE_EFFECTS_FETCH_ALL"'), searchExports: true},
+    {filter: Webpack.Filters.byStrings('{type:"PROFILE_EFFECTS_FETCH_ALL"'), searchExports: true}, //fetchProfileEffects
     {filter: Webpack.Filters.byStoreName('SoundboardStore')},
     {filter: Webpack.Filters.byStoreName('EmojiStore')},
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
@@ -132,13 +134,11 @@ const [
     {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate"), defaultExport:false},
     {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
-    {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")} //load MP4Box
+    {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
+    {filter: Webpack.Filters.byStoreName('ProfileEffectStore')},
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'botTagNotStaffWarning')}
 );
-
 const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
-const CurrentUser = UserStore.getCurrentUser();
-
-const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD",{
     getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
     isSendableSticker: Webpack.Filters.byStrings(")=>0===")
@@ -152,9 +152,11 @@ const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
     getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
     exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
 });
+//#endregion
 const fs = require("fs");
 const path = require("path");
-//#endregion
+const CurrentUser = UserStore.getCurrentUser();
+const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 
 //clips related variables
 let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
@@ -180,7 +182,7 @@ const defaultSettings = {
     "stickerBypass": false,
     "profileV2": false,
     "forceStickersUnlocked": false,
-    "changePremiumType": false,
+    "changePremiumType2": -1,
     "videoCodec2": -1,
     "clientThemes": true,
     "lastGradientSettingStore": -1,
@@ -197,7 +199,7 @@ const defaultSettings = {
     "userPfpIntegration": true,
     "userBgIntegration": true,
     "useClipBypass": true,
-    "alwaysTransmuxClips": false,
+    "alwaysTransmuxClips": true,
     "forceClip": false,
     "checkForUpdates": true,
     "fakeInlineVencordEmotes": true,
@@ -208,7 +210,8 @@ const defaultSettings = {
     "enableClipsExperiment": true,
     "disableUserBadge": false,
     "nameplatesEnabled": true,
-    "clipTimestamp": 2
+    "clipTimestamp": 2,
+    "removeNotStaffWarning": true
 };
 const defaultData = {
     avatarDecorations: {},
@@ -233,16 +236,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.6",
+        "version": "6.2.7",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.6",
+            title: "6.2.7",
             items: [
-                "Fixed regression from 6.2.4: Fake PFPs not working due to a mistake in the switch to getBulk."
+                "Revamped the Change Premium Type option to allow the user to choose whichever value they want.",
+                "Fixed Profile Effects not working after Discord updated it.",
+                "Force Transmuxing is now enabled by default as there's really no reason not to transmux a video file even if it's avoidable since it takes basically no time to do and basically 'cleans' the video file and ensures any extra data which could cause issues is removed.",
+                "Added the option to remove the \"NOT STAFF\" warning on DMs from when Experiments are enabled. On by default."
             ]
         }
     ],
@@ -363,7 +369,7 @@ const config = {
                         { label: "Last Modified Date/Time of File", value: 2 },
                     ]
                 },
-                { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42.", value: () => settings.alwaysTransmuxClips },
+                { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42. There's really no reason to disable this.", value: () => settings.alwaysTransmuxClips },
                 { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
                 { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
                 { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
@@ -378,11 +384,18 @@ const config = {
             collapsible: true,
             shown: false,
             settings: [
-                { type: "switch", id: "changePremiumType", name: "Change PremiumType", note: "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work. Only enable this if you don't have Nitro.", value: () => settings.changePremiumType },
+                { type: "dropdown", id: "changePremiumType2", name: "Change Premium Type", note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, it's best to leave this option disabled. Set this option to at least Nitro Basic if you use SimpleDiscordCrypt to avoid issues.", value: () => settings.changePremiumType2, options:[
+                    { label: "Disabled (Actual Nitro Status)", value: -1 },
+                    { label: "Free User", value: null},
+                    { label: "Nitro Basic", value: 3},
+                    { label: "Nitro Classic", value: 1},
+                    { label: "Nitro", value: 2},
+                ] },
                 { type: "switch", id: "clientThemes", name: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes.", value: () => settings.clientThemes },
                 { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
                 { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
                 { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
+                { type: "switch", id: "removeNotStaffWarning", name: "Remove Not Staff Warning", note: "Removes the \"NOT STAFF\" warning on DMs when Experiments are enabled.", value: () => settings.removeNotStaffWarning },
                 { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.", value: () => (settings.experiments || settings.soundmojiEnabled || (settings.useClipBypass && settings.enableClipsExperiment))},
                 { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
             ]
@@ -442,6 +455,14 @@ module.exports = class YABDP4Nitro {
             }
         }
 
+        if(settings.changePremiumType != undefined){
+            //convert old setting to new
+            if(settings.changePremiumType)
+                settings.changePremiumType2 = 1;
+            //delete old setting
+            delete settings.changePremiumType;
+        } 
+
         //delete old nameplate data
         if(data.nameplates) delete data.nameplates;
 
@@ -452,20 +473,21 @@ module.exports = class YABDP4Nitro {
 
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
-        if(settings.changePremiumType){
+        if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
             try {
-                if(!(ORIGINAL_NITRO_STATUS > 1)){
-                    CurrentUser.premiumType = 1;
-                    setTimeout(() => {
-                        if(settings.changePremiumType){
-                            CurrentUser.premiumType = 1;
-                        }
-                    }, 10000);
-                }
+                CurrentUser.premiumType = settings.changePremiumType2;
+                setTimeout(() => {
+                    if(settings.changePremiumType) {
+                        CurrentUser.premiumType = settings.changePremiumType2;
+                    }
+                },10000);
             }
             catch(err){
                 Logger.error(this.meta.name, "An error occurred changing premium type." + err);
             }
+        }else{
+            if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
+                CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         }
 
         if(isNaN(settings.CustomFPS)) settings.CustomFPS = 60;
@@ -639,7 +661,7 @@ module.exports = class YABDP4Nitro {
                 Patcher.instead(this.meta.name, CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
                     if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                         return true;
-        
+
                     if(settings.unlockAppIcons && feature.name == 'appIcons')
                         return true;
         
@@ -651,7 +673,7 @@ module.exports = class YABDP4Nitro {
         
                     if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
                         return true;
-        
+
                     return originalFunction(feature, user);
                 });
             }
@@ -712,6 +734,17 @@ module.exports = class YABDP4Nitro {
         try{
             if(settings.nameplatesEnabled){
                 this.nameplates();
+            }
+        }catch(err){
+            Logger.error(this.meta.name, err);
+        }
+
+        try{
+            if(settings.removeNotStaffWarning && DMTag){
+                Patcher.instead(this.meta.name, DMTag, this.findMangledName(DMTag, x=>x), (_,[args],originalFunction) => {
+                    if(args.type == 5) return;
+                    else return originalFunction(args);
+                });
             }
         }catch(err){
             Logger.error(this.meta.name, err);
@@ -2000,7 +2033,7 @@ module.exports = class YABDP4Nitro {
                     });
                     
                     return;
-                }else{ //gradient themes
+                }else{ //preset gradient themes
                     //Store the last gradient setting used in settings
                     settings.lastGradientSettingStore = args.backgroundGradientPresetId;
                     
@@ -2030,6 +2063,9 @@ module.exports = class YABDP4Nitro {
                         presetId: settings.lastGradientSettingStore
                     });
                 }
+
+                //TODO: Add support for custom gradient themes
+
             }); //End of saveClientTheme patch.
         }
 
@@ -2370,17 +2406,12 @@ module.exports = class YABDP4Nitro {
 
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
-        //wait for profile effects module
-        await Webpack.waitForModule(Webpack.Filters.byKeys("profileEffects", "tryItOutId"), {signal: controller.signal});
-
-        if (this.profileEffects == undefined) this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
-
-
         //if profile effects data hasn't been fetched by the client yet
         if(this.profileEffects == undefined || this.profileEffects?.length === 0){
             //make the client fetch profile effects
             await fetchProfileEffects();
-            this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
+            //store profile effects
+            this.profileEffects = ProfileEffectStore.getAllProfileEffects();
         }
 
         let profileEffectIdList = new Array();
@@ -2853,7 +2884,7 @@ module.exports = class YABDP4Nitro {
     //#region Customize Go Live V1
     customizeStreamButtons(){ //Apply custom resolution and fps options for Go Live Modal V1
 
-        //This also effects Go Live Modal V2 but only after a refresh, not much I can do about that
+        //This also affects Go Live Modal V2 but only after a refresh, not much I can do about that
 
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
         //console.log(StreamButtons);
@@ -2909,8 +2940,6 @@ module.exports = class YABDP4Nitro {
         Data.save("YABDP4Nitro", "settings", settings);
     } //End of customizeStreamButtons()
     //#endregion
-
-    // #region Emoji Bypass-related
 
     //Whether we should skip the emoji bypass for a given emoji.
     // true = skip bypass
@@ -2990,7 +3019,6 @@ module.exports = class YABDP4Nitro {
             }
             //#endregion
             
-            //#region Upload Soundmojis
             const channelId = msg[0];
             let regex = /<sound:[0-9]\d+:[0-9]\d+>/g;
             let ids = [];
@@ -3018,6 +3046,7 @@ module.exports = class YABDP4Nitro {
                     }
                 }
             }
+
             if(settings.emojiBypass && settings.emojiBypassType == 0){
                 if(emojis.length > 0){
                     //upload all emotes
