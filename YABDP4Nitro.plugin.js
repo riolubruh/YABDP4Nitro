@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.7
+ * @version 6.2.8
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -236,19 +236,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.7",
+        "version": "6.2.8",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.7",
+            title: "6.2.8",
             items: [
-                "Revamped the Change Premium Type option to allow the user to choose whichever value they want.",
-                "Fixed Profile Effects not working after Discord updated it.",
-                "Force Transmuxing is now enabled by default as there's really no reason not to transmux a video file even if it's avoidable since it takes basically no time to do and basically 'cleans' the video file and ensures any extra data which could cause issues is removed.",
-                "Added the option to remove the \"NOT STAFF\" warning on DMs from when Experiments are enabled. On by default."
+                "Actually fix Fake Profile Effects after Discord updated it (last fix was not tested properly)."
             ]
         }
     ],
@@ -2419,6 +2416,7 @@ module.exports = class YABDP4Nitro {
             profileEffectIdList.push(this.profileEffects[i].id);
         }
 
+
         Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, [args], ret) => {
             //error prevention
             if(ret == undefined) return;
@@ -2440,12 +2438,21 @@ module.exports = class YABDP4Nitro {
 
                     //slice the /fx and only take the number after it.
                     let effectIndex = parseInt(firstMatch.slice(3));
+                    
                     //ignore invalid data 
                     if(isNaN(effectIndex)) return;
                     //ignore if the profile effect id does not point to an actual profile effect
                     if(profileEffectIdList[effectIndex] == undefined) return;
-                    //set the profile effect. stringify it.
-                    ret.profileEffectId = profileEffectIdList[effectIndex] + "";
+                    
+                    //get profile effect
+                    const effect = this.profileEffects[effectIndex];
+
+                    //apply profile effect
+                    ret.profileEffect = {
+                        id: effect.id,
+                        skuId: effect.skuId,
+                        expiresAt: null
+                    };
 
                     //if for some reason we dont know what this user's ID is, stop here
                     if(args == undefined) return;
