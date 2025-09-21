@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.2.8
+ * @version 6.2.9
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -236,16 +236,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.2.8",
+        "version": "6.2.9",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.2.8",
+            title: "6.2.9",
             items: [
-                "Actually fix Fake Profile Effects after Discord updated it (last fix was not tested properly)."
+                "Fixed emoji bypasses being broken from a Discord update removing the allNamesString property from emojis.",
+                "Fixed Resolution Swapper for Go Live Modal V2 not appearing."
             ]
         }
     ],
@@ -1185,7 +1186,7 @@ module.exports = class YABDP4Nitro {
     async resolutionSwapperV2(){
 
         //wait for lazy loaded modules
-        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.byStrings("golivemodalv2"), {defaultExport:false, signal: controller.signal});
+        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GoLiveModalV2"), {defaultExport:false, signal: controller.signal});
 
         if(this.StreamOptionsButtonClassesMod == undefined) this.StreamOptionsButtonClassesMod = await Webpack.waitForModule(Webpack.Filters.byKeys("streamOptionsButton", "settingsIcon"), {signal: controller.signal});
 
@@ -1198,7 +1199,7 @@ module.exports = class YABDP4Nitro {
             maxBitrateToSet: undefined
         };
 
-        let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "goLiveModalV2");
+        let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
         if(!goLiveModalV2FnName) return;
 
         Patcher.after(this.meta.name, this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
@@ -1215,10 +1216,10 @@ module.exports = class YABDP4Nitro {
                 GLMV2Opt.fpsToSet = undefined;
             }
 
-            const ModalFooter = ret?.props?.children?.props?.children[2]?.props?.children[0]?.props?.children[1]?.props?.children;
+            const RightButtonGroup = ret?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props?.children;
             
-            if(ModalFooter) {
-                ModalFooter.splice(2,0,React.createElement("button",{
+            if(RightButtonGroup) {
+                RightButtonGroup.splice(2,0,React.createElement("button",{
                     class: `${this.StreamOptionsButtonClassesMod.streamOptionsButton} ${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorPrimary} ${buttonClassModule.sizeIcon} ${buttonClassModule.grow}`,
                     style: {
                         height: "46px",
@@ -1814,15 +1815,12 @@ module.exports = class YABDP4Nitro {
             originalFunction(args);
         });
 
-        Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", (_, args, ret) => {
+        Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", () => {
             //I have no earthly idea why but, instead patching this one causes React crashes.
             // Luckily after-patching prevents it from crashing and it still unlocks it as it should
             return true;
         });
         Patcher.instead(this.meta.name, ClipsEnabledMod, "areClipsEnabled", () => {
-            return true;
-        });
-        Patcher.instead(this.meta.name, ClipsEnabledMod, "isPremium", () => {
             return true;
         });
         Patcher.instead(this.meta.name, ClipsStore, "isViewerClippingAllowedForUser", () => {
@@ -3006,9 +3004,10 @@ module.exports = class YABDP4Nitro {
                         }
     
                         //If there is a backslash (\) before the emote we are processing,
-                        if(msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
+                        let emojiString = `<${emoji.animated? "a:" : ""}${emoji.name}:${emoji.id}>`;
+                        if(msg[1].content.includes("\\<" + emojiString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
                             //remove the backslash
-                            msg[1].content = msg[1].content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+                            msg[1].content = msg[1].content.replace(("\\<" + emojiString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emojiString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
                             //and skip bypass for that emote
                             return;
                         }
@@ -3016,7 +3015,7 @@ module.exports = class YABDP4Nitro {
                         //remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
                         emojiUrl = emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&`;
                         //remove emote from message.
-                        msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
+                        msg[1].content = msg[1].content.replace(emojiString, "");
     
                         //queue for upload
                         emojis.push(emoji);
@@ -3137,7 +3136,7 @@ module.exports = class YABDP4Nitro {
                         return;
                     }
                 }
-                let emojiGhostIteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
+                let emojiInteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
                 msg.validNonShortcutEmojis.forEach(emoji => {
                     if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
                     if(emoji.type == "UNICODE") return;
@@ -3149,28 +3148,29 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
-                        msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+                    let emojiString = `<${emoji.animated? "a:" : ""}${emoji.name}:${emoji.id}>`;
+                    if(msg.content.includes("\\" + emojiString)){
+                        msg.content = msg.content.replace("\\<" + emojiString, ("<" + emojiString));
                         return; //If there is a backslash before the emoji, skip it.
                     }
 
                     //if ghost mode is not required
-                    if(msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == ""){
-                        msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless& `);
+                    if(msg.content.replace(emojiString, "") == ""){
+                        msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless& `);
                         return;
                     }
-                    emojiGhostIteration++; //increment dummy value
+                    emojiInteration++; //increment dummy value
 
                     //if message already has ghostmodetext.
                     if(msg.content.includes(ghostmodetext)){
                         //remove processed emoji from the message
-                        msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
+                        msg.content = msg.content.replace(emojiString, ""),
                             //add to the end of the message
-                            msg.content += " " + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiGhostIteration}& `;
+                            msg.content += " " + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration}& `;
                         return;
                     }
                     //if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-                    msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless& `;
+                    msg.content = msg.content.replace(emojiString, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless& `;
                 });
             }
 
@@ -3195,7 +3195,7 @@ module.exports = class YABDP4Nitro {
                     }
                 }
                 //refer to previous bypasses for comments on what this all is for.
-                let emojiGhostIteration = 0;
+                let emojiInteration = 0;
                 msg.validNonShortcutEmojis.forEach(emoji => {
                     if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
                     if(emoji.type == "UNICODE") return;
@@ -3207,12 +3207,13 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
-                        msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+                    let emojiString = `<${emoji.animated? "a:" : ""}${emoji.name}:${emoji.id}>`;
+                    if(msg.content.includes("\\" + emojiString)){
+                        msg.content = msg.content.replace(("\\" + emojiString), emojiString);
                         return; //If there is a backslash before the emoji, skip it.
                     }
-                    emojiGhostIteration++;
-                    msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiGhostIteration}& `);
+                    emojiInteration++;
+                    msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration}& `);
                 });
             }
 
@@ -3246,7 +3247,7 @@ module.exports = class YABDP4Nitro {
                     }
                 }
                 //refer to previous bypasses for comments on what this all is for.
-                let emojiGhostIteration = 0;
+                let emojiInteration = 0;
                 msg.validNonShortcutEmojis.forEach(emoji => {
                     if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
                     if(emoji.type == "UNICODE") return;
@@ -3258,12 +3259,14 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    if(msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")){
-                        msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
+                    let emojiString = `<${emoji.animated? "a:" : ""}${emoji.name}:${emoji.id}>`;
+
+                    if(msg.content.includes("\\" + emojiString)){
+                        msg.content = msg.content.replace(("\\" + emojiString), emojiString);
                         return; //If there is a backslash before the emoji, skip it.
                     }
-                    emojiGhostIteration++;
-                    msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, `[${emoji.name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiGhostIteration}&)`);
+                    emojiInteration++;
+                    msg.content = msg.content.replace(emojiString, `[${emoji.name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration}&)`);
                 });
             }
 
