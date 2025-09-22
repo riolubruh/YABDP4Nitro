@@ -1,5 +1,7 @@
 # YABDP4Nitro
 
+# THANKS FOR 1000+ STARS !!
+
 *Probably* the best "Nitro plugin" out there. 
 
 YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience. This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more!
@@ -551,3 +553,4 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
