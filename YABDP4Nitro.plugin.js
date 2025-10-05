@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.3.0
+ * @version 6.3.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -161,6 +161,10 @@ const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 //clips related variables
 let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
 
+//for fixing edit cancels
+let lastEditedMsg;
+let lastEditedMsgCopy;
+
 const defaultSettings = {
     "emojiSize": 64,
     "screenSharing": true,
@@ -237,20 +241,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.3.0",
+        "version": "6.3.1",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.3.0",
+            title: "6.3.1",
             items: [
-                "Changed it so that adding a heiphen before an emoji skips bypass for that emoji instead of a backslash since Discord added their own functionality for that scenario at some point.",
-                "Fixed static emojis not working since last update didn't implement the fix for emojis properly.",
-                "Made a small change to the updating system to hopefully reduce problems caused by it.",
-                "Fixed plugin not fetching all available Avatar Decorations and Nameplates.",
-                "Added new feature: editing messages with text-based fakemoji (i.e. not uploaded emojis) will show them as emoji instead of the actual text. On by default, it can be disabled under the \"Replace Fakemoji When Editing Message\" option."
+                "Fixed 'Change Effect [YABDP4Nitro]' button not appearing.",
+                "Fixed cancelling edits with fakemoji causing the message to render incorrectly."
             ]
         }
     ],
@@ -2467,7 +2468,7 @@ module.exports = class YABDP4Nitro {
 
         //wait for profile effect section renderer to be loaded and store
         if(!this.profileEffectSectionRenderer)
-            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("isTryItOutFlow:","=!1,initialSelectedEffectId"), {defaultExport:false, signal: controller.signal});
+            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("isTryItOutFlow:","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
 
         let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
         if(!ProfileEffectSectionFnName) return;
@@ -3339,6 +3340,8 @@ module.exports = class YABDP4Nitro {
             
             //starting editing message
             Patcher.before(this.meta.name, MessageActions, "startEditMessageRecord", (_, [channelId, msg]) => {
+                lastEditedMsg = msg;
+                lastEditedMsgCopy = {...msg};
     
                 let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/gi;
     
@@ -3379,8 +3382,12 @@ module.exports = class YABDP4Nitro {
                     })
                 }
             });
-
         }
+
+        Patcher.before(this.meta.name, MessageActions, "endEditMessage", () => {
+            //fix cancelling edit by restoring message to original state manually after cancellation
+            lastEditedMsg.content = lastEditedMsgCopy.content;
+        });
 
         //#endregion
     } //End of emojiBypass()
