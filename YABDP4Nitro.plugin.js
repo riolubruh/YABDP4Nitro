@@ -3264,10 +3264,6 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    console.log({...msg});
-                    console.log(msg);
-                    console.log(emoji);
-
                     let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
 
                     let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
