@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.3.1
+ * @version 6.3.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -241,17 +241,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.3.1",
+        "version": "6.3.2",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.3.1",
+            title: "6.3.2",
             items: [
-                "Fixed 'Change Effect [YABDP4Nitro]' button not appearing.",
-                "Fixed cancelling edits with fakemoji causing the message to render incorrectly."
+                "Fixed regression from 6.2.9 where if there were multiple emojis with the same name and you used one of the suffixed ones (i.e. :emoji~1:, :emoji~2:, etc.) it would not remove the emoji properly from the message."
             ]
         }
     ],
@@ -3008,8 +3007,10 @@ module.exports = class YABDP4Nitro {
                         if(emoji.animated) {
                             emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                         }
+
+                        let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
     
-                        let emojiString = `<${emoji.animated ? "a:" : ":"}${emoji.name}:${emoji.id}>`;
+                        let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
 
                         //If there is a heiphen (-) before the emote we are processing,
                         if(msg[1].content.includes("-" + emojiString)) {
@@ -3155,7 +3156,9 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${emoji.name}:${emoji.id}>`;
+                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+
+                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
 
                     //If there is a heiphen before the emoji, skip it.
                     if(msg.content.includes("-" + emojiString)){
@@ -3217,7 +3220,9 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${emoji.name}:${emoji.id}>`;
+                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+
+                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
                     if(msg.content.includes("-" + emojiString)){
                         msg.content = msg.content.replace(("-" + emojiString), emojiString);
                         return; //If there is a heiphen before the emoji, skip it.
@@ -3259,14 +3264,20 @@ module.exports = class YABDP4Nitro {
                         emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
                     }
 
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${emoji.name}:${emoji.id}>`;
+                    console.log({...msg});
+                    console.log(msg);
+                    console.log(emoji);
+
+                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+
+                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
 
                     if(msg.content.includes("-" + emojiString)){
                         msg.content = msg.content.replace(("-" + emojiString), emojiString);
                         return; //If there is a heiphen before the emoji, skip it.
                     }
                     emojiInteration++;
-                    msg.content = msg.content.replace(emojiString, `[${emoji.name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration})`);
+                    msg.content = msg.content.replace(emojiString, `[${allNamesString}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration})`);
                 });
             }
 
