@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.3.2
+ * @version 6.3.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -126,7 +126,7 @@ const [
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
     {filter: Webpack.Filters.byStoreName('ClipsStore')},
     {filter: Webpack.Filters.byStoreName('UserSettingsAccountStore')},
-    {filter: Webpack.Filters.byStrings('nameplate', 'nameplateData', 'nameplatePreview', 'nameplatePurchased')}, //NameplatePreview
+    {filter: Webpack.Filters.bySource('user', 'isHighlighted', 'nameplateData', 'isPurchased'), searchExports:true, defaultExport:true}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
@@ -241,16 +241,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.3.2",
+        "version": "6.3.3",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.3.2",
+            title: "6.3.3",
             items: [
-                "Fixed regression from 6.2.9 where if there were multiple emojis with the same name and you used one of the suffixed ones (i.e. :emoji~1:, :emoji~2:, etc.) it would not remove the emoji properly from the message."
+                "Fixed an error in an error handler (lol) in one of the functions that loads FFmpeg which lead to error output being slightly less user-friendly.",
+                "Fixed: Change Fake Nameplate modal stopped working due to a Discord update.",
+                "Fixed: Fake Profile Effects stopped appearing on users' profiles at some point.",
+                "Fixed a problem which could throw an error in console on cancelling editing a message."
             ]
         }
     ],
@@ -906,7 +909,7 @@ module.exports = class YABDP4Nitro {
         });
 
         const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
-        
+
         //#region Nameplates UI
         function NameplateList(){
             let [query, setQuery] = React.useState("");
@@ -931,7 +934,7 @@ module.exports = class YABDP4Nitro {
                     }
 
                     nameplatesList.push(React.createElement('div', {
-                        children: React.createElement(NameplatePreview, {
+                        children: React.createElement(NameplatePreview.type, {
                             user: CurrentUser,
                             isHighlighted: true,
                             nameplate: {
@@ -1889,7 +1892,7 @@ module.exports = class YABDP4Nitro {
                 else blobUrl = URL.createObjectURL(await (await fetchAndRetryWithNetFetch(filename)).blob());
                 return blobUrl;
             }catch(err){
-                Logger.error(this.meta.name, "An error occurred while fetching " + filename);
+                Logger.error("YABDP4Nitro", "An error occurred while fetching " + filename);
                 throw err;
             }
         }
@@ -2414,11 +2417,6 @@ module.exports = class YABDP4Nitro {
             this.profileEffects = ProfileEffectStore.getAllProfileEffects();
         }
 
-        let profileEffectIdList = new Array();
-        for(let i = 0; i < this.profileEffects.length; i++){
-            profileEffectIdList.push(this.profileEffects[i].id);
-        }
-
 
         Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, [args], ret) => {
             //error prevention
@@ -2445,7 +2443,7 @@ module.exports = class YABDP4Nitro {
                     //ignore invalid data 
                     if(isNaN(effectIndex)) return;
                     //ignore if the profile effect id does not point to an actual profile effect
-                    if(profileEffectIdList[effectIndex] == undefined) return;
+                    if(this.profileEffects[effectIndex] == undefined) return;
                     
                     //get profile effect
                     const effect = this.profileEffects[effectIndex];
@@ -3392,8 +3390,9 @@ module.exports = class YABDP4Nitro {
         }
 
         Patcher.before(this.meta.name, MessageActions, "endEditMessage", () => {
-            //fix cancelling edit by restoring message to original state manually after cancellation
-            lastEditedMsg.content = lastEditedMsgCopy.content;
+            if(lastEditedMsg?.content != undefined && lastEditedMsgCopy?.content != undefined)
+                //fix cancelling edit by restoring message to original state manually after cancellation
+                lastEditedMsg.content = lastEditedMsgCopy.content;
         });
 
         //#endregion
