@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.3.3
+ * @version 6.4.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -38,7 +38,7 @@
 */
 
 //#region Module Hell
-const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins} = BdApi;
+const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = BdApi;
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamFPS: Webpack.Filters.byKeys("FPS_30"),
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
@@ -93,7 +93,8 @@ const [
     CanUserUseMod,
     loadMP4Box,
     ProfileEffectStore,
-    DMTag
+    DMTag,
+    GIFPickerRender
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byStoreName('UserStore')},
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
@@ -136,7 +137,8 @@ const [
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
     {filter: Webpack.Filters.byStoreName('ProfileEffectStore')},
-    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'botTagNotStaffWarning')}
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'botTagNotStaffWarning')},
+    {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true}
 );
 const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
 const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD",{
@@ -241,19 +243,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.3.3",
+        "version": "6.4.0",
         "description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.3.3",
+            title: "6.4.0",
             items: [
-                "Fixed an error in an error handler (lol) in one of the functions that loads FFmpeg which lead to error output being slightly less user-friendly.",
-                "Fixed: Change Fake Nameplate modal stopped working due to a Discord update.",
-                "Fixed: Fake Profile Effects stopped appearing on users' profiles at some point.",
-                "Fixed a problem which could throw an error in console on cancelling editing a message."
+                "Added Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Picker which is apparently called the Expression Picker. The more you know.",
+                "Added a context menu to GIFs in the GIF picker with Copy URL and Open URL buttons.",
+                "Reduced amount of repeated code (copy to clipboard is now its own function in the plugin).",
+                "Fixed an issue where client themes might not be saved properly to plugin config."
             ]
         }
     ],
@@ -412,6 +414,21 @@ const config = {
 };
 // #endregion
 
+//#region Plugin-wide Function(s)
+
+function copyToClipboard(string,successMessage = "",errorMessage = "Failed to copy to clipboard!") {
+    try {
+        DiscordNative.clipboard.copy(string);
+        if(successMessage != "")
+            UI.showToast(successMessage,{type: "info"});
+    } catch(err) {
+        UI.showToast(errorMessage,{type: "error",forceShow: true});
+        Logger.error(this.meta.name,err);
+    }
+}
+
+//#endregion
+
 // #region Exports
 module.exports = class YABDP4Nitro {
     constructor(meta){
@@ -446,6 +463,8 @@ module.exports = class YABDP4Nitro {
 
     // #region Save and Update
     saveAndUpdate(){ //Saves and updates settings and runs functions
+
+        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
 
         controller.abort();
         controller = new AbortController();
@@ -756,8 +775,96 @@ module.exports = class YABDP4Nitro {
             Logger.error(this.meta.name, err);
         }
 
+        try{
+            ContextMenu.patch('expression-picker', this.expressionPickerFunction);
+        }catch(err){
+            Logger.error(this.meta.name, err);
+        }
+
+        try{
+            Patcher.after(this.meta.name, GIFPickerRender?.prototype, "render", (thisRef, __, ret) => {
+                if(ret?.props){
+                    ret.props.onContextMenu = (e) => {
+                        let url;
+                        if(thisRef?.props?.item?.url)
+                            url = thisRef.props.item.url;
+                        else
+                            url = thisRef.props.src;
+    
+                        if(url.startsWith('//')){
+                            url = "https:" + url;
+                        }
+    
+                        ContextMenu.open(e, ContextMenu.buildMenu([{
+                            type: "text",
+                            label: "Copy Link",
+                            onClick: () => {
+                                copyToClipboard(url);
+                            }
+                        },{
+                            type:"text",
+                            label: "Open Link",
+                            onClick: () => {
+                                window.open(url);
+                            }
+                        }]))
+                    }
+                }
+            });
+        }catch(err){
+            Logger.error(this.meta.name, err);
+        }
     } //End of saveAndUpdate()
     // #endregion
+
+    //GIF and Sticker Picker Context Menu
+    expressionPickerFunction(reactElem, htmlElem) {
+        //those variable names arent good but idk what else to call em lol
+
+        let src = htmlElem?.target?.src ? htmlElem?.target?.src : htmlElem?.target?.firstChild?.src;
+        if(src) {
+            if(src.includes('emojis')){
+                let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
+                let emojiId = src.match(idFromUrlRegex)[0];
+                if(emojiId){
+                    let emoji = EmojiStore.getCustomEmojiById(emojiId);
+                    if(emoji){
+                        if(!emoji.animated && settings.PNGemote)
+                            src = src.replace('.webp', '.png');
+                        if(emoji.animated){
+                            src = src.replace('.webp', '.gif');
+                            src = src.replace('.avif', '.gif');
+                        }    
+                    } 
+                }
+            }
+
+            src = src.split('?')[0] + "?size=4096";
+
+            try {
+                reactElem.props.children.props.children.push(
+                    ContextMenu.buildItem({
+                        id: "yabd-copy-url-expression-picker",
+                        label: "Copy URL",
+                        action: () => {
+                            copyToClipboard(src);
+                        }
+                    })
+                );
+                reactElem.props.children.props.children.push(
+                    ContextMenu.buildItem({
+                        id: "yabd-open-url-expression-picker",
+                        label: "Open URL",
+                        action: () => {
+                            window.open(src);
+                        }
+                    })
+                )
+            } catch(err) {
+                Logger.error(this.meta.name,err);
+            }
+        }
+    }
 
     async patchGoLiveModalUpsells() {
         DOM.addStyle(this.meta.name, `
@@ -961,14 +1068,7 @@ module.exports = class YABDP4Nitro {
                             let strToEncode = `n{${nameplate.asset},${nameplate.palette}}`;
                             let encodedStr = secondsightifyEncodeOnly(strToEncode);
 
-                            //copy to clipboard
-                            try{
-                                DiscordNative.clipboard.copy(" " + encodedStr);
-                                UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                            }catch(err){
-                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });
-                                Logger.error("YABDP4Nitro", err);
-                            }
+                            copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!")
                         },
                         title: nameplate.name
                     }));
@@ -2019,7 +2119,7 @@ module.exports = class YABDP4Nitro {
                     settings.lastGradientSettingStore = -1;
     
                     //save any changes to settings
-                    Data.save(this.meta.name, "settings", this.settings);
+                    Data.save(this.meta.name, "settings", settings);
                     
                     //dispatch settings update to change themes
                     Dispatcher.dispatch({
@@ -2041,7 +2141,7 @@ module.exports = class YABDP4Nitro {
                     settings.lastGradientSettingStore = args.backgroundGradientPresetId;
                     
                     //save any changes to settings
-                    Data.save(this.meta.name, "settings", this.settings);
+                    Data.save(this.meta.name, "settings", settings);
     
                     //dispatch settings update event to change to the gradient the user chose
                     Dispatcher.dispatch({
@@ -2268,14 +2368,8 @@ module.exports = class YABDP4Nitro {
                         //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
                         if(encodedStr == "") return;
 
-                        //copy to clipboard
-                        try{
-                            DiscordNative.clipboard.copy(encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                        }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error("YABDP4Nitro", err);
-                        }
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+
                     } //end copy pfp 3y3 click event
                 }) //end of react createElement
             ); //end of element push
@@ -2499,13 +2593,7 @@ module.exports = class YABDP4Nitro {
                     let encodedStr = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
                     //javascript that runs onclick for each profile effect button
                     let copyDecoration3y3 = function(){
-                        try{
-                            DiscordNative.clipboard.copy(" " + encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                        }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error("YABDP4Nitro", err);
-                        }
+                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
                     };
 
                     profileEffectChildren.push(
@@ -2746,13 +2834,7 @@ module.exports = class YABDP4Nitro {
                             backgroundColor: "var(--background-tertiary)"
                         },
                         onClick: () => {
-                            try{
-                                DiscordNative.clipboard.copy(" " + encodedStr);
-                                UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                            }catch(err){
-                                UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                                Logger.error("YABDP4Nitro", err);
-                            }
+                            copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
                         },
                         onMouseOver: (e) => {
                             e.target.src = e.target.src.replace('.webp','.png');
@@ -3659,13 +3741,7 @@ module.exports = class YABDP4Nitro {
 
                         let encodedStr = ((padding || "") + " " + encoded);
 
-                        try{
-                            DiscordNative.clipboard.copy(encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });    
-                        }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error("YABDP4Nitro", err);
-                        }
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
                     }
                 })
             );
@@ -3888,13 +3964,7 @@ module.exports = class YABDP4Nitro {
                         if(encodedStr == "") return;
 
                         //copy to clipboard
-                        try{
-                            DiscordNative.clipboard.copy(encodedStr);
-                            UI.showToast("3y3 copied to clipboard!", { type: "info" });
-                        }catch(err){
-                            UI.showToast("Failed to copy to clipboard!", { type: "error", forceShow: true });   
-                            Logger.error("YABDP4Nitro", err);
-                        }
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
                         
                     } //end of onClick function
                 }) //end of react createElement
@@ -4111,6 +4181,7 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_V2_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle(this.meta.name);
         DOM.removeStyle("YABDP4NitroBadges");
+        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
         
         let ffmpegScript = document.getElementById("ffmpegScript");
         if(ffmpegScript){
