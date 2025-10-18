@@ -251,7 +251,7 @@ const config = {
         {
             title: "6.4.1",
             items: [
-                "Removed usage of DiscordNative to increase compatibility with future versions of BetterDiscord.",
+                "Removed usage of DiscordNative that was used for copying to the clipboard to increase compatibility with future versions of BetterDiscord.",
                 "Fixed custom resolution swapper not working due to a part of the class name coming up undefined (which had literally no effect on the appearance).",
                 "Removed all remaining instances of using Discord's class names.",
                 "Made the new GIF context menu and the extra Emoji/Sticker context menu items togglable in settings under Miscellaneous. On by default."
@@ -4170,7 +4170,7 @@ module.exports = class YABDP4Nitro {
         }
 
         DOM.addStyle("YABDP4NitroGeneral", `
-            //wow it's discord css code
+            /*wow it's discord css code*/
             .yabd-text-h5 {
                 line-height: 20px;
                 color: var(--header-primary);
