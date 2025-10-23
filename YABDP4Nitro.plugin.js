@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.5.0
+ * @version 6.5.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -127,7 +127,7 @@ const [
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
     {filter: Webpack.Filters.byStoreName('ClipsStore')},
     {filter: Webpack.Filters.byStoreName('UserSettingsAccountStore')},
-    {filter: Webpack.Filters.bySource('nameplateData', 'isPurchased'), searchExports:true, defaultExport:true}, //NameplatePreview
+    {filter: Webpack.Filters.bySource('nameplateData', 'isPurchased')}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
@@ -251,19 +251,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.5.0",
+        "version": "6.5.1",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.5.0",
+            title: "6.5.1",
             items: [
-                "Added Stream Sharpening. This allows you to adjust the sharpness of streams to somewhat combat the generally blurry look of streams per-user. Off by default because this practically requires hardware acceleration to be enabled or else your PC will suffer. Shoutouts to @me4u._.day for the cool idea!",
-                "Fixed an issue where if the data file could not be parsed it would try to reset it to an empty object instead of the default data.",
-                "Fixed MP3 audio clips not working on iOS.",
-                "Updated plugin description."
+                "Fixed Nameplates UI not working on BetterDiscord Canary."
             ]
         }
     ],
@@ -1270,7 +1267,7 @@ module.exports = class YABDP4Nitro {
         const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
 
         //#region Nameplates UI
-        function NameplateList(){
+        function NameplateList({NameplatePreviewName}){
             let [query, setQuery] = React.useState("");
 
             let nameplatesList = [];
@@ -1293,7 +1290,7 @@ module.exports = class YABDP4Nitro {
                                 continue;
                             }
                             nameplatesList.push(React.createElement('div',{
-                                children: React.createElement(NameplatePreview.type,{
+                                children: React.createElement(NameplatePreview[NameplatePreviewName].type,{
                                     user: CurrentUser,
                                     isHighlighted: true,
                                     nameplate: {
@@ -1350,9 +1347,10 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }
- 
         let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
         if(!NameplateSection) return;
+
+        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x)
 
         Patcher.after(this.meta.name, NameplateSectionMod, NameplateSection, (_, args, ret) => {
             const ButtonsSection = ret?.props?.children?.props?.children;
@@ -1365,7 +1363,7 @@ module.exports = class YABDP4Nitro {
                     },
                     children: "Change Nameplate [YABDP4Nitro]",
                     onClick: () => {
-                        UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList), {cancelText: ""})
+                        UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList, {NameplatePreviewName}), {cancelText: ""})
                     }
                 }))
             }
