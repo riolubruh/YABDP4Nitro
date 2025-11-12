@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.5.1
+ * @version 6.5.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -251,16 +251,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.5.1",
+        "version": "6.5.2",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.5.1",
+            title: "6.5.2",
             items: [
-                "Fixed Nameplates UI not working on BetterDiscord Canary."
+                "Fixed a bunch of fake profile customization buttons not appearing.",
+                "Fixed a bug where a non-functional copy of the Change Effect [YABDP4Nitro] button would appear in the Try It Out section of the profile customization page."
             ]
         }
     ],
@@ -2516,7 +2517,7 @@ module.exports = class YABDP4Nitro {
     async customProfilePictureEncoding(secondsightifyEncodeOnly){
 
         //wait for avatar customization section renderer to be loaded and store
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOutFlow"), {defaultExport:false, signal: controller.signal});
+        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut"), {defaultExport:false, signal: controller.signal});
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
@@ -2526,9 +2527,11 @@ module.exports = class YABDP4Nitro {
         if(!AvatarSectionFnName) return;
 
         Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(!ret) return;
 
             //don't need to do anything if this is the "Try out Nitro" flow.
-            if(args.isTryItOutFlow) return;
+            if(args.isTryItOut) return;
 
             ret.props.children.props.children.push(
                 React.createElement("input", {
@@ -2544,88 +2547,90 @@ module.exports = class YABDP4Nitro {
                 })
             );
 
-            //Create and append Copy PFP 3y3 button.
-            ret.props.children.props.children.push(
-                React.createElement("button", {
-                    children: "Copy PFP 3y3",
-                    className: `yabd-generic-button`,
-                    id: "profilePictureButton",
-                    style: {
-                        marginLeft: "10px",
-                        whiteSpace: "nowrap"
-                    },
-                    onClick: async function(){ //on copy pfp 3y3 button click
-
-                        //grab text from pfp url input textarea.
-                        let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-
-                        //empty, skip.
-                        if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == ""){
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profilePictureUrlInputValue
-                            //clean up URL
-                            .replace("http://", "") //remove protocol
-                            .replace("https://", "")
-                            .replace("i.imgur.com", "imgur.com");
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")){
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode), {
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-                                        .replace("https://", "") //get rid of protocol
-                                        .replace("i.imgur.com", "imgur.com")
-                                        .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err){
-                                    Logger.error("YABDP4Nitro", err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
-                                    return;
+            if(ret?.props?.children?.props?.children){
+                //Create and append Copy PFP 3y3 button.
+                ret.props.children.props.children.push(
+                    React.createElement("button", {
+                        children: "Copy PFP 3y3",
+                        className: `yabd-generic-button`,
+                        id: "profilePictureButton",
+                        style: {
+                            marginLeft: "10px",
+                            whiteSpace: "nowrap"
+                        },
+                        onClick: async function(){ //on copy pfp 3y3 button click
+    
+                            //grab text from pfp url input textarea.
+                            let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
+    
+                            //empty, skip.
+                            if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == ""){
+                                emptyWarn();
+                                return;
+                            }
+    
+                            //clean up string to encode
+                            let stringToEncode = "" + profilePictureUrlInputValue
+                                //clean up URL
+                                .replace("http://", "") //remove protocol
+                                .replace("https://", "")
+                                .replace("i.imgur.com", "imgur.com");
+    
+                            let encodedStr = ""; //initialize encoded string as empty string
+                            stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+    
+                            //if url seems correct
+                            if(stringToEncode.toLowerCase().startsWith("imgur.com")){
+    
+                                //Check for album or gallery URL
+                                if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
+                                    //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+    
+                                    //Fetch imgur album page
+                                    try {
+                                        const parser = new DOMParser();
+                                        stringToEncode = await Net.fetch(("https://" + stringToEncode), {
+                                            method: "GET",
+                                            mode: "cors"
+                                        }).then(res => res.text()
+                                            //parse html, queryselect meta tag with certain name
+                                            .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+                                        stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+                                            .replace("https://", "") //get rid of protocol
+                                            .replace("i.imgur.com", "imgur.com")
+                                            .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
+                                            .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                    } catch(err){
+                                        Logger.error("YABDP4Nitro", err);
+                                        UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                        return;
+                                    }
                                 }
+                                if(stringToEncode == ""){
+                                    UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                    Logger.error("YABDP4Nitro", "Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
+                                }
+    
+                                //add starting "P{" , remove "imgur.com/" , and add ending "}"
+                                stringToEncode = "P{" + stringToEncode.replace("imgur.com/", "") + "}";
+                                //finally encode the string, adding a space before it so nothing fucks up
+                                encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+    
+                                //If this is not an Imgur URL, yell at the user.
+                            }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
+                                UI.showToast("Please use Imgur!", { type: "warning" });
+                                return;
                             }
-                            if(stringToEncode == ""){
-                                UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                Logger.error("YABDP4Nitro", "Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
-                            }
-
-                            //add starting "P{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "P{" + stringToEncode.replace("imgur.com/", "") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                            //If this is not an Imgur URL, yell at the user.
-                        }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-                            UI.showToast("Please use Imgur!", { type: "warning" });
-                            return;
-                        }
-
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
-
-                    } //end copy pfp 3y3 click event
-                }) //end of react createElement
-            ); //end of element push
+    
+                            //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                            if(encodedStr == "") return;
+    
+                            copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+    
+                        } //end copy pfp 3y3 click event
+                    }) //end of react createElement
+                ); //end of element push
+            }
         }); //end of patch
     } //End of customProfilePictureEncoding()
     // #endregion
@@ -2812,18 +2817,18 @@ module.exports = class YABDP4Nitro {
 
         //wait for profile effect section renderer to be loaded and store
         if(!this.profileEffectSectionRenderer)
-            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("isTryItOutFlow:","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
+            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("PROFILE_EFFECTS_INLINE_SETTINGS","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
 
         let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
         if(!ProfileEffectSectionFnName) return;
         //patch profile effect section renderer function to run the following code after the function runs
         Patcher.after(this.meta.name, this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(args.isTryItOut) return;
 
             const profileEffects = this.profileEffects;
 
             function ProfileEffects({query}){
-                //if this is the tryItOut flow, don't do anything.
-                if(args.isTryItOutFlow) return;
 
                 let profileEffectChildren = [];
                 let actualRuns = 0;
@@ -3025,34 +3030,38 @@ module.exports = class YABDP4Nitro {
         }); //end of getUser patch for avatar decorations
 
         //Wait for avatar decor customization section render module to be loaded and store
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration", "guildAvatarDecoration", ",pendingAvatarDecoration"), {defaultExport:false, signal: controller.signal});
+        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings("enable_avatar_decoration_uploads"), {defaultExport:false, signal: controller.signal});
 
         let fnName = this.findMangledName(this.decorationCustomizationSectionMod, x=>x, "DecorationCustomizationSection");
         if(!fnName) return;
 
         //Avatar decoration customization section patch
         Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, fnName, (_, [args], ret) => {
+            if(!args) return;
+
             //don't run if this is the try out nitro flow.
-            if(args.isTryItOutFlow) return;
+            if(args.isTryItOut) return;
 
             //push change decoration button
-            ret.props.children[0].props.children.push(
-                React.createElement("button", {
-                    id: "decorationButton",
-                    children: "Change Decoration [YABDP4Nitro]",
-                    style: {
-                        width: "100px",
-                        height: "50px",
-                        color: "white",
-                        borderRadius: "3px",
-                        marginLeft: "5px",
-                    },
-                    className: "yabd-generic-button",
-                    onClick: () => {
-                        UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
-                    }
-                })
-            );
+            if(ret?.props?.children?.[0].props.children){
+                ret.props.children[0].props.children.push(
+                    React.createElement("button", {
+                        id: "decorationButton",
+                        children: "Change Decoration [YABDP4Nitro]",
+                        style: {
+                            width: "100px",
+                            height: "50px",
+                            color: "white",
+                            borderRadius: "3px",
+                            marginLeft: "5px",
+                        },
+                        className: "yabd-generic-button",
+                        onClick: () => {
+                            UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
+                        }
+                    })
+                );
+            }
 
             const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
 
@@ -3067,42 +3076,44 @@ module.exports = class YABDP4Nitro {
                     const decorationId = listOfDecorationIds[i];
                     const assetHash = data.avatarDecorations[decorationId];
 
-                    //remove existing nameplates from decoration list
-                    if(assetHash.includes('nameplate')){
-                        delete data.avatarDecorations[decorationId];
-                        continue;
-                    }
-
-                    //encode to 3y3 and store clipboard copy in onclick event
-                    let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
-                    //javascript that runs onclick for each avatar decoration button
-                    
-                    let child = React.createElement("img", {
-                        style: {
-                            width: "23%",
-                            cursor: "pointer",
-                            marginLeft: "5px",
-                            marginBottom: "10px",
-                            borderRadius: "4px",
-                            backgroundColor: "var(--background-tertiary)"
-                        },
-                        onClick: () => {
-                            copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
-                        },
-                        onMouseOver: (e) => {
-                            e.target.src = e.target.src.replace('.webp','.png');
-                        },
-                        onMouseLeave: (e) => {
-                            e.target.src = e.target.src.replace('.png','.webp');
-                        },
-                        src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
-                    });
-                    avatarDecorationChildren.push(child);
-
-                    //add newline every 4th decoration
-                    if((i + 1) % 4 == 0){
-                        //avatarDecorationsHTML += "<br>"
-                        avatarDecorationChildren.push(React.createElement("br"));
+                    if(decorationId && assetHash){
+                        //remove existing nameplates from decoration list
+                        if(assetHash.includes('nameplate')){
+                            delete data.avatarDecorations[decorationId];
+                            continue;
+                        }
+    
+                        //encode to 3y3 and store clipboard copy in onclick event
+                        let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
+                        //javascript that runs onclick for each avatar decoration button
+                        
+                        let child = React.createElement("img", {
+                            style: {
+                                width: "23%",
+                                cursor: "pointer",
+                                marginLeft: "5px",
+                                marginBottom: "10px",
+                                borderRadius: "4px",
+                                backgroundColor: "var(--background-tertiary)"
+                            },
+                            onClick: () => {
+                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                            },
+                            onMouseOver: (e) => {
+                                e.target.src = e.target.src.replace('.webp','.png');
+                            },
+                            onMouseLeave: (e) => {
+                                e.target.src = e.target.src.replace('.png','.webp');
+                            },
+                            src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
+                        });
+                        avatarDecorationChildren.push(child);
+    
+                        //add newline every 4th decoration
+                        if((i + 1) % 4 == 0){
+                            //avatarDecorationsHTML += "<br>"
+                            avatarDecorationChildren.push(React.createElement("br"));
+                        }
                     }
                 }
                 return React.createElement('div', {
@@ -3394,20 +3405,17 @@ module.exports = class YABDP4Nitro {
                 }
             }
 
-            if(settings.emojiBypass && settings.emojiBypassType == 0){
-                if(emojis.length > 0){
-                    //upload all emotes
-                    for(let i = 0; i < emojis.length; i++){
-                        await this.UploadEmote(emojiUrls[i], currentChannelId, msg, emojis[i], i, send)
-                    }
-                    //reset message content since we dont want a repeated message if soundmoji upload happens next
-                    msg[1].content = "";
+            if(settings.emojiBypass && settings.emojiBypassType == 0 && emojis.length > 0) {
+                //upload all emotes
+                for(let i = 0;i < emojis.length;i++) {
+                    await this.UploadEmote(emojiUrls[i],currentChannelId,msg,emojis[i],i,send)
                 }
+                //reset message content since we dont want a repeated message if soundmoji upload happens next
+                msg[1].content = "";
             }
             
-            if(settings.soundmojiEnabled){
-                if(sounds.length > 0)
-                    await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
+            if(settings.soundmojiEnabled && sounds.length > 0){
+                await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
             }
 
             if(settings.stickerBypass){
@@ -4102,7 +4110,7 @@ module.exports = class YABDP4Nitro {
     async bannerUrlEncoding(secondsightifyEncodeOnly){
 
         //wait for banner customization renderer module to be loaded
-        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOutFlow", "onBannerChange"), {defaultExport:false, signal: controller.signal});
+        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange"), {defaultExport:false, signal: controller.signal});
 
         let BannerSectionFnName = this.findMangledName(this.profileBannerSectionRenderer, x=>x, "BannerSection");
         if(!BannerSectionFnName) return;
