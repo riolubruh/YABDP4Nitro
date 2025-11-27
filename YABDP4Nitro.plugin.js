@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.5.2
+ * @version 6.6.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -132,7 +132,7 @@ const [
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
-    {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate"), defaultExport:false},
+    {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), defaultExport:false}, //NameplateSectionMod
     {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
@@ -225,7 +225,8 @@ const defaultSettings = {
     "editMessageWithEmoji": true,
     "extraContextMenus": true,
     "userSharpenPreferences": {},
-    "sharpenStreams": false
+    "sharpenStreams": false,
+    "displayNameStyles": true
 };
 const defaultData = {
     avatarDecorations: {},
@@ -251,17 +252,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.5.2",
+        "version": "6.6.0",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.5.2",
+            title: "6.6.0",
             items: [
-                "Fixed a bunch of fake profile customization buttons not appearing.",
-                "Fixed a bug where a non-functional copy of the Change Effect [YABDP4Nitro] button would appear in the Try It Out section of the profile customization page."
+                "Added Fake Display Name Styles utilizing 3y3 encoding. You probably won't be able to use nameplates, name styles, and a custom avatar at the same time due to the character limit. Sorry. On by default, and it can be disabled in plugin settings under Profile.",
+                "Changed profile effects to use effect ID rather than index which means that it won't change over time. Please re-apply your profile effects."
             ]
         }
     ],
@@ -367,7 +368,8 @@ const config = {
                 { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
                 { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
                 { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
-                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled }
+                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled },
+                { type: "switch", id: "displayNameStyles", name: "Fake Display Name Styles", note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.", value: () => settings.displayNameStyles }
             ]
         },
         {
@@ -824,8 +826,119 @@ module.exports = class YABDP4Nitro {
             }
         }
 
+        if(settings.displayNameStyles){
+            try{
+                this.displayNameStyles();
+            }catch(err){
+                Logger.error(this.meta.name,err);
+            }
+        }
     } //End of saveAndUpdate()
     // #endregion
+
+    async displayNameStyles(){
+        Patcher.after(this.meta.name,UserStore,"getUser",(_,args,ret) => {
+            let revealedText = this.getRevealedText(args[0],`\uDB40\uDC53\uDB40\uDC7B`);
+            if(revealedText) {
+
+                let regex = /S\{[^}]*?\}/;
+                //Check if there are any matches in the revealed text.
+                let matches = revealedText.match(regex);
+                if(matches == undefined) return;
+
+                let firstMatch = matches[0];
+                if(firstMatch == undefined) return;
+
+                //slice off the S{ and the ending }
+                let styleDataStr = firstMatch.slice(2,-1);
+
+                let styleDataArr = styleDataStr.split(",");
+                if(styleDataArr){
+                    let fontId = Number(styleDataArr?.[0]);
+                    let effectId = Number(styleDataArr?.[1]);
+                    let color1 = Number(styleDataArr?.[2]);
+                    let color2;
+                    if(styleDataArr.length >= 4) {
+                        color2 = Number(styleDataArr?.[3]);
+                    }
+    
+                    if(Number.isNaN(color1) || Number.isNaN(color2) || Number.isNaN(fontId) || Number.isNaN(effectId)) return;
+    
+                    if(fontId,effectId,color1) {
+                        let styleData = {
+                            fontId,
+                            effectId,
+                            colors: [Number(color1)]
+                        };
+                        
+                        if(color2) styleData.colors.push(color2);
+    
+                        if (!Object.prototype.hasOwnProperty.call(ret, "displayNameStyles")) {
+                            Object.defineProperty(ret, "displayNameStyles", {
+                                value: cache,
+                                enumerable: true,
+                                configurable: true,
+                                writable: true,
+                            });
+                        } else {
+                            ret.displayNameStyles = styleData;
+                        }
+                    }
+                }
+            }
+        });
+
+        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('displayNameStylesSection', 'onGlobalNameChange'), {signal: controller.signal});
+        let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
+
+        if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('DisplayNameStylesSection'), {signal: controller.signal});
+
+        if(this.DisplayNameSection && this.DisplayNameStylesSection){
+            Patcher.after(this.meta.name, this.DisplayNameSection, renderFn2, (_, [args], ret) => {
+                if(!ret?.props?.children?.[1]){
+                    ret.props.children[1] = React.createElement(this.DisplayNameStylesSection, {
+                        user: args.user,
+                        className: "yabd-marginTop24"
+                    })
+                }
+            });
+        }
+
+        if(!this.DisplayNameStylesModal) this.DisplayNameStylesModal = await Webpack.waitForModule(Webpack.Filters.bySource("DisplayNameStylesModal"), {signal: controller.signal});
+        
+        let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
+        if(renderFn){
+            Patcher.after(this.meta.name, this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
+                const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
+                const font = selectionArea?.[1]?.props?.selectedFontId;
+                const effect = selectionArea?.[2]?.props?.selectedEffectId;
+                const colors = selectionArea?.[3]?.props?.selectedColors;
+    
+                if(ret && font && effect && colors){
+                    if(ret?.props?.children?.props?.children?.props?.children){
+                        ret.props.children.props.children.props.children.splice(1, 0, React.createElement(Components.Button, {
+                            children: "Copy 3y3",
+                            color: Components.Button.Colors.PRIMARY,
+                            look: Components.Button.Looks.OUTLINED,
+                            style: {
+                                top: "64px",
+                                width: "90px",
+                                left: "50%",
+                                zIndex: "2",
+                                background: "var(--button-secondary-background)",
+                                borderRadius: "8px"
+                            },
+                            onClick: () => {    
+                                //encoding part                          ex: S{11,1,15724528,15724528}
+                                let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
+                                copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
+                            }
+                        }))
+                    }
+                }
+            });
+        }
+    }
 
     //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
     sharpenStreams(){ 
@@ -1151,6 +1264,7 @@ module.exports = class YABDP4Nitro {
                 return null;
             };
         }else{
+            Logger.warn(this.meta.name, `Couldn't find name from module for function ${debugInfo} because the module was undefined. May be caused by lazy-loaded modules not being ready yet.`);
             return null;
         }
     }
@@ -1318,7 +1432,7 @@ module.exports = class YABDP4Nitro {
                                     let strToEncode = `n{${nameplate.asset},${nameplate.palette}}`;
                                     let encodedStr = secondsightifyEncodeOnly(strToEncode);
     
-                                    copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!","Failed to copy to clipboard!")
+                                    copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!")
                                 },
                                 title: nameplate.name
                             }));
@@ -1348,13 +1462,15 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }
+        
         let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
         if(!NameplateSection) return;
 
-        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x)
+        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x);
 
         Patcher.after(this.meta.name, NameplateSectionMod, NameplateSection, (_, args, ret) => {
             const ButtonsSection = ret?.props?.children?.props?.children;
+            
             if(ButtonsSection){
                 ButtonsSection.push(React.createElement("button",{
                     className: `yabd-generic-button`,
@@ -2625,7 +2741,7 @@ module.exports = class YABDP4Nitro {
                             //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
                             if(encodedStr == "") return;
     
-                            copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                            copyToClipboard(encodedStr, "3y3 copied to clipboard!");
     
                         } //end copy pfp 3y3 click event
                     }) //end of react createElement
@@ -2775,34 +2891,34 @@ module.exports = class YABDP4Nitro {
             if(ret == undefined) return;
             if(ret.bio == undefined) return;
 
-            //if bio includes encoded /fx 
-            if(ret.bio.includes(`\uDB40\uDC2F\uDB40\uDC66\uDB40\uDC78`)){
+            //if bio includes encoded fx 
+            if(ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
                 //reveal 3y3 encoded text. this string will also include the rest of the bio
                 let revealedText = this.secondsightifyRevealOnly(ret.bio);
                 if(revealedText == undefined) return;
 
                 //if profile effect 3y3 is detected
-                if(revealedText.includes("/fx")){
-                    const regex = /\/fx\d+/;
+                if(revealedText.includes("fx")){
+                    const regex = /fx\d+/;
                     let matches = revealedText.toString().match(regex);
                     if(matches == undefined) return;
                     let firstMatch = matches[0];
                     if(firstMatch == undefined) return;
 
-                    //slice the /fx and only take the number after it.
-                    let effectIndex = parseInt(firstMatch.slice(3));
+                    //slice the fx and only take the number after it.
+                    let effectId = parseInt(firstMatch.slice(2));
                     
                     //ignore invalid data 
-                    if(isNaN(effectIndex)) return;
+                    if(isNaN(effectId)) return;
                     //ignore if the profile effect id does not point to an actual profile effect
-                    if(this.profileEffects[effectIndex] == undefined) return;
+                    if(this.profileEffects.filter(x => x.skuId == effectId).length == 0) return;
                     
                     //get profile effect
-                    const effect = this.profileEffects[effectIndex];
+                    const effect = this.profileEffects.filter(x => x.skuId == effectId)[0];
 
                     //apply profile effect
                     ret.profileEffect = {
-                        id: effect.id,
+                        id: effect.skuId,
                         skuId: effect.skuId,
                         expiresAt: null
                     };
@@ -2848,10 +2964,10 @@ module.exports = class YABDP4Nitro {
                     }
 
                     //encode 3y3
-                    let encodedStr = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
+                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffects[i].skuId); // fx1293373563381878836
                     //javascript that runs onclick for each profile effect button
                     let copyDecoration3y3 = function(){
-                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
                     };
 
                     profileEffectChildren.push(
@@ -3097,7 +3213,7 @@ module.exports = class YABDP4Nitro {
                                 backgroundColor: "var(--background-tertiary)"
                             },
                             onClick: () => {
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
                             },
                             onMouseOver: (e) => {
                                 e.target.src = e.target.src.replace('.webp','.png');
@@ -4003,7 +4119,7 @@ module.exports = class YABDP4Nitro {
 
                         let encodedStr = ((padding || "") + " " + encoded);
 
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
                     }
                 })
             );
@@ -4226,7 +4342,7 @@ module.exports = class YABDP4Nitro {
                         if(encodedStr == "") return;
 
                         //copy to clipboard
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!", "Failed to copy to clipboard!");
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
                         
                     } //end of onClick function
                 }) //end of react createElement
@@ -4496,6 +4612,10 @@ module.exports = class YABDP4Nitro {
 
             .yabd-resolution-swapper-v2-button:hover {
                 background-color: var(--button-secondary-background-hover);
+            }
+
+            .yabd-marginTop24 {
+                margin-top: 24px;
             }
         `)
 
