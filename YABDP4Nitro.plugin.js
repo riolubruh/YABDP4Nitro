@@ -2,11 +2,11 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.0
+ * @version 6.6.1
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
- * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
 /*@cc_on
@@ -51,19 +51,28 @@ const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButt
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions} = StreamButtons;
 
-const [
+const {
     UserStore,
-    getBannerURLMod,
     UserProfileStore,
+    PresenceStore,
+    SelectedGuildStore,
+    ChannelStore,
+    SelectedChannelStore,
+    SoundboardStore,
+    EmojiStore,
+    AppIconPersistedStoreState,
+    ClipsStore,
+    UserSettingsAccountStore,
+    ProfileEffectStore
+ } = Webpack.Stores;
+
+const [
+    getBannerURLMod,
     Dispatcher,
     AvatarDefaults,
     LadderModule,
     FetchCollectibleCategories,
-    PresenceStore,
-    SelectedGuildStore,
-    ChannelStore,
     MessageActions,
-    SelectedChannelStore,
     MessageEmojiReact,
     renderEmbedsMod,
     clientThemesModule,
@@ -71,16 +80,11 @@ const [
     accountSwitchModule,
     getAvatarUrlModule,
     fetchProfileEffects,
-    SoundboardStore,
-    EmojiStore,
     isEmojiAvailableMod,
     videoOptionFunctions,
     addFilesMod,
     RegularAppIcon,
-    AppIconPersistedStoreState,
     CustomAppIcon,
-    ClipsStore,
-    UserSettingsAccountStore,
     NameplatePreview,
     CloudUploader,
     messageRenderMod,
@@ -90,26 +94,22 @@ const [
     AppIcon,
     CanUserUseMod,
     loadMP4Box,
-    ProfileEffectStore,
     DMTag,
     GIFPickerRender,
     DiscordCopyToClipboardFn,
     ContextMenuSlider,
     VideoStream,
-    PictureInPicturePlayer
+    PictureInPicturePlayer,
+    stickerSendabilityModule,
+    ClipsEnabledMod,
+    MaxFileSizeMod
 ] = Webpack.getBulk(
-    {filter: Webpack.Filters.byStoreName('UserStore')},
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
-    {filter: Webpack.Filters.byStoreName('UserProfileStore')},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch")}, 
     {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
     {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
     {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
-    {filter: Webpack.Filters.byStoreName('PresenceStore')},
-    {filter: Webpack.Filters.byStoreName('SelectedGuildStore')},
-    {filter: Webpack.Filters.byStoreName('ChannelStore')},
-    {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")}, 
-    {filter: Webpack.Filters.byStoreName('SelectedChannelStore')},
+    {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")},
     {filter: Webpack.Filters.byStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?'), searchExports: true}, //MessageEmojiReact
     {filter: Webpack.Filters.byPrototypeKeys('renderSocialProofingFileSizeNitroUpsell'), searchExports:true}, //renderEmbedsMod
     {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
@@ -117,16 +117,11 @@ const [
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
     {filter: Webpack.Filters.byStrings('{type:"PROFILE_EFFECTS_FETCH_ALL"'), searchExports: true}, //fetchProfileEffects
-    {filter: Webpack.Filters.byStoreName('SoundboardStore')},
-    {filter: Webpack.Filters.byStoreName('EmojiStore')},
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
     {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
     {filter: Webpack.Filters.byKeys("addFiles")},
     {filter: Webpack.Filters.byStrings('M19.73 4.87a18.2'), searchExports: true}, //RegularAppIcon
-    {filter: Webpack.Filters.byStoreName('AppIconPersistedStoreState')},
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
-    {filter: Webpack.Filters.byStoreName('ClipsStore')},
-    {filter: Webpack.Filters.byStoreName('UserSettingsAccountStore')},
     {filter: Webpack.Filters.bySource('nameplateData', 'isPurchased')}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
@@ -136,28 +131,26 @@ const [
     {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
-    {filter: Webpack.Filters.byStoreName('ProfileEffectStore')},
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'botTagNotStaffWarning')},
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('navigator.clipboard.write'), searchExports:true},
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
     {filter: Webpack.Filters.bySource('VideoStream', 'videoComponent')},
-    {filter: Webpack.Filters.bySource('PictureInPicturePlayer')}
+    {filter: Webpack.Filters.bySource('PictureInPicturePlayer')},
+    {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD"), map: { //stickerSendabilityModule
+        getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
+        isSendableSticker: x=>x.toString().includes(')=>0===')
+    }},
+    {filter: Webpack.Filters.bySource('useExperiment({location:"useEnableClips'), map: { //ClipsEnabledMod
+        useEnableClips: x=>x.toString().includes('useExperiment({location:"useEnableClips"'),
+        areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
+    }},
+    {filter: Webpack.Filters.bySource('.premiumTier].limits.fileSize:'), map: { //MaxFileSizeMod
+        getMaxFileSize: x=>x.toString().includes('.premiumTier].limits.fileSize:'),
+        exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
+    }}
 );
 const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
-const stickerSendabilityModule = Webpack.getMangled("SENDABLE_WITH_BOOSTED_GUILD",{
-    getStickerSendability: Webpack.Filters.byStrings("canUseCustomStickersEverywhere"),
-    isSendableSticker: Webpack.Filters.byStrings(")=>0===")
-});
-const ClipsEnabledMod = Webpack.getMangled('useExperiment({location:"useEnableClips"',{
-    useEnableClips: Webpack.Filters.byStrings('useExperiment({location:"useEnableClips"'),
-    areClipsEnabled: Webpack.Filters.byStrings('areClipsEnabled'),
-    isPremium: Webpack.Filters.byStrings('isPremiumAtLeast')
-});
-const MaxFileSizeMod = Webpack.getMangled('.premiumTier].limits.fileSize:', {
-    getMaxFileSize: Webpack.Filters.byStrings('.premiumTier].limits.fileSize:'),
-    exceedsMessageSizeLimit: Webpack.Filters.byStrings('Array.from(', '.size>')
-});
 //#endregion
 const fs = require("fs");
 const path = require("path");
@@ -168,8 +161,7 @@ const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
 
 //for fixing edit cancels
-let lastEditedMsg;
-let lastEditedMsgCopy;
+let lastEditedMsg, lastEditedMsgCopy;
 
 const defaultSettings = {
     "emojiSize": 64,
@@ -252,17 +244,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.0",
+        "version": "6.6.1",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.0",
+            title: "6.6.1",
             items: [
-                "Added Fake Display Name Styles utilizing 3y3 encoding. You probably won't be able to use nameplates, name styles, and a custom avatar at the same time due to the character limit. Sorry. On by default, and it can be disabled in plugin settings under Profile.",
-                "Changed profile effects to use effect ID rather than index which means that it won't change over time. Please re-apply your profile effects."
+                "Updated the updater to use the new BD Notification API from BD 1.13.",
+                "Use Stores from BdApi.Webpack.Stores (added in BD 1.13) instead of fetching them with getBulk."
             ]
         }
     ],
@@ -4442,26 +4434,23 @@ module.exports = class YABDP4Nitro {
     }
 
     newUpdateNotify(remoteMeta, remoteFile){
-        Logger.info(this.meta.name, "A new update is available!");
+        Logger.info(this.meta.name, `Update ${remoteMeta.version} is available!`);
 
-        UI.showConfirmationModal("Update Available", [`Update ${remoteMeta.version} is now available for YABDP4Nitro!`, "Press Download Now to update!"], {
-            confirmText: "Download Now",
-            onConfirm: async (e) => {
-                if(remoteFile){
-                    Plugins.disable(this.meta.name);
+        UI.showNotification({
+            title: "YABDP4Nitro Update Available!",
+            content: `Update ${remoteMeta.version} is now available!`,
+            actions: [{
+                label: "Update",
+                onClick: async (e) => {
                     try {
-                        await new Promise(r => fs.writeFile(path.join(Plugins.folder, `${this.meta.name}.plugin.js`), remoteFile, r));
-                        let currentVersionInfo = Data.load(this.meta.name, "currentVersionInfo");
-                        currentVersionInfo.hasShownChangelog = false;
-                        Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
-                    } catch(err){
-                        UI.showToast("An error occurred when trying to download the update!", { type: "error", forceShow: true });
-                    }finally{
-                        Plugins.enable(this.meta.name);
+                        await new Promise(r => fs.writeFile(path.join(Plugins.folder,`${this.meta.name}.plugin.js`),remoteFile,r));
+                    } catch(err) {
+                        UI.showToast("An error occurred when trying to download the update!",{type: "error",forceShow: true});
+                        Logger.error(this.meta.name, err);
                     }
                 }
-            }
-        });
+            }]
+        })
     }
     //#endregion
 
@@ -4486,14 +4475,12 @@ module.exports = class YABDP4Nitro {
                 data = Object.assign({}, defaultData, JSON.parse(fs.readFileSync(dataFilePath)));
             }catch(err){
                 UI.showToast(`[${this.meta.name}] Error parsing or reading data JSON.`, { type: "error", forceShow: true });
-                Logger.warn(this.meta.name, "Error parsing or reading data JSON.");
-                Logger.warn(this.meta.name, err);
+                Logger.error(this.meta.name, `Error parsing or reading ${this.meta.name}.data.json.`, err);
                 data = defaultData;
             }
         }catch(err){
             UI.showToast(`[${this.meta.name}] An error occurred loading the data file.`, { type: "error", forceShow: true });
-            Logger.error(this.meta.name, "An error occurred loading the data file.");
-            Logger.error(this.meta.name, err);
+            Logger.error(this.meta.name, "An error occurred loading the data file.", err);
         }
     }
 
