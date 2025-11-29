@@ -34,6 +34,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Video Files](#videos)
      + [Audio Files](#audio)
      + [Other Files](#zipclips-any-file)
+     + [Loading FFmpeg.js](#loading-ffmpegjs)
    * [Miscellaneous](#miscellaneous)
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
@@ -366,6 +367,24 @@ If your file is already an archive (7z, zip, rar, tar, gz, bz2), it will simply 
 Otherwise, it will ***create a new zip that contains your file automatically!*** 
 <br><sub>(Note: No compression will be done since it would just take too long. If you want compression, zip the file yourself.)</sub>
 
+_________________________________________________________________________________________________________________
+
+### Loading FFmpeg.js
+
+By default, FFmpeg.js (necessary for Clips, Audio Clips, and ZipClips to function) will be **downloaded automatically** if necessary. However, this is a _bit_ of a waste of bandwidth, and not entirely reliable. Luckily, there _is_ an alternative option! 
+
+If you download the necessary files (easiest way is to [download the full repo](https://github.com/riolubruh/YABDP4Nitro/archive/refs/heads/main.zip)) and extract the `ffmpeg` folder into your BetterDiscord plugins folder as shown:
+
+<img width="644" height="172" alt="image" src="https://github.com/user-attachments/assets/91af1da6-8ae3-4739-9cd0-0946dd98b99a" />
+
+it will automatically be able to detect this and will load them from there instead.
+
+This makes the loading of FFmpeg.js more reliable, faster, and less wasteful.
+
+This also allows you to override the files to whatever you please, if you wanted to do so for some reason.
+
+_________________________________________________________________________________________________________________
+
 ## Miscellaneous
 
 ### Nitro Client Themes
@@ -553,4 +572,5 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
