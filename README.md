@@ -30,6 +30,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Fake Profile Effects](#fake-profile-effects)
      + [Fake Profile Pictures](#fake-profile-pictures)
      + [Fake Nameplates](#fake-nameplates)
+     + [Fake Display Name Styles](#fake-display-name-styles)
    * [Clips 100MB Limit Bypasses](#clips)
      + [Video Files](#videos)
      + [Audio Files](#audio)
@@ -305,6 +306,23 @@ For the best effect, pasting it in both is recommended.
 Demonstration:<br>
 ![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
 
+_________________________________________________________________________________________________________________
+
+## Fake Display Name Styles
+
+Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your custom status and/or bio.
+
+To use Fake Display Name Styles, enable it and go to profile settings, then click Change Style under Display Name Styles:<br>
+<img width="747" height="185" alt="Display Name Styles section" src="https://github.com/user-attachments/assets/0da9d80a-c5c2-4b56-900c-3f2a4953da47" />
+
+You should get the standard Display Name Styles modal, except with one button labeled "Copy 3y3" added.<br>
+<img width="802" height="695" alt="Discord_3AUxtnyf0t" src="https://github.com/user-attachments/assets/ee86da69-ba58-48b5-8de8-5b2b7637112c" /><br>
+Once you have chosen your desired style, click Copy 3y3. This will copy invisible characters to your clipboard.
+
+Next, go to your custom status, and paste the invisible characters into it.
+
+Demonstration:<br>
+![Fake Display Name Styles Demo](https://github.com/user-attachments/assets/6339ea71-f52b-40a9-ac1a-c4740c683d69)
 
 _________________________________________________________________________________________________________________
 
@@ -373,8 +391,7 @@ ________________________________________________________________________________
 
 By default, FFmpeg.js (necessary for Clips, Audio Clips, and ZipClips to function) will be **downloaded automatically** if necessary. However, this is a _bit_ of a waste of bandwidth, and not entirely reliable. Luckily, there _is_ an alternative option! 
 
-If you download the necessary files (easiest way is to [download the full repo](https://github.com/riolubruh/YABDP4Nitro/archive/refs/heads/main.zip)) and extract the `ffmpeg` folder into your BetterDiscord plugins folder as shown:
-
+If you download the necessary files (easiest way is to [download the full repo](https://github.com/riolubruh/YABDP4Nitro/archive/refs/heads/main.zip)) and extract the `ffmpeg` folder into your BetterDiscord plugins folder as shown:<br>
 <img width="644" height="172" alt="image" src="https://github.com/user-attachments/assets/91af1da6-8ae3-4739-9cd0-0946dd98b99a" />
 
 it will automatically be able to detect this and will load them from there instead.
@@ -572,5 +589,6 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
