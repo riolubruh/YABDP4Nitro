@@ -15,7 +15,9 @@ See full trademark notice [here.](#trademark-notice)*
 
 ## Table of Contents:
 - [Features](#features)
-  * [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
+  * [Streaming Features](#streaming-features)
+     + [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
+     + 
   * [Emoji Bypasses](#emoji-bypasses)
      + [Upload Emotes](#upload-emotes)
      + [Ghost Mode](#ghost-mode)
@@ -53,7 +55,13 @@ See full trademark notice [here.](#trademark-notice)*
   
 ## Features
 
-## Fully Customizable Screensharing Quality, FPS, and Bitrate
+## Streaming Features
+
+Customizable stream options and enhancements to the streaming experience.
+
+_________________________________________________________________________________________________________________
+
+### Fully Customizable Screensharing Quality, FPS, and Bitrate
 
 Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 
@@ -63,6 +71,24 @@ Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 
 ![Bitrate Options](https://github.com/user-attachments/assets/b04b7685-0e55-4b40-ad0d-cad043dab229)
 
+_________________________________________________________________________________________________________________
+
+### Stream Sharpness
+
+A fully customizable, per-user stream sharpness slider!
+
+<img width="211" height="84" alt="Sharpness Slider Image" src="https://github.com/user-attachments/assets/62f9c117-e4ce-486a-b85f-77cb015ab049" />
+
+This feature allows you to combat the somewhat blurry look of streams by applying a sharpness filter.<br>
+To do so, ensure the feature is enabled, then simply right-click on a stream you are viewing and adjust it!
+
+Video Demonstration:
+<video src="https://github.com/user-attachments/assets/39d2b736-3bc8-488d-bb48-015abf5593ed">
+
+(Note: you might want to fullscreen to see)
+
+This feature cannot adjust the sharpness of your own stream nor can it add the sharpness user for other users.
+It is purely client-side.
 _________________________________________________________________________________________________________________
 
 ## Emoji Bypasses
@@ -589,6 +615,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
