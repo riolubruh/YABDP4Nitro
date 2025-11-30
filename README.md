@@ -86,7 +86,7 @@ To do so, ensure the feature is enabled, then simply right-click on a stream you
 Video Demonstration (you likely have to fullscreen to properly see the effect):
 <video src="https://github.com/user-attachments/assets/39d2b736-3bc8-488d-bb48-015abf5593ed">
 
-This feature cannot adjust the sharpness of your own stream nor can it add the sharpness user for other users.<br>
+This cannot adjust the sharpness of your own stream nor can it add sharpness to your stream for other users.<br>
 It is purely client-side.
 _________________________________________________________________________________________________________________
 
@@ -614,6 +614,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
