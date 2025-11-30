@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.1
+ * @version 6.6.2
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -244,17 +244,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.1",
+        "version": "6.6.2",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.1",
+            title: "6.6.2",
             items: [
-                "Updated the updater to use the new BD Notification API from BD 1.13.",
-                "Use Stores from BdApi.Webpack.Stores (added in BD 1.13) instead of fetching them with getBulk."
+                "Fixed Stream Settings Quick Swapper for Go Live Modal V2 (YABD button) not appearing after Discord update.",
+                "Added SD/HD buttons from Go Live Modal V2 get removed when Remove Screen Share Nitro Upsell is enabled. (Yes, that is just an upsell, it disappears when you get Nitro)"
             ]
         }
     ],
@@ -1232,12 +1232,22 @@ module.exports = class YABDP4Nitro {
         if(!this.GoLiveModalV2UpsellMod) this.GoLiveModalV2UpsellMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GO_LIVE_MODAL_V2", "onNitroClick:function(){"), {defaultExport:false, signal: controller.signal});
 
         let renderFn = this.findMangledName(this.GoLiveModalV2UpsellMod, x=>x, "GoLiveModalV2Upsell");
-        if(!renderFn) return;
+        if(renderFn){
+            //Disable GoLiveModalV2 upsell
+            Patcher.instead(this.meta.name, this.GoLiveModalV2UpsellMod, renderFn, () => {
+                return;
+            });
+        }
 
-        //Disable GoLiveModalV2 upsell
-        Patcher.instead(this.meta.name, this.GoLiveModalV2UpsellMod, renderFn, () => {
-            return;
-        });
+        let sdHdPill = Webpack.getBySource('GO_LIVE_MODAL_V2', 'value:"hd"');
+        let sdHdPillFnName = this.findMangledName(sdHdPill, x=>x, "sdHdPill");
+        
+        if(sdHdPillFnName){
+            //remove other go live modal v2 upsell (SD/HD pill buttons)
+            Patcher.instead(this.meta.name, sdHdPill, sdHdPillFnName, (_,args,ret) => {
+                return;
+            });
+        }
     }
 
     findMangledName(module, filter, debugInfo){
@@ -1662,7 +1672,7 @@ module.exports = class YABDP4Nitro {
     async resolutionSwapperV2(){
 
         //wait for lazy loaded modules
-        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GoLiveModalV2"), {defaultExport:false, signal: controller.signal});
+        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality'), {defaultExport:false, signal: controller.signal});
 
         //the sign of janky code inbound
         let GLMV2Opt = {
@@ -1674,187 +1684,187 @@ module.exports = class YABDP4Nitro {
         };
 
         let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
-        if(!goLiveModalV2FnName) return;
-
-        Patcher.after(this.meta.name, this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
-            //maybe the worst amalgamation in this whole plugin?
-
-            if(GLMV2Opt.resolutionToSet != undefined) {
-                ret.props.state.resolution = GLMV2Opt.resolutionToSet;
-                settings.CustomResolution = GLMV2Opt.resolutionToSet;
-                GLMV2Opt.resolutionToSet = undefined;
-            }
-            if(GLMV2Opt.fpsToSet != undefined) {
-                ret.props.state.fps = GLMV2Opt.fpsToSet;
-                settings.CustomFPS = GLMV2Opt.fpsToSet;
-                GLMV2Opt.fpsToSet = undefined;
-            }
-
-            const RightButtonGroup = ret?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props?.children;
-            
-            if(RightButtonGroup) {
-                RightButtonGroup.splice(2,0,React.createElement("button",{
-                    class: "yabd-resolution-swapper-v2-button",
-                    children: 'YABD',
-                    onClick: () => {
-                        let localStreamOptions = {
-                            resolutionToSet: undefined,
-                            fpsToSet: undefined,
-                            minBitrateToSet: undefined,
-                            targetBitrateToSet: undefined,
-                            maxBitrateToSet: undefined
-                        }
-
-                        //defaults
-                        if(settings.ResolutionEnabled) localStreamOptions.resolutionToSet = settings.CustomResolution;
-                        if(settings.CustomFPSEnabled) localStreamOptions.fpsToSet = settings.CustomFPS;
-                        if(settings.CustomBitrateEnabled) {
-                            localStreamOptions.minBitrateToSet = settings.minBitrate;
-                            localStreamOptions.targetBitrateToSet = settings.targetBitrate;
-                            localStreamOptions.maxBitrateToSet = settings.maxBitrate;
-                        }
-
-                        UI.showConfirmationModal("Configure Stream Settings",[
-                            React.createElement('div', {
-                                children: [
-                                    React.createElement('div', {
-                                        style: {
-                                            display: "flex",
-                                            width: "100%",
-                                            justifyContent: "space-around"
-                                        },
-                                        children: [
-                                            React.createElement("h1",{
-                                                children: "Resolution",
-                                                className: `yabd-text-h5`
-                                            }),
-                                            React.createElement("h1",{
-                                                children: "FPS",
-                                                className: `yabd-text-h5`
-                                            }),
-                                        ]
-                                    }),
-                                    React.createElement('div', {
-                                        style: {
-                                            display: "flex",
-                                            width: "100%",
-                                            justifyContent: "space-around"
-                                        },
-                                        children: [
-                                            React.createElement(Components.NumberInput,{
-                                                value: settings.CustomResolution,
-                                                min: -1,
-                                                onChange: (input) => {
-                                                    input = parseInt(input);
-                                                    if(isNaN(input)) input = 1440;
-                
-                                                    localStreamOptions.resolutionToSet = input;
-                                                }
-                                            }),
-                                            React.createElement(Components.NumberInput,{
-                                                value: settings.CustomFPS,
-                                                min: -1,
-                                                onChange: (input) => {
-                                                    input = parseInt(input);
-                                                    if(isNaN(input)) input = 60;
-                
-                                                    localStreamOptions.fpsToSet = input;
-                                                }
-                                            }),
-                                        ]
-                                    }),
-                                ]
-                            }),
-                            settings.CustomBitrateEnabled ? React.createElement("br") : undefined,
-                            settings.CustomBitrateEnabled ? React.createElement("h1",{
-                                children: "Custom Bitrate (kbps)",
-                                className: `yabd-text-h5`
-                            }) : undefined,
-                            settings.CustomBitrateEnabled ? React.createElement('div', {
-                                style: {
-                                    display: "flex",
-                                    width: "100%",
-                                    justifyContent: "space-around"
-                                },
-                                children: [
-                                    React.createElement("h1", {
-                                        children: "Min",
-                                        style: {
-                                            marginBlock: "0 5px",
-                                        },
-                                        className: `yabd-text-h5`
-                                    }),
-                                    React.createElement("h1", {
-                                        children: "Target",
-                                        style: {
-                                            marginBlock: "0 5px",
-                                        },
-                                        className: `yabd-text-h5`
-                                    }),
-                                    React.createElement("h1", {
-                                        children: "Max",
-                                        style: {
-                                            marginBlock: "0 5px",
-                                        },
-                                        className: `yabd-text-h5`
-                                    }),
-                                ]
-                            }) : undefined,
-                            React.createElement('div',{
-                                style: {
-                                    display: "flex",
-                                    width: "100%",
-                                    justifyContent: "space-around",
-                                    marginBottom: "5px"
-                                },
-                                children: settings.CustomBitrateEnabled ? [
-                                    React.createElement(Components.NumberInput,{
-                                        value: settings.minBitrate,
-                                        min: -1,
-                                        onChange: (input) => {
-                                            input = parseInt(input);
-                                            if(isNaN(input)) input = -1;
-                                            localStreamOptions.minBitrateToSet = input;
-                                        }
-                                    }),
-                                    React.createElement(Components.NumberInput,{
-                                        value: settings.targetBitrate,
-                                        min: -1,
-                                        onChange: (input) => {
-                                            input = parseInt(input);
-                                            if(isNaN(input)) input = -1;
-                                            localStreamOptions.targetBitrateToSet = input;
-                                        }
-                                    }),
-                                    React.createElement(Components.NumberInput,{
-                                        value: settings.maxBitrate,
-                                        min: -1,
-                                        onChange: (input) => {
-                                            input = parseInt(input);
-                                            if(isNaN(input)) input = -1;
-                                            localStreamOptions.maxBitrateToSet = input;
-                                        }
-                                    }),
-                                ] : undefined
-                            })
-                        ],
-                        {
-                            confirmText: "Apply",
-                            onConfirm: () => {
-                                GLMV2Opt = localStreamOptions;
-
-                                if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
-                                if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
-                                if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
-                                Data.save(this.meta.name,"settings",settings);
-                            }
-                        }
-                        )
-                    }
+        if(goLiveModalV2FnName){
+            Patcher.after(this.meta.name, this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
+                //maybe the worst amalgamation in this whole plugin?
+    
+                if(GLMV2Opt.resolutionToSet != undefined) {
+                    ret.props.state.resolution = GLMV2Opt.resolutionToSet;
+                    settings.CustomResolution = GLMV2Opt.resolutionToSet;
+                    GLMV2Opt.resolutionToSet = undefined;
                 }
-                ));
-            }
-        });
+                if(GLMV2Opt.fpsToSet != undefined) {
+                    ret.props.state.fps = GLMV2Opt.fpsToSet;
+                    settings.CustomFPS = GLMV2Opt.fpsToSet;
+                    GLMV2Opt.fpsToSet = undefined;
+                }
+    
+                const RightButtonGroup = ret?.props?.children?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props?.children;
+                
+                if(RightButtonGroup) {
+                    RightButtonGroup.splice(2,0,React.createElement("button",{
+                        class: "yabd-resolution-swapper-v2-button",
+                        children: 'YABD',
+                        onClick: () => {
+                            let localStreamOptions = {
+                                resolutionToSet: undefined,
+                                fpsToSet: undefined,
+                                minBitrateToSet: undefined,
+                                targetBitrateToSet: undefined,
+                                maxBitrateToSet: undefined
+                            }
+    
+                            //defaults
+                            if(settings.ResolutionEnabled) localStreamOptions.resolutionToSet = settings.CustomResolution;
+                            if(settings.CustomFPSEnabled) localStreamOptions.fpsToSet = settings.CustomFPS;
+                            if(settings.CustomBitrateEnabled) {
+                                localStreamOptions.minBitrateToSet = settings.minBitrate;
+                                localStreamOptions.targetBitrateToSet = settings.targetBitrate;
+                                localStreamOptions.maxBitrateToSet = settings.maxBitrate;
+                            }
+    
+                            UI.showConfirmationModal("Configure Stream Settings",[
+                                React.createElement('div', {
+                                    children: [
+                                        React.createElement('div', {
+                                            style: {
+                                                display: "flex",
+                                                width: "100%",
+                                                justifyContent: "space-around"
+                                            },
+                                            children: [
+                                                React.createElement("h1",{
+                                                    children: "Resolution",
+                                                    className: `yabd-text-h5`
+                                                }),
+                                                React.createElement("h1",{
+                                                    children: "FPS",
+                                                    className: `yabd-text-h5`
+                                                }),
+                                            ]
+                                        }),
+                                        React.createElement('div', {
+                                            style: {
+                                                display: "flex",
+                                                width: "100%",
+                                                justifyContent: "space-around"
+                                            },
+                                            children: [
+                                                React.createElement(Components.NumberInput,{
+                                                    value: settings.CustomResolution,
+                                                    min: -1,
+                                                    onChange: (input) => {
+                                                        input = parseInt(input);
+                                                        if(isNaN(input)) input = 1440;
+                    
+                                                        localStreamOptions.resolutionToSet = input;
+                                                    }
+                                                }),
+                                                React.createElement(Components.NumberInput,{
+                                                    value: settings.CustomFPS,
+                                                    min: -1,
+                                                    onChange: (input) => {
+                                                        input = parseInt(input);
+                                                        if(isNaN(input)) input = 60;
+                    
+                                                        localStreamOptions.fpsToSet = input;
+                                                    }
+                                                }),
+                                            ]
+                                        }),
+                                    ]
+                                }),
+                                settings.CustomBitrateEnabled ? React.createElement("br") : undefined,
+                                settings.CustomBitrateEnabled ? React.createElement("h1",{
+                                    children: "Custom Bitrate (kbps)",
+                                    className: `yabd-text-h5`
+                                }) : undefined,
+                                settings.CustomBitrateEnabled ? React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        width: "100%",
+                                        justifyContent: "space-around"
+                                    },
+                                    children: [
+                                        React.createElement("h1", {
+                                            children: "Min",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                        React.createElement("h1", {
+                                            children: "Target",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                        React.createElement("h1", {
+                                            children: "Max",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                    ]
+                                }) : undefined,
+                                React.createElement('div',{
+                                    style: {
+                                        display: "flex",
+                                        width: "100%",
+                                        justifyContent: "space-around",
+                                        marginBottom: "5px"
+                                    },
+                                    children: settings.CustomBitrateEnabled ? [
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.minBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.minBitrateToSet = input;
+                                            }
+                                        }),
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.targetBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.targetBitrateToSet = input;
+                                            }
+                                        }),
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.maxBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.maxBitrateToSet = input;
+                                            }
+                                        }),
+                                    ] : undefined
+                                })
+                            ],
+                            {
+                                confirmText: "Apply",
+                                onConfirm: () => {
+                                    GLMV2Opt = localStreamOptions;
+    
+                                    if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
+                                    if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
+                                    if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
+                                    Data.save(this.meta.name,"settings",settings);
+                                }
+                            }
+                            )
+                        }
+                    }
+                    ));
+                }
+            });
+        }
     }
     // #endregion
 
