@@ -17,7 +17,7 @@ See full trademark notice [here.](#trademark-notice)*
 - [Features](#features)
   * [Streaming Features](#streaming-features)
      + [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
-     + 
+     + [Stream Sharpness](#stream-sharpness)
   * [Emoji Bypasses](#emoji-bypasses)
      + [Upload Emotes](#upload-emotes)
      + [Ghost Mode](#ghost-mode)
@@ -82,12 +82,10 @@ A fully customizable, per-user stream sharpness slider!
 This feature allows you to combat the somewhat blurry look of streams by applying a sharpness filter.<br>
 To do so, ensure the feature is enabled, then simply right-click on a stream you are viewing and adjust it!
 
-Video Demonstration:
+Video Demonstration (you might want to fullscreen to see the effect):
 <video src="https://github.com/user-attachments/assets/39d2b736-3bc8-488d-bb48-015abf5593ed">
 
-(Note: you might want to fullscreen to see)
-
-This feature cannot adjust the sharpness of your own stream nor can it add the sharpness user for other users.
+This feature cannot adjust the sharpness of your own stream nor can it add the sharpness user for other users.<br>
 It is purely client-side.
 _________________________________________________________________________________________________________________
 
@@ -615,6 +613,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
