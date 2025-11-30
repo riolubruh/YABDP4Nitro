@@ -79,10 +79,11 @@ A fully customizable, per-user stream sharpness slider!
 
 <img width="211" height="84" alt="Sharpness Slider Image" src="https://github.com/user-attachments/assets/62f9c117-e4ce-486a-b85f-77cb015ab049" />
 
-This feature allows you to combat the somewhat blurry look of streams by applying a sharpness filter.<br>
+This lets you combat the somewhat blurry look of streams by applying a sharpness filter.
+
 To do so, ensure the feature is enabled, then simply right-click on a stream you are viewing and adjust it!
 
-Video Demonstration (you might want to fullscreen to see the effect):
+Video Demonstration (you likely have to fullscreen to properly see the effect):
 <video src="https://github.com/user-attachments/assets/39d2b736-3bc8-488d-bb48-015abf5593ed">
 
 This feature cannot adjust the sharpness of your own stream nor can it add the sharpness user for other users.<br>
@@ -613,6 +614,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
