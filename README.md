@@ -13,6 +13,7 @@ Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubr
 See full trademark notice [here.](#trademark-notice)*
 
 ## Table of Contents:
+- [About](#about-yabdp4nitro)
 - [Features](#features)
   * [Streaming Features](#streaming-features)
      + [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
@@ -63,8 +64,9 @@ The name was made intentionally bad to distance it from the original NitroPerks 
 
 YABDP4Nitro is designed to enhance the Discord experience for people that can't afford Nitro or just aren't willing to give their money to Discord.
 
-The most important aspect of this software is this:<br>
-This plugin is **free software**, and will _always_ be free.<br>
+The most important aspect of this software is this:
+
+This plugin is **free software**, and will _always_ be free, with **no strings attached**.<br>
 If you paid for it, you were scammed and should demand a refund.
   
 ## Features
@@ -628,6 +630,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
