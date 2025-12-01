@@ -1,10 +1,9 @@
 # YABDP4Nitro
 
-# THANKS FOR 1000+ STARS !!
-
 *Probably* the best "Nitro plugin" out there. 
 
-YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience. This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more!
+YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience. 
+This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more! 
 
 ### <a href="https://riolubruh.github.io/autoDownload/?file=https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js" target="_blank" rel="noopener noreferrer">Download Link</a>
 
@@ -52,6 +51,21 @@ See full trademark notice [here.](#trademark-notice)*
 - [Trademark Notice](#trademark-notice)
 - [Donate](#donate)
 
+## About YABDP4Nitro
+
+YABDP4Nitro was created in November 2021 as a fork of the original NitroPerks plugin by someone called "lemons" 
+after it was almost entirely broken by a combination of crappy code and numerous Discord updates and went under the same name for a while.
+
+In June 2022 it was renamed from NitroPerks to YABDP4Nitro, which is an acyonym for Yet Another BetterDiscord Plugin for Nitro 
+because it had gone through so many changes that it was already effectively an entirely separate codebase.
+
+The name was made intentionally bad to distance it from the original NitroPerks and any other existing forks of NitroPerks.
+
+YABDP4Nitro is designed to enhance the Discord experience for people that can't afford Nitro or just aren't willing to give their money to Discord.
+
+The most important aspect of this software is this:<br>
+This plugin is **free software**, and will _always_ be free.<br>
+If you paid for it, you were scammed and should demand a refund.
   
 ## Features
 
@@ -614,6 +628,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
