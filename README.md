@@ -54,8 +54,9 @@ See full trademark notice [here.](#trademark-notice)*
 
 ## About YABDP4Nitro
 
-YABDP4Nitro was created in November 2021 as a fork of the original NitroPerks plugin by someone called "lemons" 
-after it was almost entirely broken by a combination of crappy code and numerous Discord updates and went under the same name for a while.
+YABDP4Nitro was created in November 2021 as a fork of the original abandoned NitroPerks plugin by someone called "lemons" 
+after it was almost entirely broken by a combination of crappy code and numerous Discord updates.<br>
+YABDP4Nitro went under the name NitroPerks at this time.
 
 In June 2022 it was renamed from NitroPerks to YABDP4Nitro (which is an acyonym for _Yet Another BetterDiscord Plugin for Nitro_) 
 because it had gone through so many changes that it was already effectively an entirely separate codebase.
@@ -630,6 +631,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
