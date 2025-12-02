@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.2
+ * @version 6.6.3
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -244,17 +244,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.2",
+        "version": "6.6.3",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.2",
+            title: "6.6.3",
             items: [
-                "Fixed Stream Settings Quick Swapper for Go Live Modal V2 (YABD button) not appearing after Discord update.",
-                "Added SD/HD buttons from Go Live Modal V2 get removed when Remove Screen Share Nitro Upsell is enabled. (Yes, that is just an upsell, it disappears when you get Nitro)"
+                "Fix Kill Profile Effects option not working.",
             ]
         }
     ],
@@ -2935,7 +2934,7 @@ module.exports = class YABDP4Nitro {
 
         //wait for profile effect section renderer to be loaded and store
         if(!this.profileEffectSectionRenderer)
-            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("PROFILE_EFFECTS_INLINE_SETTINGS","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
+            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
 
         let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
         if(!ProfileEffectSectionFnName) return;
@@ -3056,8 +3055,8 @@ module.exports = class YABDP4Nitro {
 
     killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
         Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
-            if(ret?.profileEffectID === undefined) return;
-            ret.profileEffectID = undefined;
+            if(ret?.profileEffect === undefined) return;
+            ret.profileEffect = undefined;
         });
     }
     // #endregion
