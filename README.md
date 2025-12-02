@@ -62,7 +62,8 @@ In June 2022, this project was renamed from NitroPerks to YABDP4Nitro (which is 
 for a couple of reasons. Firstly, it had gone through so many changes that it was already effectively an entirely separate codebase.
 Secondly, I wanted to distance it from the original NitroPerks and any of its forks since at this point the original name
 was only really holding the project back. It would often get compared to the original NitroPerks
-which had a pretty bad reputation due to the aforementioned shitty and broken code.
+which had a pretty bad reputation due to the aforementioned shitty and broken code. So I chose the name YABDP4Nitro, 
+a name so (intentionally) bad that nobody would mistake it for anything except its own thing.
 
 Since then, it has been known as YABDP4Nitro and offers much much more than the original project ever did.
 
@@ -634,6 +635,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
