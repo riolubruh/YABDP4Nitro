@@ -72,7 +72,6 @@ YABDP4Nitro is designed to make Discord better for people that can't afford Nitr
 The most important aspect of this project is this:
 
 This plugin is **free software**, and will _always_ be free, with ***no strings attached.***<br>
-If you paid for it, you were scammed and should demand a refund.
   
 ## Features
 
@@ -635,6 +634,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
