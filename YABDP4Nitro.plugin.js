@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.3
+ * @version 6.6.4
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -20,10 +20,10 @@
  *
  * Copyright (c) 2025 Riolubruh and contributors
  *
- * Licensed under the Non-Profit Open Software License version 3.0 (NPOSL-3.0).
+ * Licensed under the Open Software License version 3.0 (OSL-3.0).
  * You may use, distribute, and modify this code under the terms of this license.
  *
- * Derivative works must be licensed under NPOSL-3.0 (or OSL-3.0 for for-profit use).
+ * Derivative works must be licensed under OSL-3.0.
  *
  * Removal or modification of this notice in the source code of any Derivative Work
  * of this software violates the terms of the license.
@@ -33,7 +33,7 @@
  * THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU.
  *
  * You should have received a copy of the license agreement alongside this file.
- * If not, please visit https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md
+ * If not, please visit https://opensource.org/license/osl-3-0-php
  *
 */
 
@@ -244,16 +244,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.3",
+        "version": "6.6.4",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.3",
+            title: "6.6.4",
             items: [
-                "Fix Kill Profile Effects option not working.",
+                "Fixed Fake Profile Effects not working after Discord update.",
+                "Fixed duplicate profile effects appearing when choosing a fake Profile Effect.",
+                "Limit min, target, and max bitrate to 50,000kbps to prevent people from melting their PCs.",
+                "Changed license to OSL-3.0.",
             ]
         }
     ],
@@ -478,7 +481,8 @@ module.exports = class YABDP4Nitro {
                     case "targetBitrate":
                     case "maxBitrate":
                     case "voiceBitrate":
-                        settings[id] = parseFloat(value);
+                        //protect people from their own stupidity
+                        settings[id] = parseFloat(value) > 50000 ? 50000 : parseFloat(value);
                         this.saveAndUpdate();
                         break;
                     default:
@@ -2878,14 +2882,16 @@ module.exports = class YABDP4Nitro {
 
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
-        //if profile effects data hasn't been fetched by the client yet
-        if(this.profileEffects == undefined || this.profileEffects?.length === 0){
-            //make the client fetch profile effects
-            await fetchProfileEffects();
-            //store profile effects
-            this.profileEffects = ProfileEffectStore.getAllProfileEffects();
-        }
+        const profileEffects = ProfileEffectStore.getAllProfileEffects();
+        let profileEffectsFiltered = [];
+        let profileEffectsTemp = {};
 
+        //remove duplicate effects
+        for(let i=0;i<profileEffects.length;i++){
+            let effect = profileEffects[i];
+            profileEffectsTemp[effect.config.skuId] = effect;
+        }
+        profileEffectsFiltered = Object.values(profileEffectsTemp);
 
         Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, [args], ret) => {
             //error prevention
@@ -2912,10 +2918,10 @@ module.exports = class YABDP4Nitro {
                     //ignore invalid data 
                     if(isNaN(effectId)) return;
                     //ignore if the profile effect id does not point to an actual profile effect
-                    if(this.profileEffects.filter(x => x.skuId == effectId).length == 0) return;
+                    if(profileEffectsFiltered.filter(x => x.skuId == effectId).length == 0) return;
                     
                     //get profile effect
-                    const effect = this.profileEffects.filter(x => x.skuId == effectId)[0];
+                    const effect = profileEffectsFiltered.filter(x => x.skuId == effectId || x.config.skuId == effectId)[0];
 
                     //apply profile effect
                     ret.profileEffect = {
@@ -2943,19 +2949,17 @@ module.exports = class YABDP4Nitro {
             if(!args) return;
             if(args.isTryItOut) return;
 
-            const profileEffects = this.profileEffects;
-
             function ProfileEffects({query}){
 
                 let profileEffectChildren = [];
                 let actualRuns = 0;
 
                 //for each profile effect
-                for(let i = 0; i < profileEffects.length; i++){
+                for(let i = 0; i < profileEffectsFiltered.length; i++){
 
                     //get preview image url
-                    let previewURL = profileEffects[i].config.thumbnailPreviewSrc;
-                    let title = profileEffects[i].config.title;
+                    const previewURL = profileEffectsFiltered[i].config.thumbnailPreviewSrc;
+                    const title = profileEffectsFiltered[i].config.title;
 
                     //search
                     if(query.trim() != "") {
@@ -2965,7 +2969,7 @@ module.exports = class YABDP4Nitro {
                     }
 
                     //encode 3y3
-                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffects[i].skuId); // fx1293373563381878836
+                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsFiltered[i].config.skuId); // fx1293373563381878836
                     //javascript that runs onclick for each profile effect button
                     let copyDecoration3y3 = function(){
                         copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");

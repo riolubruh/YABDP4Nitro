@@ -527,7 +527,7 @@ ________________________________________________________________________________
 
 ## License
 
-The plugin is licensed under the NPOSL Version 3 License. You can find it [here](https://github.com/riolubruh/YABDP4Nitro/blob/main/LICENSE.md).
+The plugin is licensed under the OSL Version 3 License. You can find it [here](https://opensource.org/license/osl-3-0-php).
 
 This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
 
@@ -554,7 +554,6 @@ ________________________________________________________________________________
 If you want to show your love for the plugin or my other open-source works, it would really mean the world to me if you put a few bucks in the tip jar!
 Very few people actually donate, so I see and appreciate every last one.
 
-*This project is licensed under NPOSL-3.0, which prohibits the licensor from deriving revenue from the software or related services.<br>
 By donating, you agree that funds are non-refundable and grant no rights to software or services.<br>
 Donations are voluntary and do not affect software access or functionality.<br>
 All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.*
