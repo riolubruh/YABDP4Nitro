@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.4
+ * @version 6.6.5
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -39,6 +39,8 @@
 
 //#region Module Hell
 const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = BdApi;
+
+// When the FUCK is Discord going to get rid of Go Live Modal V1 and make V2 the standard?
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamFPS: Webpack.Filters.byKeys("FPS_30"),
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
@@ -47,6 +49,7 @@ const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
     ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
     ApplicationStreamResolutions: Webpack.Filters.byKeys("RESOLUTION_1080")
 });
+
 const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
     ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions} = StreamButtons;
@@ -79,7 +82,6 @@ const [
     streamSettingsMod,
     accountSwitchModule,
     getAvatarUrlModule,
-    fetchProfileEffects,
     isEmojiAvailableMod,
     videoOptionFunctions,
     addFilesMod,
@@ -116,7 +118,6 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys('getCodecOptions')}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
-    {filter: Webpack.Filters.byStrings('{type:"PROFILE_EFFECTS_FETCH_ALL"'), searchExports: true}, //fetchProfileEffects
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
     {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
     {filter: Webpack.Filters.byKeys("addFiles")},
@@ -244,19 +245,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.4",
+        "version": "6.6.5",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.4",
+            title: "6.6.5",
             items: [
-                "Fixed Fake Profile Effects not working after Discord update.",
-                "Fixed duplicate profile effects appearing when choosing a fake Profile Effect.",
-                "Limit min, target, and max bitrate to 50,000kbps to prevent people from melting their PCs.",
-                "Changed license to OSL-3.0.",
+                "Fixed Fake Profile Effects not working properly hopefully this time.",
+                "Fix broken CSS after Discord update.",
+                "Fix avatar decorations not being stored after being fetched because Discord changed the name of the dispatch event back to what it originally was."
             ]
         }
     ],
@@ -530,7 +530,7 @@ module.exports = class YABDP4Nitro {
 
         Patcher.unpatchAll(this.meta.name);
 
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_V2_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
             try {
@@ -656,7 +656,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_V2_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         if(settings.fakeAvatarDecorations){
             try{
@@ -776,7 +776,7 @@ module.exports = class YABDP4Nitro {
         try{
             if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
                 //subscribe to successful collectible category fetch event
-                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_V2_FETCH_SUCCESS", this.storeProductsFromCategories);
+                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
     
                 //trigger collectibles fetch
                 FetchCollectibleCategories({
@@ -920,7 +920,7 @@ module.exports = class YABDP4Nitro {
                                 width: "90px",
                                 left: "50%",
                                 zIndex: "2",
-                                background: "var(--button-secondary-background)",
+                                background: "var(--control-secondary-background-default)",
                                 borderRadius: "8px"
                             },
                             onClick: () => {    
@@ -2880,6 +2880,14 @@ module.exports = class YABDP4Nitro {
     //Everything related to Fake Profile Effects.
     async profileFX(secondsightifyEncodeOnly){
 
+        //trigger collectibles fetch
+        await FetchCollectibleCategories({
+            includeBundles: true,
+            includeUnpublished: false,
+            noCache: false,
+            paymentGateway: undefined
+        });
+
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
         const profileEffects = ProfileEffectStore.getAllProfileEffects();
@@ -2986,7 +2994,7 @@ module.exports = class YABDP4Nitro {
                                 cursor: "pointer",
                                 marginBottom: "0.5em",
                                 marginLeft: "0.5em",
-                                backgroundColor: "var(--background-tertiary)"
+                                backgroundColor: "var(--background-base-lower)"
                             }
                         })
                     );
@@ -3025,7 +3033,10 @@ module.exports = class YABDP4Nitro {
                         React.createElement(Components.TextInput, {
                             value: query,
                             placeholder: "Search...",
-                            onChange: (input) => setQuery(input)
+                            onChange: (input) => setQuery(input),
+                            style: {
+                                backgroundColor: `var(--control-secondary-background-default)`
+                            }
                         }),
                         React.createElement('br'),
                         React.createElement(ProfileEffects, {query})
@@ -3215,7 +3226,7 @@ module.exports = class YABDP4Nitro {
                                 marginLeft: "5px",
                                 marginBottom: "10px",
                                 borderRadius: "4px",
-                                backgroundColor: "var(--background-tertiary)"
+                                backgroundColor: "var(--background-base-lower)"
                             },
                             onClick: () => {
                                 copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
@@ -4563,7 +4574,7 @@ module.exports = class YABDP4Nitro {
             .yabd-generic-button {
                 align-items: center;
                 background: none;
-                border: 1px solid var(--opacity-white-8);
+                border: 1px solid var(--control-primary-border-default);
                 border-radius: 8px;
                 box-sizing: border-box;
                 display: flex;
@@ -4578,21 +4589,21 @@ module.exports = class YABDP4Nitro {
                 -moz-user-select: none;
                 user-select: none;
                 cursor: pointer;
-                background-color: var(--button-filled-brand-background);
+                background-color: var(--control-primary-background-default);
                 transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
             }
 
             .yabd-generic-button:hover {
-                background-color: var(--button-filled-brand-background-hover);
+                background-color: var(--control-primary-background-active);
             }
 
             .yabd-resolution-swapper-v2-button {
-                background-color: var(--button-secondary-background);
-                height: 46px;
-                width: 46px;
+                background-color: var(--control-secondary-background-default);
+                height: 40px;
+                width: 40px;
                 align-items: center;
-                color: var(--button-secondary-text);
-                border: 1px solid var(--border-faint);
+                color: var(--control-secondary-text-default);
+                border: 1px solid var(--control-secondary-border-default);
                 border-radius: 8px;
                 box-sizing: border-box;
                 display: flex;
@@ -4611,7 +4622,7 @@ module.exports = class YABDP4Nitro {
             }
 
             .yabd-resolution-swapper-v2-button:hover {
-                background-color: var(--button-secondary-background-hover);
+                background-color: var(--control-secondary-background-active);
             }
 
             .yabd-marginTop24 {
@@ -4626,7 +4637,7 @@ module.exports = class YABDP4Nitro {
         controller.abort();
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         Patcher.unpatchAll(this.meta.name);
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_V2_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle("YABDP4NitroRemoveUpsell");
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
