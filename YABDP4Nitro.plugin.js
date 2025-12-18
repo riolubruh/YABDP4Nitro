@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.5
+ * @version 6.6.6
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -38,7 +38,7 @@
 */
 
 //#region Module Hell
-const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = BdApi;
+const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = new BdApi("YABDP4Nitro");
 
 // When the FUCK is Discord going to get rid of Go Live Modal V1 and make V2 the standard?
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
@@ -113,7 +113,9 @@ const [
     {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
     {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")},
     {filter: Webpack.Filters.byStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?'), searchExports: true}, //MessageEmojiReact
-    {filter: Webpack.Filters.byPrototypeKeys('renderSocialProofingFileSizeNitroUpsell'), searchExports:true}, //renderEmbedsMod
+    {filter: Webpack.Filters.bySource('renderEmbeds', 'renderSuppressEmbeds'), map:{ //renderEmbedsMod
+        renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
+    }},
     {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
     {filter: Webpack.Filters.byPrototypeKeys('getCodecOptions')}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
@@ -123,7 +125,7 @@ const [
     {filter: Webpack.Filters.byKeys("addFiles")},
     {filter: Webpack.Filters.byStrings('M19.73 4.87a18.2'), searchExports: true}, //RegularAppIcon
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
-    {filter: Webpack.Filters.bySource('nameplateData', 'isPurchased')}, //NameplatePreview
+    {filter: Webpack.Filters.bySource('nameplateData')}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
@@ -234,7 +236,6 @@ let data = {};
 let badgeUserIDs = [];
 let fetchedUserBg = false;
 let fetchedUserPfp = false;
-let pluginThisRef; //fuck it
 
 // #region Config
 const config = {
@@ -245,18 +246,20 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.5",
+        "version": "6.6.6",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.5",
+            title: "6.6.6",
             items: [
-                "Fixed Fake Profile Effects not working properly hopefully this time.",
-                "Fix broken CSS after Discord update.",
-                "Fix avatar decorations not being stored after being fetched because Discord changed the name of the dispatch event back to what it originally was."
+                "Fixed Change Fake Nameplate menu no longer working after Discord update.",
+                "Fixed Fake Inline Hyperlink Emotes not rendering correctly after Discord update.",
+                "Fixed issues with the Edit Profile caused by the custom buttons taking too much horizontal space conflicting with new Discord CSS.",
+                "That also means that most custom buttons in the Edit Profile menu are below their real counterparts now instead of to the right of them.",
+                "Now using the BdApi constructor with the plugin name to greatly simplify its use within the plugin."
             ]
         }
     ],
@@ -427,7 +430,7 @@ function copyToClipboard(string, successMessage, errorMessage = "Failed to copy 
             UI.showToast(successMessage,{type: "info"});
     } catch(err) {
         UI.showToast(errorMessage,{type: "error",forceShow: true});
-        Logger.error(this.meta.name,err);
+        Logger.error(err);
     }
 }
 
@@ -510,7 +513,7 @@ module.exports = class YABDP4Nitro {
                 this.saveDataFile();
                 delete settings.avatarDecorations;
             }catch(err){
-                Logger.error(this.meta.name, "Data migration failed.");
+                Logger.error("Data migration failed.");
             }
         }
 
@@ -525,10 +528,10 @@ module.exports = class YABDP4Nitro {
         //delete old nameplate data
         if(data.nameplates) delete data.nameplates;
 
-        Data.save(this.meta.name, "settings", settings);
+        Data.save("settings", settings);
         this.saveDataFile();
 
-        Patcher.unpatchAll(this.meta.name);
+        Patcher.unpatchAll();
 
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
@@ -542,7 +545,7 @@ module.exports = class YABDP4Nitro {
                 },10000);
             }
             catch(err){
-                Logger.error(this.meta.name, "An error occurred changing premium type." + err);
+                Logger.error("An error occurred changing premium type." + err);
             }
         }else{
             if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
@@ -557,7 +560,7 @@ module.exports = class YABDP4Nitro {
                 this.resolutionSwapper();
                 this.resolutionSwapperV2();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -565,7 +568,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.stickerSending();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -573,7 +576,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.unlockStickers();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -581,18 +584,18 @@ module.exports = class YABDP4Nitro {
             try {
                 this.emojiBypass();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
         if(settings.profileV2){
             try {
-                Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
+                Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
                     if(ret == undefined) return;
                     ret.premiumType = 2;
                 });
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -600,7 +603,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.customizeStreamButtons(); //Apply custom resolution and fps options for Go Live Modal V1
             } catch(err){
-                Logger.error(this.meta.name, "Error occurred during customizeStreamButtons() " + err);
+                Logger.error("Error occurred during customizeStreamButtons() " + err);
             }
             try {
                 this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
@@ -609,13 +612,13 @@ module.exports = class YABDP4Nitro {
                     let areStreamSettingsAllowed = this.findMangledName(InvalidStreamSettingsModal, x=>x, "areStreamSettingsAllowed");
                     if(areStreamSettingsAllowed){
                         //disable resolution / fps check
-                        Patcher.instead(this.meta.name, InvalidStreamSettingsModal, areStreamSettingsAllowed, () => {
+                        Patcher.instead(InvalidStreamSettingsModal, areStreamSettingsAllowed, () => {
                             return true;
                         });
                     }
                 }
             } catch(err){
-                Logger.error(this.meta.name, "Error occurred during videoQualityModule() " + err);
+                Logger.error("Error occurred during videoQualityModule() " + err);
             }
         }
 
@@ -623,7 +626,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.clientThemes();
             } catch(err){
-                Logger.warn(this.meta.name, err);
+                Logger.warn(err);
             }
         }
 
@@ -632,18 +635,16 @@ module.exports = class YABDP4Nitro {
                 this.decodeAndApplyProfileColors();
                 this.encodeProfileColors();
             } catch(err){
-                Logger.error(this.meta.name, "Error occurred running fakeProfileThemes bypass. " + err);
+                Logger.error("Error occurred running fakeProfileThemes bypass. " + err);
             }
 
         }
-
-        DOM.removeStyle(this.meta.name);
 
         if(settings.removeScreenshareUpsell){
             try {
                 this.patchGoLiveModalUpsells();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -652,7 +653,7 @@ module.exports = class YABDP4Nitro {
                 this.bannerUrlDecoding();
                 this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -662,7 +663,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this.fakeAvatarDecorations();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -670,7 +671,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this.appIcons();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -678,7 +679,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.profileFX(this.secondsightifyEncodeOnly);
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -686,7 +687,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.killProfileFX();
             } catch(err){
-                Logger.error(this.meta.name, "Error occured during killProfileFX() " + err);
+                Logger.error("Error occured during killProfileFX() " + err);
             }
         }
 
@@ -694,7 +695,7 @@ module.exports = class YABDP4Nitro {
         try {
             this.honorBadge();
         } catch(err){
-            Logger.error(this.meta.name, "An error occurred during honorBadge() " + err);
+            Logger.error("An error occurred during honorBadge() " + err);
         }
 
         if(settings.customPFPs){
@@ -702,7 +703,7 @@ module.exports = class YABDP4Nitro {
                 this.customProfilePictureDecoding();
                 this.customProfilePictureEncoding(this.secondsightifyEncodeOnly);
             } catch(err){
-                Logger.error(this.meta.name, "An error occurred during customProfilePicture decoding/encoding. " + err);
+                Logger.error("An error occurred during customProfilePicture decoding/encoding. " + err);
             }
         }
 
@@ -710,14 +711,14 @@ module.exports = class YABDP4Nitro {
             try {
                 this.experiments();
             } catch(err){
-                Logger.error(this.meta.name, "Error occurred in experiments() " + err);
+                Logger.error("Error occurred in experiments() " + err);
             }
         }
 
         try{
             let canUserUse = this.findMangledName(CanUserUseMod, x=>typeof x === "function" && x.toString?.().includes?.('getFeatureValue'), "canUserUse");
             if(canUserUse){
-                Patcher.instead(this.meta.name, CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
+                Patcher.instead(CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
                     if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                         return true;
 
@@ -737,7 +738,7 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         //Clips Bypass
@@ -745,7 +746,7 @@ module.exports = class YABDP4Nitro {
             try {
                 this.clipsBypass();
             } catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -753,7 +754,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this.inlineFakemojiPatch();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -761,7 +762,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this._sendMessageInsteadPatch();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -769,7 +770,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this.videoCodecs();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
         
@@ -787,7 +788,7 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         try{
@@ -795,18 +796,18 @@ module.exports = class YABDP4Nitro {
                 this.nameplates();
             }
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         try{
             if(settings.removeNotStaffWarning && DMTag){
-                Patcher.instead(this.meta.name, DMTag, this.findMangledName(DMTag, x=>x), (_,[args],originalFunction) => {
+                Patcher.instead(DMTag, this.findMangledName(DMTag, x=>x), (_,[args],originalFunction) => {
                     if(args.type == 5) return;
                     else return originalFunction(args);
                 });
             }
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         if(settings.extraContextMenus){
@@ -817,7 +818,7 @@ module.exports = class YABDP4Nitro {
             try{
                 this.sharpenStreams();
             }catch(err){
-                Logger.error(this.meta.name, err);
+                Logger.error(err);
             }
         }
 
@@ -825,14 +826,14 @@ module.exports = class YABDP4Nitro {
             try{
                 this.displayNameStyles();
             }catch(err){
-                Logger.error(this.meta.name,err);
+                Logger.error(err);
             }
         }
     } //End of saveAndUpdate()
     // #endregion
 
     async displayNameStyles(){
-        Patcher.after(this.meta.name,UserStore,"getUser",(_,args,ret) => {
+        Patcher.after(UserStore,"getUser",(_,args,ret) => {
             let revealedText = this.getRevealedText(args[0],`\uDB40\uDC53\uDB40\uDC7B`);
             if(revealedText) {
 
@@ -889,7 +890,7 @@ module.exports = class YABDP4Nitro {
         if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('DisplayNameStylesSection'), {signal: controller.signal});
 
         if(this.DisplayNameSection && this.DisplayNameStylesSection){
-            Patcher.after(this.meta.name, this.DisplayNameSection, renderFn2, (_, [args], ret) => {
+            Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
                 if(!ret?.props?.children?.[1]){
                     ret.props.children[1] = React.createElement(this.DisplayNameStylesSection, {
                         user: args.user,
@@ -903,7 +904,7 @@ module.exports = class YABDP4Nitro {
         
         let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
         if(renderFn){
-            Patcher.after(this.meta.name, this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
+            Patcher.after(this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
                 const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
                 const font = selectionArea?.[1]?.props?.selectedFontId;
                 const effect = selectionArea?.[2]?.props?.selectedEffectId;
@@ -939,7 +940,7 @@ module.exports = class YABDP4Nitro {
     sharpenStreams(){ 
         let videoStreamName = this.findMangledName(VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
         if(videoStreamName){
-            Patcher.after(this.meta.name, VideoStream[videoStreamName], "type", (_,[args],ret) => {
+            Patcher.after(VideoStream[videoStreamName], "type", (_,[args],ret) => {
                 if(args?.userId){
                     let percentNormal = 100;
                     let percentSharpened = 0;
@@ -1009,7 +1010,7 @@ module.exports = class YABDP4Nitro {
         if(PictureInPicturePlayer){
             let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
             if(pipPlayerName){
-                Patcher.after(this.meta.name,PictureInPicturePlayer,pipPlayerName,(_,[args],ret) => {
+                Patcher.after(PictureInPicturePlayer,pipPlayerName,(_,[args],ret) => {
         
                     const userId = args?.backgroundKey?.split?.(":")?.[3];
         
@@ -1070,7 +1071,7 @@ module.exports = class YABDP4Nitro {
                 });
             }
         }else{
-            Logger.error(this.meta.name, "PictureInPicturePlayer not found!");
+            Logger.error("PictureInPicturePlayer not found!");
         }
     }
 
@@ -1101,7 +1102,7 @@ module.exports = class YABDP4Nitro {
                 }
     
                 const handleSave = () => {
-                    Data.save(pluginThisRef.meta.name, "settings", settings);
+                    Data.save("settings", settings);
                 }
     
                 reactElem.props.children.props.children.splice(2,0,
@@ -1131,12 +1132,12 @@ module.exports = class YABDP4Nitro {
         try{
             ContextMenu.patch('expression-picker', this.expressionPickerFunction);
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         try{
             if(GIFPickerRender){
-                Patcher.after(this.meta.name, GIFPickerRender?.prototype, "render", (thisRef, __, ret) => {
+                Patcher.after(GIFPickerRender?.prototype, "render", (thisRef, __, ret) => {
                     if(ret?.props){
                         ret.props.onContextMenu = (e) => {
                             let url;
@@ -1166,10 +1167,10 @@ module.exports = class YABDP4Nitro {
                     }
                 });
             }else{
-                Logger.error(this.meta.name, "GIF Picker element was not found!");
+                Logger.error("GIF Picker element was not found!");
             }
         }catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
     }
 
@@ -1219,7 +1220,7 @@ module.exports = class YABDP4Nitro {
                     )
                 }
             } catch(err) {
-                Logger.error(this.meta.name,err);
+                Logger.error(err);
             }
         }
     }
@@ -1237,7 +1238,7 @@ module.exports = class YABDP4Nitro {
         let renderFn = this.findMangledName(this.GoLiveModalV2UpsellMod, x=>x, "GoLiveModalV2Upsell");
         if(renderFn){
             //Disable GoLiveModalV2 upsell
-            Patcher.instead(this.meta.name, this.GoLiveModalV2UpsellMod, renderFn, () => {
+            Patcher.instead(this.GoLiveModalV2UpsellMod, renderFn, () => {
                 return;
             });
         }
@@ -1247,7 +1248,7 @@ module.exports = class YABDP4Nitro {
         
         if(sdHdPillFnName){
             //remove other go live modal v2 upsell (SD/HD pill buttons)
-            Patcher.instead(this.meta.name, sdHdPill, sdHdPillFnName, (_,args,ret) => {
+            Patcher.instead(sdHdPill, sdHdPillFnName, (_,args,ret) => {
                 return;
             });
         }
@@ -1265,11 +1266,11 @@ module.exports = class YABDP4Nitro {
     
             if(index >= 0) return keys[index];
             else{
-                Logger.warn(this.meta.name, `Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
+                Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
                 return null;
             };
         }else{
-            Logger.warn(this.meta.name, `Couldn't find name from module for function ${debugInfo} because the module was undefined. May be caused by lazy-loaded modules not being ready yet.`);
+            Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. May be caused by lazy-loaded modules not being ready yet.`);
             return null;
         }
     }
@@ -1306,7 +1307,7 @@ module.exports = class YABDP4Nitro {
             //avoid using findActivity function due to conflict with ChatFilter (#290)
             customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
         }catch(err){
-            Logger.error(this.meta.name, "Something went wrong getting custom status, oh god oh shit!", err);
+            Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
         }
         
         //if the user has a custom status
@@ -1327,7 +1328,7 @@ module.exports = class YABDP4Nitro {
     //#region Nameplates
     // nameplate 3y3 format: n{asset/palette}
     nameplates(){
-        Patcher.after(this.meta.name, UserStore, "getUser", (_, [userId], ret) => {
+        Patcher.after(UserStore, "getUser", (_, [userId], ret) => {
             if(!ret || !userId) return;
             
             let userNameplate = ret?.collectibles?.nameplate;
@@ -1473,15 +1474,17 @@ module.exports = class YABDP4Nitro {
 
         const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x);
 
-        Patcher.after(this.meta.name, NameplateSectionMod, NameplateSection, (_, args, ret) => {
-            const ButtonsSection = ret?.props?.children?.props?.children;
+        Patcher.after(NameplateSectionMod, NameplateSection, (_, args, ret) => {
             
-            if(ButtonsSection){
-                ButtonsSection.push(React.createElement("button",{
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(React.createElement("button",{
                     className: `yabd-generic-button`,
                     style: {
-                        marginLeft: "10px",
-                        whiteSpace: "nowrap"
+                        height: "30px",
+                        marginTop: "8px",
+                        width: "auto",
+                        height: "30px"
                     },
                     children: "Change Nameplate [YABDP4Nitro]",
                     onClick: () => {
@@ -1502,7 +1505,7 @@ module.exports = class YABDP4Nitro {
         let GoLiveModal = this.findMangledName(this.StreamSettingsPanelMod, Webpack.Filters.byStrings("StreamSettings"), "GoLiveModal");
         if(!GoLiveModal) return;
 
-        Patcher.after(this.meta.name, this.StreamSettingsPanelMod, GoLiveModal, (_, [args], ret) => {
+        Patcher.after(this.StreamSettingsPanelMod, GoLiveModal, (_, [args], ret) => {
 
             //Only if the selected preset is "Custom"
             if(args.selectedPreset === 3){
@@ -1636,7 +1639,7 @@ module.exports = class YABDP4Nitro {
                                                 if(isNaN(input)) input = -1;
                                                 settings.minBitrate = input;
                                                 //save to settings
-                                                Data.save(this.meta.name, "settings", settings);
+                                                Data.save("settings", settings);
                                             }
                                         }),
                                         React.createElement(Components.NumberInput, {
@@ -1647,7 +1650,7 @@ module.exports = class YABDP4Nitro {
                                                 if(isNaN(input)) input = -1;
                                                 settings.targetBitrate = input;
                                                 //save to settings
-                                                Data.save(this.meta.name, "settings", settings);
+                                                Data.save("settings", settings);
                                             }
                                         }),
                                         React.createElement(Components.NumberInput, {
@@ -1658,7 +1661,7 @@ module.exports = class YABDP4Nitro {
                                                 if(isNaN(input)) input = -1;
                                                 settings.maxBitrate = input;
                                                 //save to settings
-                                                Data.save(this.meta.name, "settings", settings);
+                                                Data.save("settings", settings);
                                             }
                                         }),
                                     ]
@@ -1688,7 +1691,7 @@ module.exports = class YABDP4Nitro {
 
         let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
         if(goLiveModalV2FnName){
-            Patcher.after(this.meta.name, this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
+            Patcher.after(this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
                 //maybe the worst amalgamation in this whole plugin?
     
                 if(GLMV2Opt.resolutionToSet != undefined) {
@@ -1858,7 +1861,7 @@ module.exports = class YABDP4Nitro {
                                     if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
                                     if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
                                     if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
-                                    Data.save(this.meta.name,"settings",settings);
+                                    Data.save("settings",settings);
                                 }
                             }
                             )
@@ -1872,16 +1875,16 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     unlockStickers(){
-        Patcher.instead(this.meta.name, stickerSendabilityModule, "getStickerSendability", () => {
+        Patcher.instead(stickerSendabilityModule, "getStickerSendability", () => {
             return 0; //SENDABLE
         });
-        Patcher.instead(this.meta.name, stickerSendabilityModule, "isSendableSticker", () => {
+        Patcher.instead(stickerSendabilityModule, "isSendableSticker", () => {
             return true;
         });
     }
 
     videoCodecs(){
-        Patcher.after(this.meta.name, streamSettingsMod.prototype, "getCodecOptions", (_, args, ret) => {
+        Patcher.after(streamSettingsMod.prototype, "getCodecOptions", (_, args, ret) => {
             ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
         });
     }
@@ -1896,12 +1899,12 @@ module.exports = class YABDP4Nitro {
             this.overrideExperiment("2023-10_viewer_clipping", 1);
         }
         //spoof nitro file size limit
-        Patcher.instead(this.meta.name, MaxFileSizeMod, "getMaxFileSize", (_,args) => {
+        Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,args) => {
             return 500 * 1024 * 1024; //512 MB
         });
 
         //disable max file size message
-        Patcher.instead(this.meta.name, MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
+        Patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
             return false;
         });
 
@@ -1957,7 +1960,7 @@ module.exports = class YABDP4Nitro {
         const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
         const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
 
-        Patcher.instead(this.meta.name, addFilesMod, "addFiles", async (_, [args], originalFunction) => {
+        Patcher.instead(addFilesMod, "addFiles", async (_, [args], originalFunction) => {
             /* If ffmpeg isn't loaded, or was unloaded for some reason,
                when the user adds a file, make sure to load it again if it's undefined
                If we don't do this check, then the user would have to
@@ -2022,7 +2025,7 @@ module.exports = class YABDP4Nitro {
                         let dontStopMeNow = true;
                         let mp4BoxFile = this.MP4Box.createFile();
                         mp4BoxFile.onError = (e) => {
-                            Logger.error(this.meta.name, e);
+                            Logger.error(e);
                             dontStopMeNow = false;
                         };
                         mp4BoxFile.onReady = async (info) => {
@@ -2111,7 +2114,7 @@ module.exports = class YABDP4Nitro {
                             let arrayBuffer = await currentFile.file.arrayBuffer();
                             const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov"];
                             if(movTypes.includes(currentFile.file.type)){
-                                Logger.info(this.meta.name, 'Using MOV format for clip.');
+                                Logger.info('Using MOV format for clip.');
                                 
                                 outFileName = "output.mov";
                             }
@@ -2142,7 +2145,7 @@ module.exports = class YABDP4Nitro {
                         let outFileName = "output.mp4";
 
                         if(['audio/wav', 'audio/aiff', 'audio/x-ms-wma', 'audio/mpeg'].includes(currentFile.file.type)){
-                            Logger.info("YABDP4Nitro", 'Using MOV format for audio clip.');
+                            Logger.info('Using MOV format for audio clip.');
                             outFileName = 'output.mov';
                         }
                         if(currentFile.file.type == 'audio/vnd.dolby.dd-raw'){
@@ -2298,21 +2301,21 @@ module.exports = class YABDP4Nitro {
             originalFunction(args);
         });
 
-        Patcher.after(this.meta.name, ClipsEnabledMod, "useEnableClips", () => {
+        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
             //I have no earthly idea why but, instead patching this one causes React crashes.
             // Luckily after-patching prevents it from crashing and it still unlocks it as it should
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsEnabledMod, "areClipsEnabled", () => {
+        Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsStore, "isViewerClippingAllowedForUser", () => {
+        Patcher.instead(ClipsStore, "isViewerClippingAllowedForUser", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsStore, "isClipsEnabledForUser", () => {
+        Patcher.instead(ClipsStore, "isClipsEnabledForUser", () => {
             return true;
         });
-        Patcher.instead(this.meta.name, ClipsStore, "isVoiceRecordingAllowedForUser", () => {
+        Patcher.instead(ClipsStore, "isVoiceRecordingAllowedForUser", () => {
             return true;
         });
     } //End of clipsBypass()
@@ -2333,12 +2336,12 @@ module.exports = class YABDP4Nitro {
             try{
                 if(fs.existsSync(filepath)){
                     let file = fs.readFileSync(filepath, encoding);
-                    Logger.info("YABDP4Nitro", `Fetch from disk for file ${filename} succeeded.`);
+                    Logger.info(`Fetch from disk for file ${filename} succeeded.`);
                     return file;
                 }
             }catch(err){
-                Logger.warn("YABDP4Nitro", "Tried to read " + filename + "from disk but an error occurred.");
-                Logger.warn("YABDP4Nitro", err);
+                Logger.warn("Tried to read " + filename + "from disk but an error occurred.");
+                Logger.warn(err);
             }
         }
 
@@ -2348,12 +2351,12 @@ module.exports = class YABDP4Nitro {
             if(res.ok || res.status == 200) {
                 return res;
             } else {
-                Logger.warn("YABDP4Nitro", res);
+                Logger.warn(res);
                 res = await Net.fetch(ffmpeg_js_baseurl + filename, { timeout: 100000 });
                 if(res.ok || res.status == 200){
                     return res;
                 }else{
-                    Logger.error("YABDP4Nitro", res);
+                    Logger.error(res);
                     throw new Error(filename + " failed to fetch.");
                 }
             }
@@ -2367,7 +2370,7 @@ module.exports = class YABDP4Nitro {
                 else blobUrl = URL.createObjectURL(await (await fetchAndRetryWithNetFetch(filename)).blob());
                 return blobUrl;
             }catch(err){
-                Logger.error("YABDP4Nitro", "An error occurred while fetching " + filename);
+                Logger.error("An error occurred while fetching " + filename);
                 throw err;
             }
         }
@@ -2384,7 +2387,7 @@ module.exports = class YABDP4Nitro {
                 if(file) ffmpegSrc = file;
                 else ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
             }catch(err){
-                Logger.error(this.meta.name, "An error occurred while fetching ffmpeg.js");
+                Logger.error("An error occurred while fetching ffmpeg.js");
                 throw err;
             }
 
@@ -2421,21 +2424,21 @@ module.exports = class YABDP4Nitro {
                     coreURL: ffmpegCoreURL,
                     wasmURL: ffmpegCoreWasmURL
                 });
-                Logger.info(this.meta.name, "FFmpeg load success!");
+                Logger.info("FFmpeg load success!");
                 ffmpeg.on("log", ({ message }) => {
                     console.log(message);
                 });
             }else{
-                Logger.info(this.meta.name, FFmpegWASM);
-                Logger.info(this.meta.name, ffmpegCoreURL);
-                Logger.info(this.meta.name, ffmpegCoreWasmURL);
-                Logger.info(this.meta.name, ffmpegWorkerURL);
+                Logger.info(FFmpegWASM);
+                Logger.info(ffmpegCoreURL);
+                Logger.info(ffmpegCoreWasmURL);
+                Logger.info(ffmpegWorkerURL);
                 throw new Error("One or more of the necessary components failed to load.");
             }
         } catch(err) {
             UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
-            Logger.info(this.meta.name, "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
-            Logger.error(this.meta.name, err);
+            Logger.info("FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
+            Logger.error(err);
         } finally {
             //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
             window.global.define = defineTemp;
@@ -2453,7 +2456,7 @@ module.exports = class YABDP4Nitro {
             try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
             Stores.find((x) => x.name === "ExperimentStore").storeDidChange(); 
         } catch(err){
-            Logger.warn(this.meta.name, err);
+            Logger.warn(err);
         }
     }
 
@@ -2486,7 +2489,7 @@ module.exports = class YABDP4Nitro {
 
         if(saveClientTheme){
             //Patching saveClientTheme function.
-            Patcher.instead(this.meta.name, themesModule, saveClientTheme, (_, [args]) => {
+            Patcher.instead(themesModule, saveClientTheme, (_, [args]) => {
                 //if user is trying to set the theme to a default theme
                 if(args.backgroundGradientPresetId == undefined){
     
@@ -2494,7 +2497,7 @@ module.exports = class YABDP4Nitro {
                     settings.lastGradientSettingStore = -1;
     
                     //save any changes to settings
-                    Data.save(this.meta.name, "settings", settings);
+                    Data.save("settings", settings);
                     
                     //dispatch settings update to change themes
                     Dispatcher.dispatch({
@@ -2516,7 +2519,7 @@ module.exports = class YABDP4Nitro {
                     settings.lastGradientSettingStore = args.backgroundGradientPresetId;
                     
                     //save any changes to settings
-                    Data.save(this.meta.name, "settings", settings);
+                    Data.save("settings", settings);
     
                     //dispatch settings update event to change to the gradient the user chose
                     Dispatcher.dispatch({
@@ -2558,7 +2561,7 @@ module.exports = class YABDP4Nitro {
         }
 
         //startSession patch. This function runs upon switching accounts.
-        Patcher.after(this.meta.name, accountSwitchModule, "startSession", () => {
+        Patcher.after(accountSwitchModule, "startSession", () => {
 
             setTimeout(() => {
                 //If last appearance choice was a nitro client theme
@@ -2576,7 +2579,7 @@ module.exports = class YABDP4Nitro {
 
     // #region Custom PFP Decode
     customProfilePictureDecoding(){
-        Patcher.instead(this.meta.name, getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
+        Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
 
             //userpfp closer integration
             //if we haven't fetched userPFP database yet and it's enabled
@@ -2647,109 +2650,112 @@ module.exports = class YABDP4Nitro {
         let AvatarSectionFnName = this.findMangledName(this.customPFPSettingsRenderMod, x=>x, "AvatarSection");
         if(!AvatarSectionFnName) return;
 
-        Patcher.after(this.meta.name, this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
+        Patcher.after(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(!ret) return;
 
             //don't need to do anything if this is the "Try out Nitro" flow.
             if(args.isTryItOut) return;
 
-            ret.props.children.props.children.push(
-                React.createElement("input", {
-                    id: "profilePictureUrlInput",
-                    style: {
-                        width: "30%",
-                        height: "20%",
-                        maxHeight: "50%",
-                        marginTop: "5px",
-                        marginLeft: "5px"
-                    },
-                    placeholder: "Imgur URL for PFP"
-                })
-            );
-
-            if(ret?.props?.children?.props?.children){
-                //Create and append Copy PFP 3y3 button.
-                ret.props.children.props.children.push(
-                    React.createElement("button", {
-                        children: "Copy PFP 3y3",
-                        className: `yabd-generic-button`,
-                        id: "profilePictureButton",
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(
+                    React.createElement("div", {
                         style: {
-                            marginLeft: "10px",
-                            whiteSpace: "nowrap"
+                            display: "flex",
+                            marginTop: "4px",
                         },
-                        onClick: async function(){ //on copy pfp 3y3 button click
-    
-                            //grab text from pfp url input textarea.
-                            let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-    
-                            //empty, skip.
-                            if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == ""){
-                                emptyWarn();
-                                return;
-                            }
-    
-                            //clean up string to encode
-                            let stringToEncode = "" + profilePictureUrlInputValue
-                                //clean up URL
-                                .replace("http://", "") //remove protocol
-                                .replace("https://", "")
-                                .replace("i.imgur.com", "imgur.com");
-    
-                            let encodedStr = ""; //initialize encoded string as empty string
-                            stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-    
-                            //if url seems correct
-                            if(stringToEncode.toLowerCase().startsWith("imgur.com")){
-    
-                                //Check for album or gallery URL
-                                if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
-                                    //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-    
-                                    //Fetch imgur album page
-                                    try {
-                                        const parser = new DOMParser();
-                                        stringToEncode = await Net.fetch(("https://" + stringToEncode), {
-                                            method: "GET",
-                                            mode: "cors"
-                                        }).then(res => res.text()
-                                            //parse html, queryselect meta tag with certain name
-                                            .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-                                        stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-                                            .replace("https://", "") //get rid of protocol
-                                            .replace("i.imgur.com", "imgur.com")
-                                            .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-                                            .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                    } catch(err){
-                                        Logger.error("YABDP4Nitro", err);
-                                        UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                        children: [
+                            React.createElement("input", {
+                                id: "profilePictureUrlInput",
+                                style: {
+                                    maxWidth: "112px",
+                                    marginTop: "4px",
+                                },
+                                placeholder: "PFP Imgur URL"
+                            }),
+                            //Create and append Copy PFP 3y3 button.
+                            React.createElement("button",{
+                                children: "Copy PFP 3y3",
+                                className: `yabd-generic-button`,
+                                id: "profilePictureButton",
+                                style: {
+                                    marginLeft: "5px",
+                                    whiteSpace: "nowrap"
+                                },
+                                onClick: async function() { //on copy pfp 3y3 button click
+
+                                    //grab text from pfp url input textarea.
+                                    let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
+
+                                    //empty, skip.
+                                    if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
+                                        emptyWarn();
                                         return;
                                     }
-                                }
-                                if(stringToEncode == ""){
-                                    UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                    Logger.error("YABDP4Nitro", "Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
-                                }
-    
-                                //add starting "P{" , remove "imgur.com/" , and add ending "}"
-                                stringToEncode = "P{" + stringToEncode.replace("imgur.com/", "") + "}";
-                                //finally encode the string, adding a space before it so nothing fucks up
-                                encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-    
-                                //If this is not an Imgur URL, yell at the user.
-                            }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-                                UI.showToast("Please use Imgur!", { type: "warning" });
-                                return;
-                            }
-    
-                            //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                            if(encodedStr == "") return;
-    
-                            copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-    
-                        } //end copy pfp 3y3 click event
-                    }) //end of react createElement
+
+                                    //clean up string to encode
+                                    let stringToEncode = "" + profilePictureUrlInputValue
+                                        //clean up URL
+                                        .replace("http://","") //remove protocol
+                                        .replace("https://","")
+                                        .replace("i.imgur.com","imgur.com");
+
+                                    let encodedStr = ""; //initialize encoded string as empty string
+                                    stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                    //if url seems correct
+                                    if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
+
+                                        //Check for album or gallery URL
+                                        if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
+                                            //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                            //Fetch imgur album page
+                                            try {
+                                                const parser = new DOMParser();
+                                                stringToEncode = await Net.fetch(("https://" + stringToEncode),{
+                                                    method: "GET",
+                                                    mode: "cors"
+                                                }).then(res => res.text()
+                                                    //parse html, queryselect meta tag with certain name
+                                                    .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
+                                                stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
+                                                    .replace("https://","") //get rid of protocol
+                                                    .replace("i.imgur.com","imgur.com")
+                                                    .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
+                                                    .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                            } catch(err) {
+                                                Logger.error(err);
+                                                UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
+                                                return;
+                                            }
+                                        }
+                                        if(stringToEncode == "") {
+                                            UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
+                                            Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
+                                        }
+
+                                        //add starting "P{" , remove "imgur.com/" , and add ending "}"
+                                        stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
+                                        //finally encode the string, adding a space before it so nothing fucks up
+                                        encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                        //If this is not an Imgur URL, yell at the user.
+                                    } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
+                                        UI.showToast("Please use Imgur!",{type: "warning"});
+                                        return;
+                                    }
+
+                                    //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                    if(encodedStr == "") return;
+
+                                    copyToClipboard(encodedStr,"3y3 copied to clipboard!");
+
+                                } //end copy pfp 3y3 click event
+                            }) //end of react createElement of button
+                        ]
+                        }) //end of react createElement of div
                 ); //end of element push
             }
         }); //end of patch
@@ -2784,7 +2790,7 @@ module.exports = class YABDP4Nitro {
         `);
 
         //User profile badge patches
-        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
             //bad data checks
             if(ret == undefined) return;
             if(ret.userId == undefined) return;
@@ -2901,7 +2907,7 @@ module.exports = class YABDP4Nitro {
         }
         profileEffectsFiltered = Object.values(profileEffectsTemp);
 
-        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, [args], ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [args], ret) => {
             //error prevention
             if(ret == undefined) return;
             if(ret.bio == undefined) return;
@@ -2953,7 +2959,7 @@ module.exports = class YABDP4Nitro {
         let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
         if(!ProfileEffectSectionFnName) return;
         //patch profile effect section renderer function to run the following code after the function runs
-        Patcher.after(this.meta.name, this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
+        Patcher.after(this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(args.isTryItOut) return;
 
@@ -3056,7 +3062,7 @@ module.exports = class YABDP4Nitro {
                         width: "100px",
                         height: "32px",
                         color: "white",
-                        marginLeft: "10px"
+                        marginLeft: "4px"
                     },
                     onClick: () => {
                         UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal), {cancelText:""});
@@ -3069,7 +3075,7 @@ module.exports = class YABDP4Nitro {
     } //End of profileFX()
 
     killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
-        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
             if(ret?.profileEffect === undefined) return;
             ret.profileEffect = undefined;
         });
@@ -3107,7 +3113,7 @@ module.exports = class YABDP4Nitro {
     
     async fakeAvatarDecorations(){
         //apply decorations
-        Patcher.after(this.meta.name, UserStore, "getUser", (_, args, ret) => {
+        Patcher.after(UserStore, "getUser", (_, args, ret) => {
             //basic error checking
             if(args == undefined) return;
             if(args[0] == undefined) return;
@@ -3168,15 +3174,15 @@ module.exports = class YABDP4Nitro {
         if(!fnName) return;
 
         //Avatar decoration customization section patch
-        Patcher.after(this.meta.name, this.decorationCustomizationSectionMod, fnName, (_, [args], ret) => {
+        Patcher.after(this.decorationCustomizationSectionMod, fnName, (_, [args], ret) => {
             if(!args) return;
 
             //don't run if this is the try out nitro flow.
             if(args.isTryItOut) return;
 
             //push change decoration button
-            if(ret?.props?.children?.[0].props.children){
-                ret.props.children[0].props.children.push(
+            if(ret?.props?.children){
+                ret.props.children.push(
                     React.createElement("button", {
                         id: "decorationButton",
                         children: "Change Decoration [YABDP4Nitro]",
@@ -3185,7 +3191,7 @@ module.exports = class YABDP4Nitro {
                             height: "50px",
                             color: "white",
                             borderRadius: "3px",
-                            marginLeft: "5px",
+                            marginTop: "8px",
                         },
                         className: "yabd-generic-button",
                         onClick: () => {
@@ -3320,7 +3326,7 @@ module.exports = class YABDP4Nitro {
             await send.apply(undefined, msg);
            
         } catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
     }
     // #endregion
@@ -3345,7 +3351,7 @@ module.exports = class YABDP4Nitro {
                 try {
                     send(channelId, msg, {attachmentsToUpload: files}) //finally finish the process of uploading
                 } catch(err){
-                    Logger.error(this.meta.name, err);
+                    Logger.error(err);
                 }
             }else{
 				//Upload 10 files at a time with a delay
@@ -3357,7 +3363,7 @@ module.exports = class YABDP4Nitro {
                     try {
                         send(channelId, msg, {attachmentsToUpload: tenFiles});
                     } catch(err){
-                        Logger.error(this.meta.name, err);
+                        Logger.error(err);
                     }
                     firstTime = false;
                     await new Promise(r => setTimeout(r, 3000));
@@ -3375,7 +3381,7 @@ module.exports = class YABDP4Nitro {
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
         //console.log(StreamButtons);
 
-        const settings = Data.load(pluginThisRef.meta.name, "settings"); //just in case we can't access this;
+        const settings = Data.load("settings");
 
         //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
         let resolutionToSet = parseInt(settings.CustomResolution);
@@ -3423,7 +3429,7 @@ module.exports = class YABDP4Nitro {
         ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
         ApplicationStreamFPS.FPS_60 = fpsToSet;
 
-        Data.save(pluginThisRef.meta.name, "settings", settings);
+        Data.save("settings", settings);
     } //End of customizeStreamButtons()
     //#endregion
 
@@ -3450,7 +3456,7 @@ module.exports = class YABDP4Nitro {
         this.overrideExperiment("2024-11_soundmoji_sending", 2);
 
         //#region _sendMessage Patch
-        Patcher.instead(this.meta.name, MessageActions, "_sendMessage", async (_, msg, send) => {
+        Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
             if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
                 send.apply(_, msg);
                 return;
@@ -3587,19 +3593,19 @@ module.exports = class YABDP4Nitro {
 
     emojiBypass(){
 
-        Patcher.instead(this.meta.name, isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
+        Patcher.instead(isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
             return false;
         });
-        Patcher.instead(this.meta.name, isEmojiAvailableMod, "isEmojiDisabled", () => {
+        Patcher.instead(isEmojiAvailableMod, "isEmojiDisabled", () => {
             return false;
         });
-        Patcher.instead(this.meta.name, isEmojiAvailableMod, "isEmojiFiltered", () => {
+        Patcher.instead(isEmojiAvailableMod, "isEmojiFiltered", () => {
             return false;
         });
-        Patcher.instead(this.meta.name, isEmojiAvailableMod, "isEmojiPremiumLocked", () => {
+        Patcher.instead(isEmojiAvailableMod, "isEmojiPremiumLocked", () => {
             return false;
         });
-        Patcher.instead(this.meta.name, isEmojiAvailableMod, "getEmojiUnavailableReason", () => {
+        Patcher.instead(isEmojiAvailableMod, "getEmojiUnavailableReason", () => {
             return;
         });
 
@@ -3661,7 +3667,7 @@ module.exports = class YABDP4Nitro {
             }
 
             //sending message in ghost mode
-            Patcher.before(this.meta.name, MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
                 ghostModeMethod(msg, currentChannelId, this);
             });
 
@@ -3706,7 +3712,7 @@ module.exports = class YABDP4Nitro {
             }
 
             //sending message in classic mode
-            Patcher.before(this.meta.name, MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
                 classicModeMethod(msg, currentChannelId, this);
             });
         }
@@ -3751,7 +3757,7 @@ module.exports = class YABDP4Nitro {
             }
 
             //sending message in vencord-like mode
-            Patcher.before(this.meta.name, MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
                 vencordModeMethod(msg, currentChannelId, this);
             });
         }
@@ -3759,7 +3765,7 @@ module.exports = class YABDP4Nitro {
 
         if(settings.editMessageWithEmoji){
             //applying edited message
-            Patcher.before(this.meta.name, MessageActions, "editMessage", (_, [channelId, msgId, msg]) => {
+            Patcher.before(MessageActions, "editMessage", (_, [channelId, msgId, msg]) => {
                 if(msg.content.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
                                                           //...except SimpleDiscordCrypt has been broken for years, so really this does nothing and is only included as a tradition.
     
@@ -3819,7 +3825,7 @@ module.exports = class YABDP4Nitro {
             });
             
             //starting editing message
-            Patcher.before(this.meta.name, MessageActions, "startEditMessageRecord", (_, [channelId, msg]) => {
+            Patcher.before(MessageActions, "startEditMessageRecord", (_, [channelId, msg]) => {
                 lastEditedMsg = msg;
                 lastEditedMsgCopy = {...msg};
     
@@ -3864,7 +3870,7 @@ module.exports = class YABDP4Nitro {
             });
         }
 
-        Patcher.before(this.meta.name, MessageActions, "endEditMessage", () => {
+        Patcher.before(MessageActions, "endEditMessage", () => {
             if(lastEditedMsg?.content != undefined && lastEditedMsgCopy?.content != undefined)
                 //fix cancelling edit by restoring message to original state manually after cancellation
                 lastEditedMsg.content = lastEditedMsgCopy.content;
@@ -3876,7 +3882,7 @@ module.exports = class YABDP4Nitro {
     //#region Fake Inline Emoji
     inlineFakemojiPatch(){
         //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
-        Patcher.before(this.meta.name, messageRender, "type", (_, [args]) => {
+        Patcher.before(messageRender, "type", (_, [args]) => {
             for(let i = 0; i < args.content.length; i++){
                 let contentItem = args.content[i];
 
@@ -3917,15 +3923,15 @@ module.exports = class YABDP4Nitro {
 
         //who knows what unholy compatibility issues this will bring me
         //this code fucking sucks i think
-        Patcher.instead(this.meta.name, renderEmbedsMod.prototype, "renderEmbeds", (_, [message], originalFunction) => {
-            //get what the original function would have returned
-            let ret = originalFunction(message);
-            if(ret){
-                if(ret.length > 0){
-                    for(let i = 0; i < ret.length; i++){
-                        if(ret[i]){
-                            if(ret[i].props?.children?.props?.embed?.image?.url){
-                                let url = ret[i].props.children.props.embed.image.url;
+        Patcher.before(renderEmbedsMod, "renderEmbeds", (_,[args]) => {
+            const embeds = args?.message?.embeds;
+
+            if(embeds){
+                if(embeds.length > 0){
+                    for(let i = 0; i < embeds.length; i++){
+                        if(embeds[i]){
+                            if(embeds[i].url){
+                                let url = embeds[i].url;
                                 let isEmojiHyperlink = false;
 
                                 //this embed is an emoji
@@ -3935,18 +3941,18 @@ module.exports = class YABDP4Nitro {
                                      * so if someone has an emoji URL and a hyperlink with that same URL in the same message, it won't render correctly (or at least not how you might expect)!
                                      * Let's just hope nobody notices that..! I didn't have this system initially cause I'm a dumbfuck and didn't think it over.
                                     */
-                                    if(message.content.includes(`](${url})`)){
+                                    if(args.message.content.includes(`](${url})`)){
                                         isEmojiHyperlink = true;
                                     }
 
                                     //if currently processed embed is an emoji and a hyperlink
                                     if(isEmojiHyperlink){
-                                        if(ret.length == 1){ //if there is only 1 fakemoji
+                                        if(embeds.length == 1){ //if there is only 1 fakemoji
 
                                             //removes first instance of pattern [anyemojiname](https://cdn.discordapp.com/emojis/anynumber.ext) then checks if there is anything else in the message
-                                            if(message.content.replace(/\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif).*?\)/, "") //is regex necessary? probably.
+                                            if(args.message.content.replace(/\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/, "") //is regex necessary? probably.
                                                 .trim().length > 0){ //if there is other stuff in the message, delete the embed
-                                                delete ret[i];
+                                                delete embeds[i];
                                             }
                                             //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
                                             //for some reason, if the fakemoji is in a message alone, it disappears, so keeping the embed was the easiest solution
@@ -3954,7 +3960,7 @@ module.exports = class YABDP4Nitro {
 
                                         //if there is more than 1 hyperlink
                                         else{
-                                            delete ret[i]; //if the hyperlink is an emoji url, delete the embed
+                                            delete embeds[i]; //if the hyperlink is an emoji url, delete the embed
                                         }
                                     }
                                 }
@@ -3963,9 +3969,9 @@ module.exports = class YABDP4Nitro {
                     }
                 }
                 //removes empty items from the array. def did not take from stackoverflow (trust)
-                ret = ret.filter(n => n);
+                args.message.embeds = args.message.embeds.filter(n => n);
 
-                return ret;
+                
             }else{ //if the original function returns undefined/null
                 //this should never happen, but in case it does, return an empty array
                 return [];
@@ -3977,7 +3983,7 @@ module.exports = class YABDP4Nitro {
 
     //#region Video Quality Patch
     videoQualityModule(){ //Custom Bitrates, FPS, Resolution
-        Patcher.before(this.meta.name, videoOptionFunctions.prototype, "updateVideoQuality", (e) => {
+        Patcher.before(videoOptionFunctions.prototype, "updateVideoQuality", (e) => {
             if(settings.CustomBitrateEnabled){
                 if(settings.minBitrate > 0){
                     //Minimum Bitrate
@@ -4055,7 +4061,7 @@ module.exports = class YABDP4Nitro {
 
 
     async stickerSending(){
-        Patcher.instead(this.meta.name, MessageActions, "sendStickers", (_, args, originalFunction) => {
+        Patcher.instead(MessageActions, "sendStickers", (_, args, originalFunction) => {
             let stickerID = args[1][0];
             let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless";
             let currentChannelId = SelectedChannelStore.getChannelId();
@@ -4077,7 +4083,7 @@ module.exports = class YABDP4Nitro {
 
     //#region 3y3 Profile Colors
     decodeAndApplyProfileColors(){
-        Patcher.after(this.meta.name, UserProfileStore, "getUserProfile", (_, args, ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
             if(ret == undefined) return;
             if(ret.bio == null) return;
             const colorString = ret.bio.match(
@@ -4103,7 +4109,7 @@ module.exports = class YABDP4Nitro {
         let profileThemesSectionFnName = this.findMangledName(this.colorPickerRendererMod, x=>x, "ProfileThemesSection");
         if(!profileThemesSectionFnName) return;
 
-        Patcher.after(this.meta.name, this.colorPickerRendererMod, profileThemesSectionFnName, (_, args, ret) => {
+        Patcher.after(this.colorPickerRendererMod, profileThemesSectionFnName, (_, args, ret) => {
             ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
                     id: "copy3y3button",
@@ -4168,12 +4174,12 @@ module.exports = class YABDP4Nitro {
         }
 
         //Patch getUserBannerURL function
-        Patcher.before(this.meta.name, AvatarDefaults, "getUserBannerURL", (_, args) => {
+        Patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
             args[0].canAnimate = true;
         });
 
         //Patch getBannerURL function
-        Patcher.instead(this.meta.name, getBannerURLMod.prototype, "getBannerURL", (user, [args], ogFunction) => {
+        Patcher.instead(getBannerURLMod.prototype, "getBannerURL", (user, [args], ogFunction) => {
 
             let profile = user._userProfile;
 
@@ -4251,118 +4257,126 @@ module.exports = class YABDP4Nitro {
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.meta.name, this.profileBannerSectionRenderer, BannerSectionFnName, (_, args, ret) => {
+        Patcher.after(this.profileBannerSectionRenderer, BannerSectionFnName, (_, args, ret) => {
             //create and append profileBannerUrlInput input element.
             let profileBannerUrlInput = React.createElement("input", {
                 id: "profileBannerUrlInput",
-                placeholder: "Imgur URL for Banner",
+                placeholder: "Banner Imgur URL",
                 style: {
                     float: "right",
-                    width: "30%",
+                    width: "116px",
                     height: "20%",
                     maxHeight: "50%",
-                    marginTop: "auto",
-                    marginBottom: "auto",
-                    marginLeft: "10px"
+                    marginTop: "3px"
                 }
             });
-            ret.props.children.props.children.push(profileBannerUrlInput);
 
-            ret.props.children.props.children.push( //append Copy 3y3 button
-                //create react element
-
-                React.createElement("button", {
-                    id: "profileBannerButton",
-                    children: "Copy Banner 3y3",
-                    className: `yabd-generic-button`,
-                    size: "bd-button-small",
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(React.createElement('div',{
                     style: {
-                        whiteSpace: "nowrap",
-                        marginLeft: "10px"
+                        marginTop: "8px",
+                        display: "flex",
                     },
-                    onClick: async function(){ //Upon clicking Copy 3y3 button
+                    children: [
+                        profileBannerUrlInput,
+                        React.createElement("button", {
+                            id: "profileBannerButton",
+                            children: "Copy Banner 3y3",
+                            className: `yabd-generic-button`,
+                            size: "bd-button-small",
+                            style: {
+                                whiteSpace: "nowrap",
+                                marginLeft: "4px",
+                                width: "116px",
+                                height: "30px"
+                            },
+                            onClick: async function(){ //Upon clicking Copy 3y3 button
 
-                        //grab text from banner URL input textarea 
-                        let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
+                                //grab text from banner URL input textarea 
+                                let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
 
-                        //if it's empty, stop processing and issue a warning.
-                        if(profileBannerUrlInputValue == undefined){
-                            emptyWarn();
-                            return;
-                        }
-                        if(profileBannerUrlInputValue == ""){
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profileBannerUrlInputValue
-                            .replace("http://", "") //get rid of protocol
-                            .replace("https://", "")
-                            .replace(".jpg", "")
-                            .replace(".png", "")
-                            .replace(".mp4", "")
-                            .replace("webm", "")
-                            .replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
-
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")){
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
-
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode), {
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-                                        .replace("https://", "") //get rid of protocol
-                                        .replace("i.imgur.com", "imgur.com")
-                                        .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err){
-                                    Logger.error("YABDP4Nitro", err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                //if it's empty, stop processing and issue a warning.
+                                if(profileBannerUrlInputValue == undefined){
+                                    emptyWarn();
                                     return;
                                 }
-                            }
-                            if(stringToEncode == ""){
-                                UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                Logger.error("YABDP4Nitro", "Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
-                                return;
-                            }
-                            //add starting "B{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+                                if(profileBannerUrlInputValue == ""){
+                                    emptyWarn();
+                                    return;
+                                }
 
-                            //If this is not an Imgur URL, yell at the user.
-                        }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-                            UI.showToast("Please use Imgur!", { type: "warning" });
-                            return;
-                        }
+                                //clean up string to encode
+                                let stringToEncode = "" + profileBannerUrlInputValue
+                                    .replace("http://", "") //get rid of protocol
+                                    .replace("https://", "")
+                                    .replace(".jpg", "")
+                                    .replace(".png", "")
+                                    .replace(".mp4", "")
+                                    .replace("webm", "")
+                                    .replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
 
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
 
-                        //copy to clipboard
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                        
-                    } //end of onClick function
-                }) //end of react createElement
-            ); //end of profileBannerButton element push
+                                let encodedStr = ""; //initialize encoded string as empty string
+
+                                stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                //if url seems correct
+                                if(stringToEncode.toLowerCase().startsWith("imgur.com")){
+
+                                    //Check for album or gallery URL
+                                    if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
+
+                                        //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                        //Fetch imgur album page
+                                        try {
+                                            const parser = new DOMParser();
+                                            stringToEncode = await Net.fetch(("https://" + stringToEncode), {
+                                                method: "GET",
+                                                mode: "cors"
+                                            }).then(res => res.text()
+                                                //parse html, queryselect meta tag with certain name
+                                                .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+                                            stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+                                                .replace("https://", "") //get rid of protocol
+                                                .replace("i.imgur.com", "imgur.com")
+                                                .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
+                                                .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                        } catch(err){
+                                            Logger.error(err);
+                                            UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                            return;
+                                        }
+                                    }
+                                    if(stringToEncode == ""){
+                                        UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                        Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
+                                        return;
+                                    }
+                                    //add starting "B{" , remove "imgur.com/" , and add ending "}"
+                                    stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
+                                    //finally encode the string, adding a space before it so nothing fucks up
+                                    encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                    //If this is not an Imgur URL, yell at the user.
+                                }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
+                                    UI.showToast("Please use Imgur!", { type: "warning" });
+                                    return;
+                                }
+
+                                //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                if(encodedStr == "") return;
+
+                                //copy to clipboard
+                                copyToClipboard(encodedStr, "3y3 copied to clipboard!");
+                                
+                            } //end of onClick function
+                        }) //end of button react createElement
+                    ] //end of children
+                }
+                )); //end of profileBannerButton element push
+            }
 
         }); //end of patched function
 
@@ -4375,7 +4389,7 @@ module.exports = class YABDP4Nitro {
         let renderFn = this.findMangledName(AppIcon, x=>x, "AppIcon");
         if(!renderFn) return;
 
-        Patcher.instead(this.meta.name, AppIcon, renderFn, () => {
+        Patcher.instead(AppIcon, renderFn, () => {
             const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
                 return React.createElement(RegularAppIcon, {
@@ -4426,10 +4440,10 @@ module.exports = class YABDP4Nitro {
             let res = await fetch(this.meta.updateUrl);
 
             if(!res.ok && res.status != 200){
-                Logger.warn("YABDP4Nitro", res);
+                Logger.warn(res);
                 res = await Net.fetch(this.meta.updateUrl);
                 if(!res.ok && res.status != 200){
-                    Logger.error("YABDP4Nitro", res);
+                    Logger.error(res);
                     throw new Error("Failed to check for updates!");
                 }
             }
@@ -4452,13 +4466,13 @@ module.exports = class YABDP4Nitro {
         }
         catch(err){
             UI.showToast("[YABDP4Nitro] Failed to check for updates", { type: "error" });
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
     }
 
     newUpdateNotify(remoteMeta, remoteFile){
-        Logger.info(this.meta.name, `Update ${remoteMeta.version} is available!`);
+        Logger.info(`Update ${remoteMeta.version} is available!`);
 
         UI.showNotification({
             title: "YABDP4Nitro Update Available!",
@@ -4470,7 +4484,7 @@ module.exports = class YABDP4Nitro {
                         await new Promise(r => fs.writeFile(path.join(Plugins.folder,`${this.meta.name}.plugin.js`),remoteFile,r));
                     } catch(err) {
                         UI.showToast("An error occurred when trying to download the update!",{type: "error",forceShow: true});
-                        Logger.error(this.meta.name, err);
+                        Logger.error(err);
                     }
                 }
             }]
@@ -4484,7 +4498,7 @@ module.exports = class YABDP4Nitro {
             fs.writeFileSync(dataFilePath, JSON.stringify(data));
         }catch(err){
             UI.showToast(`[${this.meta.name}] Error saving dava JSON. See console for error message.`, { type: "error", forceShow: true });
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
     }
 
@@ -4499,27 +4513,26 @@ module.exports = class YABDP4Nitro {
                 data = Object.assign({}, defaultData, JSON.parse(fs.readFileSync(dataFilePath)));
             }catch(err){
                 UI.showToast(`[${this.meta.name}] Error parsing or reading data JSON.`, { type: "error", forceShow: true });
-                Logger.error(this.meta.name, `Error parsing or reading ${this.meta.name}.data.json.`, err);
+                Logger.error(`Error parsing or reading ${this.meta.name}.data.json.`, err);
                 data = defaultData;
             }
         }catch(err){
             UI.showToast(`[${this.meta.name}] An error occurred loading the data file.`, { type: "error", forceShow: true });
-            Logger.error(this.meta.name, "An error occurred loading the data file.", err);
+            Logger.error("An error occurred loading the data file.", err);
         }
     }
 
     //#region Start, Stop
     start(){
-        Logger.info(this.meta.name, "(v" + this.meta.version + ") has started.");
-        pluginThisRef = this;
+        Logger.info("(v" + this.meta.version + ") has started.");
 
         try {
             //load settings from config
-            settings = Object.assign({}, defaultSettings, Data.load(this.meta.name, "settings"));
+            settings = Object.assign({}, defaultSettings, Data.load("settings"));
         } catch(err){
             //The super mega awesome data-unfucker 9000
-            Logger.warn(this.meta.name, err);
-            Logger.info(this.meta.name, "Error parsing JSON. Resetting file to default...");
+            Logger.warn(err);
+            Logger.info("Error parsing JSON. Resetting file to default...");
             //watch this shit yo
             fs.rmSync(path.join(Plugins.folder, `${this.meta.name}.config.json`));
             Plugins.reload(this.meta.name);
@@ -4533,13 +4546,13 @@ module.exports = class YABDP4Nitro {
         try {
             let currentVersionInfo = {};
             try {
-                currentVersionInfo = Object.assign({}, { version: this.meta.version, hasShownChangelog: false }, Data.load(this.meta.name, "currentVersionInfo"));
+                currentVersionInfo = Object.assign({}, { version: this.meta.version, hasShownChangelog: false }, Data.load("currentVersionInfo"));
             } catch(err){
                 currentVersionInfo = { version: this.meta.version, hasShownChangelog: false };
             }
             if(this.meta.version != currentVersionInfo.version) currentVersionInfo.hasShownChangelog = false;
             currentVersionInfo.version = this.meta.version;
-            Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+            Data.save("currentVersionInfo", currentVersionInfo);
 
             if(settings.checkForUpdates) this.checkForUpdate();
 
@@ -4554,11 +4567,11 @@ module.exports = class YABDP4Nitro {
                     }]
                 });
                 currentVersionInfo.hasShownChangelog = true;
-                Data.save(this.meta.name, "currentVersionInfo", currentVersionInfo);
+                Data.save("currentVersionInfo", currentVersionInfo);
             }
         }
         catch(err){
-            Logger.error(this.meta.name, err);
+            Logger.error(err);
         }
 
         DOM.addStyle("YABDP4NitroGeneral", `
@@ -4636,7 +4649,7 @@ module.exports = class YABDP4Nitro {
     stop(){
         controller.abort();
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
-        Patcher.unpatchAll(this.meta.name);
+        Patcher.unpatchAll();
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle("YABDP4NitroRemoveUpsell");
         DOM.removeStyle("YABDP4NitroBadges");
@@ -4649,9 +4662,9 @@ module.exports = class YABDP4Nitro {
             ffmpegScript.remove();
         }
 
-        Data.save("YABDP4Nitro", "settings", settings);
+        Data.save("settings", settings);
         this.saveDataFile();
-        Logger.info(this.meta.name, "(v" + this.meta.version + ") has stopped.");
+        Logger.info("(v" + this.meta.version + ") has stopped.");
     }
     // #endregion
 };
