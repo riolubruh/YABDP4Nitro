@@ -20,7 +20,6 @@ See full trademark notice [here.](#trademark-notice)*
      + [Stream Sharpness](#stream-sharpness)
   * [Emoji Bypasses](#emoji-bypasses)
      + [Upload Emotes](#upload-emotes)
-     + [Ghost Mode](#ghost-mode)
      + [Classic Mode](#classic-mode)
      + [Hyperlink / Vencord-like Mode](#hyperlink--vencord-like-mode)
        - [Fake Inline Hyperlink Emojis](#fake-inline-hyperlink-emojis)
@@ -121,14 +120,6 @@ ________________________________________________________________________________
 Automatically uploads the emojis used in your message as an attachment!
 
 ![Uploading Demonstration](https://user-images.githubusercontent.com/54255074/191621033-da0db3f6-c5f6-4ba7-9c99-0c8ccf7ed864.gif)
-
-_________________________________________________________________________________________________________________
-
-### Ghost Mode 
-<!-- spoopy!!! -->
-Hide the link(s) to any emoji(s) you send by automatically using a "ghost message"! It is a bit more laggy and may be detected as spam by some bots.
-
-![Ghost Mode Image Demonstration](https://user-images.githubusercontent.com/54255074/166120840-50bd98c7-48d0-4772-8d9b-17280e247a02.png)
 
 _________________________________________________________________________________________________________________
 
@@ -633,6 +624,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
