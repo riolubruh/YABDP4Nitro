@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.6.6
+ * @version 6.7.0
  * @invite EFmGEWAUns
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -104,7 +104,11 @@ const [
     PictureInPicturePlayer,
     stickerSendabilityModule,
     ClipsEnabledMod,
-    MaxFileSizeMod
+    MaxFileSizeMod,
+    CustomThemesEditor,
+    UserSettingsModal,
+    CustomUserThemeState,
+    CustomUserPanelState
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch")}, 
@@ -151,6 +155,16 @@ const [
     {filter: Webpack.Filters.bySource('.premiumTier].limits.fileSize:'), map: { //MaxFileSizeMod
         getMaxFileSize: x=>x.toString().includes('.premiumTier].limits.fileSize:'),
         exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
+    }},
+    {filter: Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), map: { //CustomThemesEditor
+        render: x=>x
+    }},
+    {filter: Webpack.Filters.byKeys('openUserSettings')}, //UserSettingsModal
+    {filter: Webpack.Filters.bySource('setColors', 'setChassisMixAmount', 'setGradientAngle', 'setAll', 'colors:[],'), map: { //CustomUserThemeState
+        state: x=>x?.setState
+    }},
+    {filter: Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), map:{
+        state: x=>x?.setState
     }}
 );
 const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
@@ -221,7 +235,11 @@ const defaultSettings = {
     "extraContextMenus": true,
     "userSharpenPreferences": {},
     "sharpenStreams": false,
-    "displayNameStyles": true
+    "displayNameStyles": true,
+    "customUserThemeSettings": {
+        custom: false,
+        theme: "dark"
+    }
 };
 const defaultData = {
     avatarDecorations: {},
@@ -246,20 +264,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.6.6",
+        "version": "6.7.0",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.6.6",
+            title: "6.7.0",
             items: [
-                "Fixed Change Fake Nameplate menu no longer working after Discord update.",
-                "Fixed Fake Inline Hyperlink Emotes not rendering correctly after Discord update.",
-                "Fixed issues with the Edit Profile caused by the custom buttons taking too much horizontal space conflicting with new Discord CSS.",
-                "That also means that most custom buttons in the Edit Profile menu are below their real counterparts now instead of to the right of them.",
-                "Now using the BdApi constructor with the plugin name to greatly simplify its use within the plugin."
+                "Added Custom Gradient Theme bypass.",
+                "(Optimization) Replaced CSS of Go Live Modal V1 upsell removal with React patch.",
+                "Removed Ghost Mode emoji bypass method, as the rendering bug it relied on has (finally) been patched. If \"Replace Fakemoji When Editing Message\" is enabled, ghost mode text will be removed upon editing a message (if found)."
             ]
         }
     ],
@@ -333,9 +349,8 @@ const config = {
                     type: "dropdown", id: "emojiBypassType", name: "Emoji Bypass Method", note: "The method of bypass to use.", value: () => settings.emojiBypassType,
                     options: [
                         { label: "Upload Emojis", value: 0 },
-                        { label: "Ghost Link Mode", value: 1 },
-                        { label: "Classic Mode", value: 2 },
-                        { label: "Hyperlink/Vencord-Like Mode", value: 3 }
+                        { label: "Hyperlink/Vencord-Like Mode", value: 3 },
+                        { label: "Classic Mode", value: 2 }
                     ]
                 },
                 { type: "switch", id: "editMessageWithEmoji", name: "Replace Fakemoji When Editing Message", note: "Replaces text-based fakemoji with their emoji when editing a message.", value: () => settings.editMessageWithEmoji },
@@ -642,7 +657,12 @@ module.exports = class YABDP4Nitro {
 
         if(settings.removeScreenshareUpsell){
             try {
-                this.patchGoLiveModalUpsells();
+                this.patchGoLiveModalV1Upsell();
+            } catch(err){
+                Logger.error(err);
+            }
+            try {
+                this.patchGoLiveModalV2Upsells();
             } catch(err){
                 Logger.error(err);
             }
@@ -1225,14 +1245,20 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-    async patchGoLiveModalUpsells() {
-        DOM.addStyle("YABDP4NitroRemoveUpsell", `
-            [class*="upsellBanner"], [class*="reverseTrialEducationBannerContainer"] {
-                display: none;
-                visibility: hidden;
-            }
-        `);
+    async patchGoLiveModalV1Upsell(){
+        if(!this.GoLiveModalV1UpsellsMod) this.GoLiveModalV1UpsellsMod = await Webpack.waitForModule(Webpack.Filters.bySource('openStreamUpsellModal', 'PREMIUM_UPSELL_BANNER'), {signal: controller.signal});
 
+        let streamUpsellModalFnName = this.findMangledName(this.GoLiveModalV1UpsellsMod, x=>x.toString().includes('openStreamUpsellModal'), "streamUpsellModal");
+
+        if(streamUpsellModalFnName){
+            //remove go live modal v1 upsell
+            Patcher.instead(this.GoLiveModalV1UpsellsMod, streamUpsellModalFnName, () => {
+                return;
+            });
+        }
+    }
+
+    async patchGoLiveModalV2Upsells() {
         if(!this.GoLiveModalV2UpsellMod) this.GoLiveModalV2UpsellMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GO_LIVE_MODAL_V2", "onNitroClick:function(){"), {defaultExport:false, signal: controller.signal});
 
         let renderFn = this.findMangledName(this.GoLiveModalV2UpsellMod, x=>x, "GoLiveModalV2Upsell");
@@ -1248,7 +1274,7 @@ module.exports = class YABDP4Nitro {
         
         if(sdHdPillFnName){
             //remove other go live modal v2 upsell (SD/HD pill buttons)
-            Patcher.instead(sdHdPill, sdHdPillFnName, (_,args,ret) => {
+            Patcher.instead(sdHdPill, sdHdPillFnName, () => {
                 return;
             });
         }
@@ -1585,8 +1611,6 @@ module.exports = class YABDP4Nitro {
 
                 if(settings.CustomBitrateEnabled){
                     if(childrenOfParentOfQualityButtonsSection){
-                        childrenOfParentOfQualityButtonsSection.push(React.createElement("br"));
-
                         childrenOfParentOfQualityButtonsSection.push(React.createElement(Components.SettingGroup, {
                             name: "Bitrate",
                             collapsible: true,
@@ -2339,6 +2363,7 @@ module.exports = class YABDP4Nitro {
                     Logger.info(`Fetch from disk for file ${filename} succeeded.`);
                     return file;
                 }
+                else return false;
             }catch(err){
                 Logger.warn("Tried to read " + filename + "from disk but an error occurred.");
                 Logger.warn(err);
@@ -2470,13 +2495,66 @@ module.exports = class YABDP4Nitro {
     }
     // #endregion
 
+    applySavedClientTheme(){
+        //If last appearance choice was a preset nitro client theme
+        if(settings.lastGradientSettingStore != -1 && !settings.customUserThemeSettings.custom) {
+            //dispatch settings update event to change to the gradient the user chose
+            Dispatcher.dispatch({
+                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                changes: {
+                    appearance: {
+                        shouldSync: false,  //prevent sync to stop discord api from butting in
+                        settings: {
+                            theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
+                            clientThemeSettings: {
+                                backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
+                            },
+                            developerMode: true
+                        }
+                    }
+                }
+            });
+
+            Dispatcher.dispatch({
+                type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+                presetId: settings.lastGradientSettingStore
+            });
+        } else if(settings.customUserThemeSettings.custom){
+
+            Dispatcher.dispatch({
+                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                changes: {
+                    appearance: {
+                        shouldSync: false,
+                        settings: {
+                            clientThemeSettings: settings.customUserThemeSettings.custom,
+                            theme: settings.customUserThemeSettings.theme,
+                            developerMode: true
+                        }
+                    }
+                }
+            });
+
+            CustomUserThemeState.state.getState().setAll({
+                colors: settings.customUserThemeSettings.custom.colors,
+                chassisMixAmount: settings.customUserThemeSettings.custom.baseMix,
+                gradientAngle: settings.customUserThemeSettings.custom.gradientAngle
+            });
+        }
+    }
+
     // #region Client Themes
     clientThemes(){
+        try{
+            this.applySavedClientTheme();
+        }catch(err){
+            Logger.error(err);
+        }
 
         //delete isPreview property so that we can set our own
         delete clientThemesModule.isPreview;
 
-        //this property basically unlocks the client theme buttons
+        //this property basically unlocks the preset client theme buttons
         Object.defineProperty(clientThemesModule, "isPreview", { //Enabling the nitro theme settings
             value: false,
             configurable: true,
@@ -2484,39 +2562,42 @@ module.exports = class YABDP4Nitro {
             writable: true,
         });
 
-        
         let saveClientTheme = this.findMangledName(themesModule,x=>typeof x === "function" && x.toString?.().includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),"saveClientTheme");
 
         if(saveClientTheme){
             //Patching saveClientTheme function.
             Patcher.instead(themesModule, saveClientTheme, (_, [args]) => {
-                //if user is trying to set the theme to a default theme
-                if(args.backgroundGradientPresetId == undefined){
-    
-                    //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
-                    settings.lastGradientSettingStore = -1;
-    
-                    //save any changes to settings
-                    Data.save("settings", settings);
-                    
-                    //dispatch settings update to change themes
+                //Support for custom gradient themes
+                if(args?.customUserThemeSettings){
+                    //this dispatch is technically not necessary
                     Dispatcher.dispatch({
                         type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
                         changes: {
                             appearance: {
-                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+                                shouldSync: false,
                                 settings: {
+                                    clientThemeSettings: args.customUserThemeSettings,
                                     theme: args.theme,
-                                    developerMode: true //genuinely have no idea what this does.
+                                    developerMode: true
                                 }
                             }
                         }
                     });
-                    
-                    return;
-                }else{ //preset gradient themes
+
+                    //save
+                    settings.customUserThemeSettings.custom = args.customUserThemeSettings;
+                    settings.customUserThemeSettings.theme = args.theme;
+
+                    Data.save("settings", settings);
+                }
+                else if(args?.backgroundGradientPresetId){ //preset gradient themes
                     //Store the last gradient setting used in settings
                     settings.lastGradientSettingStore = args.backgroundGradientPresetId;
+
+                    //indicate not custom
+                    settings.customUserThemeSettings.custom = false;
+                    //remove custom theme
+                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
                     
                     //save any changes to settings
                     Data.save("settings", settings);
@@ -2543,37 +2624,99 @@ module.exports = class YABDP4Nitro {
                         type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
                         presetId: settings.lastGradientSettingStore
                     });
-                }
+                } else if(!args.backgroundGradientPresetId && !args.customUserThemeSettings){ //if user is trying to set the theme to a default theme
+    
+                    //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
+                    settings.lastGradientSettingStore = -1;
 
-                //TODO: Add support for custom gradient themes
+                    //indicate not custom
+                    settings.customUserThemeSettings.custom = false;
+
+                    //remove custom theme
+                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
+    
+                    //save any changes to settings
+                    Data.save("settings", settings);
+                    
+                    //dispatch settings update to change themes
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+                                settings: {
+                                    theme: args.theme,
+                                    developerMode: true //genuinely have no idea what this does.
+                                }
+                            }
+                        }
+                    });
+                }
 
             }); //End of saveClientTheme patch.
         }
 
-        //If last appearance choice was a nitro client theme
-        if(settings.lastGradientSettingStore != -1){
-
-            //This sets the gradient on plugin save and load.
-            Dispatcher.dispatch({
-                type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
-                presetId: settings.lastGradientSettingStore
-            });
-        }
-
         //startSession patch. This function runs upon switching accounts.
         Patcher.after(accountSwitchModule, "startSession", () => {
-
             setTimeout(() => {
-                //If last appearance choice was a nitro client theme
-                if(settings.lastGradientSettingStore != -1){
-                    //Restore gradient on account switch
-                    Dispatcher.dispatch({
-                        type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
-                        presetId: settings.lastGradientSettingStore
-                    });
+                try{
+                    this.applySavedClientTheme();
+                }catch(err){
+                    Logger.error(err);
                 }
             }, 3000);
         });
+
+        Patcher.after(CustomThemesEditor, "render", (_,[args],ret) => {
+            //dont replace footer if user is premium
+            if(CurrentUser.premiumType == 2) return;
+
+            //take the onSaveTheme function from the original footer cause we still need it
+            const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
+
+            if(onSaveTheme){
+                //replace the original footer with a custom one
+                ret.props.children[1] = React.createElement('div', {
+                    style: {
+                        display: "flex",
+                        gap: "25px",
+                        padding: "16px 30px",
+                        borderTop: "1px solid var(--border-subtle)"
+                    },
+                    children: [
+                        React.createElement(Components.Button, {
+                            children: "Back",
+                            className: "yabd-secondary-button",
+                            style: {
+                                width: "100%",
+                            },
+                            onClick: () => {
+                                UserSettingsModal.openUserSettings('appearance_panel');
+                                
+                                //close theme customization panel
+                                CustomUserPanelState.state.setState({
+                                    activePanel: null,
+                                    metadata: null
+                                });
+                            }
+                        }),
+                        React.createElement(Components.Button, {
+                            children: "Apply",
+                            style: {
+                                width: "100%",
+                                fontSize: "16px"
+                            },
+                            onClick: (e) => {
+                                onSaveTheme(e);
+                            }
+                        }),
+                    ]
+                });
+            }else{
+                Logger.error('onSaveTheme is not defined.', ret);
+            }
+        });
+
     } //End of clientThemes()
     // #endregion
 
@@ -2886,6 +3029,8 @@ module.exports = class YABDP4Nitro {
     //Everything related to Fake Profile Effects.
     async profileFX(secondsightifyEncodeOnly){
 
+        if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
+
         //trigger collectibles fetch
         await FetchCollectibleCategories({
             includeBundles: true,
@@ -2893,8 +3038,6 @@ module.exports = class YABDP4Nitro {
             noCache: false,
             paymentGateway: undefined
         });
-
-        if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
         const profileEffects = ProfileEffectStore.getAllProfileEffects();
         let profileEffectsFiltered = [];
@@ -3609,74 +3752,9 @@ module.exports = class YABDP4Nitro {
             return;
         });
 
-        //#region Ghost Mode Patch
-        //Ghost mode method
-        const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ ";
-
-        if(settings.emojiBypassType == 1){
-
-            function ghostModeMethod(msg, currentChannelId, self){
-                if(document.getElementsByClassName("sdc-tooltip").length > 0){
-                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
-                        //SDC Encryption Enabled
-                        return;
-                    }
-                }
-                let emojiInteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
-                msg.validNonShortcutEmojis.forEach(emoji => {
-                    if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
-                    if(emoji.type == "UNICODE") return;
-                    if(settings.PNGemote) emoji.forcePNG = true;
-
-                    let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-                    if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
-                    if(emoji.animated){
-                        emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
-                    }
-
-                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
-
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
-
-                    //If there is a heiphen before the emoji, skip it.
-                    if(msg.content.includes("-" + emojiString)){
-                        msg.content = msg.content.replace("-" + emojiString, emojiString);
-                        return; 
-                    }
-
-                    //if ghost mode is not required
-                    if(msg.content.replace(emojiString, "") == ""){
-                        msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless `);
-                        return;
-                    }
-                    emojiInteration++; //increment dummy value
-
-                    //if message already has ghostmodetext.
-                    if(msg.content.includes(ghostmodetext)){
-                        //remove processed emoji from the message
-                        msg.content = msg.content.replace(emojiString, "");
-                        //add to the end of the message
-                        msg.content += " " + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration} `;
-                        return;
-                    }
-                    //if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-                    msg.content = msg.content.replace(emojiString, "");
-                    msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless `;
-                });
-            }
-
-            //sending message in ghost mode
-            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-                ghostModeMethod(msg, currentChannelId, this);
-            });
-
-        }
-        //#endregion
-
         //#region Classic Mode Patch
         //Original method
-        else if(settings.emojiBypassType == 2){
+        if(settings.emojiBypassType == 2){
 
             function classicModeMethod(msg, currentChannelId, self){
                 if(document.getElementsByClassName("sdc-tooltip").length > 0){
@@ -3720,8 +3798,8 @@ module.exports = class YABDP4Nitro {
 
 
         //#region Vencord-like Patch
-        //Vencord-like bypass
-        else if(settings.emojiBypassType == 3){
+        //Vencord-like bypass                    (ghost mode removed, fallback to hyperlink)
+        else if(settings.emojiBypassType == 3 || settings.emojiBypassType == 1){
             function vencordModeMethod(msg, currentChannelId, self){
                 if(document.getElementsByClassName("sdc-tooltip").length > 0){
                     let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
@@ -3792,33 +3870,14 @@ module.exports = class YABDP4Nitro {
                     switch(settings.emojiBypassType){
                         default:
                         case 0: //upload
+                        case 1: //ghost (removed)
                         case 3: //vencord
                             msg.content = msg.content.replace(emojiString, `[${name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration})`);
                             break;
-    
                         case 2: //classic
                             msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration} `);
                             break;
                         
-                        case 1: //ghost
-                            //if ghost mode is not required
-                            if(msg.content.replace(emojiString, "") == ""){
-                                msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless `);
-                                return;
-                            }
-    
-                            //if message already has ghostmodetext.
-                            if(msg.content.includes(ghostmodetext)){
-                                //remove processed emoji from the message
-                                msg.content = msg.content.replace(emojiString, "");
-                                //add to the end of the message
-                                msg.content += " " + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration} `;
-                                return;
-                            }
-                            //if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-                            msg.content = msg.content.replace(emojiString, "");
-                            msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless `;
-                            break;
                     }
                     
                 });
@@ -3830,7 +3889,7 @@ module.exports = class YABDP4Nitro {
                 lastEditedMsgCopy = {...msg};
     
                 let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/gi;
-    
+                
                 //vencord mode undo
                 let vencordRegex = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi
                 if(msg.content.includes("[") && msg.content.includes("/emojis/")){
@@ -3838,19 +3897,21 @@ module.exports = class YABDP4Nitro {
                         let startOfName = matched.indexOf("[") + 1;
                         let endOfName = matched.indexOf("]") - 1;
                         let emojiName = matched.substring(startOfName, endOfName);
-        
+                        
                         let startOfUrl = matched.indexOf("(") + 1;
                         let endOfUrl = matched.indexOf(")") - 1;
                         let emojiUrl = matched.substring(startOfUrl, endOfUrl);
-        
+                        
                         let emojiId = emojiUrl.match(idFromUrlRegex)?.[0];
-        
+                        
                         let animated = (emojiUrl.includes(".gif") || emojiUrl.includes(".avif"));
                         if(emojiId != undefined && emojiUrl != undefined && emojiName != undefined){
                             msg.content = msg.content.replace(matched, `<${animated ? "a:" : ":"}${emojiName}:${emojiId}>`)
                         }
                     });
                 }
+                
+                const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ ";
                 
                 //cleanup ghost mode text
                 if(msg.content.includes(ghostmodetext))
@@ -4634,12 +4695,38 @@ module.exports = class YABDP4Nitro {
                 transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
             }
 
-            .yabd-resolution-swapper-v2-button:hover {
-                background-color: var(--control-secondary-background-active);
+            .yabd-secondary-button {
+                background-color: var(--control-secondary-background-default) !important;
+                align-items: center;
+                color: var(--control-secondary-text-default);
+                border: 1px solid var(--control-secondary-border-default);
+                border-radius: 8px;
+                box-sizing: border-box;
+                display: flex;
+                font-size: 16px;
+                font-weight: var(--font-weight-medium);
+                justify-content: center;
+                line-height: 16px;
+                position: relative;
+                transition-duration: .2s;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                user-select: none;
+                cursor: pointer;
+                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
+            }
+
+            .yabd-resolution-swapper-v2-button:hover, .yabd-secondary-button:hover {
+                background-color: var(--control-secondary-background-active) !important;
             }
 
             .yabd-marginTop24 {
                 margin-top: 24px;
+            }
+
+            .yabd-hidden {
+                display: none !important;
+                visibility: hidden !important;
             }
         `)
 
@@ -4651,7 +4738,6 @@ module.exports = class YABDP4Nitro {
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         Patcher.unpatchAll();
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-        DOM.removeStyle("YABDP4NitroRemoveUpsell");
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
