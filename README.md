@@ -528,7 +528,7 @@ ________________________________________________________________________________
 
 Please read [this README](#readme) and [the FAQ / Installation Instructions](https://github.com/riolubruh/YABDP4Nitro/issues/76) before joining just to ask stupid questions that 100 people have already asked before. It's really annoying.
 
-https://discord.gg/EFmGEWAUns
+https://discord.gg/HfFxUbgsBc
 
 _________________________________________________________________________________________________________________
 
@@ -624,6 +624,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
