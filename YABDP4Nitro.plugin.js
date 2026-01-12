@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.0
+ * @version 6.7.1
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -264,18 +264,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.0",
+        "version": "6.7.1",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.0",
+            title: "6.7.1",
             items: [
-                "Added Custom Gradient Theme bypass.",
-                "(Optimization) Replaced CSS of Go Live Modal V1 upsell removal with React patch.",
-                "Removed Ghost Mode emoji bypass method, as the rendering bug it relied on has (finally) been patched. If \"Replace Fakemoji When Editing Message\" is enabled, ghost mode text will be removed upon editing a message (if found)."
+                "Update Discord server invite link.",
+                "Fix Experiments being run if Emoji or Sticker bypass is enabled even when Soundmoji Bypass is disabled.",
+                "Restore max file size warning when using Clips Bypass if the file is too large to be sent.",
+                "Change UploadEmote to use BdApi.Net.fetch() instead of the native JavaScript fetch() function."
             ]
         }
     ],
@@ -1924,9 +1925,13 @@ module.exports = class YABDP4Nitro {
         }
         //spoof nitro file size limit
         Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,args) => {
-            return 500 * 1024 * 1024; //512 MB
+            if(ORIGINAL_NITRO_STATUS === 2){
+                return 500 * 1024 * 1024; //500 MB
+            }else{
+                return 100 * 1024 * 1024; //100 MB
+            }
         });
-
+        
         //disable max file size message
         Patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
             return false;
@@ -3443,7 +3448,7 @@ module.exports = class YABDP4Nitro {
         }
 
         //Download emote by URL, convert to blob, then convert to File object
-        let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)));
+        let file = await Net.fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)));
         file.platform = 1; // Not exactly sure what this does, but it should be set to 1.
         file.spoiler = false; //not marked as spoiler.
 
@@ -3595,8 +3600,10 @@ module.exports = class YABDP4Nitro {
     }
 
     _sendMessageInsteadPatch(){
-        this.experiments();
-        this.overrideExperiment("2024-11_soundmoji_sending", 2);
+        if(settings.soundmojiEnabled){
+            this.experiments();
+            this.overrideExperiment("2024-11_soundmoji_sending", 2);
+        }
 
         //#region _sendMessage Patch
         Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
@@ -4756,4 +4763,3 @@ module.exports = class YABDP4Nitro {
 };
 // #endregion
 /*@end@*/
-
