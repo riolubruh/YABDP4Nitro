@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.1
+ * @version 6.7.2
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -40,9 +40,8 @@
 //#region Module Hell
 const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = new BdApi("YABDP4Nitro");
 
-// When the FUCK is Discord going to get rid of Go Live Modal V1 and make V2 the standard?
 const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
-    ApplicationStreamFPS: Webpack.Filters.byKeys("FPS_30"),
+    ApplicationStreamFPS: o=>o?.FPS_30,
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
     ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
     ApplicationStreamResolutionButtons: o => Array.isArray(o) && o[0]?.value !== undefined,
@@ -264,19 +263,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.1",
+        "version": "6.7.2",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.1",
+            title: "6.7.2",
             items: [
-                "Update Discord server invite link.",
-                "Fix Experiments being run if Emoji or Sticker bypass is enabled even when Soundmoji Bypass is disabled.",
-                "Restore max file size warning when using Clips Bypass if the file is too large to be sent.",
-                "Change UploadEmote to use BdApi.Net.fetch() instead of the native JavaScript fetch() function."
+                "Fixed Display Name Styles UI not working.",
+                "Removed some code related to Go Live Modal V1 since it was removed."
             ]
         }
     ],
@@ -573,7 +570,6 @@ module.exports = class YABDP4Nitro {
 
         if(settings.ResolutionSwapper){
             try {
-                this.resolutionSwapper();
                 this.resolutionSwapperV2();
             } catch(err){
                 Logger.error(err);
@@ -657,11 +653,6 @@ module.exports = class YABDP4Nitro {
         }
 
         if(settings.removeScreenshareUpsell){
-            try {
-                this.patchGoLiveModalV1Upsell();
-            } catch(err){
-                Logger.error(err);
-            }
             try {
                 this.patchGoLiveModalV2Upsells();
             } catch(err){
@@ -846,6 +837,7 @@ module.exports = class YABDP4Nitro {
         if(settings.displayNameStyles){
             try{
                 this.displayNameStyles();
+                this.displayNameStylesSection();
             }catch(err){
                 Logger.error(err);
             }
@@ -905,22 +897,6 @@ module.exports = class YABDP4Nitro {
             }
         });
 
-        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('displayNameStylesSection', 'onGlobalNameChange'), {signal: controller.signal});
-        let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
-
-        if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('DisplayNameStylesSection'), {signal: controller.signal});
-
-        if(this.DisplayNameSection && this.DisplayNameStylesSection){
-            Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
-                if(!ret?.props?.children?.[1]){
-                    ret.props.children[1] = React.createElement(this.DisplayNameStylesSection, {
-                        user: args.user,
-                        className: "yabd-marginTop24"
-                    })
-                }
-            });
-        }
-
         if(!this.DisplayNameStylesModal) this.DisplayNameStylesModal = await Webpack.waitForModule(Webpack.Filters.bySource("DisplayNameStylesModal"), {signal: controller.signal});
         
         let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
@@ -952,6 +928,24 @@ module.exports = class YABDP4Nitro {
                             }
                         }))
                     }
+                }
+            });
+        }
+    }
+
+    async displayNameStylesSection(){
+        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('displayNameStylesSection', 'onGlobalNameChange'), {signal: controller.signal});
+        let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
+
+        if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('userDisplayNameStyles', 'guildDisplayNameStyles'), {signal: controller.signal});
+
+        if(this.DisplayNameSection && this.DisplayNameStylesSection){
+            Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
+                if(!ret?.props?.children?.[1]){
+                    ret.props.children[1] = React.createElement(this.DisplayNameStylesSection, {
+                        user: args.user,
+                        className: "yabd-marginTop24"
+                    })
                 }
             });
         }
@@ -1246,19 +1240,6 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-    async patchGoLiveModalV1Upsell(){
-        if(!this.GoLiveModalV1UpsellsMod) this.GoLiveModalV1UpsellsMod = await Webpack.waitForModule(Webpack.Filters.bySource('openStreamUpsellModal', 'PREMIUM_UPSELL_BANNER'), {signal: controller.signal});
-
-        let streamUpsellModalFnName = this.findMangledName(this.GoLiveModalV1UpsellsMod, x=>x.toString().includes('openStreamUpsellModal'), "streamUpsellModal");
-
-        if(streamUpsellModalFnName){
-            //remove go live modal v1 upsell
-            Patcher.instead(this.GoLiveModalV1UpsellsMod, streamUpsellModalFnName, () => {
-                return;
-            });
-        }
-    }
-
     async patchGoLiveModalV2Upsells() {
         if(!this.GoLiveModalV2UpsellMod) this.GoLiveModalV2UpsellMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GO_LIVE_MODAL_V2", "onNitroClick:function(){"), {defaultExport:false, signal: controller.signal});
 
@@ -1523,181 +1504,6 @@ module.exports = class YABDP4Nitro {
         //#endregion
     }
     //#endregion
-
-    // #region Resolution Swapper
-    async resolutionSwapper(){
-        if(!this.StreamSettingsPanelMod) 
-            this.StreamSettingsPanelMod = await Webpack.waitForModule(Webpack.Filters.byStrings("StreamSettings: user cannot be undefined"), {defaultExport:false, signal: controller.signal});
-        
-        let GoLiveModal = this.findMangledName(this.StreamSettingsPanelMod, Webpack.Filters.byStrings("StreamSettings"), "GoLiveModal");
-        if(!GoLiveModal) return;
-
-        Patcher.after(this.StreamSettingsPanelMod, GoLiveModal, (_, [args], ret) => {
-
-            //Only if the selected preset is "Custom"
-            if(args.selectedPreset === 3){
-                //Preparations 
-                const childrenOfParentOfQualityButtonsSection = ret?.props?.children?.props?.children?.props?.children[1]?.props?.children;
-                const streamQualityButtonsSection = childrenOfParentOfQualityButtonsSection[0]?.props?.children;
-                
-                if(settings.ResolutionEnabled){
-                    const resolutionButtonsSection = streamQualityButtonsSection[0]?.props;
-                    //Resolution input
-                    if(resolutionButtonsSection?.children){
-                        //make each section into arrays so we can add another element
-                        if(!Array.isArray(resolutionButtonsSection.children))
-                            resolutionButtonsSection.children = [resolutionButtonsSection.children];
-    
-                        const thirdResolutionButton = resolutionButtonsSection?.children[0]?.props?.buttons[2];
-    
-                        resolutionButtonsSection?.children?.push(React.createElement("div", {
-                            children: [
-                                React.createElement("h1", {
-                                    children: "CUSTOM RESOLUTION",
-                                    className: "yabd-text-h5"
-                                }),
-                                React.createElement(Components.NumberInput, {
-                                    value: settings.CustomResolution,
-                                    min: -1,
-                                    onChange: (input) => {
-                                        input = parseInt(input);
-                                        if(isNaN(input)) input = 1440;
-                                        settings.CustomResolution = input;
-                                        //updates visual
-                                        thirdResolutionButton.value = input;
-                                        //sets values and saves to settings
-                                        this.customizeStreamButtons();
-                                        //simulate click on button -- serves to both select it and to make react re-render it.
-                                        thirdResolutionButton.onClick();
-                                    }
-                                })
-                            ]
-                        }));
-                    }
-                }
-
-                if(settings.CustomFPSEnabled){
-                    const fpsButtonsSection = streamQualityButtonsSection[1]?.props;
-                    if(fpsButtonsSection?.children){
-
-                        fpsButtonsSection.children = [fpsButtonsSection.children];
-    
-                        const thirdFpsButton = fpsButtonsSection?.children[0]?.props?.buttons[2];
-    
-                        fpsButtonsSection?.children.push(React.createElement("div", {
-                            children: [
-                                React.createElement("h1", {
-                                    children: "CUSTOM FRAME RATE",
-                                    className: `yabd-text-h5`
-                                }),
-                                React.createElement(Components.NumberInput, {
-                                    value: settings.CustomFPS,
-                                    min: -1,
-                                    onChange: (input) => {
-                                        input = parseInt(input);
-                                        if(isNaN(input)) input = 60;
-                                        settings.CustomFPS = input;
-                                        //updates visual
-                                        thirdFpsButton.value = input;
-                                        //sets values and saves to settings
-                                        this.customizeStreamButtons();
-                                        //simulate click on button -- serves to both select it and to make react re-render it.
-                                        thirdFpsButton.onClick();
-                                    }
-                                })
-                            ]
-                        }));
-                    }
-                }
-
-                if(settings.CustomBitrateEnabled){
-                    if(childrenOfParentOfQualityButtonsSection){
-                        childrenOfParentOfQualityButtonsSection.push(React.createElement(Components.SettingGroup, {
-                            name: "Bitrate",
-                            collapsible: true,
-                            shown: false,
-                            children: [
-                                //headers
-                                React.createElement('div', {
-                                    style: {
-                                        display: "flex",
-                                        width: "100%",
-                                        justifyContent: "space-around"
-                                    },
-                                    children: [
-                                        React.createElement("h1", {
-                                            children: "MIN",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                        React.createElement("h1", {
-                                            children: "TARGET",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                        React.createElement("h1", {
-                                            children: "MAX",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                    ]
-                                }),
-                                React.createElement('div', {
-                                    style: {
-                                        display: "flex",
-                                        width: "100%",
-                                        justifyContent: "space-around",
-                                        marginBottom: "5px"
-                                    },
-                                    children: [
-                                        React.createElement(Components.NumberInput, {
-                                            value: settings.minBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                settings.minBitrate = input;
-                                                //save to settings
-                                                Data.save("settings", settings);
-                                            }
-                                        }),
-                                        React.createElement(Components.NumberInput, {
-                                            value: settings.targetBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                settings.targetBitrate = input;
-                                                //save to settings
-                                                Data.save("settings", settings);
-                                            }
-                                        }),
-                                        React.createElement(Components.NumberInput, {
-                                            value: settings.maxBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                settings.maxBitrate = input;
-                                                //save to settings
-                                                Data.save("settings", settings);
-                                            }
-                                        }),
-                                    ]
-                                })
-                            ]
-                        }));
-                    }
-                }
-            }
-        });
-    }
 
     //#region Go Live Modal V2
     async resolutionSwapperV2(){
@@ -3521,10 +3327,8 @@ module.exports = class YABDP4Nitro {
     }
     // #endregion
 
-    //#region Customize Go Live V1
-    customizeStreamButtons(){ //Apply custom resolution and fps options for Go Live Modal V1
-
-        //This also affects Go Live Modal V2 but only after a refresh, not much I can do about that
+    //#region Stream Options Context Menu
+    customizeStreamButtons(){ //Apply custom resolution and fps options for Stream Options context menu
 
         //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
         //console.log(StreamButtons);
@@ -3571,10 +3375,10 @@ module.exports = class YABDP4Nitro {
         //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
         ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
         //set fps button value to the correct number.
-        ApplicationStreamFPSButtons[2].value = fpsToSet;
-        delete ApplicationStreamFPSButtons[2].label;
+        // ApplicationStreamFPSButtons[2].value = fpsToSet;
+        // delete ApplicationStreamFPSButtons[2].label;
         //set fps button label to the correct number. This one is used in the popup window that appears before you start streaming.
-        ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
+        // ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
         ApplicationStreamFPS.FPS_60 = fpsToSet;
 
         Data.save("settings", settings);
