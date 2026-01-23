@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.2
+ * @version 6.7.3
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -40,7 +40,7 @@
 //#region Module Hell
 const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = new BdApi("YABDP4Nitro");
 
-const StreamButtons = Webpack.getMangled("RESOLUTION_1080",{
+const StreamButtons = Webpack.getMangled("Unknown frame rate:",{
     ApplicationStreamFPS: o=>o?.FPS_30,
     ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
     ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
@@ -110,7 +110,7 @@ const [
     CustomUserPanelState
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
-    {filter: Webpack.Filters.byKeys("subscribe","dispatch")}, 
+    {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
     {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
     {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
     {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
@@ -143,7 +143,7 @@ const [
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
     {filter: Webpack.Filters.bySource('VideoStream', 'videoComponent')},
     {filter: Webpack.Filters.bySource('PictureInPicturePlayer')},
-    {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD"), map: { //stickerSendabilityModule
+    {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", 'canUseCustomStickersEverywhere'), map: { //stickerSendabilityModule
         getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
         isSendableSticker: x=>x.toString().includes(')=>0===')
     }},
@@ -263,17 +263,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.2",
+        "version": "6.7.3",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.2",
+            title: "6.7.3",
             items: [
-                "Fixed Display Name Styles UI not working.",
-                "Removed some code related to Go Live Modal V1 since it was removed."
+                "Fixed plugin cannot start because Dispatcher was undefined.",
+                "Fixed Banner and PFP 3y3 copy UI not appearing.",
+                "Fixed stickers bypass not working.",
+                "Prevent 3y3 buttons/UI from appearing in per-server profile configuration."
             ]
         }
     ],
@@ -2595,7 +2597,7 @@ module.exports = class YABDP4Nitro {
     async customProfilePictureEncoding(secondsightifyEncodeOnly){
 
         //wait for avatar customization section renderer to be loaded and store
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut"), {defaultExport:false, signal: controller.signal});
+        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
 
         function emptyWarn(){
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
@@ -2607,6 +2609,7 @@ module.exports = class YABDP4Nitro {
         Patcher.after(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(!ret) return;
+            if(args.guildId) return; //disable appearing in per-server profiles
 
             //don't need to do anything if this is the "Try out Nitro" flow.
             if(args.isTryItOut) return;
@@ -3981,7 +3984,9 @@ module.exports = class YABDP4Nitro {
         let profileThemesSectionFnName = this.findMangledName(this.colorPickerRendererMod, x=>x, "ProfileThemesSection");
         if(!profileThemesSectionFnName) return;
 
-        Patcher.after(this.colorPickerRendererMod, profileThemesSectionFnName, (_, args, ret) => {
+        Patcher.after(this.colorPickerRendererMod, profileThemesSectionFnName, (_, [args], ret) => {
+            if(args?.guildId) return; //disable appearing in per-server profiles
+
             ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
                     id: "copy3y3button",
@@ -4120,8 +4125,8 @@ module.exports = class YABDP4Nitro {
     async bannerUrlEncoding(secondsightifyEncodeOnly){
 
         //wait for banner customization renderer module to be loaded
-        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange"), {defaultExport:false, signal: controller.signal});
-
+        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
+        
         let BannerSectionFnName = this.findMangledName(this.profileBannerSectionRenderer, x=>x, "BannerSection");
         if(!BannerSectionFnName) return;
 
@@ -4129,7 +4134,9 @@ module.exports = class YABDP4Nitro {
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
-        Patcher.after(this.profileBannerSectionRenderer, BannerSectionFnName, (_, args, ret) => {
+        Patcher.after(this.profileBannerSectionRenderer, BannerSectionFnName, (_, [args], ret) => {
+            if(args?.guildId) return; //disable appearing in per-server profiles
+            
             //create and append profileBannerUrlInput input element.
             let profileBannerUrlInput = React.createElement("input", {
                 id: "profileBannerUrlInput",
