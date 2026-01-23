@@ -546,7 +546,7 @@ module.exports = class YABDP4Nitro {
 
         Patcher.unpatchAll();
 
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher?.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
             try {
@@ -669,7 +669,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher?.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
 
         if(settings.fakeAvatarDecorations){
             try{
@@ -789,7 +789,7 @@ module.exports = class YABDP4Nitro {
         try{
             if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
                 //subscribe to successful collectible category fetch event
-                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+                Dispatcher?.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
     
                 //trigger collectibles fetch
                 FetchCollectibleCategories({
@@ -4548,7 +4548,7 @@ module.exports = class YABDP4Nitro {
         controller.abort();
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         Patcher.unpatchAll();
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher?.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
@@ -4567,3 +4567,4 @@ module.exports = class YABDP4Nitro {
 };
 // #endregion
 /*@end@*/
+
