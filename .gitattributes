@@ -1,2 +1,5 @@
-0PluginLibrary.plugin.js linguist-vendored
-0PluginLibrary.plugin.js -linguist-detectable
+ffmpeg/** linguist-vendored
+ffmpeg/** -linguist-detectable
+ffmpeg/*.js linguist-generated
+ffmpeg/*.js.map linguist-generated
+ffmpeg/*.wasm linguist-generated
