@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.3
+ * @version 6.7.4
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -64,7 +64,7 @@ const {
     EmojiStore,
     AppIconPersistedStoreState,
     ClipsStore,
-    UserSettingsAccountStore,
+    UserProfileSettingsStore,
     ProfileEffectStore
  } = Webpack.Stores;
 
@@ -209,7 +209,7 @@ const defaultSettings = {
     "removeScreenshareUpsell": true,
     "fakeProfileBanners": true,
     "fakeAvatarDecorations": true,
-    "unlockAppIcons": false,
+    "unlockAppIcons": true,
     "profileEffects": true,
     "killProfileEffects": false,
     "customPFPs": true,
@@ -263,19 +263,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.3",
+        "version": "6.7.4",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.3",
+            title: "6.7.4",
             items: [
-                "Fixed plugin cannot start because Dispatcher was undefined.",
-                "Fixed Banner and PFP 3y3 copy UI not appearing.",
-                "Fixed stickers bypass not working.",
-                "Prevent 3y3 buttons/UI from appearing in per-server profile configuration."
+                "Fixed Profile Themes 'Copy 3y3' button no longer working.",
+                "Unlock App Icons is now enabled by default."
             ]
         }
     ],
@@ -3999,9 +3997,9 @@ module.exports = class YABDP4Nitro {
                     },
                     onClick: () => {
                         let themeColors;
-                        themeColors = UserSettingsAccountStore.getAllPending().pendingThemeColors;
+                        themeColors = UserProfileSettingsStore.getPendingChanges().pendingThemeColors;
                         if(!themeColors)
-                            themeColors = UserSettingsAccountStore.getAllTryItOut().tryItOutThemeColors;
+                            themeColors = UserProfileSettingsStore.getTryItOutChanges().tryItOutThemeColors;
                         if(!themeColors){
                             UI.showToast("Nothing has been copied. Is the selected color identical to your current color?", { type: "warning" });
                             return;
