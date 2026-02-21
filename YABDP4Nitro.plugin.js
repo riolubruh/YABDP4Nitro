@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.5
+ * @version 6.7.6
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -40,19 +40,6 @@
 //#region Module Hell
 const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = new BdApi("YABDP4Nitro");
 
-const StreamButtons = Webpack.getMangled("Unknown frame rate:",{
-    ApplicationStreamFPS: o=>o?.FPS_30,
-    ApplicationStreamFPSButtons: o => Array.isArray(o) && typeof o[0]?.label === 'number' && o[0]?.value === 15,
-    ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
-    ApplicationStreamResolutionButtons: o => Array.isArray(o) && o[0]?.value !== undefined,
-    ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
-    ApplicationStreamResolutions: Webpack.Filters.byKeys("RESOLUTION_1080")
-});
-
-const {ApplicationStreamFPS,ApplicationStreamFPSButtons,ApplicationStreamFPSButtonsWithSuffixLabel,
-    ApplicationStreamResolutionButtons,ApplicationStreamResolutionButtonsWithSuffixLabel,
-    ApplicationStreamResolutions} = StreamButtons;
-
 const {
     UserStore,
     UserProfileStore,
@@ -65,7 +52,8 @@ const {
     AppIconPersistedStoreState,
     ClipsStore,
     UserProfileSettingsStore,
-    ProfileEffectStore
+    ProfileEffectStore,
+    GuildChannelStore
  } = Webpack.Stores;
 
 const [
@@ -107,7 +95,10 @@ const [
     CustomThemesEditor,
     UserSettingsModal,
     CustomUserThemeState,
-    CustomUserPanelState
+    CustomUserPanelState,
+    UserContextMenuFunctions,
+    UserAvatar,
+    StreamButtons
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
@@ -137,7 +128,7 @@ const [
     {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
-    {filter: Webpack.Filters.byStrings('NOT_STAFF_WARNING', 'SYSTEM_DM')}, //DMTag
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('navigator.clipboard.write'), searchExports:true},
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
@@ -164,8 +155,26 @@ const [
     }},
     {filter: Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), map:{
         state: x=>x?.setState
+    }},
+    {filter: Webpack.Filters.bySource('isGroupDM', 'targetIsUser'), map: {
+        openUserContextMenu: x=>x?.toString?.().includes?.("targetIsUser", "showMute")
+    }},
+    {filter: Webpack.Filters.bySource('avatarDecoration', 'foreignObject', 'onClick', 'statusColor', 'isMobile', 'isVR'), map:{
+        render: x=>x?.toString?.().includes?.('foreignObject')
+    }},
+    {filter: Webpack.Filters.bySource("Unknown frame rate:"), map:{
+        ApplicationStreamFPS: o=>o?.FPS_30,
+        ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
+        ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
+        ApplicationStreamResolutions: o => o?.RESOLUTION_1440
     }}
 );
+const {
+    ApplicationStreamFPS,
+    ApplicationStreamFPSButtonsWithSuffixLabel,
+    ApplicationStreamResolutionButtonsWithSuffixLabel,
+    ApplicationStreamResolutions
+} = StreamButtons;
 const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
 //#endregion
 const fs = require("fs");
@@ -263,17 +272,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.5",
+        "version": "6.7.6",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.5",
+            title: "6.7.6",
             items: [
-                "Fixed \"NOT STAFF\" warning on DMs appearing when it shouldn't.",
-                "Fixed stream sharpening filter stopped working on the Picture-in-Picture stream tile."
+                "Fixed \"NOT STAFF\" warning on DMs appearing when it shouldn't (again).",
+                "Fixed stream resolution buttons being set incorrectly, causing the 1080p button to be replaced with a second 1440p button.",
+                "Moved StreamButtons module fetch into bulk fetch.",
+                "Added the ability to right-click on a user's profile picture to open their user profile in circumstances where it normally doesn't let you such as the blocked/ignored user list."
             ]
         }
     ],
@@ -813,9 +824,10 @@ module.exports = class YABDP4Nitro {
 
         try{
             if(settings.removeNotStaffWarning && DMTag){
-                Patcher.instead(DMTag, this.findMangledName(DMTag, x=>x), (_,[args],originalFunction) => {
-                    if(args.type == 5) return;
-                    else return originalFunction(args);
+                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x), (_,[args],ret) => {
+                    if(ret?.props?.children){
+                        ret.props.children = ret.props.children.filter(o=>!o.type?.toString?.().includes?.("NOT_STAFF_WARNING"));
+                    }
                 });
             }
         }catch(err){
@@ -841,6 +853,26 @@ module.exports = class YABDP4Nitro {
             }catch(err){
                 Logger.error(err);
             }
+        }
+
+        if(UserAvatar?.render){
+            Patcher.after(UserAvatar, "render", (_, [args], ret) => {
+                if(ret?.props && args?.src) {
+                    ret.props.onContextMenu = (e) => {
+                        let userId = args.src.replace("https://cdn.discordapp.com/avatars/",'').split('/')[0];
+                        let user = UserStore.getUser(userId);
+
+                        //get channel id of first selectable channel in first guild
+                        let channel = Object.values(GuildChannelStore.getAllGuilds()).filter(o=>o?.SELECTABLE?.[0]?.channel)?.[0]?.SELECTABLE?.[0]?.channel;
+
+                        //if we cant find one, look for last selected channel
+                        // unless there is no last selected channel id, in which case get the first available DM channel
+                        if(!channel) channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore.getSortedPrivateChannels()?.[0];
+
+                        if(channel) UserContextMenuFunctions.openUserContextMenu(e,user,channel)
+                    }
+                }
+            });
         }
     } //End of saveAndUpdate()
     // #endregion
@@ -3342,45 +3374,36 @@ module.exports = class YABDP4Nitro {
             resolutionToSet = 1440;
 
         //Some of these properties are marked as read only, but they still allow you to delete them
-        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.
-
-        //Set resolution buttons and requirements
-
-        delete ApplicationStreamResolutions.RESOLUTION_1440;
-        //Change 1440p resolution internally to custom resolution
-        ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
+        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.        
 
 
         //************************************Buttons below this point*****************************************
-        //Set resolution button value to custom resolution
-        ApplicationStreamResolutionButtons[2].value = resolutionToSet;
-        delete ApplicationStreamResolutionButtons[2].label;
-        //Set label of resolution button to custom resolution. This one is used in the popup window that appears before you start streaming.
-        ApplicationStreamResolutionButtons[2].label = resolutionToSet.toString();
 
         //Set value of button with suffix label to custom resolution
-        ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
-        delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-        //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
-        //This one is used in the dropdown kind of menu after you've started streaming
-        ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
+        if(settings.CustomResolution){
+            delete ApplicationStreamResolutions.RESOLUTION_1440;
+            //Change 1440p resolution internally to custom resolution
+            ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
+            ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
+            delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
+            //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
+            //This one is used in the dropdown kind of menu after you've started streaming
+            ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
+        }
 
         let fpsToSet = parseInt(settings.CustomFPS);
         //If custom FPS toggle is disabled, set to the default 60.
         if(!settings.CustomFPSEnabled)
             fpsToSet = 60;
 
-        //set suffix label button value to the custom number
-        ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
-        delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-        //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
-        ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
-        //set fps button value to the correct number.
-        // ApplicationStreamFPSButtons[2].value = fpsToSet;
-        // delete ApplicationStreamFPSButtons[2].label;
-        //set fps button label to the correct number. This one is used in the popup window that appears before you start streaming.
-        // ApplicationStreamFPSButtons[2].label = fpsToSet.toString();
-        ApplicationStreamFPS.FPS_60 = fpsToSet;
+        if(settings.CustomFPSEnabled){
+            //set suffix label button value to the custom number
+            ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
+            delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
+            //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
+            ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
+            ApplicationStreamFPS.FPS_60 = fpsToSet;
+        }
 
         Data.save("settings", settings);
     } //End of customizeStreamButtons()
