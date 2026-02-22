@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.6
+ * @version 6.7.7
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -119,7 +119,7 @@ const [
     {filter: Webpack.Filters.byKeys("addFiles")},
     {filter: Webpack.Filters.byStrings('M19.73 4.87a18.2'), searchExports: true}, //RegularAppIcon
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
-    {filter: Webpack.Filters.bySource('nameplateData')}, //NameplatePreview
+    {filter: Webpack.Filters.bySource('nameplateData', 'showPlaceholderUser', 'displayNameStyles')}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
@@ -272,19 +272,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.6",
+        "version": "6.7.7",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.6",
+            title: "6.7.7",
             items: [
-                "Fixed \"NOT STAFF\" warning on DMs appearing when it shouldn't (again).",
-                "Fixed stream resolution buttons being set incorrectly, causing the 1080p button to be replaced with a second 1440p button.",
-                "Moved StreamButtons module fetch into bulk fetch.",
-                "Added the ability to right-click on a user's profile picture to open their user profile in circumstances where it normally doesn't let you such as the blocked/ignored user list."
+                "Fixed Nameplate UI not working correctly."
             ]
         }
     ],
@@ -1510,9 +1507,12 @@ module.exports = class YABDP4Nitro {
         }
         
         let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
-        if(!NameplateSection) return;
+        if(!NameplateSection){
+            Logger.error("NameplateSection is undefined!");
+            return;
+        }
 
-        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x);
+        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
 
         Patcher.after(NameplateSectionMod, NameplateSection, (_, args, ret) => {
             
