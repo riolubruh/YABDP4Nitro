@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.7.7
+ * @version 6.8.0
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -138,8 +138,8 @@ const [
         getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
         isSendableSticker: x=>x.toString().includes(')=>0===')
     }},
-    {filter: Webpack.Filters.bySource('useExperiment({location:"useEnableClips'), map: { //ClipsEnabledMod
-        useEnableClips: x=>x.toString().includes('useExperiment({location:"useEnableClips"'),
+    {filter: Webpack.Filters.bySource('getConfig({location:"useEnableClips'), map: { //ClipsEnabledMod
+        useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
         areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
     }},
     {filter: Webpack.Filters.bySource('.premiumTier].limits.fileSize:'), map: { //MaxFileSizeMod
@@ -247,7 +247,8 @@ const defaultSettings = {
     "customUserThemeSettings": {
         custom: false,
         theme: "dark"
-    }
+    },
+    "appIcon": "AppIcon"
 };
 const defaultData = {
     avatarDecorations: {},
@@ -272,16 +273,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.7.7",
+        "version": "6.8.0",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.7.7",
+            title: "6.8.0",
             items: [
-                "Fixed Nameplate UI not working correctly."
+                "Added per-server 3y3 PFPs by allowing it in the per-server pronoun field. Since it only lets you have 40 characters, there is only enough space for a PFP.",
+                "Fixed App Icon not being persistent on restart.",
+                "Fixed App Icon not being the correct size.",
             ]
         }
     ],
@@ -397,7 +400,7 @@ const config = {
             collapsible: true,
             shown: false,
             settings: [
-                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB. Enabling this option will also enable Experiments.", value: () => settings.useClipBypass },
+                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.", value: () => settings.useClipBypass },
                 { type: "dropdown", id: "clipTimestamp", name: "Timestamp", note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.", value: () => settings.clipTimestamp, options: [
                         { label: "Zero (January 1st, 2015)", value: 0 },
                         { label: "Current Date/Time", value: 1 },
@@ -555,6 +558,8 @@ module.exports = class YABDP4Nitro {
         Patcher.unpatchAll();
 
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+
+        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
 
         if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
             try {
@@ -1319,6 +1324,23 @@ module.exports = class YABDP4Nitro {
     getRevealedText(userId, shouldInclude=""){
         let revealedText = ""; //init variable
 
+        //per-server pronoun field check
+        const guildId = SelectedGuildStore.getGuildId();
+        if(guildId){
+            let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+            if(userGuildProfile?.pronouns){
+                if(userGuildProfile.pronouns.includes(shouldInclude)){
+                    //reveal 3y3 encoded text
+                    revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+                    //if there's no 3y3 text, move on to the next check.
+                    if(revealedText != undefined && revealedText != ""){
+                        //return bio with the 3y3 decoded
+                        return revealedText;
+                    }
+                }
+            }
+        }
+
         //get the user's profile from the cached user profiles
         let userProfile = UserProfileStore.getUserProfile(userId);
         //if this user's profile has been downloaded
@@ -1336,7 +1358,6 @@ module.exports = class YABDP4Nitro {
                 }
             }
         }
-
         
         let customStatusActivity;
         try{
@@ -1755,12 +1776,12 @@ module.exports = class YABDP4Nitro {
     // #region Clips Bypasses
     async clipsBypass(){
 
-        if(settings.enableClipsExperiment){
+        // March 5th, 2026 - currently unstable
+        /* if(settings.enableClipsExperiment){
             this.experiments();
-            this.overrideExperiment("2023-09_clips_nitro_early_access", 2);
-            this.overrideExperiment("2022-11_clips_experiment", 1);
-            this.overrideExperiment("2023-10_viewer_clipping", 1);
-        }
+            this.overrideVariant("2026-03-clips-experiment", 2);
+        } */
+       
         //spoof nitro file size limit
         Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,args) => {
             if(ORIGINAL_NITRO_STATUS === 2){
@@ -2168,9 +2189,7 @@ module.exports = class YABDP4Nitro {
             originalFunction(args);
         });
 
-        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
-            //I have no earthly idea why but, instead patching this one causes React crashes.
-            // Luckily after-patching prevents it from crashing and it still unlocks it as it should
+        Patcher.instead(ClipsEnabledMod, "useEnableClips", () => {
             return true;
         });
         Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
@@ -2334,6 +2353,14 @@ module.exports = class YABDP4Nitro {
             type: "EXPERIMENT_OVERRIDE_BUCKET",
             experimentId: type,
             experimentBucket: bucket
+        });
+    }
+
+    overrideVariant(experimentName, variantId){
+        Dispatcher.dispatch({
+            type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
+            experimentName,
+            variantId
         });
     }
     // #endregion
@@ -4283,11 +4310,25 @@ module.exports = class YABDP4Nitro {
     } //End of bannerUrlEncoding()
     //#endregion
 
+    //save app icon on change
+    saveAppIcon({type, id}){
+        settings.appIcon = id;
+        Data.save("settings", settings);
+    }
+
     //#region App Icons
     appIcons(){
 
         let renderFn = this.findMangledName(AppIcon, x=>x, "AppIcon");
         if(!renderFn) return;
+
+        //restore app icon on start
+        Dispatcher.dispatch({
+            type: "APP_ICON_UPDATED",
+            id: settings.appIcon
+        });
+
+        Dispatcher.subscribe("APP_ICON_UPDATED", this.saveAppIcon);
 
         Patcher.instead(AppIcon, renderFn, () => {
             const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
@@ -4301,7 +4342,7 @@ module.exports = class YABDP4Nitro {
             }else{
                 return React.createElement(CustomAppIcon, {
                     id: currentDesktopIcon,
-                    width: 48
+                    size: 40
                 });
             } 
         });
@@ -4577,6 +4618,7 @@ module.exports = class YABDP4Nitro {
         CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
         Patcher.unpatchAll();
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
