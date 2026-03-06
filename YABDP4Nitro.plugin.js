@@ -2189,7 +2189,7 @@ module.exports = class YABDP4Nitro {
             originalFunction(args);
         });
 
-        Patcher.instead(ClipsEnabledMod, "useEnableClips", () => {
+        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
             return true;
         });
         Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
