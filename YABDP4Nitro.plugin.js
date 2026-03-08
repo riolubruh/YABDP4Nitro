@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.0
+ * @version 6.8.1
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -51,7 +51,6 @@ const {
     EmojiStore,
     AppIconPersistedStoreState,
     ClipsStore,
-    UserProfileSettingsStore,
     ProfileEffectStore,
     GuildChannelStore
  } = Webpack.Stores;
@@ -98,7 +97,8 @@ const [
     CustomUserPanelState,
     UserContextMenuFunctions,
     UserAvatar,
-    StreamButtons
+    StreamButtons,
+    PremiumUpsellOverlay
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
@@ -167,6 +167,9 @@ const [
         ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
         ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
         ApplicationStreamResolutions: o => o?.RESOLUTION_1440
+    }},
+    {filter: Webpack.Filters.bySource("PREMIUM_UPSELL_OVERLAY", "showOverlay", "PREMIUM_UPSELL_VIEWED"), map:{
+        render: x=>x
     }}
 );
 const {
@@ -273,18 +276,21 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.0",
+        "version": "6.8.1",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.0",
+            title: "6.8.1",
             items: [
-                "Added per-server 3y3 PFPs by allowing it in the per-server pronoun field. Since it only lets you have 40 characters, there is only enough space for a PFP.",
-                "Fixed App Icon not being persistent on restart.",
-                "Fixed App Icon not being the correct size.",
+                "Add support for per-server 3y3 banners and profile colors in per-server pronouns field.",
+                "Made Fake PFP, Banner, and Profile Themes 3y3 buttons appear in per-server profile customization when enabled.",
+                "Unlocked per-server profile customization section.",
+                "Fixed Change Display Name Style section not appearing when Remove Profile Customization Upsell is enabled.",
+                "Fixed Fake Avatar Decoration, Fake Nameplate, Fake Profile Effect, Fake Decoration buttons appearing in per-server profile customization section.",
+                "Fixed being unable to copy accent color 3y3 when there is no \"pending change\" (still at the default colors)."
             ]
         }
     ],
@@ -876,6 +882,12 @@ module.exports = class YABDP4Nitro {
                 }
             });
         }
+
+        if(settings.fakeProfileBanners || settings.fakeProfileThemes || settings.customPFPs){
+            Patcher.before(PremiumUpsellOverlay, "render", (_,[args]) => {
+                args.showOverlay = false;
+            });
+        }
     } //End of saveAndUpdate()
     // #endregion
 
@@ -968,18 +980,18 @@ module.exports = class YABDP4Nitro {
     }
 
     async displayNameStylesSection(){
-        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('displayNameStylesSection', 'onGlobalNameChange'), {signal: controller.signal});
+        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('pendingGlobalName', 'onGlobalNameChange', 'currentGlobalName'), {signal: controller.signal});
         let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
 
         if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('userDisplayNameStyles', 'guildDisplayNameStyles'), {signal: controller.signal});
 
         if(this.DisplayNameSection && this.DisplayNameStylesSection){
             Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
-                if(!ret?.props?.children?.[1]){
-                    ret.props.children[1] = React.createElement(this.DisplayNameStylesSection, {
+                if(ret?.props?.children?.[1]?.key == "pronouns"){
+                    ret.props.children.splice(1,0,React.createElement(this.DisplayNameStylesSection, {
                         user: args.user,
                         className: "yabd-marginTop24"
-                    })
+                    }));
                 }
             });
         }
@@ -1323,7 +1335,7 @@ module.exports = class YABDP4Nitro {
     //if shouldInclude is blank, always return the revealed text if there is revealed text
     getRevealedText(userId, shouldInclude=""){
         let revealedText = ""; //init variable
-
+        
         //per-server pronoun field check
         const guildId = SelectedGuildStore.getGuildId();
         if(guildId){
@@ -1535,7 +1547,9 @@ module.exports = class YABDP4Nitro {
 
         const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
 
-        Patcher.after(NameplateSectionMod, NameplateSection, (_, args, ret) => {
+        Patcher.after(NameplateSectionMod, NameplateSection, (_, [args], ret) => {
+            //disable for per-server profiles screen
+            if(args?.guild) return;
             
             if(ret?.props?.children){
                 ret.props.children = [ret.props.children];
@@ -2663,10 +2677,13 @@ module.exports = class YABDP4Nitro {
         let AvatarSectionFnName = this.findMangledName(this.customPFPSettingsRenderMod, x=>x, "AvatarSection");
         if(!AvatarSectionFnName) return;
 
+        Patcher.before(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args]) => {
+            args.disabled = false;
+        });
+
         Patcher.after(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(!ret) return;
-            if(args.guildId) return; //disable appearing in per-server profiles
 
             //don't need to do anything if this is the "Try out Nitro" flow.
             if(args.isTryItOut) return;
@@ -2976,6 +2993,7 @@ module.exports = class YABDP4Nitro {
         Patcher.after(this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(args.isTryItOut) return;
+            if(args.guild) return;
 
             function ProfileEffects({query}){
 
@@ -3193,6 +3211,9 @@ module.exports = class YABDP4Nitro {
 
             //don't run if this is the try out nitro flow.
             if(args.isTryItOut) return;
+
+            //disable for the per-server profiles screen
+            if(args.guild) return;
 
             //push change decoration button
             if(ret?.props?.children){
@@ -4006,20 +4027,36 @@ module.exports = class YABDP4Nitro {
 
     //#region 3y3 Profile Colors
     decodeAndApplyProfileColors(){
-        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             if(ret == undefined) return;
             if(ret.bio == null) return;
-            const colorString = ret.bio.match(
-                /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
-            );
-            if(colorString == null) return;
-            let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
-            let colors = parsed
+
+            function decodeProfileColors(string){
+                const colorString = string.match(
+                    /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
+                );
+                if(colorString == null) return false;
+                let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
+                let colors = parsed
                 .substring(1, parsed.length - 1)
                 .split(",")
                 .map(x => parseInt(x.replace("#", "0x"), 16));
-            ret.themeColors = colors;
-            ret.premiumType = 2;
+                ret.themeColors = colors;
+                ret.premiumType = 2;
+                return true;
+            }
+
+            //per-server pronoun field check
+            const guildId = SelectedGuildStore.getGuildId();
+            if(guildId){
+                let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+                if(userGuildProfile?.pronouns){
+                    let success = decodeProfileColors(userGuildProfile.pronouns);
+                    if(success) return;
+                }
+            }
+
+            decodeProfileColors(ret.bio);
         });
     }
 
@@ -4033,7 +4070,8 @@ module.exports = class YABDP4Nitro {
         if(!profileThemesSectionFnName) return;
 
         Patcher.after(this.colorPickerRendererMod, profileThemesSectionFnName, (_, [args], ret) => {
-            if(args?.guildId) return; //disable appearing in per-server profiles
+            //enable in per-server profile section
+            ret.props.disabled = false;
 
             ret.props.children.props.children.push( //append copy colors 3y3 button
                 React.createElement("button", {
@@ -4046,17 +4084,22 @@ module.exports = class YABDP4Nitro {
                         marginTop: "10px"
                     },
                     onClick: () => {
-                        let themeColors;
-                        themeColors = UserProfileSettingsStore.getPendingChanges().pendingThemeColors;
-                        if(!themeColors)
-                            themeColors = UserProfileSettingsStore.getTryItOutChanges().tryItOutThemeColors;
-                        if(!themeColors){
-                            UI.showToast("Nothing has been copied. Is the selected color identical to your current color?", { type: "warning" });
+                        let primary = args?.pendingColors?.[0];
+                        let accent = args?.pendingColors?.[1];
+
+                        if(!primary || !accent){
+                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
+                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
+                        }
+
+                        if(!primary || !accent){
+                            Logger.error("Primary:",primary,"Accent:",accent);
+                            UI.showToast("Nothing has been copied!", { type: "error" });
                             return;
                         }
-                        const primary = themeColors[0];
-                        const accent = themeColors[1];
+ 
                         let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+
                         const padding = "";
                         let encoded = Array.from(message)
                             .map(x => x.codePointAt(0))
@@ -4105,10 +4148,8 @@ module.exports = class YABDP4Nitro {
 
         //Patch getBannerURL function
         Patcher.instead(getBannerURLMod.prototype, "getBannerURL", (user, [args], ogFunction) => {
+            let profile = user?._userProfile;
 
-            let profile = user._userProfile;
-
-            //Returning ogFunction with the same arguments that were passed to this function will do the vanilla check for a legit banner.
             if(profile == undefined) return ogFunction(args);
 
             if(settings.userBgIntegration){ //if userBg integration is enabled
@@ -4123,46 +4164,39 @@ module.exports = class YABDP4Nitro {
                 }
             }
 
-            //do original function if we don't have the user's bio
-            if(profile.bio == undefined) return ogFunction(args);
-            //              includes /B encoded?
-            if(profile.bio.includes(`\uDB40\uDC42\uDB40\uDC7B`)){
-                //reveal 3y3 encoded text, store as parsed
-                let parsed = this.secondsightifyRevealOnly(profile.bio);
-                //if there is no 3y3 encoded text, return original function
-                if(parsed == undefined) return ogFunction(args);
+            //reveal 3y3 encoded text, store as parsed
+            let parsed = this.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
+            //if there is no 3y3 encoded text, return original function
+            if(parsed == undefined) return ogFunction(args);
 
-                //This regex matches B{*} . Do not touch unless you know what you are doing.
-                let regex = /B\{[^}]*?\}/;
+            //This regex matches B{*} . Do not touch unless you know what you are doing.
+            let regex = /B\{[^}]*?\}/;
 
-                //find banner url in parsed bio
-                let matches = parsed.toString().match(regex);
+            //find banner url in parsed
+            let matches = parsed.toString().match(regex);
 
-                //if there's no matches, return original function
-                if(matches == undefined) return ogFunction(args);
-                if(matches == "") return ogFunction(args);
+            //if there's no matches, return original function
+            if(matches == undefined) return ogFunction(args);
 
-                //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
-                let matchedText = matches[0].replace("B{", "").replace("}", "");
+            //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
+            let matchedText = matches[0].replace("B{","").replace("}","");
 
-                //Checking for file extension. 
-                if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")){
-                    matchedText += ".gif"; //Fallback to a default file extension if one is not found.
+            //Checking for file extension. 
+            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
+                matchedText += ".gif"; //Fallback to a default file extension if one is not found.
+            }
 
-                }
+            //set banner id to fake value
+            profile.banner = "funky_kong_is_epic";
 
-                //set banner id to fake value
-                profile.banner = "funky_kong_is_epic";
+            //set this profile to appear with premium rendering
+            profile.premiumType = 2;
 
-                //set this profile to appear with premium rendering
-                profile.premiumType = 2;
+            //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
+            if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
 
-                //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-                if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
-
-                //return final banner URL.
-                return `https://i.imgur.com/${matchedText}`;
-            }else return ogFunction(args);
+            //return final banner URL.
+            return `https://i.imgur.com/${matchedText}`;
         }); //End of patch for getBannerURL
     } //End of bannerUrlDecoding()
     //#endregion
@@ -4182,8 +4216,11 @@ module.exports = class YABDP4Nitro {
             UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
         }
 
+        Patcher.before(this.profileBannerSectionRenderer, BannerSectionFnName, (_, [args]) =>  {
+            args.disabled = false;
+        });
+
         Patcher.after(this.profileBannerSectionRenderer, BannerSectionFnName, (_, [args], ret) => {
-            if(args?.guildId) return; //disable appearing in per-server profiles
             
             //create and append profileBannerUrlInput input element.
             let profileBannerUrlInput = React.createElement("input", {
