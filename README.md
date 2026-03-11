@@ -173,6 +173,9 @@ Works effectively exactly the same as FakeProfileThemes on Vencord, but on Bette
 
 ![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
 
+**For per-server profile themes**: you can put the 3y3 code in the per-server pronouns field.
+<br>Please note you may only have one 3y3 code in the pronouns field at a time.
+
 Happy theming!
 
 **Note that only users that have either YABDP4Nitro, FakeProfileThemes (Vencord), UnrealProfileThemes (Enmity), or a similar plugin (that decodes 3y3-encoded profile colors) installed will be able to see the profile colors.**
@@ -198,6 +201,9 @@ Simply type/paste in an Imgur URL into the input area
 Then, click the "Copy 3y3" button to the right of the input area, paste your clipboard into your "About Me" (or bio) and save.
 
 The banner should appear in the "Try It Out" preview to let you know that it is working correctly.
+
+**For per-server fake banners**: you can put the 3y3 code in the per-server pronouns field.
+<br>Please note you may only have one 3y3 code in the pronouns field at a time.
 
 **Note that only other users with YABDP4Nitro installed and enabled will be able to see this.**
 _________________________________________________________________________________________________________________
@@ -252,6 +258,8 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
  ![decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/b91fcd6e-389f-4adf-aa92-054d3e18d524)
 
  **Note: If your Avatar Decoration is in the About Me section of your profile, it will only appear for other users *after* they have opened your profile at least once.**
+
+ **For Nitro users only:** You can also set this per-server using the per-server bio.
  
 </details>
 
@@ -280,6 +288,8 @@ Clicking one of these profile effects will copy the invisible 3y3-encoded data i
 <br>Now all you have to do is paste your clipboard into the "About Me" section of your profile and click Save Changes!
 
 ![profile effects settings demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/7b2f8340-be41-4155-a0b5-77d37220d278)
+
+**For Nitro users only:** You can also set this per-server using the per-server bio.
 
 Any other user of YABDP4Nitro with Fake Profile Effects enabled will now be able to see your profile effect!
 
@@ -316,6 +326,9 @@ Note that only other others of the plugin will be able to see your fake profile 
 
 **Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
 
+**For per-server fake profile pictures**: you can put the 3y3 code in the per-server pronouns field.
+<br>Please note you may only have one 3y3 code in the pronouns field at a time.
+
 _________________________________________________________________________________________________________________
 
 ## Fake Nameplates
@@ -338,6 +351,8 @@ Pasting it in your custom status means it will appear as expected in the user / 
 Pasting it in your bio means that people will be able to see it when you are offline if they click your profile.
 
 For the best effect, pasting it in both is recommended.
+
+**For Nitro users only:** You can also set this per-server using the per-server bio.
 
 Demonstration:<br>
 ![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
@@ -590,7 +605,6 @@ ________________________________________________________________________________
 
 ### Payment Processors with a fee
 
-
 Using one of these will subtract some fee, either taking the fee from you or from me (usually from me).
 
 #### Ko-fi
@@ -614,7 +628,7 @@ ________________________________________________________________________________
 ### Cryptocurrency
 ___
 
-100% anonymous. Not sure if I set it up correctly, shoot me a DM if I screwed this up.<br>
+100% anonymous. Not sure if I set it up correctly, shoot me a DM if you're gonna actually use this.<br>
 Some fees are involved with these, but if you're actually using this, you already knew that.
 
 #### BTC Address
@@ -624,6 +638,7 @@ Some fees are involved with these, but if you're actually using this, you alread
 #### Monero Address
 
 `48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
+
 
 
 
