@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.1
+ * @version 6.8.2
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,21 +276,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.1",
+        "version": "6.8.2",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.1",
+            title: "6.8.2",
             items: [
-                "Add support for per-server 3y3 banners and profile colors in per-server pronouns field.",
-                "Made Fake PFP, Banner, and Profile Themes 3y3 buttons appear in per-server profile customization when enabled.",
-                "Unlocked per-server profile customization section.",
-                "Fixed Change Display Name Style section not appearing when Remove Profile Customization Upsell is enabled.",
-                "Fixed Fake Avatar Decoration, Fake Nameplate, Fake Profile Effect, Fake Decoration buttons appearing in per-server profile customization section.",
-                "Fixed being unable to copy accent color 3y3 when there is no \"pending change\" (still at the default colors)."
+                "For Nitro users only: added support for 3y3 in per-server bios for all applicable forms of 3y3 codes. Useful for decorations, nameplates, and effects since those still cost money for a Nitro user.",
+                "Fixed Change Fake Avatar Decoration button not appearing.",
+                "Fixed cannot copy 3y3 profile accent color if one of the colors is exactly #000000 (bruh).",
+                "Fixed 2 Change Display Name Style sections appearing for Nitro users."
             ]
         }
     ],
@@ -892,10 +890,9 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     async displayNameStyles(){
-        Patcher.after(UserStore,"getUser",(_,args,ret) => {
-            let revealedText = this.getRevealedText(args[0],`\uDB40\uDC53\uDB40\uDC7B`);
+        Patcher.after(UserStore,"getUser",(_,[userId],ret) => {
+            let revealedText = this.getRevealedText(userId,`\uDB40\uDC53\uDB40\uDC7B`);
             if(revealedText) {
-
                 let regex = /S\{[^}]*?\}/;
                 //Check if there are any matches in the revealed text.
                 let matches = revealedText.match(regex);
@@ -987,7 +984,7 @@ module.exports = class YABDP4Nitro {
 
         if(this.DisplayNameSection && this.DisplayNameStylesSection){
             Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
-                if(ret?.props?.children?.[1]?.key == "pronouns"){
+                if(ORIGINAL_NITRO_STATUS != 2){
                     ret.props.children.splice(1,0,React.createElement(this.DisplayNameStylesSection, {
                         user: args.user,
                         className: "yabd-marginTop24"
@@ -1329,29 +1326,41 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-    //shouldInclude is a string containing the characters that the encoded text should contain
-    //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
-    //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
-    //if shouldInclude is blank, always return the revealed text if there is revealed text
-    getRevealedText(userId, shouldInclude=""){
-        let revealedText = ""; //init variable
-        
+    //this functionality was previously in getRevealedText, but it's been separated to allow it to be checked on its own
+    getRevealedTextPerServer(userId, shouldInclude){
         //per-server pronoun field check
         const guildId = SelectedGuildStore.getGuildId();
         if(guildId){
             let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
             if(userGuildProfile?.pronouns){
                 if(userGuildProfile.pronouns.includes(shouldInclude)){
-                    //reveal 3y3 encoded text
-                    revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-                    //if there's no 3y3 text, move on to the next check.
+                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.pronouns));
                     if(revealedText != undefined && revealedText != ""){
-                        //return bio with the 3y3 decoded
+                        return revealedText;
+                    }
+                }
+            }
+            //per-server bio check
+            if(userGuildProfile?.bio){
+                if(userGuildProfile.bio.includes(shouldInclude)){
+                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.bio));
+                    if(revealedText != undefined && revealedText != ""){
                         return revealedText;
                     }
                 }
             }
         }
+    }
+
+    //shouldInclude is a string containing the characters that the encoded text should contain
+    //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
+    //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
+    //if shouldInclude is blank, always return the revealed text if there is revealed text
+    getRevealedText(userId, shouldInclude=""){
+        let revealedText = ""; //init variable
+
+        let perServer = this.getRevealedTextPerServer(userId, shouldInclude);
+        if(perServer != undefined && perServer != "") return perServer;
 
         //get the user's profile from the cached user profiles
         let userProfile = UserProfileStore.getUserProfile(userId);
@@ -1549,7 +1558,7 @@ module.exports = class YABDP4Nitro {
 
         Patcher.after(NameplateSectionMod, NameplateSection, (_, [args], ret) => {
             //disable for per-server profiles screen
-            if(args?.guild) return;
+            if(args?.guild && ORIGINAL_NITRO_STATUS != 2) return;
             
             if(ret?.props?.children){
                 ret.props.children = [ret.props.children];
@@ -1813,7 +1822,6 @@ module.exports = class YABDP4Nitro {
         // todo: maybe fix ActionBarClipsButton and ClipsButton button not appearing with experiments disabled eventually
         // currently they use useExperiment to check if they should appear, which is a function that I can't patch
         // and remaking the respective React elements sounds really difficult
-
 
         if(!this.MP4Box){
             try{
@@ -2938,15 +2946,19 @@ module.exports = class YABDP4Nitro {
         }
         profileEffectsFiltered = Object.values(profileEffectsTemp);
 
-        Patcher.after(UserProfileStore, "getUserProfile", (_, [args], ret) => {
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             //error prevention
             if(ret == undefined) return;
             if(ret.bio == undefined) return;
 
-            //if bio includes encoded fx 
-            if(ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
-                //reveal 3y3 encoded text. this string will also include the rest of the bio
-                let revealedText = this.secondsightifyRevealOnly(ret.bio);
+            let perServer = this.getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+
+            //if main or server bio includes encoded fx 
+            if(perServer || ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
+                let revealedText;
+                if(!perServer) revealedText = this.secondsightifyRevealOnly(ret.bio); //reveal 3y3 encoded text. this string will also include the rest of the bio
+                else revealedText = perServer;
+                
                 if(revealedText == undefined) return;
 
                 //if profile effect 3y3 is detected
@@ -2976,9 +2988,9 @@ module.exports = class YABDP4Nitro {
                     };
 
                     //if for some reason we dont know what this user's ID is, stop here
-                    if(args == undefined) return;
+                    if(userId == undefined) return;
                     //otherwise add them to the list of users who show up with the YABDP4Nitro user badge
-                    if(!badgeUserIDs.includes(args)) badgeUserIDs.push(args);
+                    if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
                 }
             }
         }); //end of getUserProfile patch.
@@ -2993,7 +3005,7 @@ module.exports = class YABDP4Nitro {
         Patcher.after(this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
             if(!args) return;
             if(args.isTryItOut) return;
-            if(args.guild) return;
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
 
             function ProfileEffects({query}){
 
@@ -3200,7 +3212,7 @@ module.exports = class YABDP4Nitro {
         }); //end of getUser patch for avatar decorations
 
         //Wait for avatar decor customization section render module to be loaded and store
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings("enable_avatar_decoration_uploads"), {defaultExport:false, signal: controller.signal});
+        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings('pendingAvatarDecoration', 'forcedDivider'), {defaultExport:false, signal: controller.signal});
 
         let fnName = this.findMangledName(this.decorationCustomizationSectionMod, x=>x, "DecorationCustomizationSection");
         if(!fnName) return;
@@ -3213,11 +3225,11 @@ module.exports = class YABDP4Nitro {
             if(args.isTryItOut) return;
 
             //disable for the per-server profiles screen
-            if(args.guild) return;
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
 
             //push change decoration button
-            if(ret?.props?.children){
-                ret.props.children.push(
+            if(ret?.props?.children?.props?.children){
+                ret.props.children.props.children.push(
                     React.createElement("button", {
                         id: "decorationButton",
                         children: "Change Decoration [YABDP4Nitro]",
@@ -3226,7 +3238,7 @@ module.exports = class YABDP4Nitro {
                             height: "50px",
                             color: "white",
                             borderRadius: "3px",
-                            marginTop: "8px",
+                            marginLeft: "5px",
                         },
                         className: "yabd-generic-button",
                         onClick: () => {
@@ -3234,6 +3246,8 @@ module.exports = class YABDP4Nitro {
                         }
                     })
                 );
+            }else{
+                Logger.error("Decoration Section ain't right chief.")
             }
 
             const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
@@ -4054,6 +4068,10 @@ module.exports = class YABDP4Nitro {
                     let success = decodeProfileColors(userGuildProfile.pronouns);
                     if(success) return;
                 }
+                if(userGuildProfile?.bio){
+                    let success = decodeProfileColors(userGuildProfile.bio);
+                    if(success) return;
+                }
             }
 
             decodeProfileColors(ret.bio);
@@ -4087,12 +4105,12 @@ module.exports = class YABDP4Nitro {
                         let primary = args?.pendingColors?.[0];
                         let accent = args?.pendingColors?.[1];
 
-                        if(!primary || !accent){
+                        if(isNaN(primary) || isNaN(accent)){
                             primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
                             accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
                         }
 
-                        if(!primary || !accent){
+                        if(isNaN(primary) || isNaN(accent)){
                             Logger.error("Primary:",primary,"Accent:",accent);
                             UI.showToast("Nothing has been copied!", { type: "error" });
                             return;
