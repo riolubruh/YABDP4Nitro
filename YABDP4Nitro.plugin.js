@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.2
+ * @version 6.8.3
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,19 +276,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.2",
+        "version": "6.8.3",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.2",
+            title: "6.8.3",
             items: [
-                "For Nitro users only: added support for 3y3 in per-server bios for all applicable forms of 3y3 codes. Useful for decorations, nameplates, and effects since those still cost money for a Nitro user.",
-                "Fixed Change Fake Avatar Decoration button not appearing.",
-                "Fixed cannot copy 3y3 profile accent color if one of the colors is exactly #000000 (bruh).",
-                "Fixed 2 Change Display Name Style sections appearing for Nitro users."
+                "Fixed custom buttons not having the correct text color.",
+                "Enable new clips experiment as it functions properly now."
             ]
         }
     ],
@@ -1799,11 +1797,10 @@ module.exports = class YABDP4Nitro {
     // #region Clips Bypasses
     async clipsBypass(){
 
-        // March 5th, 2026 - currently unstable
-        /* if(settings.enableClipsExperiment){
+        if(settings.enableClipsExperiment){
             this.experiments();
             this.overrideVariant("2026-03-clips-experiment", 2);
-        } */
+        }
        
         //spoof nitro file size limit
         Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,args) => {
@@ -4598,8 +4595,9 @@ module.exports = class YABDP4Nitro {
                 -moz-user-select: none;
                 user-select: none;
                 cursor: pointer;
+                color: var(--control-primary-text-default);
                 background-color: var(--control-primary-background-default);
-                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
+                transition: background-color var(--custom-button-transition-duration) ease;
             }
 
             .yabd-generic-button:hover {
