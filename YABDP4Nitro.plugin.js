@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.3
+ * @version 6.8.4
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,17 +276,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.3",
+        "version": "6.8.4",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.3",
+            title: "6.8.4",
             items: [
-                "Fixed custom buttons not having the correct text color.",
-                "Enable new clips experiment as it functions properly now."
+                "Fixed Video Clips not working if unsupported text-based subtitles are in the file (now tries to convert to MPEG-4 Timed Text).",
+                "Fixed Video Clips not working if there are attachments in the file such as fonts (now removes attachments).",
+                "Fixed Avatar Decorations data not being saved properly resulting in not all decorations appearing in the list (again).",
+                "Fixed Nameplate Previews being broken due to Discord changes (again)."
             ]
         }
     ],
@@ -1481,6 +1483,7 @@ module.exports = class YABDP4Nitro {
                     });
                 } else{
                     const listOfNameplates = Object.values(data.nameplatesV2);
+                    const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
                     for(let i = 0; i < listOfNameplates.length; i++){
                         let nameplate = listOfNameplates[i];
                         if(nameplate) {
@@ -1488,14 +1491,14 @@ module.exports = class YABDP4Nitro {
                                 continue;
                             }
                             nameplatesList.push(React.createElement('div',{
-                                children: React.createElement(NameplatePreview[NameplatePreviewName].type,{
+                                children: React.createElement(NameplatePreview[NameplatePreviewName].type, {
                                     user: CurrentUser,
                                     isHighlighted: true,
                                     nameplate: {
-                                        asset: `nameplates/${nameplate.asset}`,
+                                        asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
                                         palette: nameplate.palette,
-                                        type: 2,
-                                        label: nameplate.label
+                                        skuId: listOfNameplateSkuIds[i],
+                                        label: nameplate.label ? nameplate.label : ""
                                     },
                                     isPurchased: true
                                 }),
@@ -1831,9 +1834,9 @@ module.exports = class YABDP4Nitro {
         async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
             if(ffmpeg){
                 if(!ffmpegArguments)
-                    ffmpegArguments = ["-i",inFileName,"-codec","copy","-dn","-map_chapters","-1","-brand","isom/avc1","-movflags","+faststart",
-                                       "-map","0","-map_metadata","-1","-map_chapters","-1",outFileName];
-                
+                    ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-map_chapters","-1","-brand","isom/avc1",
+                        "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
+                    ];
                 if(arrayBuffer && inFileName){
                     await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
                 }
@@ -1859,7 +1862,7 @@ module.exports = class YABDP4Nitro {
 
             let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=400x50","-i",inFileName,"-shortest","-fflags","+shortest", 
                 "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
-                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune", "stillimage","-r","1", outFileName];
+                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune","stillimage","-r","1", outFileName];
 
             return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
         }
@@ -2335,10 +2338,10 @@ module.exports = class YABDP4Nitro {
                     console.log(message);
                 });
             }else{
-                Logger.info(FFmpegWASM);
-                Logger.info(ffmpegCoreURL);
-                Logger.info(ffmpegCoreWasmURL);
-                Logger.info(ffmpegWorkerURL);
+                Logger.info("FFmpegWASM", FFmpegWASM);
+                Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+                Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+                Logger.info("ffmpegWorkerURL",ffmpegWorkerURL);
                 throw new Error("One or more of the necessary components failed to load.");
             }
         } catch(err) {
@@ -3130,22 +3133,20 @@ module.exports = class YABDP4Nitro {
                 category.products.forEach(product => {
                     product.items.forEach(item => {
                         if(item.asset){
-                            //store nameplates
-                            if(item.asset.startsWith('nameplates')){
+                            if(item.type === 2){ //store nameplates
                                 data.nameplatesV2[item.skuId] = {
                                     asset: item.asset.replace('nameplates/', ''),
                                     palette: item.palette,
                                     name: product.name
                                 };
-                                return;
-                            } else if(item.asset.startsWith("a_")){ //store avatar decorations assets
-                                data.avatarDecorations[item.id] = item.asset;
-                                return;
+                            } else if(item.type === 0){ //store avatar decorations assets
+                                data.avatarDecorations[item.skuId] = item.asset;
                             }
                         }
                     });
                 });
             });
+            this.saveDataFile();
         }
     };
 
