@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.4
+ * @version 6.8.5
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,19 +276,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.4",
+        "version": "6.8.5",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.4",
+            title: "6.8.5",
             items: [
-                "Fixed Video Clips not working if unsupported text-based subtitles are in the file (now tries to convert to MPEG-4 Timed Text).",
-                "Fixed Video Clips not working if there are attachments in the file such as fonts (now removes attachments).",
-                "Fixed Avatar Decorations data not being saved properly resulting in not all decorations appearing in the list (again).",
-                "Fixed Nameplate Previews being broken due to Discord changes (again)."
+                "Fixed actual Nameplates and not just the preview (lol). Nameplates will have to be re-applied as the format of the 3y3 had to be changed.",
+                "Fixed problems with saving and applying Nitro client themes."
             ]
         }
     ],
@@ -1452,13 +1450,15 @@ module.exports = class YABDP4Nitro {
             //slice off the n{ and the ending }
             let nameplate = firstMatch.slice(2,-1);
             if(nameplate){
-                let [asset, palette] = nameplate.split(',');
-                if(asset != undefined && palette != undefined){
+                let [skuId, palette] = nameplate.split(',');
+                let asset = data.nameplatesV2[skuId]?.asset;
+                
+                if(skuId != undefined && palette != undefined){
                     if(ret.collectibles == undefined) ret.collectibles = {};
                     ret.collectibles.nameplate = {
-                        asset: `nameplates/${asset}`,
+                        asset,
                         palette,
-                        sku_id: 0
+                        skuId
                     }
                 }
             }
@@ -1484,8 +1484,10 @@ module.exports = class YABDP4Nitro {
                 } else{
                     const listOfNameplates = Object.values(data.nameplatesV2);
                     const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
+
                     for(let i = 0; i < listOfNameplates.length; i++){
                         let nameplate = listOfNameplates[i];
+                        let skuId = listOfNameplateSkuIds[i];
                         if(nameplate) {
                             if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
                                 continue;
@@ -1497,7 +1499,7 @@ module.exports = class YABDP4Nitro {
                                     nameplate: {
                                         asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
                                         palette: nameplate.palette,
-                                        skuId: listOfNameplateSkuIds[i],
+                                        skuId,
                                         label: nameplate.label ? nameplate.label : ""
                                     },
                                     isPurchased: true
@@ -1515,7 +1517,7 @@ module.exports = class YABDP4Nitro {
                                 },
                                 onClick: () => {
                                     //make 3y3 string
-                                    let strToEncode = `n{${nameplate.asset},${nameplate.palette}}`;
+                                    let strToEncode = `n{${skuId},${nameplate.palette}}`;
                                     let encodedStr = secondsightifyEncodeOnly(strToEncode);
     
                                     copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!")
@@ -1834,7 +1836,7 @@ module.exports = class YABDP4Nitro {
         async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
             if(ffmpeg){
                 if(!ffmpegArguments)
-                    ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-map_chapters","-1","-brand","isom/avc1",
+                    ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
                         "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
                     ];
                 if(arrayBuffer && inFileName){
@@ -2397,9 +2399,9 @@ module.exports = class YABDP4Nitro {
                     appearance: {
                         shouldSync: false,  //prevent sync to stop discord api from butting in
                         settings: {
-                            theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
+                            theme: settings.customUserThemeSettings.theme, //dark or light theme
                             clientThemeSettings: {
-                                backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
+                                backgroundGradientPresetId: settings.lastGradientSettingStore //preset ID for the gradient theme
                             },
                             developerMode: true
                         }
@@ -2460,7 +2462,7 @@ module.exports = class YABDP4Nitro {
             //Patching saveClientTheme function.
             Patcher.instead(themesModule, saveClientTheme, (_, [args]) => {
                 //Support for custom gradient themes
-                if(args?.customUserThemeSettings){
+                if(args.customUserThemeSettings != undefined){
                     //this dispatch is technically not necessary
                     Dispatcher.dispatch({
                         type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
@@ -2481,8 +2483,7 @@ module.exports = class YABDP4Nitro {
                     settings.customUserThemeSettings.theme = args.theme;
 
                     Data.save("settings", settings);
-                }
-                else if(args?.backgroundGradientPresetId){ //preset gradient themes
+                } else if(args.customUserThemeSettings == undefined && args?.backgroundGradientPresetId != undefined && args.theme != undefined){ //preset gradient themes
                     //Store the last gradient setting used in settings
                     settings.lastGradientSettingStore = args.backgroundGradientPresetId;
 
@@ -2490,6 +2491,9 @@ module.exports = class YABDP4Nitro {
                     settings.customUserThemeSettings.custom = false;
                     //remove custom theme
                     CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
+
+                    //dark/light
+                    settings.customUserThemeSettings.theme = args.theme;
                     
                     //save any changes to settings
                     Data.save("settings", settings);
@@ -2516,8 +2520,8 @@ module.exports = class YABDP4Nitro {
                         type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
                         presetId: settings.lastGradientSettingStore
                     });
-                } else if(!args.backgroundGradientPresetId && !args.customUserThemeSettings){ //if user is trying to set the theme to a default theme
-    
+                } else if(args.customUserThemeSettings == undefined && args.backgroundGradientPresetId == undefined && !args.customUserThemeSettings){ //if user is trying to set the theme to a default theme
+
                     //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
                     settings.lastGradientSettingStore = -1;
 
