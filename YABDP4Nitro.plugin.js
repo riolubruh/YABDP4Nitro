@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.5
+ * @version 6.8.6
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,17 +276,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.5",
+        "version": "6.8.6",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.5",
+            title: "6.8.6",
             items: [
-                "Fixed actual Nameplates and not just the preview (lol). Nameplates will have to be re-applied as the format of the 3y3 had to be changed.",
-                "Fixed problems with saving and applying Nitro client themes."
+                "Fixed Fake Avatar Decorations no longer applying to profiles.",
+                "Fixed incorrect border radius on Change Fake Decoration button."
             ]
         }
     ],
@@ -3205,7 +3205,7 @@ module.exports = class YABDP4Nitro {
                 //set avatar decoration data to fake avatar decoration
                 ret.avatarDecorationData = {
                     asset: avatarDecorations[assetId],
-                    sku_id: "0" //dummy sku id
+                    skuId: assetId
                 };
 
                 //add user to the list of users to show with the YABDP4Nitro user badge if we haven't already.
@@ -3239,7 +3239,6 @@ module.exports = class YABDP4Nitro {
                             width: "100px",
                             height: "50px",
                             color: "white",
-                            borderRadius: "3px",
                             marginLeft: "5px",
                         },
                         className: "yabd-generic-button",
