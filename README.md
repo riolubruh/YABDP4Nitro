@@ -562,7 +562,7 @@ Very few people actually donate, so I see and appreciate every last one.
 
 By donating, you agree that funds are non-refundable and grant no rights to software or services.<br>
 Donations are voluntary and do not affect software access or functionality.<br>
-All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.*
+All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.
 
 *Donations to this project do not support Discord Inc. or its services.*
 
@@ -622,41 +622,3 @@ Donation fee of 2.89% of payment + $0.49 ( + 1.5% if you're not in the United St
 
 <a style="height:36px;" href="https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ" target="_blank" rel="noreferrer noopener"><img style="height:36px;" src='https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif'></a><br>
 [Fees Info](https://www.paypal.com/us/digital-wallet/paypal-consumer-fees#ReceivingDonations)
-
-_________________________________________________________________________________________________________________
-
-### Cryptocurrency
-___
-
-100% anonymous. Not sure if I set it up correctly, shoot me a DM if you're gonna actually use this.<br>
-Some fees are involved with these, but if you're actually using this, you already knew that.
-
-#### BTC Address
-
-`bc1qyzrd2x4gvq86pe6hujd5uxw3j5cqhpdcyhn8d3`
-
-#### Monero Address
-
-`48oSWZ9uJz1CCPS3dde8nEjT6JZ7zaLH7XEXffkK9gLVdb5QtjcwByr4F3cbnMf6KySPw2mw7LAzcHnwXo1YYWYr1aS1p2D`
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
