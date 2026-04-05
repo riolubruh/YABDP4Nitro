@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.6
+ * @version 6.8.7
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,17 +276,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.6",
+        "version": "6.8.7",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.6",
+            title: "6.8.7",
             items: [
-                "Fixed Fake Avatar Decorations no longer applying to profiles.",
-                "Fixed incorrect border radius on Change Fake Decoration button."
+                "Fixed Resolution/FPS not applying in the Quick Swapper menu if no change to it was made and Custom Resolution/FPS was disabled.",
             ]
         }
     ],
@@ -1623,16 +1622,14 @@ module.exports = class YABDP4Nitro {
                         children: 'YABD',
                         onClick: () => {
                             let localStreamOptions = {
-                                resolutionToSet: undefined,
-                                fpsToSet: undefined,
+                                resolutionToSet: settings.CustomResolution, //set to apply on pressing Apply even if custom resolution/fps is disabled
+                                fpsToSet: settings.CustomFPS, // -------------^
                                 minBitrateToSet: undefined,
                                 targetBitrateToSet: undefined,
                                 maxBitrateToSet: undefined
                             }
     
                             //defaults
-                            if(settings.ResolutionEnabled) localStreamOptions.resolutionToSet = settings.CustomResolution;
-                            if(settings.CustomFPSEnabled) localStreamOptions.fpsToSet = settings.CustomFPS;
                             if(settings.CustomBitrateEnabled) {
                                 localStreamOptions.minBitrateToSet = settings.minBitrate;
                                 localStreamOptions.targetBitrateToSet = settings.targetBitrate;
