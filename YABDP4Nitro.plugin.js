@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.7
+ * @version 6.8.8
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -51,7 +51,6 @@ const {
     EmojiStore,
     AppIconPersistedStoreState,
     ClipsStore,
-    ProfileEffectStore,
     GuildChannelStore
  } = Webpack.Stores;
 
@@ -266,6 +265,7 @@ let data = {};
 let badgeUserIDs = [];
 let fetchedUserBg = false;
 let fetchedUserPfp = false;
+let profileEffects = {};
 
 // #region Config
 const config = {
@@ -276,16 +276,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.7",
+        "version": "6.8.8",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.7",
+            title: "6.8.8",
             items: [
-                "Fixed Resolution/FPS not applying in the Quick Swapper menu if no change to it was made and Custom Resolution/FPS was disabled.",
+                "Fixed Profile Effects no longer working.",
             ]
         }
     ],
@@ -2936,17 +2936,6 @@ module.exports = class YABDP4Nitro {
             paymentGateway: undefined
         });
 
-        const profileEffects = ProfileEffectStore.getAllProfileEffects();
-        let profileEffectsFiltered = [];
-        let profileEffectsTemp = {};
-
-        //remove duplicate effects
-        for(let i=0;i<profileEffects.length;i++){
-            let effect = profileEffects[i];
-            profileEffectsTemp[effect.config.skuId] = effect;
-        }
-        profileEffectsFiltered = Object.values(profileEffectsTemp);
-
         Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             //error prevention
             if(ret == undefined) return;
@@ -2971,20 +2960,11 @@ module.exports = class YABDP4Nitro {
                     if(firstMatch == undefined) return;
 
                     //slice the fx and only take the number after it.
-                    let effectId = parseInt(firstMatch.slice(2));
+                    let effectId = firstMatch.slice(2);
                     
-                    //ignore invalid data 
-                    if(isNaN(effectId)) return;
-                    //ignore if the profile effect id does not point to an actual profile effect
-                    if(profileEffectsFiltered.filter(x => x.skuId == effectId).length == 0) return;
-                    
-                    //get profile effect
-                    const effect = profileEffectsFiltered.filter(x => x.skuId == effectId || x.config.skuId == effectId)[0];
-
                     //apply profile effect
                     ret.profileEffect = {
-                        id: effect.skuId,
-                        skuId: effect.skuId,
+                        skuId: effectId,
                         expiresAt: null
                     };
 
@@ -3001,6 +2981,7 @@ module.exports = class YABDP4Nitro {
             this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
 
         let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
+
         if(!ProfileEffectSectionFnName) return;
         //patch profile effect section renderer function to run the following code after the function runs
         Patcher.after(this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
@@ -3013,12 +2994,13 @@ module.exports = class YABDP4Nitro {
                 let profileEffectChildren = [];
                 let actualRuns = 0;
 
+                let profileEffectsArray = Object.values(profileEffects);
                 //for each profile effect
-                for(let i = 0; i < profileEffectsFiltered.length; i++){
+                for(let i = 0; i < profileEffectsArray.length; i++){
 
                     //get preview image url
-                    const previewURL = profileEffectsFiltered[i].config.thumbnailPreviewSrc;
-                    const title = profileEffectsFiltered[i].config.title;
+                    const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
+                    const title = profileEffectsArray[i].title;
 
                     //search
                     if(query.trim() != "") {
@@ -3028,7 +3010,7 @@ module.exports = class YABDP4Nitro {
                     }
 
                     //encode 3y3
-                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsFiltered[i].config.skuId); // fx1293373563381878836
+                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
                     //javascript that runs onclick for each profile effect button
                     let copyDecoration3y3 = function(){
                         copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
@@ -3133,16 +3115,23 @@ module.exports = class YABDP4Nitro {
             event.categories.categories.forEach(category => {
                 category.products.forEach(product => {
                     product.items.forEach(item => {
-                        if(item.asset){
-                            if(item.type === 2){ //store nameplates
+                        switch(item.type){
+                            case 0:
+                                //store avatar decorations assets
+                                data.avatarDecorations[item.skuId] = item.asset;
+                                break;
+                            case 1:
+                                //profile effects
+                                profileEffects[item.skuId] = item;
+                                break;
+                            case 2:
+                                //store nameplates
                                 data.nameplatesV2[item.skuId] = {
                                     asset: item.asset.replace('nameplates/', ''),
                                     palette: item.palette,
                                     name: product.name
                                 };
-                            } else if(item.type === 0){ //store avatar decorations assets
-                                data.avatarDecorations[item.skuId] = item.asset;
-                            }
+                                break;
                         }
                     });
                 });
