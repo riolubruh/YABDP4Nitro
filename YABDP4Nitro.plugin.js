@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.8
+ * @version 6.8.9
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,16 +276,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.8",
+        "version": "6.8.9",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.8",
+            title: "6.8.9",
             items: [
-                "Fixed Profile Effects no longer working.",
+                "Revoke FFmpeg.js blob URLs once they are no longer in use.",
+                "Fixed Experiments being removed upon current user update.",
+                "Fix jank error logging for Clips Bypass and loading FFmpeg."
             ]
         }
     ],
@@ -559,8 +561,8 @@ module.exports = class YABDP4Nitro {
         Patcher.unpatchAll();
 
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
         Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
 
         if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
             try {
@@ -736,6 +738,7 @@ module.exports = class YABDP4Nitro {
         if(settings.experiments){
             try {
                 this.experiments();
+                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.experiments);
             } catch(err){
                 Logger.error("Error occurred in experiments() " + err);
             }
@@ -1883,13 +1886,12 @@ module.exports = class YABDP4Nitro {
                 udtaBuffer = udta.buffer;
             }
 
-            function errorHandler(err, currentFile, name) {
+            function errorHandler(err, currentFile) {
                 UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
-                Logger.error(name, err);
+                Logger.error(err);
                 if(currentFile) {
-                    Logger.info(name, "Current file information for debugging:");
-                    Logger.info(name, currentFile);
-                    Logger.info(name, `File Type: "${currentFile.file?.type}"`);
+                    Logger.info("Current file information for debugging:", currentFile);
+                    Logger.info(`File Type: "${currentFile.file?.type}"`);
                 }
             }
 			
@@ -1984,7 +1986,7 @@ module.exports = class YABDP4Nitro {
                                 //send as a "clip"
                                 currentFile.clip = clipData;
                             } catch(err){
-                                errorHandler(err, currentFile, this.meta.name);
+                                errorHandler(err, currentFile);
                             } finally {
                                 dontStopMeNow = false;
                             }
@@ -2012,7 +2014,6 @@ module.exports = class YABDP4Nitro {
                     }
                     else{
                         //Is a video file, but not MP4
-
                         let outFileName = "output.mp4";
 
                         //AVI file warning
@@ -2037,7 +2038,7 @@ module.exports = class YABDP4Nitro {
                             //send as a "clip"
                             currentFile.clip = clipData;
                         } catch(err){
-                            errorHandler(err, currentFile, this.meta.name);
+                            errorHandler(err, currentFile);
                             continue;
                         }
                     }
@@ -2070,7 +2071,7 @@ module.exports = class YABDP4Nitro {
                         //send as a "clip"
                         currentFile.clip = clipData;
                     } catch(err){
-                        errorHandler(err, currentFile, this.meta.name);
+                        errorHandler(err, currentFile);
                         continue;
                     }
                 }
@@ -2200,7 +2201,7 @@ module.exports = class YABDP4Nitro {
                             currentFile.file = newFile;
                             currentFile.clip = clipData;
                         } catch(err) {
-                            errorHandler(err, currentFile, this.meta.name);
+                            errorHandler(err, currentFile);
                         }
                     }
                     //#endregion
@@ -2236,6 +2237,7 @@ module.exports = class YABDP4Nitro {
         if(ffmpegScript) {
             ffmpegScript.remove();
         }
+        delete window.FFmpegWASM;
 
         function tryFetchFromDisk(filename, encoding){
             const basepath = path.join(BdApi.Plugins.folder, "ffmpeg");
@@ -2248,7 +2250,7 @@ module.exports = class YABDP4Nitro {
                 }
                 else return false;
             }catch(err){
-                Logger.warn("Tried to read " + filename + "from disk but an error occurred.");
+                Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
                 Logger.warn(err);
             }
         }
@@ -2283,10 +2285,11 @@ module.exports = class YABDP4Nitro {
             }
         }
 
+        let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
         try {
 
             //load 814.ffmpeg.js (ffmpeg worker)
-            let ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
+            ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
 
             //load FFmpeg.js as text
             let ffmpegSrc;
@@ -2302,7 +2305,7 @@ module.exports = class YABDP4Nitro {
             //patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
             ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
             //blob ffmpeg
-            const ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
+            ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
 
             // for some reason, for ffmpeg.js to work we need to set global define to undefined temporarily.
             // since for a brief moment it is undefined, any function that uses it may throw an error during that window.
@@ -2310,7 +2313,7 @@ module.exports = class YABDP4Nitro {
 
             //load external JS as a script
             await new Promise((load, err) => {
-                const ffmpegScriptElem = document.getElementById("ffmpegScript") || document.createElement("script");
+                const ffmpegScriptElem = document.createElement("script");
                 ffmpegScriptElem.id = "ffmpegScript";
                 ffmpegScriptElem.src = ffmpegURL;
                 ffmpegScriptElem.onload = load;
@@ -2321,9 +2324,9 @@ module.exports = class YABDP4Nitro {
             window.global.define = defineTemp;
 
             //load ffmpeg core
-            let ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
+            ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
 
-            let ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
+            ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
 
             if(FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
                 ffmpeg = new FFmpegWASM.FFmpeg();
@@ -2350,6 +2353,11 @@ module.exports = class YABDP4Nitro {
         } finally {
             //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
             window.global.define = defineTemp;
+            //revoke blob urls since we dont actually need them anymore
+            if(ffmpegURL) URL.revokeObjectURL(ffmpegURL);
+            if(ffmpegCoreURL) URL.revokeObjectURL(ffmpegCoreURL);
+            if(ffmpegCoreWasmURL) URL.revokeObjectURL(ffmpegCoreWasmURL);
+            if(ffmpegWorkerURL) URL.revokeObjectURL(ffmpegWorkerURL);
         }
     } //End of loadFFmpeg()
     // #endregion
@@ -2358,11 +2366,12 @@ module.exports = class YABDP4Nitro {
     async experiments(){
         try {
             //code heavily modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
-            CurrentUser.flags |= 1;
+            const currentUser = UserStore.getCurrentUser();
+            currentUser.flags |= 1;
             const Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
             Stores.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
             try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
-            Stores.find((x) => x.name === "ExperimentStore").storeDidChange(); 
+            Stores.find((x) => x.name === "ExperimentStore").storeDidChange();
         } catch(err){
             Logger.warn(err);
         }
@@ -4662,6 +4671,7 @@ module.exports = class YABDP4Nitro {
         Patcher.unpatchAll();
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
