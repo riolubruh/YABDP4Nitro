@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.9
+ * @version 6.8.10
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -129,7 +129,7 @@ const [
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
-    {filter: Webpack.Filters.byStrings('navigator.clipboard.write'), searchExports:true},
+    {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
     {filter: Webpack.Filters.bySource('VideoStream', 'videoComponent')},
     {filter: Webpack.Filters.bySource('backgroundKey', 'onForceIdle')}, //PictureInPicturePlayer
@@ -276,18 +276,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.9",
+        "version": "6.8.10",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.9",
+            title: "6.8.10",
             items: [
-                "Revoke FFmpeg.js blob URLs once they are no longer in use.",
-                "Fixed Experiments being removed upon current user update.",
-                "Fix jank error logging for Clips Bypass and loading FFmpeg."
+                "Fixed copying to clipboard not working for some users."
             ]
         }
     ],
