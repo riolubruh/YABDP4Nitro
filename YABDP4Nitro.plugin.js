@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.10
+ * @version 6.8.11
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -276,16 +276,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.10",
+        "version": "6.8.11",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.10",
+            title: "6.8.11",
             items: [
-                "Fixed copying to clipboard not working for some users."
+                "Fixed Clips getting stuck during sending after recent Discord update.",
+                "Adjusted frame size of Audio Clips to make it work better with the new player."
             ]
         }
     ],
@@ -1860,7 +1861,7 @@ module.exports = class YABDP4Nitro {
         }
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
 
-            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=400x50","-i",inFileName,"-shortest","-fflags","+shortest", 
+            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=300x100","-i",inFileName,"-shortest","-fflags","+shortest", 
                 "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
                 "-preset","ultrafast","-c:a","copy","-strict","-2","-tune","stillimage","-r","1", outFileName];
 
@@ -1916,13 +1917,17 @@ module.exports = class YABDP4Nitro {
 
                 switch(settings.clipTimestamp){
                     default:
-                    case 0: //Zero
+                    case 0: //January 1st, 2015
+                        clipData.id = 0;
+                        clipData.createdAt = 1420070400000n;
                         break;
                     case 1: //Current Time
                         clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
+                        clipData.createdAt = Date.now();
                         break;
                     case 2: //Last Modified Date
                         clipData.id = (BigInt(currentFile.file.lastModified) - 1420070400000n) << 22n;
+                        clipData.createdAt = currentFile.file.lastModified;
                         break;
                 }
 
