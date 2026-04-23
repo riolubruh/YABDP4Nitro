@@ -1910,7 +1910,7 @@ module.exports = class YABDP4Nitro {
                     default:
                     case 0: //January 1st, 2015
                         clipData.id = 0;
-                        clipData.createdAt = 1420070400000n;
+                        clipData.createdAt = 1420070400000;
                         break;
                     case 1: //Current Time
                         clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
