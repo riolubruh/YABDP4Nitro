@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.12
+ * @version 6.8.13
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -141,8 +141,8 @@ const [
         useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
         areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
     }},
-    {filter: Webpack.Filters.bySource('.premiumTier].limits.fileSize:'), map: { //MaxFileSizeMod
-        getMaxFileSize: x=>x.toString().includes('.premiumTier].limits.fileSize:'),
+    {filter: Webpack.Filters.bySource("getUserMaxFileSize", "reType"), map: { //MaxFileSizeMod
+        getMaxFileSize: x=>x.toString().includes('getUserMaxFileSize'),
         exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
     }},
     {filter: Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), map: { //CustomThemesEditor
@@ -276,22 +276,22 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.12",
+        "version": "6.8.13",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.12",
+            title: "6.8.12 & 6.8.13",
             items: [
-                "Fixed Premium Type being reset to default after current user update.",
-                "Added code to ensure CurrentUser is kept up to date.",
-                "Removed code that migrated settings.avatarDecorations (old format) to data.avatarDecorations.",
-                "Removed code that migrated settings.changePremiumType to settings.changePremiumType2.",
-                "Simplified some code.",
-                "Fixed ZipClips not working if both Video Clips and Audio Clips were disabled.",
-                "Fixed the \"Nitro Basic\" option under Change Premium Type not actually working."
+                "(6.8.13) Fixed \"Max File Upload Size is 10MB\" modal appearing when Clips is enabled.",
+                "(6.8.12) Fixed Premium Type being reset to default after current user update.",
+                "(6.8.12) Added code to ensure CurrentUser is kept up to date.",
+                "(6.8.12) Removed code that migrated settings.avatarDecorations (old format) to data.avatarDecorations.",
+                "(6.8.12) Removed code that migrated settings.changePremiumType to settings.changePremiumType2.",
+                "(6.8.12) Fixed ZipClips not working if both Video Clips and Audio Clips were disabled.",
+                "(6.8.12) Fixed the \"Nitro Basic\" option under Change Premium Type not actually working."
             ]
         }
     ],
@@ -1798,11 +1798,12 @@ module.exports = class YABDP4Nitro {
         }
        
         //spoof nitro file size limit
-        Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,args) => {
+        Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,[serverId],originalFunction) => {
+            let originalOutput = originalFunction(serverId);
             if(ORIGINAL_NITRO_STATUS === 2){
                 return 500 * 1024 * 1024; //500 MB
             }else{
-                return 100 * 1024 * 1024; //100 MB
+                return Math.max((100 * 1024 * 1024), originalOutput); //100 MB or server's file size if greater
             }
         });
         
@@ -1923,8 +1924,9 @@ module.exports = class YABDP4Nitro {
                 }
 
                 // #region MP4 Clip
-                //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip
-                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") && !skippedVideoTypes.includes(currentFile.file.type)){
+                //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip AND is less than or equal to 100mb
+                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") 
+                        && !skippedVideoTypes.includes(currentFile.file.type) && currentFile.file.size <= 104857590){
 					//if this file is an mp4 file
                     if(currentFile.file.type == "video/mp4"){
                         let dontStopMeNow = true;
@@ -2039,9 +2041,9 @@ module.exports = class YABDP4Nitro {
                     //#endregion
                 }
                 // #region Audio Clip
-                //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true
+                //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true and file below 100mb
                 else if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
-                   (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type))){
+                   (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type)) && currentFile.file.size <= 104857590){
 
                     try {
                         let arrayBuffer = await currentFile.file.arrayBuffer();
@@ -2074,7 +2076,7 @@ module.exports = class YABDP4Nitro {
                 // #region File Clip
 
                 //any file above 10mb and below 100mb that does not fit any previous criteria
-                else if(currentFile.file.size > 10485759 && currentFile.file.size < 104857590 && settings.zipClip) {
+                else if(currentFile.file.size >= 10485759 && currentFile.file.size <= 104857590 && settings.zipClip) {
 
                     //Calculate crcTable only once it's necessary
                     if(crcTable == undefined){
