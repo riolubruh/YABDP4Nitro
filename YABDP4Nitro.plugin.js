@@ -286,6 +286,8 @@ const config = {
             title: "6.8.12 & 6.8.13",
             items: [
                 "(6.8.13) Fixed \"Max File Upload Size is 10MB\" modal appearing when Clips is enabled.",
+                "(6.8.13) Made it so Audio Clip and Video Clip bypasses will not run if the file is above 100MB.",
+                "(6.8.13) Made it so the max file upload limit will use the server's upload limit if it is greater than 100mb.",
                 "(6.8.12) Fixed Premium Type being reset to default after current user update.",
                 "(6.8.12) Added code to ensure CurrentUser is kept up to date.",
                 "(6.8.12) Removed code that migrated settings.avatarDecorations (old format) to data.avatarDecorations.",
