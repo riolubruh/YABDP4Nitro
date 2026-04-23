@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.11
+ * @version 6.8.12
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -181,7 +181,7 @@ const messageRender = Object.values(messageRenderMod).find(o => typeof o === "ob
 //#endregion
 const fs = require("fs");
 const path = require("path");
-const CurrentUser = UserStore.getCurrentUser();
+let CurrentUser = UserStore.getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
 
 //clips related variables
@@ -276,17 +276,22 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.11",
+        "version": "6.8.12",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.11",
+            title: "6.8.12",
             items: [
-                "Fixed Clips getting stuck during sending after recent Discord update.",
-                "Adjusted frame size of Audio Clips to make it work better with the new player."
+                "Fixed Premium Type being reset to default after current user update.",
+                "Added code to ensure CurrentUser is kept up to date.",
+                "Removed code that migrated settings.avatarDecorations (old format) to data.avatarDecorations.",
+                "Removed code that migrated settings.changePremiumType to settings.changePremiumType2.",
+                "Simplified some code.",
+                "Fixed ZipClips not working if both Video Clips and Audio Clips were disabled.",
+                "Fixed the \"Nitro Basic\" option under Change Premium Type not actually working."
             ]
         }
     ],
@@ -532,25 +537,6 @@ module.exports = class YABDP4Nitro {
         controller.abort();
         controller = new AbortController();
 
-        //migrate settings.avatarDecorations to data.avatarDecorations
-        if(settings.avatarDecorations){
-            try{
-                data.avatarDecorations = settings.avatarDecorations;
-                this.saveDataFile();
-                delete settings.avatarDecorations;
-            }catch(err){
-                Logger.error("Data migration failed.");
-            }
-        }
-
-        if(settings.changePremiumType != undefined){
-            //convert old setting to new
-            if(settings.changePremiumType)
-                settings.changePremiumType2 = 1;
-            //delete old setting
-            delete settings.changePremiumType;
-        } 
-
         //delete old nameplate data
         if(data.nameplates) delete data.nameplates;
 
@@ -562,22 +548,21 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
         Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
 
-        if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 2){
-            try {
-                CurrentUser.premiumType = settings.changePremiumType2;
-                setTimeout(() => {
-                    if(settings.changePremiumType) {
-                        CurrentUser.premiumType = settings.changePremiumType2;
-                    }
-                },10000);
+        Dispatcher.subscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
+
+        try{
+            if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 3){
+                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+                this.applyPremiumType();
+            }else{
+                if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
+                    CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
             }
-            catch(err){
-                Logger.error("An error occurred changing premium type." + err);
-            }
-        }else{
-            if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
-                CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
+        }catch(err){
+            Logger.error(err);
         }
 
         if(isNaN(settings.CustomFPS)) settings.CustomFPS = 60;
@@ -607,7 +592,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.emojiBypass){
+        if(settings.emojiBypass && settings.emojiBypassType !== 0){
             try {
                 this.emojiBypass();
             } catch(err){
@@ -684,8 +669,6 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
         if(settings.fakeAvatarDecorations){
             try{
                 this.fakeAvatarDecorations();
@@ -734,7 +717,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.experiments){
+        if(settings.experiments || settings.soundmojiEnabled || settings.enableClipsExperiment){
             try {
                 this.experiments();
                 Dispatcher.subscribe("CURRENT_USER_UPDATE", this.experiments);
@@ -854,7 +837,9 @@ module.exports = class YABDP4Nitro {
         if(settings.displayNameStyles){
             try{
                 this.displayNameStyles();
-                this.displayNameStylesSection();
+                if(ORIGINAL_NITRO_STATUS != 2){
+                    this.displayNameStylesSection();
+                }
             }catch(err){
                 Logger.error(err);
             }
@@ -887,6 +872,15 @@ module.exports = class YABDP4Nitro {
         }
     } //End of saveAndUpdate()
     // #endregion
+
+    applyPremiumType(){
+        const currentUser = UserStore.getCurrentUser();
+        currentUser.premiumType = settings.changePremiumType2;
+    }
+
+    updateCurrentUser(){
+        CurrentUser = UserStore.getCurrentUser();
+    }
 
     async displayNameStyles(){
         Patcher.after(UserStore,"getUser",(_,[userId],ret) => {
@@ -981,14 +975,12 @@ module.exports = class YABDP4Nitro {
 
         if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('userDisplayNameStyles', 'guildDisplayNameStyles'), {signal: controller.signal});
 
-        if(this.DisplayNameSection && this.DisplayNameStylesSection){
+        if(this.DisplayNameSection && this.DisplayNameStylesSection && renderFn2){
             Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
-                if(ORIGINAL_NITRO_STATUS != 2){
-                    ret.props.children.splice(1,0,React.createElement(this.DisplayNameStylesSection, {
-                        user: args.user,
-                        className: "yabd-marginTop24"
-                    }));
-                }
+                ret.props.children.splice(1,0,React.createElement(this.DisplayNameStylesSection,{
+                    user: args.user,
+                    className: "yabd-marginTop24"
+                }));
             });
         }
     }
@@ -1320,7 +1312,7 @@ module.exports = class YABDP4Nitro {
                 return null;
             };
         }else{
-            Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. May be caused by lazy-loaded modules not being ready yet.`);
+            Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
             return null;
         }
     }
@@ -1698,7 +1690,7 @@ module.exports = class YABDP4Nitro {
                                     style: {
                                         display: "flex",
                                         width: "100%",
-                                        justifyContent: "space-around"
+                                        justifyContent: "space-around",
                                     },
                                     children: [
                                         React.createElement("h1", {
@@ -1802,7 +1794,6 @@ module.exports = class YABDP4Nitro {
     async clipsBypass(){
 
         if(settings.enableClipsExperiment){
-            this.experiments();
             this.overrideVariant("2026-03-clips-experiment", 2);
         }
        
@@ -1919,7 +1910,7 @@ module.exports = class YABDP4Nitro {
                     default:
                     case 0: //January 1st, 2015
                         clipData.id = 0;
-                        clipData.createdAt = 1420070400000;
+                        clipData.createdAt = 1420070400000n;
                         break;
                     case 1: //Current Time
                         clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
@@ -3490,7 +3481,6 @@ module.exports = class YABDP4Nitro {
 
     _sendMessageInsteadPatch(){
         if(settings.soundmojiEnabled){
-            this.experiments();
             this.overrideExperiment("2024-11_soundmoji_sending", 2);
         }
 
@@ -4675,6 +4665,8 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
         Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
         Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
         DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
