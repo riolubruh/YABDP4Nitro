@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.13
+ * @version 6.8.14
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -51,11 +51,13 @@ const {
     EmojiStore,
     AppIconPersistedStoreState,
     ClipsStore,
-    GuildChannelStore
+    GuildChannelStore,
+    // SavedMessagesStore,
+    // MessageStore
  } = Webpack.Stores;
 
 const [
-    getBannerURLMod,
+    getBannerURLMod, //borked
     Dispatcher,
     AvatarDefaults,
     LadderModule,
@@ -64,7 +66,7 @@ const [
     MessageEmojiReact,
     renderEmbedsMod,
     clientThemesModule,
-    streamSettingsMod,
+    streamSettingsMod, //borked
     accountSwitchModule,
     getAvatarUrlModule,
     isEmojiAvailableMod,
@@ -78,14 +80,13 @@ const [
     InvalidStreamSettingsModal,
     themesModule,
     NameplateSectionMod,
-    AppIcon,
+    AppIcon, //borked
     CanUserUseMod,
     loadMP4Box,
     DMTag,
     GIFPickerRender,
     DiscordCopyToClipboardFn,
     ContextMenuSlider,
-    VideoStream,
     PictureInPicturePlayer,
     stickerSendabilityModule,
     ClipsEnabledMod,
@@ -131,7 +132,6 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
-    {filter: Webpack.Filters.bySource('VideoStream', 'videoComponent')},
     {filter: Webpack.Filters.bySource('backgroundKey', 'onForceIdle')}, //PictureInPicturePlayer
     {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", 'canUseCustomStickersEverywhere'), map: { //stickerSendabilityModule
         getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
@@ -276,24 +276,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.13",
+        "version": "6.8.14",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.12 & 6.8.13",
+            title: "6.8.14",
             items: [
-                "(6.8.13) Fixed \"Max File Upload Size is 10MB\" modal appearing when Clips is enabled.",
-                "(6.8.13) Made it so Audio Clip and Video Clip bypasses will not run if the file is above 100MB.",
-                "(6.8.13) Made it so the max file upload limit will use the server's upload limit if it is greater than 100mb.",
-                "(6.8.12) Fixed Premium Type being reset to default after current user update.",
-                "(6.8.12) Added code to ensure CurrentUser is kept up to date.",
-                "(6.8.12) Removed code that migrated settings.avatarDecorations (old format) to data.avatarDecorations.",
-                "(6.8.12) Removed code that migrated settings.changePremiumType to settings.changePremiumType2.",
-                "(6.8.12) Fixed ZipClips not working if both Video Clips and Audio Clips were disabled.",
-                "(6.8.12) Fixed the \"Nitro Basic\" option under Change Premium Type not actually working."
+                "Fixed memory leak with FFmpeg.js when reloading the plugin.",
+                "Fixed crashing after new Discord update.",
+                "Fixed stream sharpener (video tiles).",
+                "Currently known to be broken: Sharpen Streams' PIP player, and literally any and all modified UI (all fake profile customization is unusable as a result, existing 3y3 may or may not work), upsell removal, and probably more.",
             ]
         }
     ],
@@ -831,6 +826,7 @@ module.exports = class YABDP4Nitro {
         if(settings.sharpenStreams){
             try{
                 this.sharpenStreams();
+                // this.sharpenPipPlayer();
             }catch(err){
                 Logger.error(err);
             }
@@ -872,8 +868,66 @@ module.exports = class YABDP4Nitro {
                 args.showOverlay = false;
             });
         }
+
+        /* try{
+            this.bookmarks();
+        }catch(err){
+            Logger.error(err);
+        } */
     } //End of saveAndUpdate()
     // #endregion
+
+    /* bookmarks(){
+        const temp = Webpack.getById("216623");
+
+        Patcher.instead(temp, "oN", (_,[message],og) => {
+            console.log("put message", message);
+
+            //push message
+            data.savedMessages.push({
+                saveData: message,
+                message: MessageStore.getMessage(message.channelId, message.messageId)
+            });
+
+            console.log(data.savedMessages);
+            
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGE_CREATE",
+                savedMessage: {
+                    saveData: message,
+                    message: MessageStore.getMessage(message.channelId, message.messageId)
+                }
+            });
+
+            this.saveDataFile();
+
+            return Promise.resolve();
+        })
+
+        //get saved messages
+        Patcher.instead(temp, "AX", () => {
+            console.log("get saved messages", data.savedMessages);
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGES_UPDATE",
+                savedMessages: data.savedMessages
+            });
+            return Promise.resolve();
+        });
+
+        Patcher.instead(temp, "cf", (_,[message],og) => {
+            //remove bookmark
+            console.log("remove bookmark", message);
+            data.savedMessages = data.savedMessages.filter(x=>x.saveData.messageId != message.messageId);
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGES_UPDATE",
+                savedMessages: data.savedMessages
+            });
+
+            this.saveDataFile();
+            
+            return Promise.resolve();
+        });
+    } */
 
     applyPremiumType(){
         const currentUser = UserStore.getCurrentUser();
@@ -988,10 +1042,16 @@ module.exports = class YABDP4Nitro {
     }
 
     //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
-    sharpenStreams(){ 
-        let videoStreamName = this.findMangledName(VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
+    async sharpenStreams(){
+        ContextMenu.patch('stream-context', this.streamContextPatch);
+
+        this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
+
+        if(!this.VideoStream) return;
+        let videoStreamName = this.findMangledName(this.VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
+
         if(videoStreamName){
-            Patcher.after(VideoStream[videoStreamName], "type", (_,[args],ret) => {
+            Patcher.after(this.VideoStream?.[videoStreamName], "type", (_,[args],ret) => {
                 if(args?.userId){
                     let percentNormal = 100;
                     let percentSharpened = 0;
@@ -1055,13 +1115,31 @@ module.exports = class YABDP4Nitro {
                 }
             });
         }
+    }
 
-        ContextMenu.patch('stream-context', this.streamContextPatch);
+
+    //TODO -- FIX THIS SHIT
+    sharpenPipPlayer(){
+        return;
+        console.log("PictureInPicturePlayer",PictureInPicturePlayer);
 
         if(PictureInPicturePlayer){
             let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
             if(pipPlayerName){
-                Patcher.after(PictureInPicturePlayer,pipPlayerName,(_,[args],ret) => {
+                Patcher.instead(PictureInPicturePlayer?.[pipPlayerName]?.prototype, "render",(_,[args],og) => {
+                    let ret = og.apply(args);
+
+                    console.log(ret);
+
+                    ret.props.children = React.createElement("div", {
+                        id: "test1",
+                        children: "test"
+                    });
+
+
+                    return ret; 
+                    // console.log(args);
+                    console.log(ret);
         
                     const userId = args?.backgroundKey?.split?.(":")?.[3];
         
@@ -1787,6 +1865,8 @@ module.exports = class YABDP4Nitro {
     }
 
     videoCodecs(){
+        //TODO - fix this shit
+        return;
         Patcher.after(streamSettingsMod.prototype, "getCodecOptions", (_, args, ret) => {
             ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
         });
@@ -4158,7 +4238,10 @@ module.exports = class YABDP4Nitro {
         });
 
         //Patch getBannerURL function
-        Patcher.instead(getBannerURLMod.prototype, "getBannerURL", (user, [args], ogFunction) => {
+
+        //TODO -- fix this shit
+        return;
+        Patcher.instead(getBannerURLMod?.prototype, "getBannerURL", (user, [args], ogFunction) => {
             let profile = user?._userProfile;
 
             if(profile == undefined) return ogFunction(args);
@@ -4366,6 +4449,8 @@ module.exports = class YABDP4Nitro {
 
     //#region App Icons
     appIcons(){
+
+        // TODO - fix this shit
 
         let renderFn = this.findMangledName(AppIcon, x=>x, "AppIcon");
         if(!renderFn) return;
@@ -4676,10 +4761,15 @@ module.exports = class YABDP4Nitro {
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
         ContextMenu.unpatch('stream-context', this.streamContextPatch);
         
+        if(ffmpeg){
+            ffmpeg.terminate();
+            ffmpeg = undefined;
+        }
         let ffmpegScript = document.getElementById("ffmpegScript");
         if(ffmpegScript){
             ffmpegScript.remove();
         }
+        if(window.FFmpegWASM) delete window.FFmpegWASM;
 
         Data.save("settings", settings);
         this.saveDataFile();
