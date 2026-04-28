@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.14
+ * @version 6.8.15
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -38,7 +38,7 @@
 */
 
 //#region Module Hell
-const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu} = new BdApi("YABDP4Nitro");
+const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu,ReactUtils,Utils} = new BdApi("YABDP4Nitro");
 
 const {
     UserStore,
@@ -57,7 +57,7 @@ const {
  } = Webpack.Stores;
 
 const [
-    getBannerURLMod, //borked
+    ProfileBanner,
     Dispatcher,
     AvatarDefaults,
     LadderModule,
@@ -76,11 +76,9 @@ const [
     CustomAppIcon,
     NameplatePreview,
     CloudUploader,
-    messageRenderMod,
     InvalidStreamSettingsModal,
     themesModule,
     NameplateSectionMod,
-    AppIcon, //borked
     CanUserUseMod,
     loadMP4Box,
     DMTag,
@@ -100,7 +98,9 @@ const [
     StreamButtons,
     PremiumUpsellOverlay
 ] = Webpack.getBulk(
-    {filter: Webpack.Filters.byPrototypeKeys('getBannerURL')},
+    {filter: Webpack.Filters.bySource('pendingBanner', 'displayProfile', 'foreignObject'), map: {
+        renderBanner: x=>x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
+    }},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
     {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
     {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
@@ -111,21 +111,21 @@ const [
         renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
     }},
     {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
-    {filter: Webpack.Filters.byPrototypeKeys('getCodecOptions')}, //streamSettingsMod
+    {filter: Webpack.Filters.byPrototypeKeys('getCodecCapabilities')}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
     {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
     {filter: Webpack.Filters.byKeys("addFiles")},
-    {filter: Webpack.Filters.byStrings('M19.73 4.87a18.2'), searchExports: true}, //RegularAppIcon
+    {filter: Webpack.Filters.bySource('M19.73 4.87a18.2'), map: { //RegularAppIcon
+        render: x=>x
+    }},
     {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
     {filter: Webpack.Filters.bySource('nameplateData', 'showPlaceholderUser', 'displayNameStyles')}, //NameplatePreview
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
-    {filter: Webpack.Filters.bySource(".SEND_FAILED,"), defaultExport: false}, //messageRenderMod
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
     {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), defaultExport:false}, //NameplateSectionMod
-    {filter: Webpack.Filters.byStrings(".APP_ICON,", "getCurrentDesktopIcon"), defaultExport: false}, //AppIcon
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
@@ -177,12 +177,12 @@ const {
     ApplicationStreamResolutionButtonsWithSuffixLabel,
     ApplicationStreamResolutions
 } = StreamButtons;
-const messageRender = Object.values(messageRenderMod).find(o => typeof o === "object");
 //#endregion
 const fs = require("fs");
 const path = require("path");
 let CurrentUser = UserStore.getCurrentUser();
 const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
+const nodePatcher = ReactUtils.createNodePatcher();
 
 //clips related variables
 let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
@@ -276,19 +276,21 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.14",
+        "version": "6.8.15",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.14",
+            title: "6.8.15",
             items: [
-                "Fixed memory leak with FFmpeg.js when reloading the plugin.",
-                "Fixed crashing after new Discord update.",
-                "Fixed stream sharpener (video tiles).",
-                "Currently known to be broken: Sharpen Streams' PIP player, and literally any and all modified UI (all fake profile customization is unusable as a result, existing 3y3 may or may not work), upsell removal, and probably more.",
+                "Fixed Fake Profile Banners bypass (UI still not fixed yet)",
+                "Fixed Remove Screen Share Nitro Upsell not working.",
+                "Fixed NOT STAFF tag appearing on DMs when it shouldn't.",
+                "Fixed Stream Sharpener (PIP player)",
+                "Fixed Unlock App Icons not working correctly.",
+                "Fixed plugin not working after another Discord update (cannot convert undefined or null to object)."
             ]
         }
     ],
@@ -649,14 +651,6 @@ module.exports = class YABDP4Nitro {
 
         }
 
-        if(settings.removeScreenshareUpsell){
-            try {
-                this.patchGoLiveModalV2Upsells();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
         if(settings.fakeProfileBanners){
             try{
                 this.bannerUrlDecoding();
@@ -776,7 +770,7 @@ module.exports = class YABDP4Nitro {
 
         if(settings.videoCodec2 > -1){
             try{
-                this.videoCodecs();
+                // this.videoCodecs();
             }catch(err){
                 Logger.error(err);
             }
@@ -809,7 +803,7 @@ module.exports = class YABDP4Nitro {
 
         try{
             if(settings.removeNotStaffWarning && DMTag){
-                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x), (_,[args],ret) => {
+                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x.toString().includes('GROUP_DM') && !x.toString().includes('GUILD_DIRECTORY')), (_,[args],ret) => {
                     if(ret?.props?.children){
                         ret.props.children = ret.props.children.filter(o=>!o.type?.toString?.().includes?.("NOT_STAFF_WARNING"));
                     }
@@ -826,7 +820,7 @@ module.exports = class YABDP4Nitro {
         if(settings.sharpenStreams){
             try{
                 this.sharpenStreams();
-                // this.sharpenPipPlayer();
+                this.sharpenPipPlayer();
             }catch(err){
                 Logger.error(err);
             }
@@ -1118,85 +1112,85 @@ module.exports = class YABDP4Nitro {
     }
 
 
-    //TODO -- FIX THIS SHIT
     sharpenPipPlayer(){
-        return;
-        console.log("PictureInPicturePlayer",PictureInPicturePlayer);
-
         if(PictureInPicturePlayer){
             let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
             if(pipPlayerName){
-                Patcher.instead(PictureInPicturePlayer?.[pipPlayerName]?.prototype, "render",(_,[args],og) => {
-                    let ret = og.apply(args);
-
-                    console.log(ret);
-
-                    ret.props.children = React.createElement("div", {
-                        id: "test1",
-                        children: "test"
-                    });
-
-
-                    return ret; 
-                    // console.log(args);
-                    console.log(ret);
-        
-                    const userId = args?.backgroundKey?.split?.(":")?.[3];
-        
-                    if(userId){
-        
-                        if(userId != CurrentUser.id){
-                            let sharpnessPercent = 0;
-            
-                            if(settings.userSharpenPreferences?.[userId]) {
-                                sharpnessPercent = settings.userSharpenPreferences[userId];
+                Patcher.after(PictureInPicturePlayer?.[pipPlayerName]?.prototype, "render",(_,[args],ret) => {
+                    nodePatcher.patch(ret,(_,props,res) => {
+                        //this shit insane ngl
+                        let finder = res._reactInternals;
+                        let count = 0;
+                        while(finder){
+                            if(finder?.child?.pendingProps?.backgroundKey) break;
+                            else{
+                                finder = finder.child;
+                                count++;
+                                if(count > 100) return;
                             }
-                            let normalPercent = 100 - sharpnessPercent;
-        
-                            // This is to change the intensity when the user changes the size of the PIP window.
-                            // It only updates after they stop dragging the mouse, but it's not that big of a deal,
-                            // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
-                            // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
-                            // to get the approximate percent of the screen that is covered by the stream
-                            let widthOfStreamComparedToScreen = args.width / screen.width;
-        
-                            let filterIntensityFactoringScreen;
-                            filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
-                            if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
-                            //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
-            
-                            ret.props.children.push(React.createElement('svg',{
-                                children: [
-                                    React.createElement("filter",{
-                                        id: "yabd-svgSharpen-" + userId + "-pip",
-                                        colorInterpolationFilters: "sRGB",
-                                        children: [
-                                            React.createElement('feConvolveMatrix',{
-                                                order: "3",
-                                                kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
-                                                result: "sharpen"
-                                            }),
-                                            React.createElement('feComposite',{
-                                                in: "SourceGraphic",
-                                                in2: "sharpen",
-                                                operator: "arithmetic",
-                                                k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
-                                                result: "userPreference"
-                                            }),
-                                            React.createElement('feComposite',{
-                                                in: "SourceGraphic",
-                                                in2: "userPreference",
-                                                operator: "arithmetic",
-                                                k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
-                                            })
-                                        ]
-                                    })
-                                ]
-                            }));
-        
-                            ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
                         }
-                    }
+                        if(finder){
+                            let ogType = finder.pendingProps.children.type;
+                            if(ogType){
+                                nodePatcher.patch(finder.child, (args,ret) => {
+                                    const userId = args?.backgroundKey?.split?.(":")?.[3];
+                                    if(userId){
+                                        if(userId != CurrentUser.id){
+                                            let sharpnessPercent = 0;
+                            
+                                            if(settings.userSharpenPreferences?.[userId]) {
+                                                sharpnessPercent = settings.userSharpenPreferences[userId];
+                                            }
+                                            let normalPercent = 100 - sharpnessPercent;
+                        
+                                            // This is to change the intensity when the user changes the size of the PIP window.
+                                            // It only updates after they stop dragging the mouse, but it's not that big of a deal,
+                                            // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
+                                            // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
+                                            // to get the approximate percent of the screen that is covered by the stream
+                                            let widthOfStreamComparedToScreen = args.width / screen.width;
+                        
+                                            let filterIntensityFactoringScreen;
+                                            filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
+                                            if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
+                                            //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
+                            
+                                            ret.props.children.push(React.createElement('svg',{
+                                                children: [
+                                                    React.createElement("filter",{
+                                                        id: "yabd-svgSharpen-" + userId + "-pip",
+                                                        colorInterpolationFilters: "sRGB",
+                                                        children: [
+                                                            React.createElement('feConvolveMatrix',{
+                                                                order: "3",
+                                                                kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
+                                                                result: "sharpen"
+                                                            }),
+                                                            React.createElement('feComposite',{
+                                                                in: "SourceGraphic",
+                                                                in2: "sharpen",
+                                                                operator: "arithmetic",
+                                                                k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
+                                                                result: "userPreference"
+                                                            }),
+                                                            React.createElement('feComposite',{
+                                                                in: "SourceGraphic",
+                                                                in2: "userPreference",
+                                                                operator: "arithmetic",
+                                                                k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            }));
+                        
+                                            ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
                 });
             }
         }else{
@@ -1354,28 +1348,8 @@ module.exports = class YABDP4Nitro {
         }
     }
 
-    async patchGoLiveModalV2Upsells() {
-        if(!this.GoLiveModalV2UpsellMod) this.GoLiveModalV2UpsellMod = await Webpack.waitForModule(Webpack.Filters.byStrings("GO_LIVE_MODAL_V2", "onNitroClick:function(){"), {defaultExport:false, signal: controller.signal});
-
-        let renderFn = this.findMangledName(this.GoLiveModalV2UpsellMod, x=>x, "GoLiveModalV2Upsell");
-        if(renderFn){
-            //Disable GoLiveModalV2 upsell
-            Patcher.instead(this.GoLiveModalV2UpsellMod, renderFn, () => {
-                return;
-            });
-        }
-
-        let sdHdPill = Webpack.getBySource('GO_LIVE_MODAL_V2', 'value:"hd"');
-        let sdHdPillFnName = this.findMangledName(sdHdPill, x=>x, "sdHdPill");
-        
-        if(sdHdPillFnName){
-            //remove other go live modal v2 upsell (SD/HD pill buttons)
-            Patcher.instead(sdHdPill, sdHdPillFnName, () => {
-                return;
-            });
-        }
-    }
-
+    // Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
+	// If filter variable is a string, it uses an includes string filter.
     findMangledName(module, filter, debugInfo){
         if(module){
             if(typeof filter === "string"){
@@ -1625,10 +1599,7 @@ module.exports = class YABDP4Nitro {
         }
         
         let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
-        if(!NameplateSection){
-            Logger.error("NameplateSection is undefined!");
-            return;
-        }
+        if(!NameplateSection) return;
 
         const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
 
@@ -1674,7 +1645,9 @@ module.exports = class YABDP4Nitro {
 
         let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
         if(goLiveModalV2FnName){
-            Patcher.after(this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,args,ret) => {
+            Patcher.instead(this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,[args],ogFunction) => {
+                let ret = ogFunction(args);
+
                 //maybe the worst amalgamation in this whole plugin?
     
                 if(GLMV2Opt.resolutionToSet != undefined) {
@@ -1688,10 +1661,11 @@ module.exports = class YABDP4Nitro {
                     GLMV2Opt.fpsToSet = undefined;
                 }
     
-                const RightButtonGroup = ret?.props?.children?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props?.children;
+                let RightButtonGroup = ret?.props?.children?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props;
                 
+                //add YABD button
                 if(RightButtonGroup) {
-                    RightButtonGroup.splice(2,0,React.createElement("button",{
+                    RightButtonGroup.children.splice(2,0,React.createElement("button",{
                         class: "yabd-resolution-swapper-v2-button",
                         children: 'YABD',
                         onClick: () => {
@@ -1849,7 +1823,22 @@ module.exports = class YABDP4Nitro {
                         }
                     }
                     ));
+
+                    //remove SD/HD pill upsell
+                    if(settings.removeScreenshareUpsell){
+                        RightButtonGroup.children = RightButtonGroup.children.filter(x=>!x.type?.toString?.()?.includes?.("pill"))
+                    }
                 }
+
+                //Remove Nitro upsell
+                if(settings.removeScreenshareUpsell){
+                    const footer = ret?.props?.children?.props?.children?.props?.children?.[1]?.props;
+                    if(footer?.children){
+                        footer.children = footer.children[0];
+                    }
+                }
+                
+                return ret;
             });
         }
     }
@@ -3911,8 +3900,16 @@ module.exports = class YABDP4Nitro {
     } //End of emojiBypass()
 
     //#region Fake Inline Emoji
-    inlineFakemojiPatch(){
+    async inlineFakemojiPatch(){
         //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
+
+        if(!this.messageRenderMod) this.messageRenderMod = await Webpack.waitForModule(Webpack.Filters.bySource(".SEND_FAILED,"), {defaultExport: false, signal:controller.signal})
+        if(!this.messageRenderMod){
+            Logger.warn("messageRenderMod is undefined.");
+            return;
+        }
+        const messageRender = Object.values(this.messageRenderMod).find(o => typeof o === "object");
+
         Patcher.before(messageRender, "type", (_, [args]) => {
             for(let i = 0; i < args.content.length; i++){
                 let contentItem = args.content[i];
@@ -4237,31 +4234,39 @@ module.exports = class YABDP4Nitro {
             args[0].canAnimate = true;
         });
 
-        //Patch getBannerURL function
+        //set user to render with premium rendering
+        Patcher.after(UserProfileStore, "getUserProfile" ,(_, [userId], ret) => {
+            if(ret != undefined){
+                if(ret.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`)){
+                    ret.premiumType = 2;
+                    return;
+                }
+                let perServer = this.getRevealedTextPerServer(userId,`\uDB40\uDC42\uDB40\uDC7B`);
+                if(perServer){
+                    ret.premiumType = 2;
+                }
+            }
+        });
 
-        //TODO -- fix this shit
-        return;
-        Patcher.instead(getBannerURLMod?.prototype, "getBannerURL", (user, [args], ogFunction) => {
+        function getBannerUrl(user, self){
             let profile = user?._userProfile;
 
-            if(profile == undefined) return ogFunction(args);
+            if(profile == undefined) return;
 
             if(settings.userBgIntegration){ //if userBg integration is enabled
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
                     //if user is in userBg database,
                     if(usrBgData?.users[user.userId]){
-                        profile.banner = "funky_kong_is_epic"; //set banner id to fake value
-                        profile.premiumType = 2; //set this profile to appear with premium rendering
                         return `${endpoint}/${bucket}/${prefix}${user.userId}?${usrBgData?.users[user.userId]}`; //return userBg banner URL and exit.
                     }
                 }
             }
 
             //reveal 3y3 encoded text, store as parsed
-            let parsed = this.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
+            let parsed = self.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function
-            if(parsed == undefined) return ogFunction(args);
+            if(parsed == undefined) return;
 
             //This regex matches B{*} . Do not touch unless you know what you are doing.
             let regex = /B\{[^}]*?\}/;
@@ -4270,7 +4275,7 @@ module.exports = class YABDP4Nitro {
             let matches = parsed.toString().match(regex);
 
             //if there's no matches, return original function
-            if(matches == undefined) return ogFunction(args);
+            if(matches == undefined) return;
 
             //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
             let matchedText = matches[0].replace("B{","").replace("}","");
@@ -4280,18 +4285,23 @@ module.exports = class YABDP4Nitro {
                 matchedText += ".gif"; //Fallback to a default file extension if one is not found.
             }
 
-            //set banner id to fake value
-            profile.banner = "funky_kong_is_epic";
-
-            //set this profile to appear with premium rendering
-            profile.premiumType = 2;
-
             //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
             if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
 
             //return final banner URL.
             return `https://i.imgur.com/${matchedText}`;
-        }); //End of patch for getBannerURL
+        }
+
+        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
+            nodePatcher.patch(ret, (props, res) => {
+                let bannerUrl = getBannerUrl(props.displayProfile, this);
+                if(bannerUrl){
+                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
+                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
+                    }
+                }
+            });
+        });
     } //End of bannerUrlDecoding()
     //#endregion
 
@@ -4449,12 +4459,6 @@ module.exports = class YABDP4Nitro {
 
     //#region App Icons
     appIcons(){
-
-        // TODO - fix this shit
-
-        let renderFn = this.findMangledName(AppIcon, x=>x, "AppIcon");
-        if(!renderFn) return;
-
         //restore app icon on start
         Dispatcher.dispatch({
             type: "APP_ICON_UPDATED",
@@ -4462,11 +4466,11 @@ module.exports = class YABDP4Nitro {
         });
 
         Dispatcher.subscribe("APP_ICON_UPDATED", this.saveAppIcon);
-
-        Patcher.instead(AppIcon, renderFn, () => {
+        
+        Patcher.instead(RegularAppIcon, "render", (_,[args],ogFunction) => {
             const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
-                return React.createElement(RegularAppIcon, {
+                return React.createElement(ogFunction, {
                     size: "custom",
                     color: "currentColor",
                     width: 24,
@@ -4477,7 +4481,7 @@ module.exports = class YABDP4Nitro {
                     id: currentDesktopIcon,
                     size: 40
                 });
-            } 
+            }
         });
     }
     //#endregion
