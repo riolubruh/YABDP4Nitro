@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.15
+ * @version 6.8.16
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -66,7 +66,7 @@ const [
     MessageEmojiReact,
     renderEmbedsMod,
     clientThemesModule,
-    streamSettingsMod, //borked
+    // streamSettingsMod, //borked
     accountSwitchModule,
     getAvatarUrlModule,
     isEmojiAvailableMod,
@@ -80,7 +80,6 @@ const [
     themesModule,
     NameplateSectionMod,
     CanUserUseMod,
-    loadMP4Box,
     DMTag,
     GIFPickerRender,
     DiscordCopyToClipboardFn,
@@ -111,7 +110,7 @@ const [
         renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
     }},
     {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
-    {filter: Webpack.Filters.byPrototypeKeys('getCodecCapabilities')}, //streamSettingsMod
+    // {filter: Webpack.Filters.byPrototypeKeys('getCodecCapabilities')}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
@@ -127,7 +126,6 @@ const [
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
     {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), defaultExport:false}, //NameplateSectionMod
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
-    {filter: Webpack.Filters.byStrings("mp4boxInputFile.boxes")}, //load MP4Box
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
@@ -228,15 +226,14 @@ const defaultSettings = {
     "userPfpIntegration": true,
     "userBgIntegration": true,
     "useClipBypass": true,
-    "alwaysTransmuxClips": true,
     "forceClip": false,
     "checkForUpdates": true,
     "fakeInlineVencordEmotes": true,
-    "soundmojiEnabled": true,
+    "soundmojiEnabled": false,
     "useAudioClipBypass": true,
     "forceAudioClip": false,
     "zipClip": true,
-    "enableClipsExperiment": true,
+    "enableClipsExperiment": false,
     "disableUserBadge": false,
     "nameplatesEnabled": true,
     "clipTimestamp": 2,
@@ -276,21 +273,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.15",
+        "version": "6.8.16",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.15",
+            title: "6.8.16",
             items: [
-                "Fixed Fake Profile Banners bypass (UI still not fixed yet)",
-                "Fixed Remove Screen Share Nitro Upsell not working.",
-                "Fixed NOT STAFF tag appearing on DMs when it shouldn't.",
-                "Fixed Stream Sharpener (PIP player)",
-                "Fixed Unlock App Icons not working correctly.",
-                "Fixed plugin not working after another Discord update (cannot convert undefined or null to object)."
+                "Remove custom Copy URL button from Expression Picker context menu if Discord's Copy Media URL button (from Developer Mode) is already there.",
+                "Remove usage of MP4Box in the plugin for Video Clips to not have to transmux if it's not necessary. Always transmuxing is now the default behavior, and the related option has been removed.",
+                "Soundmoji and Enable Clips Experiment are now disabled by default.",
+                "Known issues: Force Video Codec and all the UI for fake profile customization except Display Name Styles are still not fixed. I'm hoping to wait for an update to BD that will make things easier. Please do not report these issues for this version."
             ]
         }
     ],
@@ -413,7 +408,6 @@ const config = {
                         { label: "Last Modified Date/Time of File", value: 2 },
                     ]
                 },
-                { type: "switch", id: "alwaysTransmuxClips", name: "Force Transmuxing", note: "Always transmux the video, even if transmuxing would normally be skipped. Transmuxing is only ever skipped if the codec does not include AVC1 or includes MP42. There's really no reason to disable this.", value: () => settings.alwaysTransmuxClips },
                 { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
                 { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
                 { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
@@ -1122,7 +1116,7 @@ module.exports = class YABDP4Nitro {
                         let finder = res._reactInternals;
                         let count = 0;
                         while(finder){
-                            if(finder?.child?.pendingProps?.backgroundKey) break;
+                            if(finder?.pendingProps?.backgroundKey) break;
                             else{
                                 finder = finder.child;
                                 count++;
@@ -1130,65 +1124,62 @@ module.exports = class YABDP4Nitro {
                             }
                         }
                         if(finder){
-                            let ogType = finder.pendingProps.children.type;
-                            if(ogType){
-                                nodePatcher.patch(finder.child, (args,ret) => {
-                                    const userId = args?.backgroundKey?.split?.(":")?.[3];
-                                    if(userId){
-                                        if(userId != CurrentUser.id){
-                                            let sharpnessPercent = 0;
-                            
-                                            if(settings.userSharpenPreferences?.[userId]) {
-                                                sharpnessPercent = settings.userSharpenPreferences[userId];
-                                            }
-                                            let normalPercent = 100 - sharpnessPercent;
-                        
-                                            // This is to change the intensity when the user changes the size of the PIP window.
-                                            // It only updates after they stop dragging the mouse, but it's not that big of a deal,
-                                            // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
-                                            // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
-                                            // to get the approximate percent of the screen that is covered by the stream
-                                            let widthOfStreamComparedToScreen = args.width / screen.width;
-                        
-                                            let filterIntensityFactoringScreen;
-                                            filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
-                                            if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
-                                            //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
-                            
-                                            ret.props.children.push(React.createElement('svg',{
-                                                children: [
-                                                    React.createElement("filter",{
-                                                        id: "yabd-svgSharpen-" + userId + "-pip",
-                                                        colorInterpolationFilters: "sRGB",
-                                                        children: [
-                                                            React.createElement('feConvolveMatrix',{
-                                                                order: "3",
-                                                                kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
-                                                                result: "sharpen"
-                                                            }),
-                                                            React.createElement('feComposite',{
-                                                                in: "SourceGraphic",
-                                                                in2: "sharpen",
-                                                                operator: "arithmetic",
-                                                                k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
-                                                                result: "userPreference"
-                                                            }),
-                                                            React.createElement('feComposite',{
-                                                                in: "SourceGraphic",
-                                                                in2: "userPreference",
-                                                                operator: "arithmetic",
-                                                                k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
-                                                            })
-                                                        ]
-                                                    })
-                                                ]
-                                            }));
-                        
-                                            ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
+                            nodePatcher.patch(finder, (args,ret) => {
+                                const userId = args?.backgroundKey?.split?.(":")?.[3];
+                                if(userId){
+                                    if(userId != CurrentUser.id){
+                                        let sharpnessPercent = 0;
+
+                                        if(settings.userSharpenPreferences?.[userId]) {
+                                            sharpnessPercent = settings.userSharpenPreferences[userId];
                                         }
+                                        let normalPercent = 100 - sharpnessPercent;
+
+                                        // This is to change the intensity when the user changes the size of the PIP window.
+                                        // It only updates after they stop dragging the mouse, but it's not that big of a deal,
+                                        // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
+                                        // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
+                                        // to get the approximate percent of the screen that is covered by the stream
+                                        let widthOfStreamComparedToScreen = args.width / screen.width;
+
+                                        let filterIntensityFactoringScreen;
+                                        filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
+                                        if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
+                                        //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
+
+                                        ret.props.children.push(React.createElement('svg',{
+                                            children: [
+                                                React.createElement("filter",{
+                                                    id: "yabd-svgSharpen-" + userId + "-pip",
+                                                    colorInterpolationFilters: "sRGB",
+                                                    children: [
+                                                        React.createElement('feConvolveMatrix',{
+                                                            order: "3",
+                                                            kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
+                                                            result: "sharpen"
+                                                        }),
+                                                        React.createElement('feComposite',{
+                                                            in: "SourceGraphic",
+                                                            in2: "sharpen",
+                                                            operator: "arithmetic",
+                                                            k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
+                                                            result: "userPreference"
+                                                        }),
+                                                        React.createElement('feComposite',{
+                                                            in: "SourceGraphic",
+                                                            in2: "userPreference",
+                                                            operator: "arithmetic",
+                                                            k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
+                                                        })
+                                                    ]
+                                                })
+                                            ]
+                                        }));
+
+                                        ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
                     });
                 });
@@ -1323,15 +1314,18 @@ module.exports = class YABDP4Nitro {
 
             try {
                 if(reactElem?.props?.children?.props?.children){
-                    reactElem.props.children.props.children.push(
-                        ContextMenu.buildItem({
-                            id: "yabd-copy-url-expression-picker",
-                            label: "Copy URL",
-                            action: () => {
-                                copyToClipboard(src);
-                            }
-                        })
-                    );
+                    //add copy url button only if the developer mode copy url isnt there already
+                    if(reactElem.props.children.props.children.filter(x=>x?.props?.id == "copy-image-link")?.length == 0){
+                        reactElem.props.children.props.children.push(
+                            ContextMenu.buildItem({
+                                id: "yabd-copy-url-expression-picker",
+                                label: "Copy URL",
+                                action: () => {
+                                    copyToClipboard(src);
+                                }
+                            })
+                        );
+                    }
                     reactElem.props.children.props.children.push(
                         ContextMenu.buildItem({
                             id: "yabd-open-url-expression-picker",
@@ -1887,12 +1881,6 @@ module.exports = class YABDP4Nitro {
         // currently they use useExperiment to check if they should appear, which is a function that I can't patch
         // and remaking the respective React elements sounds really difficult
 
-        if(!this.MP4Box){
-            try{
-                await loadMP4Box();
-            }catch(e){}
-            this.MP4Box = Webpack.getByKeys('MP4BoxStream');
-        }
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
         async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
@@ -1956,6 +1944,13 @@ module.exports = class YABDP4Nitro {
                     Logger.info(`File Type: "${currentFile.file?.type}"`);
                 }
             }
+
+            function concatArrayBuffers(buf1, buf2){
+                let newArray = new Uint8Array(buf1.byteLength + buf2.byteLength);
+                newArray.set(new Uint8Array(buf1), 0);
+                newArray.set(new Uint8Array(buf2), buf1.byteLength);
+                return newArray.buffer;
+            }
 			
             //for each file being added
             for(let i = 0; i < args.files.length; i++){
@@ -1994,93 +1989,13 @@ module.exports = class YABDP4Nitro {
                         break;
                 }
 
-                // #region MP4 Clip
+                // #region Video Clip
                 //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip AND is less than or equal to 100mb
                 if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") 
                         && !skippedVideoTypes.includes(currentFile.file.type) && currentFile.file.size <= 104857590){
-					//if this file is an mp4 file
-                    if(currentFile.file.type == "video/mp4"){
-                        let dontStopMeNow = true;
-                        let mp4BoxFile = this.MP4Box.createFile();
-                        mp4BoxFile.onError = (e) => {
-                            Logger.error(e);
-                            dontStopMeNow = false;
-                        };
-                        mp4BoxFile.onReady = async (info) => {
-                            mp4BoxFile.flush();
-
-                            try {
-                                //check if file is H264 or H265
-                                if(info.videoTracks[0]?.codec?.startsWith("avc") || info.videoTracks[0]?.codec?.startsWith("hev1")){
-
-                                    let hasTransmuxed = false;
-                                    if(!info.brands.includes("avc1") || info.brands.includes("mp42") || settings.alwaysTransmuxClips){
-                                        arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
-                                        hasTransmuxed = true;
-                                    }
-
-                                    let isMetadataPresent = false;
-
-                                    //skip if we transmuxed since we know it won't have the tag
-                                    if(!hasTransmuxed){
-                                        //Is this file already a Discord clip?
-                                        for(let j = 0; j < mp4BoxFile.boxes.length; j++){
-                                            if(mp4BoxFile.boxes[j].type == "uuid"){
-                                                isMetadataPresent = true;
-                                            }
-                                        }
-                                    }
-
-                                    //If this file is not a Discord clip, append udtaBuffer
-                                    if(!isMetadataPresent){
-
-                                        let array1 = ArrayBuffer.concat(arrayBuffer, udtaBuffer);
-
-                                        let video = new File([new Uint8Array(array1)], currentFile.file.name, { type: "video/mp4" });
-
-                                        currentFile.file = video;
-                                    }
-
-                                }else{
-                                    //file is not H264 or H265, but is an mp4
-                                    arrayBuffer = await ffmpegTransmux(arrayBuffer, currentFile.file.name);
-                                    let array1 = ArrayBuffer.concat(arrayBuffer, udtaBuffer);
-                                    let video = new File([new Uint8Array(array1)], currentFile.file.name, { type: "video/mp4" });
-
-                                    currentFile.file = video;
-                                }
-
-                                //send as a "clip"
-                                currentFile.clip = clipData;
-                            } catch(err){
-                                errorHandler(err, currentFile);
-                            } finally {
-                                dontStopMeNow = false;
-                            }
-                        };
-
-                        let arrayBuffer;
-                        currentFile.file.arrayBuffer().then(obj => {
-                            arrayBuffer = obj;
-                            arrayBuffer.fileStart = 0;
-                            //examine file with mp4Box.
-                            mp4BoxFile.appendBuffer(arrayBuffer);
-                            //onReady will run after the buffer is appended successfully
-                        });
-
-                        //wait for onReady to finish
-                        while (dontStopMeNow){
-                            await new Promise(r => setTimeout(r, 10));
-                        }
-                    
-                    }
-                    // #endregion
-                    // #region Other Video Clip
-                    else if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
+                    if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
                         continue;
-                    }
-                    else{
-                        //Is a video file, but not MP4
+                    }else{
                         let outFileName = "output.mp4";
 
                         //AVI file warning
@@ -2096,7 +2011,7 @@ module.exports = class YABDP4Nitro {
                                 outFileName = "output.mov";
                             }
 
-                            let array1 = ArrayBuffer.concat(await ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
+                            let array1 = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
 
                             let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", { type: "video/mp4" });
 
@@ -2129,7 +2044,7 @@ module.exports = class YABDP4Nitro {
                             UI.showToast("AC3 will send but playback is only supported on mobile!", {type: "warn"});
                         }
 
-                        let array1 = ArrayBuffer.concat(await ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
+                        let array1 = concatArrayBuffers(await ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
 
                         let video = new File([new Uint8Array(array1)], clipData.name + ".mp4", { type: "video/mp4" });
 
@@ -2164,7 +2079,7 @@ module.exports = class YABDP4Nitro {
                             "-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4"];
 
                         clipMaBuffer = await ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
-                        clipMaBuffer = ArrayBuffer.concat(clipMaBuffer, udtaBuffer);
+                        clipMaBuffer = concatArrayBuffers(clipMaBuffer, udtaBuffer);
                     }
 
                     if(clipMaBuffer){
@@ -2262,7 +2177,7 @@ module.exports = class YABDP4Nitro {
                         }
     
                         try {
-                            let newArrBuf = ArrayBuffer.concat(clipMaBuffer, zipFile);
+                            let newArrBuf = concatArrayBuffers(clipMaBuffer, zipFile);
                             
                             let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
                             currentFile.file = newFile;
