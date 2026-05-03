@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.16
+ * @version 6.8.17
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -66,7 +66,7 @@ const [
     MessageEmojiReact,
     renderEmbedsMod,
     clientThemesModule,
-    // streamSettingsMod, //borked
+    streamSettingsMod,
     accountSwitchModule,
     getAvatarUrlModule,
     isEmojiAvailableMod,
@@ -78,7 +78,6 @@ const [
     CloudUploader,
     InvalidStreamSettingsModal,
     themesModule,
-    NameplateSectionMod,
     CanUserUseMod,
     DMTag,
     GIFPickerRender,
@@ -94,8 +93,7 @@ const [
     CustomUserPanelState,
     UserContextMenuFunctions,
     UserAvatar,
-    StreamButtons,
-    PremiumUpsellOverlay
+    StreamButtons
 ] = Webpack.getBulk(
     {filter: Webpack.Filters.bySource('pendingBanner', 'displayProfile', 'foreignObject'), map: {
         renderBanner: x=>x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
@@ -110,7 +108,9 @@ const [
         renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
     }},
     {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
-    // {filter: Webpack.Filters.byPrototypeKeys('getCodecCapabilities')}, //streamSettingsMod
+    {filter: Webpack.Filters.bySource('getCodecOptions'), mapDeclarations:true, map:{
+        Connection: x=>x?.prototype?.getCodecOptions
+    }}, //streamSettingsMod
     {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
     {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
     {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
@@ -124,7 +124,6 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
-    {filter: Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), defaultExport:false}, //NameplateSectionMod
     {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
@@ -164,9 +163,6 @@ const [
         ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
         ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
         ApplicationStreamResolutions: o => o?.RESOLUTION_1440
-    }},
-    {filter: Webpack.Filters.bySource("PREMIUM_UPSELL_OVERLAY", "showOverlay", "PREMIUM_UPSELL_VIEWED"), map:{
-        render: x=>x
     }}
 );
 const {
@@ -178,8 +174,8 @@ const {
 //#endregion
 const fs = require("fs");
 const path = require("path");
-let CurrentUser = UserStore.getCurrentUser();
-const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
+let CurrentUser = UserStore?.getCurrentUser();
+const ORIGINAL_NITRO_STATUS = CurrentUser?.premiumType;
 const nodePatcher = ReactUtils.createNodePatcher();
 
 //clips related variables
@@ -273,19 +269,22 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.16",
+        "version": "6.8.17",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.16",
+            title: "6.8.17",
             items: [
-                "Remove custom Copy URL button from Expression Picker context menu if Discord's Copy Media URL button (from Developer Mode) is already there.",
-                "Remove usage of MP4Box in the plugin for Video Clips to not have to transmux if it's not necessary. Always transmuxing is now the default behavior, and the related option has been removed.",
-                "Soundmoji and Enable Clips Experiment are now disabled by default.",
-                "Known issues: Force Video Codec and all the UI for fake profile customization except Display Name Styles are still not fixed. I'm hoping to wait for an update to BD that will make things easier. Please do not report these issues for this version."
+                "Fixed Profile Banners UI.",
+                "Fixed Avatar Decoration UI.",
+                "Fixed Profile Effect UI.",
+                "Fixed Fake Profile Picture UI.",
+                "Fixed Fake Nameplate UI.",
+                "Fixed Force Video Codec.",
+                "Removed Herobrine."
             ]
         }
     ],
@@ -648,7 +647,6 @@ module.exports = class YABDP4Nitro {
         if(settings.fakeProfileBanners){
             try{
                 this.bannerUrlDecoding();
-                this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
             }catch(err){
                 Logger.error(err);
             }
@@ -696,7 +694,6 @@ module.exports = class YABDP4Nitro {
         if(settings.customPFPs){
             try {
                 this.customProfilePictureDecoding();
-                this.customProfilePictureEncoding(this.secondsightifyEncodeOnly);
             } catch(err){
                 Logger.error("An error occurred during customProfilePicture decoding/encoding. " + err);
             }
@@ -764,7 +761,7 @@ module.exports = class YABDP4Nitro {
 
         if(settings.videoCodec2 > -1){
             try{
-                // this.videoCodecs();
+                this.videoCodecs();
             }catch(err){
                 Logger.error(err);
             }
@@ -851,10 +848,10 @@ module.exports = class YABDP4Nitro {
             });
         }
 
-        if(settings.fakeProfileBanners || settings.fakeProfileThemes || settings.customPFPs){
-            Patcher.before(PremiumUpsellOverlay, "render", (_,[args]) => {
-                args.showOverlay = false;
-            });
+        try{
+            this.settingsUI();
+        }catch(err){
+            Logger.error(err);
         }
 
         /* try{
@@ -865,6 +862,759 @@ module.exports = class YABDP4Nitro {
     } //End of saveAndUpdate()
     // #endregion
 
+    async settingsUI(){
+        if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
+        if(!this.settingsUIMod){
+            Logger.warn("Settings UI module was undefined.");
+            return;
+        }
+        if(!this.settingsUIMod.declarations){
+            UI.showToast("[YABDP4Nitro] Update your BetterDiscord!",{type: "error",forceShow: true});
+            return;
+        }
+
+        if(settings.fakeProfileBanners || settings.fakeProfileThemes || settings.customPFPs){
+            this.perServerSection();
+        }
+
+        if(settings.nameplatesEnabled){
+            try{
+                this.nameplatesUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeAvatarDecorations){
+            try{
+                this.avatarDecorationsUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.customPFPs){
+            try{
+                this.customPfpUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.profileEffects){
+            try{
+                this.profileFxUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeProfileBanners){
+            try{
+                this.bannerUrlUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeProfileThemes){
+            try{
+                this.profileThemesUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+    }
+
+    // #region Custom PFP UI
+    //Custom PFP profile customization buttons and encoding code.
+    customPfpUI(){
+        function emptyWarn(){
+            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
+        }
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        let AvatarSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), "AvatarSection");
+        if(!AvatarSectionFnName) return;
+
+        Patcher.before(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args]) => {
+            args.disabled = false;
+        });
+
+        Patcher.after(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(!ret) return;
+
+            //don't need to do anything if this is the "Try out Nitro" flow.
+            if(args.isTryItOut) return;
+
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(
+                    React.createElement("div", {
+                        style: {
+                            display: "flex",
+                            marginTop: "4px",
+                        },
+                        children: [
+                            React.createElement("input", {
+                                id: "profilePictureUrlInput",
+                                style: {
+                                    maxWidth: "112px",
+                                    marginTop: "4px",
+                                },
+                                placeholder: "PFP Imgur URL"
+                            }),
+                            //Create and append Copy PFP 3y3 button.
+                            React.createElement("button",{
+                                children: "Copy PFP 3y3",
+                                className: `yabd-generic-button`,
+                                id: "profilePictureButton",
+                                style: {
+                                    marginLeft: "5px",
+                                    whiteSpace: "nowrap"
+                                },
+                                onClick: async function() { //on copy pfp 3y3 button click
+
+                                    //grab text from pfp url input textarea.
+                                    let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
+
+                                    //empty, skip.
+                                    if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
+                                        emptyWarn();
+                                        return;
+                                    }
+
+                                    //clean up string to encode
+                                    let stringToEncode = "" + profilePictureUrlInputValue
+                                        //clean up URL
+                                        .replace("http://","") //remove protocol
+                                        .replace("https://","")
+                                        .replace("i.imgur.com","imgur.com");
+
+                                    let encodedStr = ""; //initialize encoded string as empty string
+                                    stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                    //if url seems correct
+                                    if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
+
+                                        //Check for album or gallery URL
+                                        if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
+                                            //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                            //Fetch imgur album page
+                                            try {
+                                                const parser = new DOMParser();
+                                                stringToEncode = await Net.fetch(("https://" + stringToEncode),{
+                                                    method: "GET",
+                                                    mode: "cors"
+                                                }).then(res => res.text()
+                                                    //parse html, queryselect meta tag with certain name
+                                                    .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
+                                                stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
+                                                    .replace("https://","") //get rid of protocol
+                                                    .replace("i.imgur.com","imgur.com")
+                                                    .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
+                                                    .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                            } catch(err) {
+                                                Logger.error(err);
+                                                UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
+                                                return;
+                                            }
+                                        }
+                                        if(stringToEncode == "") {
+                                            UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
+                                            Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
+                                        }
+
+                                        //add starting "P{" , remove "imgur.com/" , and add ending "}"
+                                        stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
+                                        //finally encode the string, adding a space before it so nothing fucks up
+                                        encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                        //If this is not an Imgur URL, yell at the user.
+                                    } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
+                                        UI.showToast("Please use Imgur!",{type: "warning"});
+                                        return;
+                                    }
+
+                                    //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                    if(encodedStr == "") return;
+
+                                    copyToClipboard(encodedStr,"3y3 copied to clipboard!");
+
+                                } //end copy pfp 3y3 click event
+                            }) //end of react createElement of button
+                        ]
+                        }) //end of react createElement of div
+                ); //end of element push
+            }
+        }); //end of patch
+    } //End of customPfpUI()
+    // #endregion
+
+    //#region Per Server
+    perServerSection(){
+        const PremiumUpsellOverlay = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("PREMIUM_UPSELL_OVERLAY", "showOverlay", "PREMIUM_UPSELL_VIEWED"));
+        if(PremiumUpsellOverlay){
+            Patcher.before(this.settingsUIMod.declarations, PremiumUpsellOverlay, (_,[args]) => {
+                args.showOverlay = false;
+            });
+        }
+    }
+    //#endregion
+
+    //#region Nameplates UI
+    nameplatesUI(){
+        let NameplateSection = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), "NameplateSection");
+        if(NameplateSection){
+            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+            function NameplateList({NameplatePreviewName}){
+                let [query, setQuery] = React.useState("");
+
+                let nameplatesList = [];
+
+                if(NameplatePreview){
+                    if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1){
+                        return React.createElement('h1', {
+                            children: "No nameplates were found!",
+                            style: {
+                                color: "red",
+                                fontWeight: "bold"
+                            }
+                        });
+                    } else{
+                        const listOfNameplates = Object.values(data.nameplatesV2);
+                        const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
+
+                        for(let i = 0; i < listOfNameplates.length; i++){
+                            let nameplate = listOfNameplates[i];
+                            let skuId = listOfNameplateSkuIds[i];
+                            if(nameplate) {
+                                if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
+                                    continue;
+                                }
+                                nameplatesList.push(React.createElement('div',{
+                                    children: React.createElement(NameplatePreview[NameplatePreviewName].type, {
+                                        user: CurrentUser,
+                                        isHighlighted: true,
+                                        nameplate: {
+                                            asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
+                                            palette: nameplate.palette,
+                                            skuId,
+                                            label: nameplate.label ? nameplate.label : ""
+                                        },
+                                        isPurchased: true
+                                    }),
+                                    style: {
+                                        borderRadius: "10px",
+                                        width: "95%",
+                                        marginLeft: "auto",
+                                        marginRight: "auto",
+                                        height: "42px",
+                                        marginTop: "10px",
+                                        position: "relative",
+                                        top: '5px',
+                                        cursor: "pointer",
+                                    },
+                                    onClick: () => {
+                                        //make 3y3 string
+                                        let strToEncode = `n{${skuId},${nameplate.palette}}`;
+                                        let encodedStr = secondsightifyEncodeOnly(strToEncode);
+        
+                                        copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!")
+                                    },
+                                    title: nameplate.name
+                                }));
+                            }
+                        }
+                        return React.createElement('div', {
+                            children: [
+                                React.createElement(Components.TextInput, {
+                                    value: query,
+                                    placeholder: "Search...",
+                                    onChange: (input) => setQuery(input)
+                                }),
+                                React.createElement('br'),
+                                React.createElement('div', {
+                                    children: nameplatesList
+                                })
+                            ],
+                        });
+                    }
+                }else{
+                    return React.createElement('h1',{
+                        children: "Error: Nameplate Preview element is undefined!",
+                        style: {
+                            color: "red",
+                            fontWeight: "bold"
+                        }
+                    });
+                }
+            }
+
+            const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
+
+            Patcher.after(this.settingsUIMod.declarations, NameplateSection, (_, [args], ret) => {
+                //disable for per-server profiles screen
+                if(args?.guild && ORIGINAL_NITRO_STATUS != 2) return;
+                
+                if(ret?.props?.children){
+                    ret.props.children = [ret.props.children];
+                    ret.props.children.push(React.createElement("button",{
+                        className: `yabd-generic-button`,
+                        style: {
+                            height: "30px",
+                            marginTop: "8px",
+                            width: "auto",
+                            height: "30px"
+                        },
+                        children: "Change Nameplate [YABDP4Nitro]",
+                        onClick: () => {
+                            UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList, {NameplatePreviewName}), {cancelText: ""})
+                        }
+                    }))
+                }
+            });
+        }
+    }
+    //#endregion
+
+    //#region Avatar Decorations UI
+    avatarDecorationsUI(){
+        let decorationCustomizationSectionName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings('pendingAvatarDecoration', 'forcedDivider'));
+
+        //Avatar decoration customization section patch
+        Patcher.after(this.settingsUIMod.declarations, decorationCustomizationSectionName, (_, [args], ret) => {
+            if(!args) return;
+
+            //don't run if this is the try out nitro flow.
+            if(args.isTryItOut) return;
+
+            //disable for the per-server profiles screen
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
+
+            //push change decoration button
+            if(ret?.props?.children?.props?.children){
+                ret.props.children.props.children.push(
+                    React.createElement("button", {
+                        id: "decorationButton",
+                        children: "Change Decoration [YABDP4Nitro]",
+                        style: {
+                            width: "100px",
+                            height: "50px",
+                            color: "white",
+                            marginLeft: "5px",
+                        },
+                        className: "yabd-generic-button",
+                        onClick: () => {
+                            UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
+                        }
+                    })
+                );
+            }else{
+                Logger.error("Decoration Section ain't right chief.")
+            }
+
+            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+            function AvatarDecorations(){
+                if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
+                let listOfDecorationIds = Object.keys(data.avatarDecorations);
+                let avatarDecorationChildren = [];
+
+                //for each avatar decoration
+                for(let i = 0; i < listOfDecorationIds.length; i++){
+
+                    const decorationId = listOfDecorationIds[i];
+                    const assetHash = data.avatarDecorations[decorationId];
+
+                    if(decorationId && assetHash){
+                        //remove existing nameplates from decoration list
+                        if(assetHash.includes('nameplate')){
+                            delete data.avatarDecorations[decorationId];
+                            continue;
+                        }
+    
+                        //encode to 3y3 and store clipboard copy in onclick event
+                        let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
+                        //javascript that runs onclick for each avatar decoration button
+                        
+                        let child = React.createElement("img", {
+                            style: {
+                                width: "23%",
+                                cursor: "pointer",
+                                marginLeft: "5px",
+                                marginBottom: "10px",
+                                borderRadius: "4px",
+                                backgroundColor: "var(--background-base-lower)"
+                            },
+                            onClick: () => {
+                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
+                            },
+                            onMouseOver: (e) => {
+                                e.target.src = e.target.src.replace('.webp','.png');
+                            },
+                            onMouseLeave: (e) => {
+                                e.target.src = e.target.src.replace('.png','.webp');
+                            },
+                            src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
+                        });
+                        avatarDecorationChildren.push(child);
+    
+                        //add newline every 4th decoration
+                        if((i + 1) % 4 == 0){
+                            //avatarDecorationsHTML += "<br>"
+                            avatarDecorationChildren.push(React.createElement("br"));
+                        }
+                    }
+                }
+                return React.createElement('div', {
+                    children: avatarDecorationChildren
+                });
+            }
+
+            function DecorModal(){
+                return React.createElement("div", {
+                    style: {
+                        width: "100%",
+                        display: "block",
+                        color: "white",
+                        whiteSpace: "nowrap",
+                        overflow: "visible",
+                        marginTop: ".5em"
+                    },
+                    children: React.createElement(AvatarDecorations)
+                });
+            }
+
+        }); //end patch of profile decoration section renderer function
+    }
+    //#endregion
+
+    //#region Effects UI
+    profileFxUI(){
+        let ProfileEffectSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), "ProfileEffectSection");
+        if(!ProfileEffectSectionFnName) return;
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        //patch profile effect section renderer function
+        Patcher.after(this.settingsUIMod.declarations, ProfileEffectSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(args.isTryItOut) return;
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
+            if(!ret?.props?.children?.props?.children) return;
+
+            function ProfileEffects({query}){
+
+                let profileEffectChildren = [];
+                let actualRuns = 0;
+
+                let profileEffectsArray = Object.values(profileEffects);
+                //for each profile effect
+                for(let i = 0; i < profileEffectsArray.length; i++){
+
+                    //get preview image url
+                    const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
+                    const title = profileEffectsArray[i].title;
+
+                    //search
+                    if(query.trim() != "") {
+                        if(title) {
+                            if(!title.toLowerCase().includes(query)) continue;
+                        } else continue;
+                    }
+
+                    //encode 3y3
+                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
+                    //javascript that runs onclick for each profile effect button
+                    let copyDecoration3y3 = function(){
+                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
+                    };
+
+                    profileEffectChildren.push(
+                        React.createElement("img", {
+                            className: "riolubruhsSecretStuff",
+                            onClick: copyDecoration3y3,
+                            src: previewURL,
+                            title,
+                            style: {
+                                width: "22.5%",
+                                cursor: "pointer",
+                                marginBottom: "0.5em",
+                                marginLeft: "0.5em",
+                                backgroundColor: "var(--background-base-lower)"
+                            }
+                        })
+                    );
+
+                    //add newline every 4th profile effect
+                    if((actualRuns + 1) % 4 == 0){
+                        profileEffectChildren.push(
+                            React.createElement("br")
+                        );
+                    }
+
+                    actualRuns++;
+                }
+                return React.createElement('div', {
+                    children: profileEffectChildren,
+                    style: {
+                        paddingTop: "10px"
+                    }
+                });
+            }
+
+            //Profile Effects Modal
+            function EffectsModal(){
+                const [query, setQuery] = React.useState("");
+
+                return React.createElement("div", {
+                    style: {
+                        width: "100%",
+                        display: "block",
+                        color: "white",
+                        whiteSpace: "nowrap",
+                        overflow: "visible",
+                        marginTop: ".5em"
+                    },
+                    children: [
+                        React.createElement(Components.TextInput, {
+                            value: query,
+                            placeholder: "Search...",
+                            onChange: (input) => setQuery(input),
+                            style: {
+                                backgroundColor: `var(--control-secondary-background-default)`
+                            }
+                        }),
+                        React.createElement('br'),
+                        React.createElement(ProfileEffects, {query})
+                    ]
+                });
+            }
+
+            //Append Change Effect button
+            ret.props.children.props.children.push(
+                //self explanatory create react element
+                React.createElement("button", {
+                    children: "Change Effect [YABDP4Nitro]",
+                    className: `yabd-generic-button`,
+                    size: "bd-button-small",
+                    id: "changeProfileEffectButton",
+                    style: {
+                        width: "100px",
+                        height: "32px",
+                        color: "white",
+                        marginLeft: "4px"
+                    },
+                    onClick: () => {
+                        UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal), {cancelText:""});
+                    }
+
+                })
+            );
+        }); //end patch of profile effect section renderer function
+    }
+    //#endregion
+
+    //#region Banner UI
+    //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
+    bannerUrlUI(){
+
+        //wait for banner customization renderer module to be loaded
+        // if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
+        
+        let BannerSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), "BannerSection");
+        if(!BannerSectionFnName) return;
+
+        function emptyWarn(){
+            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
+        }
+
+        Patcher.before(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args]) =>  {
+            args.disabled = false;
+        });
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        Patcher.after(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args], ret) => {
+            
+            //create and append profileBannerUrlInput input element.
+            let profileBannerUrlInput = React.createElement("input", {
+                id: "profileBannerUrlInput",
+                placeholder: "Banner Imgur URL",
+                style: {
+                    float: "right",
+                    width: "116px",
+                    height: "20%",
+                    maxHeight: "50%",
+                    marginTop: "3px"
+                }
+            });
+
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(React.createElement('div',{
+                    style: {
+                        marginTop: "8px",
+                        display: "flex",
+                    },
+                    children: [
+                        profileBannerUrlInput,
+                        React.createElement("button", {
+                            id: "profileBannerButton",
+                            children: "Copy Banner 3y3",
+                            className: `yabd-generic-button`,
+                            size: "bd-button-small",
+                            style: {
+                                whiteSpace: "nowrap",
+                                marginLeft: "4px",
+                                width: "116px",
+                                height: "30px"
+                            },
+                            onClick: async function(){ //Upon clicking Copy 3y3 button
+
+                                //grab text from banner URL input textarea 
+                                let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
+
+                                //if it's empty, stop processing and issue a warning.
+                                if(profileBannerUrlInputValue == undefined){
+                                    emptyWarn();
+                                    return;
+                                }
+                                if(profileBannerUrlInputValue == ""){
+                                    emptyWarn();
+                                    return;
+                                }
+
+                                //clean up string to encode
+                                let stringToEncode = "" + profileBannerUrlInputValue
+                                    .replace("http://", "") //get rid of protocol
+                                    .replace("https://", "")
+                                    .replace(".jpg", "")
+                                    .replace(".png", "")
+                                    .replace(".mp4", "")
+                                    .replace("webm", "")
+                                    .replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
+
+
+                                let encodedStr = ""; //initialize encoded string as empty string
+
+                                stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                //if url seems correct
+                                if(stringToEncode.toLowerCase().startsWith("imgur.com")){
+
+                                    //Check for album or gallery URL
+                                    if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
+
+                                        //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                        //Fetch imgur album page
+                                        try {
+                                            const parser = new DOMParser();
+                                            stringToEncode = await Net.fetch(("https://" + stringToEncode), {
+                                                method: "GET",
+                                                mode: "cors"
+                                            }).then(res => res.text()
+                                                //parse html, queryselect meta tag with certain name
+                                                .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+                                            stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+                                                .replace("https://", "") //get rid of protocol
+                                                .replace("i.imgur.com", "imgur.com")
+                                                .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
+                                                .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                        } catch(err){
+                                            Logger.error(err);
+                                            UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                            return;
+                                        }
+                                    }
+                                    if(stringToEncode == ""){
+                                        UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                        Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
+                                        return;
+                                    }
+                                    //add starting "B{" , remove "imgur.com/" , and add ending "}"
+                                    stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
+                                    //finally encode the string, adding a space before it so nothing fucks up
+                                    encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                    //If this is not an Imgur URL, yell at the user.
+                                }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
+                                    UI.showToast("Please use Imgur!", { type: "warning" });
+                                    return;
+                                }
+
+                                //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                if(encodedStr == "") return;
+
+                                //copy to clipboard
+                                copyToClipboard(encodedStr, "3y3 copied to clipboard!");
+                                
+                            } //end of onClick function
+                        }) //end of button react createElement
+                    ] //end of children
+                }
+                )); //end of profileBannerButton element push
+            }
+
+        }); //end of patched function
+
+    } //End of bannerUrlUI()
+    //#endregion
+
+    //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
+    profileThemesUI(){
+        let profileThemesSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("__invalid_profileThemesSection"), "ProfileThemesSection");
+        if(!profileThemesSectionFnName) return;
+
+        Patcher.after(this.settingsUIMod.declarations, profileThemesSectionFnName, (_, [args], ret) => {
+            //enable in per-server profile section
+            ret.props.disabled = false;
+
+            ret.props.children.props.children.push( //append copy colors 3y3 button
+                React.createElement("button", {
+                    id: "copy3y3button",
+                    children: "Copy Colors 3y3",
+                    className: `yabd-generic-button`,
+                    style: {
+                        height: "32px",
+                        width: "auto",
+                        marginLeft: "10px",
+                        marginTop: "10px"
+                    },
+                    onClick: () => {
+                        let primary = args?.pendingColors?.[0];
+                        let accent = args?.pendingColors?.[1];
+
+                        if(isNaN(primary) || isNaN(accent)){
+                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
+                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
+                        }
+
+                        if(isNaN(primary) || isNaN(accent)){
+                            Logger.error("Primary:",primary,"Accent:",accent);
+                            UI.showToast("Nothing has been copied!", { type: "error" });
+                            return;
+                        }
+ 
+                        let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+
+                        const padding = "";
+                        let encoded = Array.from(message)
+                            .map(x => x.codePointAt(0))
+                            .filter(x => x >= 0x20 && x <= 0x7f)
+                            .map(x => String.fromCodePoint(x + 0xe0000))
+                            .join("");
+
+                        let encodedStr = ((padding || "") + " " + encoded);
+
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
+                    }
+                })
+            );
+        });
+
+    } //End of encodeProfileColors()
+    
     /* bookmarks(){
         const temp = Webpack.getById("216623");
 
@@ -1504,121 +2254,6 @@ module.exports = class YABDP4Nitro {
                 }
             }
         });
-
-        const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
-
-        //#region Nameplates UI
-        function NameplateList({NameplatePreviewName}){
-            let [query, setQuery] = React.useState("");
-
-            let nameplatesList = [];
-
-            if(NameplatePreview){
-                if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1){
-                    return React.createElement('h1', {
-                        children: "No nameplates were found!",
-                        style: {
-                            color: "red",
-                            fontWeight: "bold"
-                        }
-                    });
-                } else{
-                    const listOfNameplates = Object.values(data.nameplatesV2);
-                    const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
-
-                    for(let i = 0; i < listOfNameplates.length; i++){
-                        let nameplate = listOfNameplates[i];
-                        let skuId = listOfNameplateSkuIds[i];
-                        if(nameplate) {
-                            if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
-                                continue;
-                            }
-                            nameplatesList.push(React.createElement('div',{
-                                children: React.createElement(NameplatePreview[NameplatePreviewName].type, {
-                                    user: CurrentUser,
-                                    isHighlighted: true,
-                                    nameplate: {
-                                        asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
-                                        palette: nameplate.palette,
-                                        skuId,
-                                        label: nameplate.label ? nameplate.label : ""
-                                    },
-                                    isPurchased: true
-                                }),
-                                style: {
-                                    borderRadius: "10px",
-                                    width: "95%",
-                                    marginLeft: "auto",
-                                    marginRight: "auto",
-                                    height: "42px",
-                                    marginTop: "10px",
-                                    position: "relative",
-                                    top: '5px',
-                                    cursor: "pointer",
-                                },
-                                onClick: () => {
-                                    //make 3y3 string
-                                    let strToEncode = `n{${skuId},${nameplate.palette}}`;
-                                    let encodedStr = secondsightifyEncodeOnly(strToEncode);
-    
-                                    copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!")
-                                },
-                                title: nameplate.name
-                            }));
-                        }
-                    }
-                    return React.createElement('div', {
-                        children: [
-                            React.createElement(Components.TextInput, {
-                                value: query,
-                                placeholder: "Search...",
-                                onChange: (input) => setQuery(input)
-                            }),
-                            React.createElement('br'),
-                            React.createElement('div', {
-                                children: nameplatesList
-                            })
-                        ],
-                    });
-                }
-            }else{
-                return React.createElement('h1',{
-                    children: "Error: Nameplate Preview element is undefined!",
-                    style: {
-                        color: "red",
-                        fontWeight: "bold"
-                    }
-                });
-            }
-        }
-        
-        let NameplateSection = this.findMangledName(NameplateSectionMod, x=>x, "NameplateSection");
-        if(!NameplateSection) return;
-
-        const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
-
-        Patcher.after(NameplateSectionMod, NameplateSection, (_, [args], ret) => {
-            //disable for per-server profiles screen
-            if(args?.guild && ORIGINAL_NITRO_STATUS != 2) return;
-            
-            if(ret?.props?.children){
-                ret.props.children = [ret.props.children];
-                ret.props.children.push(React.createElement("button",{
-                    className: `yabd-generic-button`,
-                    style: {
-                        height: "30px",
-                        marginTop: "8px",
-                        width: "auto",
-                        height: "30px"
-                    },
-                    children: "Change Nameplate [YABDP4Nitro]",
-                    onClick: () => {
-                        UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList, {NameplatePreviewName}), {cancelText: ""})
-                    }
-                }))
-            }
-        });
-        //#endregion
     }
     //#endregion
 
@@ -1848,9 +2483,7 @@ module.exports = class YABDP4Nitro {
     }
 
     videoCodecs(){
-        //TODO - fix this shit
-        return;
-        Patcher.after(streamSettingsMod.prototype, "getCodecOptions", (_, args, ret) => {
+        Patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, args, ret) => {
             ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
         });
     }
@@ -2663,136 +3296,6 @@ module.exports = class YABDP4Nitro {
     }
     // #endregion
 
-    // #region Custom PFP Encode
-    //Custom PFP profile customization buttons and encoding code.
-    async customProfilePictureEncoding(secondsightifyEncodeOnly){
-
-        //wait for avatar customization section renderer to be loaded and store
-        if(this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
-
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
-        let AvatarSectionFnName = this.findMangledName(this.customPFPSettingsRenderMod, x=>x, "AvatarSection");
-        if(!AvatarSectionFnName) return;
-
-        Patcher.before(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args]) => {
-            args.disabled = false;
-        });
-
-        Patcher.after(this.customPFPSettingsRenderMod, AvatarSectionFnName, (_, [args], ret) => {
-            if(!args) return;
-            if(!ret) return;
-
-            //don't need to do anything if this is the "Try out Nitro" flow.
-            if(args.isTryItOut) return;
-
-            if(ret?.props?.children){
-                ret.props.children = [ret.props.children];
-                ret.props.children.push(
-                    React.createElement("div", {
-                        style: {
-                            display: "flex",
-                            marginTop: "4px",
-                        },
-                        children: [
-                            React.createElement("input", {
-                                id: "profilePictureUrlInput",
-                                style: {
-                                    maxWidth: "112px",
-                                    marginTop: "4px",
-                                },
-                                placeholder: "PFP Imgur URL"
-                            }),
-                            //Create and append Copy PFP 3y3 button.
-                            React.createElement("button",{
-                                children: "Copy PFP 3y3",
-                                className: `yabd-generic-button`,
-                                id: "profilePictureButton",
-                                style: {
-                                    marginLeft: "5px",
-                                    whiteSpace: "nowrap"
-                                },
-                                onClick: async function() { //on copy pfp 3y3 button click
-
-                                    //grab text from pfp url input textarea.
-                                    let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-
-                                    //empty, skip.
-                                    if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
-                                        emptyWarn();
-                                        return;
-                                    }
-
-                                    //clean up string to encode
-                                    let stringToEncode = "" + profilePictureUrlInputValue
-                                        //clean up URL
-                                        .replace("http://","") //remove protocol
-                                        .replace("https://","")
-                                        .replace("i.imgur.com","imgur.com");
-
-                                    let encodedStr = ""; //initialize encoded string as empty string
-                                    stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                                    //if url seems correct
-                                    if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-                                        //Check for album or gallery URL
-                                        if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
-                                            //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                            //Fetch imgur album page
-                                            try {
-                                                const parser = new DOMParser();
-                                                stringToEncode = await Net.fetch(("https://" + stringToEncode),{
-                                                    method: "GET",
-                                                    mode: "cors"
-                                                }).then(res => res.text()
-                                                    //parse html, queryselect meta tag with certain name
-                                                    .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
-                                                stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
-                                                    .replace("https://","") //get rid of protocol
-                                                    .replace("i.imgur.com","imgur.com")
-                                                    .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
-                                                    .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                            } catch(err) {
-                                                Logger.error(err);
-                                                UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
-                                                return;
-                                            }
-                                        }
-                                        if(stringToEncode == "") {
-                                            UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
-                                            Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
-                                        }
-
-                                        //add starting "P{" , remove "imgur.com/" , and add ending "}"
-                                        stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
-                                        //finally encode the string, adding a space before it so nothing fucks up
-                                        encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                                        //If this is not an Imgur URL, yell at the user.
-                                    } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-                                        UI.showToast("Please use Imgur!",{type: "warning"});
-                                        return;
-                                    }
-
-                                    //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                                    if(encodedStr == "") return;
-
-                                    copyToClipboard(encodedStr,"3y3 copied to clipboard!");
-
-                                } //end copy pfp 3y3 click event
-                            }) //end of react createElement of button
-                        ]
-                        }) //end of react createElement of div
-                ); //end of element push
-            }
-        }); //end of patch
-    } //End of customProfilePictureEncoding()
-    // #endregion
-
     // #region Badges
     //Apply custom badges.
     honorBadge(){
@@ -2914,7 +3417,6 @@ module.exports = class YABDP4Nitro {
     // #endregion
 
     // #region Profile Effects
-    //Everything related to Fake Profile Effects.
     async profileFX(secondsightifyEncodeOnly){
 
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
@@ -2966,130 +3468,6 @@ module.exports = class YABDP4Nitro {
                 }
             }
         }); //end of getUserProfile patch.
-
-        //wait for profile effect section renderer to be loaded and store
-        if(!this.profileEffectSectionRenderer)
-            this.profileEffectSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), {defaultExport:false, signal: controller.signal});
-
-        let ProfileEffectSectionFnName = this.findMangledName(this.profileEffectSectionRenderer, x=>x, "ProfileEffectSection");
-
-        if(!ProfileEffectSectionFnName) return;
-        //patch profile effect section renderer function to run the following code after the function runs
-        Patcher.after(this.profileEffectSectionRenderer, ProfileEffectSectionFnName, (_, [args], ret) => {
-            if(!args) return;
-            if(args.isTryItOut) return;
-            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
-
-            function ProfileEffects({query}){
-
-                let profileEffectChildren = [];
-                let actualRuns = 0;
-
-                let profileEffectsArray = Object.values(profileEffects);
-                //for each profile effect
-                for(let i = 0; i < profileEffectsArray.length; i++){
-
-                    //get preview image url
-                    const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
-                    const title = profileEffectsArray[i].title;
-
-                    //search
-                    if(query.trim() != "") {
-                        if(title) {
-                            if(!title.toLowerCase().includes(query)) continue;
-                        } else continue;
-                    }
-
-                    //encode 3y3
-                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
-                    //javascript that runs onclick for each profile effect button
-                    let copyDecoration3y3 = function(){
-                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                    };
-
-                    profileEffectChildren.push(
-                        React.createElement("img", {
-                            className: "riolubruhsSecretStuff",
-                            onClick: copyDecoration3y3,
-                            src: previewURL,
-                            title,
-                            style: {
-                                width: "22.5%",
-                                cursor: "pointer",
-                                marginBottom: "0.5em",
-                                marginLeft: "0.5em",
-                                backgroundColor: "var(--background-base-lower)"
-                            }
-                        })
-                    );
-
-                    //add newline every 4th profile effect
-                    if((actualRuns + 1) % 4 == 0){
-                        profileEffectChildren.push(
-                            React.createElement("br")
-                        );
-                    }
-
-                    actualRuns++;
-                }
-                return React.createElement('div', {
-                    children: profileEffectChildren,
-                    style: {
-                        paddingTop: "10px"
-                    }
-                });
-            }
-
-            //Profile Effects Modal
-            function EffectsModal(){
-                const [query, setQuery] = React.useState("");
-
-                return React.createElement("div", {
-                    style: {
-                        width: "100%",
-                        display: "block",
-                        color: "white",
-                        whiteSpace: "nowrap",
-                        overflow: "visible",
-                        marginTop: ".5em"
-                    },
-                    children: [
-                        React.createElement(Components.TextInput, {
-                            value: query,
-                            placeholder: "Search...",
-                            onChange: (input) => setQuery(input),
-                            style: {
-                                backgroundColor: `var(--control-secondary-background-default)`
-                            }
-                        }),
-                        React.createElement('br'),
-                        React.createElement(ProfileEffects, {query})
-                    ]
-                });
-            }
-
-            //Append Change Effect button
-            ret.props.children.props.children.push(
-                //self explanatory create react element
-                React.createElement("button", {
-                    children: "Change Effect [YABDP4Nitro]",
-                    className: `yabd-generic-button`,
-                    size: "bd-button-small",
-                    id: "changeProfileEffectButton",
-                    style: {
-                        width: "100px",
-                        height: "32px",
-                        color: "white",
-                        marginLeft: "4px"
-                    },
-                    onClick: () => {
-                        UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal), {cancelText:""});
-                    }
-
-                })
-            );
-        }); //end patch of profile effect section renderer function
-
     } //End of profileFX()
 
     killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
@@ -3132,8 +3510,6 @@ module.exports = class YABDP4Nitro {
     };
 
     // #region Avatar Decorations
-    //Everything related to fake avatar decorations.
-    
     async fakeAvatarDecorations(){
         //apply decorations
         Patcher.after(UserStore, "getUser", (_, args, ret) => {
@@ -3189,120 +3565,6 @@ module.exports = class YABDP4Nitro {
                 if(!badgeUserIDs.includes(ret.id)) badgeUserIDs.push(ret.id);
             }
         }); //end of getUser patch for avatar decorations
-
-        //Wait for avatar decor customization section render module to be loaded and store
-        if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = await Webpack.waitForModule(Webpack.Filters.byStrings('pendingAvatarDecoration', 'forcedDivider'), {defaultExport:false, signal: controller.signal});
-
-        let fnName = this.findMangledName(this.decorationCustomizationSectionMod, x=>x, "DecorationCustomizationSection");
-        if(!fnName) return;
-
-        //Avatar decoration customization section patch
-        Patcher.after(this.decorationCustomizationSectionMod, fnName, (_, [args], ret) => {
-            if(!args) return;
-
-            //don't run if this is the try out nitro flow.
-            if(args.isTryItOut) return;
-
-            //disable for the per-server profiles screen
-            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
-
-            //push change decoration button
-            if(ret?.props?.children?.props?.children){
-                ret.props.children.props.children.push(
-                    React.createElement("button", {
-                        id: "decorationButton",
-                        children: "Change Decoration [YABDP4Nitro]",
-                        style: {
-                            width: "100px",
-                            height: "50px",
-                            color: "white",
-                            marginLeft: "5px",
-                        },
-                        className: "yabd-generic-button",
-                        onClick: () => {
-                            UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
-                        }
-                    })
-                );
-            }else{
-                Logger.error("Decoration Section ain't right chief.")
-            }
-
-            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
-
-            function AvatarDecorations(){
-                if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
-                let listOfDecorationIds = Object.keys(data.avatarDecorations);
-                let avatarDecorationChildren = [];
-
-                //for each avatar decoration
-                for(let i = 0; i < listOfDecorationIds.length; i++){
-
-                    const decorationId = listOfDecorationIds[i];
-                    const assetHash = data.avatarDecorations[decorationId];
-
-                    if(decorationId && assetHash){
-                        //remove existing nameplates from decoration list
-                        if(assetHash.includes('nameplate')){
-                            delete data.avatarDecorations[decorationId];
-                            continue;
-                        }
-    
-                        //encode to 3y3 and store clipboard copy in onclick event
-                        let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
-                        //javascript that runs onclick for each avatar decoration button
-                        
-                        let child = React.createElement("img", {
-                            style: {
-                                width: "23%",
-                                cursor: "pointer",
-                                marginLeft: "5px",
-                                marginBottom: "10px",
-                                borderRadius: "4px",
-                                backgroundColor: "var(--background-base-lower)"
-                            },
-                            onClick: () => {
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                            },
-                            onMouseOver: (e) => {
-                                e.target.src = e.target.src.replace('.webp','.png');
-                            },
-                            onMouseLeave: (e) => {
-                                e.target.src = e.target.src.replace('.png','.webp');
-                            },
-                            src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
-                        });
-                        avatarDecorationChildren.push(child);
-    
-                        //add newline every 4th decoration
-                        if((i + 1) % 4 == 0){
-                            //avatarDecorationsHTML += "<br>"
-                            avatarDecorationChildren.push(React.createElement("br"));
-                        }
-                    }
-                }
-                return React.createElement('div', {
-                    children: avatarDecorationChildren
-                });
-            }
-
-            function DecorModal(){
-
-                return React.createElement("div", {
-                    style: {
-                        width: "100%",
-                        display: "block",
-                        color: "white",
-                        whiteSpace: "nowrap",
-                        overflow: "visible",
-                        marginTop: ".5em"
-                    },
-                    children: React.createElement(AvatarDecorations)
-                });
-            }
-
-        }); //end patch of profile decoration section renderer function
-
     } //End of fakeAvatarDecorations()
     // #endregion
 
@@ -4062,63 +4324,6 @@ module.exports = class YABDP4Nitro {
             decodeProfileColors(ret.bio);
         });
     }
-
-    //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
-    async encodeProfileColors(){
-
-        //wait for color picker renderer module to be loaded
-        if(!this.colorPickerRendererMod) this.colorPickerRendererMod = await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"), {defaultExport:false, signal: controller.signal});
-
-        let profileThemesSectionFnName = this.findMangledName(this.colorPickerRendererMod, x=>x, "ProfileThemesSection");
-        if(!profileThemesSectionFnName) return;
-
-        Patcher.after(this.colorPickerRendererMod, profileThemesSectionFnName, (_, [args], ret) => {
-            //enable in per-server profile section
-            ret.props.disabled = false;
-
-            ret.props.children.props.children.push( //append copy colors 3y3 button
-                React.createElement("button", {
-                    id: "copy3y3button",
-                    children: "Copy Colors 3y3",
-                    className: `yabd-generic-button`,
-                    style: {
-                        height: "32px",
-                        marginLeft: "10px",
-                        marginTop: "10px"
-                    },
-                    onClick: () => {
-                        let primary = args?.pendingColors?.[0];
-                        let accent = args?.pendingColors?.[1];
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
-                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
-                        }
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            Logger.error("Primary:",primary,"Accent:",accent);
-                            UI.showToast("Nothing has been copied!", { type: "error" });
-                            return;
-                        }
- 
-                        let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
-
-                        const padding = "";
-                        let encoded = Array.from(message)
-                            .map(x => x.codePointAt(0))
-                            .filter(x => x >= 0x20 && x <= 0x7f)
-                            .map(x => String.fromCodePoint(x + 0xe0000))
-                            .join("");
-
-                        let encodedStr = ((padding || "") + " " + encoded);
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                    }
-                })
-            );
-        });
-
-    } //End of encodeProfileColors()
     //#endregion
 
     //#region Banner Decoding
@@ -4218,152 +4423,6 @@ module.exports = class YABDP4Nitro {
             });
         });
     } //End of bannerUrlDecoding()
-    //#endregion
-
-    //#region Banner Encoding
-    //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
-    //Documented/commented and partially rewritten to use React patching on 3/6/2024
-    async bannerUrlEncoding(secondsightifyEncodeOnly){
-
-        //wait for banner customization renderer module to be loaded
-        if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
-        
-        let BannerSectionFnName = this.findMangledName(this.profileBannerSectionRenderer, x=>x, "BannerSection");
-        if(!BannerSectionFnName) return;
-
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
-        Patcher.before(this.profileBannerSectionRenderer, BannerSectionFnName, (_, [args]) =>  {
-            args.disabled = false;
-        });
-
-        Patcher.after(this.profileBannerSectionRenderer, BannerSectionFnName, (_, [args], ret) => {
-            
-            //create and append profileBannerUrlInput input element.
-            let profileBannerUrlInput = React.createElement("input", {
-                id: "profileBannerUrlInput",
-                placeholder: "Banner Imgur URL",
-                style: {
-                    float: "right",
-                    width: "116px",
-                    height: "20%",
-                    maxHeight: "50%",
-                    marginTop: "3px"
-                }
-            });
-
-            if(ret?.props?.children){
-                ret.props.children = [ret.props.children];
-                ret.props.children.push(React.createElement('div',{
-                    style: {
-                        marginTop: "8px",
-                        display: "flex",
-                    },
-                    children: [
-                        profileBannerUrlInput,
-                        React.createElement("button", {
-                            id: "profileBannerButton",
-                            children: "Copy Banner 3y3",
-                            className: `yabd-generic-button`,
-                            size: "bd-button-small",
-                            style: {
-                                whiteSpace: "nowrap",
-                                marginLeft: "4px",
-                                width: "116px",
-                                height: "30px"
-                            },
-                            onClick: async function(){ //Upon clicking Copy 3y3 button
-
-                                //grab text from banner URL input textarea 
-                                let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
-
-                                //if it's empty, stop processing and issue a warning.
-                                if(profileBannerUrlInputValue == undefined){
-                                    emptyWarn();
-                                    return;
-                                }
-                                if(profileBannerUrlInputValue == ""){
-                                    emptyWarn();
-                                    return;
-                                }
-
-                                //clean up string to encode
-                                let stringToEncode = "" + profileBannerUrlInputValue
-                                    .replace("http://", "") //get rid of protocol
-                                    .replace("https://", "")
-                                    .replace(".jpg", "")
-                                    .replace(".png", "")
-                                    .replace(".mp4", "")
-                                    .replace("webm", "")
-                                    .replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
-
-
-                                let encodedStr = ""; //initialize encoded string as empty string
-
-                                stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                                //if url seems correct
-                                if(stringToEncode.toLowerCase().startsWith("imgur.com")){
-
-                                    //Check for album or gallery URL
-                                    if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
-
-                                        //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                        //Fetch imgur album page
-                                        try {
-                                            const parser = new DOMParser();
-                                            stringToEncode = await Net.fetch(("https://" + stringToEncode), {
-                                                method: "GET",
-                                                mode: "cors"
-                                            }).then(res => res.text()
-                                                //parse html, queryselect meta tag with certain name
-                                                .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-                                            stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-                                                .replace("https://", "") //get rid of protocol
-                                                .replace("i.imgur.com", "imgur.com")
-                                                .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-                                                .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                        } catch(err){
-                                            Logger.error(err);
-                                            UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
-                                            return;
-                                        }
-                                    }
-                                    if(stringToEncode == ""){
-                                        UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
-                                        Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
-                                        return;
-                                    }
-                                    //add starting "B{" , remove "imgur.com/" , and add ending "}"
-                                    stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
-                                    //finally encode the string, adding a space before it so nothing fucks up
-                                    encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                                    //If this is not an Imgur URL, yell at the user.
-                                }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
-                                    UI.showToast("Please use Imgur!", { type: "warning" });
-                                    return;
-                                }
-
-                                //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                                if(encodedStr == "") return;
-
-                                //copy to clipboard
-                                copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                                
-                            } //end of onClick function
-                        }) //end of button react createElement
-                    ] //end of children
-                }
-                )); //end of profileBannerButton element push
-            }
-
-        }); //end of patched function
-
-    } //End of bannerUrlEncoding()
     //#endregion
 
     //save app icon on change
