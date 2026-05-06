@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.17
+ * @version 6.8.18
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -269,22 +269,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.17",
+        "version": "6.8.18",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.17",
+            title: "6.8.18",
             items: [
-                "Fixed Profile Banners UI.",
-                "Fixed Avatar Decoration UI.",
-                "Fixed Profile Effect UI.",
-                "Fixed Fake Profile Picture UI.",
-                "Fixed Fake Nameplate UI.",
-                "Fixed Force Video Codec.",
-                "Removed Herobrine."
+                "Fix Soundmoji not applying experiment override since Discord moved it to the new \"Apex Experiments\" system.",
+                "Fix 'this.encodeProfileColors is not a function' error appearing in console.",
+                "Add more VSCode region markers to the code."
             ]
         }
     ],
@@ -637,7 +633,6 @@ module.exports = class YABDP4Nitro {
         if(settings.fakeProfileThemes){
             try {
                 this.decodeAndApplyProfileColors();
-                this.encodeProfileColors();
             } catch(err){
                 Logger.error("Error occurred running fakeProfileThemes bypass. " + err);
             }
@@ -1418,9 +1413,6 @@ module.exports = class YABDP4Nitro {
     //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
     bannerUrlUI(){
 
-        //wait for banner customization renderer module to be loaded
-        // if(!this.profileBannerSectionRenderer) this.profileBannerSectionRenderer = await Webpack.waitForModule(Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), {defaultExport:false, signal: controller.signal});
-        
         let BannerSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), "BannerSection");
         if(!BannerSectionFnName) return;
 
@@ -1561,6 +1553,7 @@ module.exports = class YABDP4Nitro {
     } //End of bannerUrlUI()
     //#endregion
 
+    //#region Profile Themes UI
     //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
     profileThemesUI(){
         let profileThemesSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("__invalid_profileThemesSection"), "ProfileThemesSection");
@@ -1613,7 +1606,8 @@ module.exports = class YABDP4Nitro {
             );
         });
 
-    } //End of encodeProfileColors()
+    } //End of profileThemesUI()
+    //#endregion
     
     /* bookmarks(){
         const temp = Webpack.getById("216623");
@@ -1676,6 +1670,7 @@ module.exports = class YABDP4Nitro {
         CurrentUser = UserStore.getCurrentUser();
     }
 
+    //#region Display Name Styles
     async displayNameStyles(){
         Patcher.after(UserStore,"getUser",(_,[userId],ret) => {
             let revealedText = this.getRevealedText(userId,`\uDB40\uDC53\uDB40\uDC7B`);
@@ -1762,7 +1757,9 @@ module.exports = class YABDP4Nitro {
             });
         }
     }
+    //#endregion
 
+    //#region Display Name Styles UI
     async displayNameStylesSection(){
         if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('pendingGlobalName', 'onGlobalNameChange', 'currentGlobalName'), {signal: controller.signal});
         let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
@@ -1778,7 +1775,9 @@ module.exports = class YABDP4Nitro {
             });
         }
     }
+    //#endregion
 
+    //#region Sharpen Streams
     //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
     async sharpenStreams(){
         ContextMenu.patch('stream-context', this.streamContextPatch);
@@ -1854,8 +1853,9 @@ module.exports = class YABDP4Nitro {
             });
         }
     }
+    //#endregion
 
-
+    //#region Sharpen PIP
     sharpenPipPlayer(){
         if(PictureInPicturePlayer){
             let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
@@ -1938,7 +1938,9 @@ module.exports = class YABDP4Nitro {
             Logger.error("PictureInPicturePlayer not found!");
         }
     }
+    //#endregion
 
+    //#region Sharpen Context
     streamContextPatch(reactElem,context) {
         if(!settings.sharpenStreams) return;
 
@@ -1991,7 +1993,9 @@ module.exports = class YABDP4Nitro {
             }
         }
     }
+    //#endregion
 
+    //#region Extra Context
     extraContextMenus(){
         try{
             ContextMenu.patch('expression-picker', this.expressionPickerFunction);
@@ -2037,7 +2041,9 @@ module.exports = class YABDP4Nitro {
             Logger.error(err);
         }
     }
+    //#endregion
 
+    //#region Expression Picker Context
     //GIF and Sticker Picker Context Menu
     expressionPickerFunction(reactElem, context) {
         //those variable names arent good but idk what else to call em lol
@@ -2091,7 +2097,9 @@ module.exports = class YABDP4Nitro {
             }
         }
     }
+    //#endregion
 
+    //#region Utilities
     // Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
 	// If filter variable is a string, it uses an includes string filter.
     findMangledName(module, filter, debugInfo){
@@ -2192,6 +2200,7 @@ module.exports = class YABDP4Nitro {
             }
         }
     }
+    //#endregion
 
     //#region Nameplates
     // nameplate 3y3 format: n{asset/palette}
@@ -3731,7 +3740,8 @@ module.exports = class YABDP4Nitro {
 
     _sendMessageInsteadPatch(){
         if(settings.soundmojiEnabled){
-            this.overrideExperiment("2024-11_soundmoji_sending", 2);
+            this.overrideVariant("2026-03-soundmoji-rendering", 1);
+            this.overrideVariant("2026-03-soundmoji-sending", 2);
         }
 
         //#region _sendMessage Patch
