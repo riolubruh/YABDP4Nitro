@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.18
+ * @version 6.8.19
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -124,7 +124,9 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
-    {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
+    {filter: Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), mapDeclarations: true, map: {
+        canUserUse: x=>typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
+    }}, //CanUserUseMod
     {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
@@ -269,18 +271,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.18",
+        "version": "6.8.19",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.18",
+            title: "6.8.19",
             items: [
-                "Fix Soundmoji not applying experiment override since Discord moved it to the new \"Apex Experiments\" system.",
-                "Fix 'this.encodeProfileColors is not a function' error appearing in console.",
-                "Add more VSCode region markers to the code."
+                "Add even more VSCode region markers to the code (it's very neat now).",
+                "Fixed sometimes having to press the Direct Messages button (app icon) more than once for it to send you to the Direct Messages page when App Icons are enabled.",
+                "Fixed certain emojis being locked and the fakemoji editing not working when Upload Emojis is the selected option (my bad).",
+                "Fixed certain things not being unlocked when they should."
             ]
         }
     ],
@@ -580,7 +583,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.emojiBypass && settings.emojiBypassType !== 0){
+        if(settings.emojiBypass){
             try {
                 this.emojiBypass();
             } catch(err){
@@ -704,9 +707,8 @@ module.exports = class YABDP4Nitro {
         }
 
         try{
-            let canUserUse = this.findMangledName(CanUserUseMod, x=>typeof x === "function" && x.toString?.().includes?.('getFeatureValue'), "canUserUse");
-            if(canUserUse){
-                Patcher.instead(CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
+            if(CanUserUseMod?.canUserUse){
+                Patcher.instead(CanUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
                     if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                         return true;
 
@@ -724,6 +726,8 @@ module.exports = class YABDP4Nitro {
 
                     return originalFunction(feature, user);
                 });
+            }else{
+                Logger.error("CanUserUse is undefined!!");
             }
         }catch(err){
             Logger.error(err);
@@ -857,6 +861,7 @@ module.exports = class YABDP4Nitro {
     } //End of saveAndUpdate()
     // #endregion
 
+    //#region Settings UI
     async settingsUI(){
         if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
         if(!this.settingsUIMod){
@@ -864,7 +869,7 @@ module.exports = class YABDP4Nitro {
             return;
         }
         if(!this.settingsUIMod.declarations){
-            UI.showToast("[YABDP4Nitro] Update your BetterDiscord!",{type: "error",forceShow: true});
+            Logger.error("[YABDP4Nitro] Declarations are undefined for settingsUIMod! If ZeresPluginLibrary is installed, please delete it!");
             return;
         }
 
@@ -1776,6 +1781,8 @@ module.exports = class YABDP4Nitro {
         }
     }
     //#endregion
+
+    //#endregion Settings UI
 
     //#region Sharpen Streams
     //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
@@ -3738,13 +3745,13 @@ module.exports = class YABDP4Nitro {
         return false;
     }
 
+    //#region _sendMessage Patch
     _sendMessageInsteadPatch(){
         if(settings.soundmojiEnabled){
             this.overrideVariant("2026-03-soundmoji-rendering", 1);
             this.overrideVariant("2026-03-soundmoji-sending", 2);
         }
 
-        //#region _sendMessage Patch
         Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
             if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
                 send.apply(_, msg);
@@ -3804,6 +3811,7 @@ module.exports = class YABDP4Nitro {
             }
             //#endregion
             
+            //#region Soundmoji
             const channelId = msg[0];
             let regex = /<sound:[0-9]\d+:[0-9]\d+>/g;
             let ids = [];
@@ -3831,6 +3839,7 @@ module.exports = class YABDP4Nitro {
                     }
                 }
             }
+            //#endregion
 
             if(settings.emojiBypass && settings.emojiBypassType == 0 && emojis.length > 0) {
                 //upload all emotes
@@ -3845,6 +3854,7 @@ module.exports = class YABDP4Nitro {
                 await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
             }
 
+            //#region Sticker Bypass
             if(settings.stickerBypass){
                 let stickerIds = msg[2]?.stickerIds;
                 let currentChannelId = SelectedChannelStore.getChannelId();
@@ -3869,9 +3879,8 @@ module.exports = class YABDP4Nitro {
                         }
                     }
                 }
-    
-                
             }
+            //#endregion
 
             if(emojis.length == 0 && sounds.length == 0){
                 send.apply(_, msg);
@@ -3879,9 +3888,10 @@ module.exports = class YABDP4Nitro {
             
         });
     }
+    //#endregion
 
+    //#region Other Emoji Bypasses
     emojiBypass(){
-
         Patcher.instead(isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
             return false;
         });
@@ -3901,7 +3911,6 @@ module.exports = class YABDP4Nitro {
         //#region Classic Mode Patch
         //Original method
         if(settings.emojiBypassType == 2){
-
             function classicModeMethod(msg, currentChannelId, self){
                 if(document.getElementsByClassName("sdc-tooltip").length > 0){
                     let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
@@ -3941,7 +3950,6 @@ module.exports = class YABDP4Nitro {
             });
         }
         //#endregion
-
 
         //#region Vencord-like Patch
         //Vencord-like bypass                    (ghost mode removed, fallback to hyperlink)
@@ -4082,9 +4090,8 @@ module.exports = class YABDP4Nitro {
                 //fix cancelling edit by restoring message to original state manually after cancellation
                 lastEditedMsg.content = lastEditedMsgCopy.content;
         });
-
-        //#endregion
     } //End of emojiBypass()
+    //#endregion
 
     //#region Fake Inline Emoji
     async inlineFakemojiPatch(){
@@ -4192,7 +4199,6 @@ module.exports = class YABDP4Nitro {
                 return [];
             }
         });
-        //#endregion
     }
     //#endregion
 
@@ -4274,7 +4280,7 @@ module.exports = class YABDP4Nitro {
     } //End of videoQualityModule()
     //#endregion
 
-
+    //#region Sticker Uploader
     async stickerSending(){
         Patcher.instead(MessageActions, "sendStickers", (_, args, originalFunction) => {
             let stickerID = args[1][0];
@@ -4295,6 +4301,7 @@ module.exports = class YABDP4Nitro {
             }
         });
     }
+    //#endregion
 
     //#region 3y3 Profile Colors
     decodeAndApplyProfileColors(){
@@ -4454,12 +4461,7 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(RegularAppIcon, "render", (_,[args],ogFunction) => {
             const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
-                return React.createElement(ogFunction, {
-                    size: "custom",
-                    color: "currentColor",
-                    width: 24,
-                    height: 24
-                });
+                return ogFunction(args);
             }else{
                 return React.createElement(CustomAppIcon, {
                     id: currentDesktopIcon,
