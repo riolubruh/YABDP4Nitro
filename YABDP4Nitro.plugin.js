@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.19
+ * @version 6.8.20
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -271,19 +271,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.19",
+        "version": "6.8.20",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.19",
+            title: "6.8.20",
             items: [
-                "Add even more VSCode region markers to the code (it's very neat now).",
-                "Fixed sometimes having to press the Direct Messages button (app icon) more than once for it to send you to the Direct Messages page when App Icons are enabled.",
-                "Fixed certain emojis being locked and the fakemoji editing not working when Upload Emojis is the selected option (my bad).",
-                "Fixed certain things not being unlocked when they should."
+                "Fixed Upload Emoji bypass not running when replying to a message."
             ]
         }
     ],
@@ -869,7 +866,7 @@ module.exports = class YABDP4Nitro {
             return;
         }
         if(!this.settingsUIMod.declarations){
-            Logger.error("[YABDP4Nitro] Declarations are undefined for settingsUIMod! If ZeresPluginLibrary is installed, please delete it!");
+            Logger.error("Declarations are undefined for settingsUIMod! If ZeresPluginLibrary is installed, please delete it!");
             return;
         }
 
@@ -3753,7 +3750,7 @@ module.exports = class YABDP4Nitro {
         }
 
         Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
-            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
+            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].location == "forwarding") { //fix polls, activity actions, forwarding
                 send.apply(_, msg);
                 return;
             }
