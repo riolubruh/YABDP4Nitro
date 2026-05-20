@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.20
+ * @version 6.8.21
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -271,16 +271,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.20",
+        "version": "6.8.21",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.20",
+            title: "6.8.21",
             items: [
-                "Fixed Upload Emoji bypass not running when replying to a message."
+                "Fixed UsrBG banners not appearing after changing plugin settings.",
+                "Improved memory cleanup on stop (aka fix more memory leaks)."
             ]
         }
     ],
@@ -4343,21 +4344,14 @@ module.exports = class YABDP4Nitro {
     //#region Banner Decoding
     //Decode 3y3 from profile bio and apply fake banners.
     bannerUrlDecoding(){
-
-        let endpoint, bucket, prefix, usrBgData;
-
         //if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
         if(settings.userBgIntegration && !fetchedUserBg){
 
             //userBg database url.
             const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
-
             //download, then store json
             Net.fetch(userBgJsonUrl, { timeout: 100000 }).then(res => res.json().then(res => {
-                usrBgData = res;
-                endpoint = res.endpoint;
-                bucket = res.bucket;
-                prefix = res.prefix;
+                this.usrBgData = res;
                 //mark db as fetched so we only fetch it once per load of the plugin
                 fetchedUserBg = true;
             }));
@@ -4391,8 +4385,8 @@ module.exports = class YABDP4Nitro {
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
                     //if user is in userBg database,
-                    if(usrBgData?.users[user.userId]){
-                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${usrBgData?.users[user.userId]}`; //return userBg banner URL and exit.
+                    if(self.usrBgData?.users?.[user.userId]){
+                        return `${self.usrBgData.endpoint}/${self.usrBgData.bucket}/${self.usrBgData.prefix}${user.userId}?${self.usrBgData.users[user.userId]}`; //return userBg banner URL and exit.
                     }
                 }
             }
@@ -4758,6 +4752,16 @@ module.exports = class YABDP4Nitro {
         }
         if(window.FFmpegWASM) delete window.FFmpegWASM;
 
+        if(udta) udta = null; 
+        if(udtaBuffer) udtaBuffer = null;
+        if(crcTable) crcTable = null;
+        if(clipMaBuffer) clipMaBuffer = null;
+        if(lastEditedMsg) lastEditedMsg = null;
+        if(lastEditedMsgCopy) lastEditedMsgCopy = null;
+        if(this.usrBgData) this.usrBgData = null;
+        if(this.userPfps) this.userPfps = null;
+        if(this.settingsUIMod) this.settingsUIMod = null;
+        
         Data.save("settings", settings);
         this.saveDataFile();
         Logger.info("(v" + this.meta.version + ") has stopped.");
