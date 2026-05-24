@@ -3214,7 +3214,7 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(CustomThemesEditor, "render", (_,[args],ogFunction) => {
             let ret = ogFunction(args);
             //dont replace footer if user is premium
-            if(CurrentUser.premiumType == 2) return;
+            if(CurrentUser.premiumType == 2) return ret;
 
             //take the onSaveTheme function from the original footer cause we still need it
             const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
