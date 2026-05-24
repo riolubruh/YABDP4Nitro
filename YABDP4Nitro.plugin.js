@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.21
+ * @version 6.9.0
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -127,7 +127,9 @@ const [
     {filter: Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), mapDeclarations: true, map: {
         canUserUse: x=>typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
     }}, //CanUserUseMod
-    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")'), mapDeclarations:true,map:{
+        render: x=>x?.toString?.().includes?.("NOT_STAFF_WARNING")
+    }}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
@@ -245,7 +247,8 @@ const defaultSettings = {
         custom: false,
         theme: "dark"
     },
-    "appIcon": "AppIcon"
+    "appIcon": "AppIcon",
+    "voiceTileBannerBackground": false
 };
 const defaultData = {
     avatarDecorations: {},
@@ -271,17 +274,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.21",
+        "version": "6.9.0",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.21",
+            title: "6.9.0",
             items: [
-                "Fixed UsrBG banners not appearing after changing plugin settings.",
-                "Improved memory cleanup on stop (aka fix more memory leaks)."
+                "Added Call Tile Background, uses fake banners as the background of voice tiles (also a feature of UsrBG on Vencord). Off by default.",
+                "Fixed Custom Gradient Theme UI not working.",
+                "Fixed \"NOT STAFF\" warning appearing (again)."
             ]
         }
     ],
@@ -379,7 +383,8 @@ const config = {
                 { type: "switch", id: "profileV2", name: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", value: () => settings.profileV2 },
                 { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", value: () => settings.fakeProfileThemes },
                 { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", value: () => settings.fakeProfileBanners },
-                { type: "switch", id: "userBgIntegration", name: "UserBG Integration", note: "Downloads and parses the UserBG JSON database so that UserBG banners will appear for you.", value: () => settings.userBgIntegration },
+                { type: "switch", id: "userBgIntegration", name: "UsrBG Integration", note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.", value: () => settings.userBgIntegration },
+                { type: "switch", id: "voiceTileBannerBackground", name: "Call Tile Background", note: "Uses fake banners as the background for call tiles.", value: () => settings.voiceTileBannerBackground },
                 { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", value: () => settings.fakeAvatarDecorations },
                 { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", value: () => settings.profileEffects },
                 { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
@@ -790,11 +795,11 @@ module.exports = class YABDP4Nitro {
         }
 
         try{
-            if(settings.removeNotStaffWarning && DMTag){
-                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x.toString().includes('GROUP_DM') && !x.toString().includes('GUILD_DIRECTORY')), (_,[args],ret) => {
-                    if(ret?.props?.children){
-                        ret.props.children = ret.props.children.filter(o=>!o.type?.toString?.().includes?.("NOT_STAFF_WARNING"));
-                    }
+            if(settings.removeNotStaffWarning && DMTag?.render){
+                Patcher.instead(DMTag, "render", (_,[args],org) => {
+                    let ret = org(args);
+                    if(ret?.props?.type === 5) return;
+                    return ret;
                 });
             }
         }catch(err){
@@ -849,6 +854,14 @@ module.exports = class YABDP4Nitro {
             this.settingsUI();
         }catch(err){
             Logger.error(err);
+        }
+
+        if(settings.voiceTileBannerBackground){
+            try{
+                this.userCallTileBannerBackground();
+            }catch(err){
+                Logger.error(err);
+            }
         }
 
         /* try{
@@ -1787,7 +1800,7 @@ module.exports = class YABDP4Nitro {
     async sharpenStreams(){
         ContextMenu.patch('stream-context', this.streamContextPatch);
 
-        this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
+        if(!this.VideoStream) this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
 
         if(!this.VideoStream) return;
         let videoStreamName = this.findMangledName(this.VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
@@ -3198,7 +3211,8 @@ module.exports = class YABDP4Nitro {
             }, 3000);
         });
 
-        Patcher.after(CustomThemesEditor, "render", (_,[args],ret) => {
+        Patcher.instead(CustomThemesEditor, "render", (_,[args],ogFunction) => {
+            let ret = ogFunction(args);
             //dont replace footer if user is premium
             if(CurrentUser.premiumType == 2) return;
 
@@ -3246,6 +3260,7 @@ module.exports = class YABDP4Nitro {
             }else{
                 Logger.error('onSaveTheme is not defined.', ret);
             }
+            return ret;
         });
 
     } //End of clientThemes()
@@ -4376,23 +4391,31 @@ module.exports = class YABDP4Nitro {
             }
         });
 
-        function getBannerUrl(user, self){
-            let profile = user?._userProfile;
+        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
+            nodePatcher.patch(ret, (props, res) => {
+                let bannerUrl = this.getBannerUrl(props.user.id);
+                if(bannerUrl){
+                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
+                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
+                    }
+                }
+            });
+        });
+    } //End of bannerUrlDecoding()
 
-            if(profile == undefined) return;
-
+    getBannerUrl(userId){
             if(settings.userBgIntegration){ //if userBg integration is enabled
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
                     //if user is in userBg database,
-                    if(self.usrBgData?.users?.[user.userId]){
-                        return `${self.usrBgData.endpoint}/${self.usrBgData.bucket}/${self.usrBgData.prefix}${user.userId}?${self.usrBgData.users[user.userId]}`; //return userBg banner URL and exit.
+                    if(this.usrBgData?.users?.[userId]){
+                        return `${this.usrBgData.endpoint}/${this.usrBgData.bucket}/${this.usrBgData.prefix}${userId}?${this.usrBgData.users[userId]}`; //return userBg banner URL and exit.
                     }
                 }
             }
 
             //reveal 3y3 encoded text, store as parsed
-            let parsed = self.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
+            let parsed = this.getRevealedText(userId,`\uDB40\uDC42\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function
             if(parsed == undefined) return;
 
@@ -4414,23 +4437,11 @@ module.exports = class YABDP4Nitro {
             }
 
             //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-            if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
+            if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
 
             //return final banner URL.
             return `https://i.imgur.com/${matchedText}`;
         }
-
-        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
-            nodePatcher.patch(ret, (props, res) => {
-                let bannerUrl = getBannerUrl(props.displayProfile, this);
-                if(bannerUrl){
-                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
-                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
-                    }
-                }
-            });
-        });
-    } //End of bannerUrlDecoding()
     //#endregion
 
     //save app icon on change
@@ -4459,6 +4470,34 @@ module.exports = class YABDP4Nitro {
                     size: 40
                 });
             }
+        });
+    }
+    //#endregion
+
+    //#region User Voice Call Tile Background
+    async userCallTileBannerBackground(){
+        if(!this.UserCallTile) this.UserCallTile = await Webpack.waitForModule(Webpack.Filters.bySource("getSelectedParticipant","CHANNEL_CALL_POPOUT","avatarDecorationSrc"), {signal: controller.signal});
+        if(!this.UserCallTile) return;
+
+        Patcher.instead(this.UserCallTile, this.findMangledName(this.UserCallTile, x=>x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_,[args],ogFunction) => {
+            let ret = ogFunction(args);
+
+            if(args?.participant?.id){
+                let userId = args?.participant?.id;
+                let bannerUrl = this.getBannerUrl(userId);
+                if(bannerUrl && ret?.props){
+                    ret.props.style = {
+                        backgroundImage: `url('${bannerUrl}')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center center',
+                        backgroundRepeat: 'no-repeat'
+                    };
+                    nodePatcher.patch(ret.props.children, (__,props,res) => {
+                        props.props.style = {};
+                    });
+                }
+            }
+            return ret;
         });
     }
     //#endregion
