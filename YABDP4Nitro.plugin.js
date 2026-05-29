@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.9.0
+ * @version 6.9.1
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -274,18 +274,17 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.9.0",
+        "version": "6.9.1",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.9.0",
+            title: "6.9.1",
             items: [
-                "Added Call Tile Background, uses fake banners as the background of voice tiles (also a feature of UsrBG on Vencord). Off by default.",
-                "Fixed Custom Gradient Theme UI not working.",
-                "Fixed \"NOT STAFF\" warning appearing (again)."
+                "Added support for cover images in Audio Clips. Now when sending an audio clip with an embedded cover image, it will use that for the video.",
+                "Fixed ffmpeg not changing the inputted file if the input file is named \"output.mp4\"."
             ]
         }
     ],
@@ -2545,6 +2544,9 @@ module.exports = class YABDP4Nitro {
 
         async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
             if(ffmpeg){
+                if(inFileName == outFileName){
+                    inFileName = "in_" + inFileName;
+                }
                 if(!ffmpegArguments)
                     ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
                         "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
@@ -2571,10 +2573,10 @@ module.exports = class YABDP4Nitro {
             else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
         }
         async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
-
-            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=300x100","-i",inFileName,"-shortest","-fflags","+shortest", 
-                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
-                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune","stillimage","-r","1", outFileName];
+            let ffmpegArgs = ["-i",inFileName,"-f","lavfi","-i","color=c=black:s=300x100","-shortest","-fflags","+shortest", 
+                "-map","0:v?","-map","1:v","-map","0:a","-disposition:v","default","-brand","isom/avc1","-movflags","+faststart",
+                "-map_metadata","-1","-dn","-map_chapters","-1","-preset","ultrafast","-c:v","libx264","-c:a","copy","-strict","-2",
+                "-tune","stillimage","-r","1","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2",outFileName];
 
             return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
         }
