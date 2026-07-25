@@ -1,13 +1,13 @@
 /**
  * @name YABDP4Nitro
- * @author Riolubruh
+ * @author Riolubruh & kitazilla
  * @authorLink https://github.com/riolubruh
- * @version 6.10.4
+ * @version 7.5.0
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
- * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
+ * @description YABDP4Nitro by Riolubruh, with Profile Studio and visual chooser contributions by kitazilla.
  */
 /*@cc_on
 @if(@_jscript)
@@ -19,6 +19,7 @@
  * YABDP4Nitro is a free BetterDiscord plugin that bypasses and unlocks Nitro-locked features in the Discord client.
  *
  * Copyright (c) 2025 Riolubruh and contributors
+ * Native visual chooser modifications Copyright (c) 2026 kitazilla
  *
  * Licensed under the Open Software License version 3.0 (OSL-3.0).
  * You may use, distribute, and modify this code under the terms of this license.
@@ -241,11 +242,13 @@ const defaultSettings = {
     },
     "appIcon": "AppIcon",
     "voiceTileBannerBackground": false,
-    "advancedProfileCustomization": false
+    "advancedProfileCustomization": false,
+    "autoReloadProfileChanges": false
 };
 const defaultData = {
     avatarDecorations: {},
-    nameplatesV2: {}
+    nameplatesV2: {},
+    localProfiles: {}
 }
 
 let controller = new AbortController();
@@ -262,23 +265,29 @@ let profileEffects = {};
 const config = {
     info: {
         "name": "YABDP4Nitro",
-        "authors": [{
-            "name": "Riolubruh",
-            "discord_id": "359063827091816448",
-            "github_username": "riolubruh"
-        }],
-        "version": "6.10.4",
-        "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
+        "authors": [
+            {
+                "name": "Riolubruh",
+                "discord_id": "359063827091816448",
+                "github_username": "riolubruh"
+            },
+            {
+                "name": "kitazilla"
+            }
+        ],
+        "version": "7.5.0",
+        "description": "YABDP4Nitro by Riolubruh, with Profile Studio and visual chooser contributions by kitazilla.",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.4",
+            title: "7.5.0",
             items: [
-                "Added context menu button to download all attachments from a given message when \"Extra Context Menus and Options\" is enabled.",
-                "Fixed Call Tile Background not working.",
-                "Removed unused bookmarks code."
+                "Added a faster, lighter Profile Studio with lazy-loaded visual previews.",
+                "Added guided 3y3 export so compatible plugin users can see portable profile settings from About Me.",
+                "Redesigned the profile-effect browser with large previews, scrolling, progressive loading, and Shop-name search guidance.",
+                "Preserved original project credit and updater metadata; Profile Studio and visual chooser work credited to kitazilla."
             ]
         }
     ],
@@ -374,19 +383,20 @@ const config = {
             shown: false,
             settings: [
                 { type: "switch", id: "profileV2", name: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", value: () => settings.profileV2 },
-                { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", value: () => settings.fakeProfileThemes },
-                { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", value: () => settings.fakeProfileBanners },
+                { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Adds a native local colour action without using your bio.", value: () => settings.fakeProfileThemes },
+                { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Adds local banner controls to Discord profile customisation.", value: () => settings.fakeProfileBanners },
                 { type: "switch", id: "userBgIntegration", name: "UsrBG Integration", note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.", value: () => settings.userBgIntegration },
                 { type: "switch", id: "voiceTileBannerBackground", name: "Call Tile Background", note: "Uses fake banners as the background for call tiles.", value: () => settings.voiceTileBannerBackground },
-                { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", value: () => settings.fakeAvatarDecorations },
-                { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", value: () => settings.profileEffects },
+                { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Adds a visual avatar-frame chooser to Discord profile customisation.", value: () => settings.fakeAvatarDecorations },
+                { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Adds a searchable visual profile-effect chooser.", value: () => settings.profileEffects },
                 { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
-                { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
+                { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Adds local profile-picture controls without using your status.", value: () => settings.customPFPs },
                 { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
                 { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
-                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled },
-                { type: "switch", id: "displayNameStyles", name: "Fake Display Name Styles", note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.", value: () => settings.displayNameStyles },
+                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Adds a searchable visual nameplate chooser.", value: () => settings.nameplatesEnabled },
+                { type: "switch", id: "displayNameStyles", name: "Fake Display Name Styles", note: "Hooks Discord’s display-name style menu with a local apply action.", value: () => settings.displayNameStyles },
                 { type: "switch", id: "advancedProfileCustomization", name: "Advanced Profile Editing", note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.", value: () => settings.advancedProfileCustomization },
+                { type: "switch", id: "autoReloadProfileChanges", name: "Reload After Profile Changes", note: "Reloads Discord after applying local profile visuals so cached frames and effects refresh. Disable this if you prefer to reload manually.", value: () => settings.autoReloadProfileChanges },
             ]
         },
         {
@@ -687,7 +697,7 @@ module.exports = class YABDP4Nitro {
             Logger.error("An error occurred during honorBadge() " + err);
         }
 
-        if(settings.customPFPs){
+        if(settings.customPFPs || this.getLocalProfile()?.avatar){
             try {
                 this.customProfilePictureDecoding();
             } catch(err){
@@ -765,7 +775,7 @@ module.exports = class YABDP4Nitro {
         }
         
         try{
-            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
+            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled || settings.profileEffects){
                 //subscribe to successful collectible category fetch event
                 Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
     
@@ -856,6 +866,8 @@ module.exports = class YABDP4Nitro {
             }
         }
 
+        try { this.applyLocalProfileOverrides(); } catch(err) { Logger.error("Local profile overrides failed", err); }
+
     } //End of saveAndUpdate()
     // #endregion
 
@@ -895,55 +907,337 @@ module.exports = class YABDP4Nitro {
 
     //#region UserProfileModalV2
     //"What You See Is What You Get" user profile, aka UserProfileModalV2.
+    getLocalProfile(userId = CurrentUser?.id){
+        if(!userId) return {};
+        if(!data.localProfiles) data.localProfiles = {};
+        return data.localProfiles[userId] || {};
+    }
+
+    buildLocalProfilePayload(profile = {}){
+        if(profile.enabled === false) return "";
+        const parts = [];
+        if(profile.primary && profile.accent) parts.push(`[${profile.primary},${profile.accent}]`);
+        if(profile.banner) parts.push(`B{${profile.banner}}`);
+        if(profile.avatar) parts.push(`P{${profile.avatar}}`);
+        if(profile.decoration) parts.push(`/a${profile.decoration}`);
+        if(profile.effect) parts.push(`fx${profile.effect}`);
+        if(profile.nameplateSku && profile.nameplatePalette) parts.push(`n{${profile.nameplateSku},${profile.nameplatePalette}}`);
+        if(profile.displayFont && profile.displayEffect && profile.displayColors) parts.push(`S{${profile.displayFont},${profile.displayEffect},${profile.displayColors}}`);
+        return parts.join(" ");
+    }
+
+    getLocalProfilePayload(userId = CurrentUser?.id){
+        return this.buildLocalProfilePayload(this.getLocalProfile(userId));
+    }
+
+    getPortableMediaValue(value){
+        const raw = String(value || "").trim();
+        if(!raw) return "";
+        if(!/^https?:\/\//i.test(raw)) return this.cleanImgurValue(raw);
+        try {
+            const parsed = new URL(raw);
+            if(parsed.hostname.toLowerCase() !== "i.imgur.com") return "";
+            return parsed.pathname.replace(/^\//, "").split("?")[0];
+        } catch(_) {
+            return "";
+        }
+    }
+
+    buildPortableProfile(profile = {}){
+        const portable = {...profile, enabled: true};
+        const omitted = [];
+        if(portable.avatar){
+            const avatar = this.getPortableMediaValue(portable.avatar);
+            if(avatar) portable.avatar = avatar;
+            else { portable.avatar = ""; omitted.push("profile picture"); }
+        }
+        if(portable.banner){
+            const banner = this.getPortableMediaValue(portable.banner);
+            if(banner) portable.banner = banner;
+            else { portable.banner = ""; omitted.push("banner"); }
+        }
+        return {payload: this.buildLocalProfilePayload(portable), omitted};
+    }
+
+    cleanImgurValue(value){
+        if(!value) return "";
+        const raw = String(value).trim();
+        if(/^https?:\/\//i.test(raw)) return raw;
+        return raw.replace(/^i\.imgur\.com\//i, "").replace(/^imgur\.com\//i, "").split("?")[0];
+    }
+
+    async normalizeMediaInput(value){
+        const raw = String(value || "").trim();
+        if(!raw) return "";
+        let parsed;
+        try {
+            parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+        } catch(_) {
+            throw new Error("Enter a valid direct HTTP(S) image or GIF URL.");
+        }
+        if(!["http:", "https:"].includes(parsed.protocol)) throw new Error("Only HTTP(S) image URLs are supported.");
+        if(/(^|\.)imgur\.com$/i.test(parsed.hostname) && (/^\/a\//i.test(parsed.pathname) || /^\/gallery\//i.test(parsed.pathname))){
+            try {
+                const html = await Net.fetch(parsed.href, {method: "GET", mode: "cors"}).then(res => res.text());
+                const doc = new DOMParser().parseFromString(html, "text/html");
+                const direct = doc.querySelector('[property="og:image"]')?.content || doc.querySelector('[name="twitter:image"]')?.content || doc.querySelector('[name="twitter:player"]')?.content;
+                if(!direct) throw new Error("No media found in that album.");
+                return direct;
+            } catch(_) {
+                throw new Error("Could not resolve that Imgur album. Use a direct image or GIF URL instead.");
+            }
+        }
+        return parsed.href;
+    }
+
+    resolveMediaUrl(value, fallbackExtension = "gif"){
+        if(!value) return "";
+        const raw = String(value).trim();
+        if(/^https?:\/\//i.test(raw)) return raw;
+        const file = /\.(gif|png|jpe?g|webp|avif)$/i.test(raw) ? raw : `${raw}.${fallbackExtension}`;
+        return `https://i.imgur.com/${file}`;
+    }
+
+    reloadDiscordSoon(){
+        if(!settings.autoReloadProfileChanges) return;
+        UI.showToast("Applied — reloading Discord…", {type: "info"});
+        setTimeout(() => window.location.reload(), 900);
+    }
+
+    saveLocalProfile(profile){
+        if(!CurrentUser?.id) return;
+        if(!data.localProfiles) data.localProfiles = {};
+        data.localProfiles[CurrentUser.id] = {...profile};
+        this.saveDataFile();
+        try { window.dispatchEvent(new CustomEvent("yabdp-local-profile-change", {detail: data.localProfiles[CurrentUser.id]})); } catch(_) {}
+        try { UserStore.emitChange?.(); } catch(_) {}
+        try { UserProfileStore.emitChange?.(); } catch(_) {}
+        try { Dispatcher.dispatch({type: "CURRENT_USER_UPDATE", user: CurrentUser}); } catch(_) {}
+    }
+
+    applyLocalChoice(patch, message = "Applied locally"){
+        const next = {...this.getLocalProfile(), enabled: true, ...patch};
+        this.saveLocalProfile(next);
+        UI.showToast(message, {type: "success"});
+        this.reloadDiscordSoon();
+        return next;
+    }
+
+    exportPortableProfile(profile = this.getLocalProfile()){
+        const {payload, omitted} = this.buildPortableProfile(profile);
+        if(!payload){
+            UI.showToast("Choose at least one portable profile setting before exporting.", {type: "warning"});
+            return;
+        }
+        const encoded = " " + this.secondsightifyEncodeOnly(payload);
+        copyToClipboard(encoded, "3y3 profile copied — paste it into About Me.");
+        UI.showConfirmationModal("Export profile for other users", createElement("div", {className: "yabd-export-guide", children: [
+            createElement("div", {className: "yabd-export-success", children: [
+                createElement("strong", {children: "Your invisible 3y3 profile code is copied."}),
+                createElement("span", {children: "Compatible YABDP4Nitro users can see the exported settings after you publish the code in About Me."})
+            ]}),
+            omitted.length ? createElement("div", {className: "yabd-export-warning", children: `For portable sharing, ${omitted.join(" and ")} ${omitted.length === 1 ? "was" : "were"} omitted because legacy 3y3 media requires a direct i.imgur.com URL. Your local version is unchanged.`}) : null,
+            createElement("ol", {children: [
+                createElement("li", {children: "Open Discord User Settings."}),
+                createElement("li", {children: "Choose Profiles, then select your main profile."}),
+                createElement("li", {children: "Click at the very end of the About Me box. Keep your visible biography text."}),
+                createElement("li", {children: "Paste once. The 3y3 code is invisible, so the box may look unchanged."}),
+                createElement("li", {children: "Click Save Changes, then open your profile to confirm the shared customisation."})
+            ]}),
+            createElement("div", {className: "yabd-export-warning", children: "Do not paste repeatedly. After changing settings, remove the previous invisible segment if possible, then export and paste the new code. Other users need a compatible YABDP4Nitro version."}),
+            createElement("button", {className: "yabd-generic-button yabd-export-copy", children: "Copy 3y3 code again", onClick: () => copyToClipboard(encoded, "3y3 profile copied again.")})
+        ]}), {confirmText: "Done", cancelText: null, size: "large"});
+    }
+
+    importLegacyProfile(description){
+        const input = String(description || "");
+        const decoded = this.secondsightifyRevealOnly(input) || input;
+        const imported = {};
+        const colors = decoded.match(/\[(#[0-9a-f]{6}),(#[0-9a-f]{6})\]/i);
+        const banner = decoded.match(/B\{([^}]+)\}/);
+        const avatar = decoded.match(/P\{([^}]+)\}/);
+        const decoration = decoded.match(/\/a(\d+)/);
+        const effect = decoded.match(/fx(\d+)/);
+        const nameplate = decoded.match(/n\{([^,}]+),([^}]+)\}/);
+        const style = decoded.match(/S\{([^,}]+),([^,}]+),([^}]+)\}/);
+        if(colors){ imported.primary = colors[1]; imported.accent = colors[2]; }
+        if(banner) imported.banner = this.cleanImgurValue(banner[1]);
+        if(avatar) imported.avatar = this.cleanImgurValue(avatar[1]);
+        if(decoration) imported.decoration = decoration[1];
+        if(effect) imported.effect = effect[1];
+        if(nameplate){ imported.nameplateSku = nameplate[1]; imported.nameplatePalette = nameplate[2]; }
+        if(style){ imported.displayFont = style[1]; imported.displayEffect = style[2]; imported.displayColors = style[3]; }
+        const importedFields = Object.keys(imported);
+        if(!importedFields.length) throw new Error("No supported legacy profile settings were found.");
+        const next = {...this.getLocalProfile(), enabled: true, ...imported};
+        this.saveLocalProfile(next);
+        return {profile: next, count: importedFields.length};
+    }
+
+    LegacyProfileImporter({self, onImported}){
+        const [value, setValue] = useState("");
+        const [status, setStatus] = useState("");
+        const runImport = () => {
+            try {
+                const result = self.importLegacyProfile(value);
+                onImported?.(result.profile);
+                setStatus(`Imported ${result.count} profile setting${result.count === 1 ? "" : "s"}.`);
+                UI.showToast("Old 3y3 profile imported and applied.", {type: "success"});
+                self.reloadDiscordSoon();
+            } catch(err) {
+                setStatus(err.message);
+                UI.showToast(err.message, {type: "warning"});
+            }
+        };
+        return createElement("details", {className: "yabd-legacy-importer", children: [
+            createElement("summary", {children: "Import an old 3y3 profile"}),
+            createElement("p", {children: "Paste the old Discord About Me/description exactly as it was. Invisible text is detected automatically."}),
+            createElement("textarea", {value, rows: 4, placeholder: "Paste the old profile description here…", onChange: e => setValue(e.target.value)}),
+            createElement("button", {className: "yabd-generic-button", disabled: !value.trim(), onClick: runImport, children: "Import and apply"}),
+            status ? createElement("div", {className: "yabd-import-status", children: status}) : null
+        ]});
+    }
+
+    ProfileStudioCard({self}){
+        const current = self.getLocalProfile();
+        const configured = !!self.getLocalProfilePayload();
+        return createElement("section", {
+            className: "yabd-profile-studio-card",
+            children: [
+                createElement("div", {className: "yabd-profile-studio-heading", children: [
+                    createElement("div", {children: [
+                        createElement("div", {className: "yabd-profile-studio-title", children: "Profile Studio"}),
+                        createElement("div", {className: "yabd-profile-studio-subtitle", children: "Local, instant, and uses zero bio characters"})
+                    ]}),
+                    createElement("span", {className: `yabd-profile-studio-status ${configured && current.enabled !== false ? "is-on" : ""}`, children: configured && current.enabled !== false ? "Active" : "Not set"})
+                ]}),
+                createElement("button", {
+                    className: "yabd-profile-studio-open",
+                    children: configured ? "Edit profile" : "Set up profile",
+                    onClick: () => UI.showConfirmationModal("Profile Studio", createElement(self.ProfileStudio, {self}), {confirmText: "Done", cancelText: null, size: "large"})
+                })
+            ]
+        });
+    }
+
+    ProfileStudio({self}){
+        const saved = self.getLocalProfile();
+        const [profile, setProfile] = useState({
+            enabled: true,
+            primary: saved.primary || "#5865f2",
+            accent: saved.accent || "#eb459e",
+            banner: saved.banner || "",
+            avatar: saved.avatar || "",
+            decoration: saved.decoration || "",
+            effect: saved.effect || "",
+            nameplateSku: saved.nameplateSku || "",
+            nameplatePalette: saved.nameplatePalette || "",
+            displayFont: saved.displayFont || "",
+            displayEffect: saved.displayEffect || "",
+            displayColors: saved.displayColors || ""
+        });
+        useEffect(() => {
+            const sync = (event) => setProfile(old => ({...old, ...(event?.detail || self.getLocalProfile())}));
+            window.addEventListener("yabdp-local-profile-change", sync);
+            return () => window.removeEventListener("yabdp-local-profile-change", sync);
+        }, []);
+        const update = (key, value) => setProfile(old => ({...old, [key]: value}));
+        const avatarUrl = profile.avatar ? self.resolveMediaUrl(profile.avatar) : CurrentUser?.getAvatarURL?.(null, 128, true);
+        const bannerUrl = profile.banner ? self.resolveMediaUrl(profile.banner) : "";
+        const save = async () => {
+            try {
+                const next = {...profile, enabled: true};
+                if(next.avatar) next.avatar = await self.normalizeMediaInput(next.avatar);
+                if(next.banner) next.banner = await self.normalizeMediaInput(next.banner);
+                self.saveLocalProfile(next);
+                setProfile(next);
+                UI.showToast("Profile Studio saved — no bio text needed.", {type: "success"});
+                self.reloadDiscordSoon();
+            } catch(err) {
+                UI.showToast(err.message, {type: "warning"});
+            }
+        };
+        const reset = () => {
+            const blank = {enabled: false, primary: "", accent: "", banner: "", avatar: "", decoration: "", decorationAsset: "", effect: "", nameplateSku: "", nameplatePalette: "", displayFont: "", displayEffect: "", displayColors: ""};
+            self.saveLocalProfile(blank);
+            setProfile(blank);
+            UI.showToast("Local profile cleared.", {type: "info"});
+            self.reloadDiscordSoon();
+        };
+        const field = (label, key, placeholder) => createElement("label", {className: "yabd-studio-field", children: [
+            createElement("span", {children: label}),
+            createElement("input", {value: profile[key], placeholder, onChange: e => update(key, e.target.value)})
+        ]});
+        return createElement("div", {className: "yabd-profile-studio", children: [
+            createElement("div", {className: "yabd-studio-callout", children: "This profile is rendered natively on your client and is not stored in your Discord bio. Other people need the same local setup to see it."}),
+            createElement(self.LegacyProfileImporter, {self, onImported: setProfile}),
+            createElement("div", {className: "yabd-studio-preview", style: {background: bannerUrl ? `linear-gradient(180deg, transparent 30%, rgba(0,0,0,.72)), url(${bannerUrl}) center/cover` : `linear-gradient(135deg, ${profile.primary}, ${profile.accent})`}, children: [
+                createElement("img", {src: avatarUrl, alt: "Avatar preview"}),
+                createElement("div", {children: [createElement("strong", {children: CurrentUser?.globalName || CurrentUser?.username || "Your profile"}), createElement("span", {children: "Live local preview"})]})
+            ]}),
+            createElement("div", {className: "yabd-studio-section", children: [
+                createElement("h3", {children: "Look"}),
+                createElement("div", {className: "yabd-studio-grid colors", children: [
+                    createElement("label", {className: "yabd-studio-field", children: [createElement("span", {children: "Primary color"}), createElement("input", {type: "color", value: profile.primary, onChange: e => update("primary", e.target.value)})]}),
+                    createElement("label", {className: "yabd-studio-field", children: [createElement("span", {children: "Accent color"}), createElement("input", {type: "color", value: profile.accent, onChange: e => update("accent", e.target.value)})]})
+                ]}),
+                field("Banner image or GIF", "banner", "Paste any direct http(s) image/GIF URL"),
+                field("Profile picture or GIF", "avatar", "Paste any direct http(s) image/GIF URL")
+            ]}),
+            createElement("div", {className: "yabd-studio-section", children: [
+                createElement("h3", {children: "Visual customisation"}),
+                createElement("p", {className: "yabd-studio-hint", children: "Pick an item and it applies immediately. Discord reloads automatically so frame/effect caches refresh."}),
+                createElement("div", {className: "yabd-studio-visual-actions", children: [
+                    createElement(self.DecorButton, {self, compact: true}),
+                    createElement(self.EffectsButton, {self, compact: true}),
+                    createElement(self.CreateNameplateButton, {self, compact: true})
+                ]})
+            ]}),
+            settings.advancedProfileCustomization ? createElement("details", {className: "yabd-studio-portable", children: [
+                createElement("summary", {children: "Advanced manual IDs"}),
+                createElement("p", {className: "yabd-studio-hint", children: "Use custom IDs or a nameplate palette that is not listed in the visual pickers."}),
+                createElement("div", {className: "yabd-studio-grid", children: [
+                    field("Avatar decoration SKU", "decoration", "Decoration SKU ID"),
+                    field("Profile effect SKU", "effect", "Effect SKU ID"),
+                    field("Nameplate SKU", "nameplateSku", "Nameplate SKU ID"),
+                    field("Nameplate palette", "nameplatePalette", "Palette name")
+                ]})
+            ]}) : null,
+            createElement("section", {className: "yabd-export-card", children: [
+                createElement("div", {children: [
+                    createElement("strong", {children: "Let other plugin users see it"}),
+                    createElement("p", {children: "Export an invisible 3y3 code, paste it once at the end of About Me, and save your Discord profile."})
+                ]}),
+                createElement("button", {className: "yabd-export-primary", children: "Export settings", onClick: () => self.exportPortableProfile(profile)})
+            ]}),
+            createElement("div", {className: "yabd-studio-actions", children: [
+                createElement("button", {className: "yabd-studio-reset", onClick: reset, children: "Reset"}),
+                createElement("button", {className: "yabd-studio-save", onClick: save, children: "Save & apply"})
+            ]})
+        ]});
+    }
+
     async wysiwygUserProfileEditing(){
         if(!this.UserProfileModalV2) this.UserProfileModalV2 = await Webpack.waitForModule(Webpack.Filters.bySource('UserProfileModalV2', 'allowEditingInModal'), {signal: controller.signal});
         if(!this.UserProfileModalV2) return;
-
         this.overrideVariant("2026-06-wysiwyg-show-dns-to-non-nitro", 1);
-        
         Patcher.instead(this.UserProfileModalV2, this.findMangledName(this.UserProfileModalV2, x=>x), (_,[args],og) => {
             let ret = og(args);
             const editPanel = ret?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[0];
             if(editPanel){
                 nodePatcher.patch(editPanel, (props,res) => {
-                    //what the fuck am i even doing gng
                     const leftPanel = res?.props?.children?.props?.children?.[1];
                     if(leftPanel){
                         nodePatcher.patch(leftPanel, (props2,ret2) => {
                             const leftPanelInner = ret2?.props?.children?.[1]?.props?.children;
-                            if(leftPanelInner){
-                                // please god let this be a temporary hackfix
-                                leftPanelInner?.props?.children?.push?.(createElement("button", {
-                                    children: "3y3 Copying Zone",
-                                    className: `yabd-secondary-button`,
-                                    style: {
-                                        height: "30px"
-                                    },
-                                    onClick: () => {
-                                        UI.showConfirmationModal("3y3 Copying Zone", createElement("div", {
-                                            children: [
-                                                createElement(this.newProfileThemesUI),
-                                                createElement("br"),
-                                                createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.CreateNameplateButton, {self: this}),
-                                                createElement("br"),
-                                                createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                            ]
-                                        }), {cancelText: ""})
-                                    }
-                                }))
-                            }
+                            const children = leftPanelInner?.props?.children;
+                            if(Array.isArray(children) && !children.some(x => x?.props?.className === "yabd-profile-studio-card")) children.push(createElement(this.ProfileStudioCard, {self: this}));
                         });
                     }
-                })
+                });
             }
             return ret;
-        })
+        });
     }
     //#endregion
 
@@ -1055,27 +1349,14 @@ module.exports = class YABDP4Nitro {
                     }
                 }),
                 createElement("button",{
-                    children: "Copy Colors 3y3",
+                    children: "Use these colours locally",
                     className: `yabd-generic-button`,
                     style: {
                         height: "32px",
                         width: "auto",
                         marginTop: "10px"
                     },
-                    onClick: () => {
-                        let message = `[${primary},${accent}]`;
-
-                        const padding = "";
-                        let encoded = Array.from(message)
-                            .map(x => x.codePointAt(0))
-                            .filter(x => x >= 0x20 && x <= 0x7f)
-                            .map(x => String.fromCodePoint(x + 0xe0000))
-                            .join("");
-
-                        let encodedStr = ((padding || "") + " " + encoded);
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                    }
+                    onClick: () => this.applyLocalChoice({primary, accent}, "Profile colours applied")
                 })
             ]
         })
@@ -1083,103 +1364,15 @@ module.exports = class YABDP4Nitro {
     //#endregion
 
     // #region Custom PFP UI
-    CustomPFPInput({secondsightifyEncodeOnly}) {
-        return createElement("div",{
-            style: {
-                display: "flex",
-                marginTop: "4px",
-            },
-            children: [
-                createElement("input",{
-                    id: "profilePictureUrlInput",
-                    style: {
-                        maxWidth: "112px",
-                        marginTop: "4px",
-                    },
-                    placeholder: "PFP Imgur URL"
-                }),
-                //Create and append Copy PFP 3y3 button.
-                createElement("button",{
-                    children: "Copy PFP 3y3",
-                    className: `yabd-generic-button`,
-                    id: "profilePictureButton",
-                    style: {
-                        marginLeft: "5px",
-                        whiteSpace: "nowrap"
-                    },
-                    onClick: async function() { //on copy pfp 3y3 button click
-
-                        //grab text from pfp url input textarea.
-                        let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-
-                        //empty, skip.
-                        if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profilePictureUrlInputValue
-                            //clean up URL
-                            .replace("http://","") //remove protocol
-                            .replace("https://","")
-                            .replace("i.imgur.com","imgur.com");
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode),{
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
-                                        .replace("https://","") //get rid of protocol
-                                        .replace("i.imgur.com","imgur.com")
-                                        .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err) {
-                                    Logger.error(err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
-                                    return;
-                                }
-                            }
-                            if(stringToEncode == "") {
-                                UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
-                                Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
-                            }
-
-                            //add starting "P{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                            //If this is not an Imgur URL, yell at the user.
-                        } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-                            UI.showToast("Please use Imgur!",{type: "warning"});
-                            return;
-                        }
-
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
-
-                        copyToClipboard(encodedStr,"3y3 copied to clipboard!");
-
-                    } //end copy pfp 3y3 click event
-                }) //end of react createElement of button
-            ]
-        }) //end of react createElement of div
+    CustomPFPInput({self}) {
+        const [value,setValue]=useState("");
+        return createElement("div",{className:"yabd-inline-local-input",children:[
+            createElement("input",{value,placeholder:"Paste any direct image/GIF URL",onChange:e=>setValue(e.target.value)}),
+            createElement("button",{className:"yabd-generic-button",children:"Use picture locally",onClick:async()=>{
+                try { const key=await self.normalizeMediaInput(value); if(!key) throw new Error("Paste a direct HTTP(S) image or GIF URL first."); self.applyLocalChoice({avatar:key},"Profile picture applied"); }
+                catch(err){ UI.showToast(err.message,{type:"warning"}); }
+            }})
+        ]});
     }
 
     //Custom PFP profile customization buttons and encoding code.
@@ -1207,7 +1400,7 @@ module.exports = class YABDP4Nitro {
             if(ret?.props?.children){
                 ret.props.children = [ret.props.children];
                 ret.props.children.push(
-                    createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
+                    createElement(this.CustomPFPInput, {self: this}),
                 ); //end of element push
             }
         }); //end of patch
@@ -1227,150 +1420,20 @@ module.exports = class YABDP4Nitro {
 
     //#region Nameplates UI
 
-    CreateNameplateButton({self}) {
-        const NameplatePreviewName = self.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
-        const secondsightifyEncodeOnly = self.secondsightifyEncodeOnly;
-        
-        function NameplateList({NameplatePreviewName}) {
-            const [query,setQuery] = useState("");
-            const [skuIdBox, setSkuIdBox] = useState("");
-            const [paletteBox, setPaletteBox] = useState("");
-
-            let nameplatesList = [];
-
-            if(NameplatePreview) {
-                if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1) {
-                    return createElement('h1',{
-                        children: "No nameplates were found!",
-                        style: {
-                            color: "red",
-                            fontWeight: "bold"
-                        }
-                    });
-                } else {
-                    const listOfNameplates = Object.values(data.nameplatesV2);
-                    const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
-
-                    for(let i = 0;i < listOfNameplates.length;i++) {
-                        let nameplate = listOfNameplates[i];
-                        let skuId = listOfNameplateSkuIds[i];
-                        if(nameplate) {
-                            if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())) {
-                                continue;
-                            }
-
-                            function nameplateCopier({nameplate, skuId}){
-                                const [highlighted, setHighlighted] = useState(false);
-
-                                return createElement('div',{
-                                    children: createElement(NameplatePreview[NameplatePreviewName].type,{
-                                        user: CurrentUser,
-                                        isHighlighted: highlighted,
-                                        nameplate: {
-                                            asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
-                                            palette: nameplate.palette,
-                                            skuId,
-                                            label: nameplate.label ? nameplate.label : ""
-                                        },
-                                        isPurchased: true
-                                    }),
-                                    style: {
-                                        borderRadius: "10px",
-                                        width: "95%",
-                                        marginLeft: "auto",
-                                        marginRight: "auto",
-                                        height: "42px",
-                                        marginTop: "10px",
-                                        position: "relative",
-                                        top: '5px',
-                                        cursor: "pointer",
-                                    },
-                                    onClick: () => {
-                                        //make 3y3 string
-                                        let strToEncode = `n{${skuId},${nameplate.palette}}`;
-                                        let encodedStr = secondsightifyEncodeOnly(strToEncode);
-
-                                        copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                                    },
-                                    onMouseOver: (e) => {
-                                        setHighlighted(true);
-                                    },
-                                    onMouseLeave: (e) => {
-                                        setHighlighted(false);
-                                    },
-                                    title: nameplate.name
-                                })
-                            }
-                            nameplatesList.push(createElement(nameplateCopier,{nameplate,skuId}));
-                        }
-                    }
-                    let onKeyDown = (e) => {
-                        if(e.keyCode == 13) {
-                            let strToEncode = `n{${skuIdBox},${paletteBox}}`;
-                            let encodedStr = secondsightifyEncodeOnly(strToEncode);
-
-                            copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                        }
-                    };
-                    return createElement('div',{
-                        children: [
-                            settings.advancedProfileCustomization ? createElement(Components.TextInput,{
-                                value: skuIdBox,
-                                placeholder: "Custom SKU ID... (enter to copy)",
-                                onChange: (input) => setSkuIdBox(input),
-                                onKeyDown
-                            }) : null,
-                            settings.advancedProfileCustomization ? createElement(Components.TextInput,{
-                                value: paletteBox,
-                                placeholder: "Palette... (enter to copy)",
-                                onChange: (input) => setPaletteBox(input),
-                                onKeyDown
-                            }) : null,
-                            settings.advancedProfileCustomization ? createElement('br') : null,
-                            settings.advancedProfileCustomization ? createElement('br') : null,
-                            createElement(Components.SearchInput,{
-                                value: query,
-                                placeholder: "Search...",
-                                onChange: (e) => {
-                                    setQuery(e.target.value);
-                                }
-                            }),
-                            createElement('div',{
-                                children: nameplatesList,
-                                style: {
-                                    height: "460px",
-                                    overflowY: "scroll",
-                                    backgroundColor: "var(--input-background-default)"
-                                },
-                                className: "bd-scroller-thin"
-                            })
-                        ],
-                    });
-                }
-            } else {
-                return createElement('h1',{
-                    children: "Error: Nameplate Preview element is undefined!",
-                    style: {
-                        color: "red",
-                        fontWeight: "bold"
-                    }
-                });
-            }
+    CreateNameplateButton({self, compact = false}) {
+        const Preview = self.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
+        function Picker(){
+            const [query,setQuery]=useState("");
+            const entries=Object.entries(data?.nameplatesV2 || {}).filter(([,x])=>!query || x?.name?.toLowerCase().includes(query.toLowerCase()));
+            return createElement("div", {className:"yabd-visual-picker", children:[
+                createElement(Components.SearchInput,{value:query,placeholder:"Search nameplates",onChange:e=>setQuery(e.target.value)}),
+                createElement("div",{className:"yabd-nameplate-grid bd-scroller-thin",children:entries.map(([skuId,item])=>createElement("button",{
+                    key:skuId,className:"yabd-nameplate-choice",title:item.name,onClick:()=>self.applyLocalChoice({nameplateSku:skuId,nameplatePalette:item.palette},`${item.name || "Nameplate"} applied`),
+                    children: Preview ? createElement(NameplatePreview[Preview].type,{user:CurrentUser,isHighlighted:true,nameplate:{asset:`nameplates/${item.asset?.replace?.("nameplates/","")}`,palette:item.palette,skuId,label:item.label||""},isPurchased:true}) : (item.name||skuId)
+                }))})
+            ]});
         }
-
-        return createElement("button",{
-            className: `yabd-generic-button`,
-            style: {
-                height: "30px",
-                marginTop: "8px",
-                width: "auto",
-                height: "30px"
-            },
-            children: "Change Nameplate [YABDP4Nitro]",
-            onClick: () => {
-                UI.showConfirmationModal("Change Nameplate",createElement(NameplateList,{NameplatePreviewName}),{cancelText: ""})
-            }
-        });
+        return createElement("button",{className:"yabd-generic-button",children:compact?"Choose nameplate":"Choose nameplate visually",onClick:()=>UI.showConfirmationModal("Choose nameplate",createElement(Picker),{cancelText:"",confirmText:"Done"})});
     }
 
     nameplatesUI(){
@@ -1391,111 +1454,17 @@ module.exports = class YABDP4Nitro {
 
     //#region Avatar Decorations UI
 
-    DecorButton({secondsightifyEncodeOnly}){
-        function AvatarDecorations() {
-            const [skuId, setSkuId] = useState("");
-            if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
-            let listOfDecorationIds = Object.keys(data.avatarDecorations);
-            let avatarDecorationChildren = [];
-
-            //for each avatar decoration
-            for(let i = 0;i < listOfDecorationIds.length;i++) {
-
-                const decorationId = listOfDecorationIds[i];
-                const assetHash = data.avatarDecorations[decorationId];
-
-                if(decorationId && assetHash) {
-                    //remove existing nameplates from decoration list
-                    if(assetHash.includes('nameplate')) {
-                        delete data.avatarDecorations[decorationId];
-                        continue;
-                    }
-
-                    //encode to 3y3 and store clipboard copy in onclick event
-                    let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
-                    //javascript that runs onclick for each avatar decoration button
-
-                    let child = createElement("img",{
-                        style: {
-                            width: "23%",
-                            cursor: "pointer",
-                            marginLeft: "5px",
-                            marginBottom: "10px",
-                            borderRadius: "4px",
-                            backgroundColor: "var(--background-base-lower)"
-                        },
-                        onClick: () => {
-                            copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                        },
-                        onMouseOver: (e) => {
-                            e.target.src = e.target.src.replace('.webp','.png');
-                        },
-                        onMouseLeave: (e) => {
-                            e.target.src = e.target.src.replace('.png','.webp');
-                        },
-                        src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
-                    });
-                    avatarDecorationChildren.push(child);
-
-                    //add newline every 4th decoration
-                    if((i + 1) % 4 == 0) {
-                        //avatarDecorationsHTML += "<br>"
-                        avatarDecorationChildren.push(createElement("br"));
-                    }
-                }
-            }
-            return createElement('div',{
-                children: [
-                    settings.advancedProfileCustomization ? createElement(Components.TextInput, {
-                        value: skuId,
-                        placeholder: "Custom SKU ID... (enter to copy)",
-                        onKeyDown: (e) => {
-                            if(e.keyCode == 13){
-                                let encodedStr = secondsightifyEncodeOnly("/a" + skuId);
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                            }
-                        },
-                        onChange: (value) => {
-                            setSkuId(value);
-                        },
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }): null,
-                    settings.advancedProfileCustomization ? createElement("br") : null,
-                    settings.advancedProfileCustomization ? createElement("br") : null,
-                    ...avatarDecorationChildren
-                ]
-            });
+    DecorButton({self, compact = false}){
+        function Picker(){
+            const entries=Object.entries(data?.avatarDecorations || {}).filter(([,asset])=>asset && !asset.includes("nameplate"));
+            if(!entries.length) return createElement("div",{className:"yabd-picker-empty",children:"Frames are still loading. Reopen this picker in a moment."});
+            const selected=self.getLocalProfile()?.decoration;
+            return createElement("div",{className:"yabd-decoration-grid bd-scroller-thin",children:entries.map(([id,asset])=>createElement("button",{
+                key:id,className:`yabd-decoration-choice ${String(selected)===String(id)?"is-selected":""}`,title:"Apply avatar frame",onClick:()=>self.applyLocalChoice({decoration:id,decorationAsset:asset},"Avatar frame applied"),
+                children:createElement("img",{src:"https://cdn.discordapp.com/avatar-decoration-presets/"+asset+".png?size=160",alt:"Avatar frame",loading:"lazy",decoding:"async"})
+            }))});
         }
-        function DecorModal() {
-            return createElement("div",{
-                style: {
-                    width: "100%",
-                    display: "block",
-                    color: "white",
-                    whiteSpace: "nowrap",
-                    overflow: "visible",
-                    marginTop: ".5em"
-                },
-                children: createElement(AvatarDecorations)
-            });
-        }
-
-        return createElement("button",{
-            id: "decorationButton",
-            children: "Change Decoration [YABDP4Nitro]",
-            style: {
-                width: "100px",
-                height: "50px",
-                color: "white",
-                marginLeft: "5px",
-            },
-            className: "yabd-generic-button",
-            onClick: () => {
-                UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)",createElement(DecorModal),{cancelText: ""});
-            }
-        })
+        return createElement("button",{className:"yabd-generic-button",children:compact?"Choose avatar frame":"Choose frame visually",onClick:()=>UI.showConfirmationModal("Choose avatar frame",createElement(Picker),{cancelText:"",confirmText:"Done"})});
     }
 
     avatarDecorationsUI(){
@@ -1514,7 +1483,7 @@ module.exports = class YABDP4Nitro {
             //push change decoration button
             if(ret?.props?.children?.props?.children){
                 ret.props.children.props.children.push(
-                    createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})
+                    createElement(this.DecorButton, {self: this})
                 );
             }else{
                 Logger.error("Decoration Section ain't right chief.")
@@ -1525,132 +1494,39 @@ module.exports = class YABDP4Nitro {
 
     //#region Effects UI
 
-    EffectsButton({secondsightifyEncodeOnly}) {
-
-        function ProfileEffects({query}) {
-            let profileEffectChildren = [];
-            let actualRuns = 0;
-
-            let profileEffectsArray = Object.values(profileEffects);
-            //for each profile effect
-            for(let i = 0;i < profileEffectsArray.length;i++){
-
-                //get preview image url
-                const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
-                const title = profileEffectsArray[i].title;
-
-                //search
-                if(query.trim() != "") {
-                    if(title) {
-                        if(!title.toLowerCase().includes(query)) continue;
-                    } else continue;
-                }
-
-                //encode 3y3
-                let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
-                //javascript that runs onclick for each profile effect button
-                let copyDecoration3y3 = function(){
-                    copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                };
-
-                profileEffectChildren.push(
-                    createElement("img", {
-                        className: "riolubruhsSecretStuff",
-                        onClick: copyDecoration3y3,
-                        src: previewURL,
-                        title,
-                        style: {
-                            width: "22.5%",
-                            cursor: "pointer",
-                            marginBottom: "0.5em",
-                            marginLeft: "0.5em",
-                            backgroundColor: "var(--background-base-lower)"
-                        }
-                    })
-                );
-
-                //add newline every 4th profile effect
-                if((actualRuns + 1) % 4 == 0){
-                    profileEffectChildren.push(
-                        createElement("br")
-                    );
-                }
-
-                actualRuns++;
-            }
-            return createElement('div', {
-                children: profileEffectChildren,
-                style: {
-                    paddingTop: "10px",
-                    height: "460px",
-                    overflowY: "scroll",
-                    backgroundColor: "var(--input-background-default)"
-                },
-                className: "bd-scroller-thin"
-            });
+    EffectsButton({self, compact = false}) {
+        function Picker(){
+            const PAGE_SIZE = 36;
+            const [query,setQuery]=useState("");
+            const [visibleCount,setVisibleCount]=useState(PAGE_SIZE);
+            const normalizedQuery=query.trim().toLowerCase();
+            const entries=Object.values(profileEffects).filter(item=>!normalizedQuery || item?.title?.toLowerCase().includes(normalizedQuery));
+            const visibleEntries=entries.slice(0,visibleCount);
+            const selected=self.getLocalProfile()?.effect;
+            const updateQuery=(event)=>{ setQuery(event.target.value); setVisibleCount(PAGE_SIZE); };
+            const loadMore=()=>setVisibleCount(count=>Math.min(count+PAGE_SIZE,entries.length));
+            const onScroll=(event)=>{
+                const box=event.currentTarget;
+                if(box.scrollTop+box.clientHeight>=box.scrollHeight-180 && visibleCount<entries.length) loadMore();
+            };
+            return createElement("div",{className:"yabd-visual-picker yabd-effect-picker",children:[
+                createElement("div",{className:"yabd-picker-intro",children:[
+                    createElement("strong",{children:"Browse every available profile effect"}),
+                    createElement("span",{children:"Large previews load as you scroll. If you already know an effect from the Discord Shop, type its exact or partial name below."})
+                ]}),
+                createElement(Components.SearchInput,{value:query,placeholder:"Search by Shop effect name…",onChange:updateQuery}),
+                createElement("div",{className:"yabd-picker-count",children:`Showing ${Math.min(visibleCount,entries.length)} of ${entries.length} effect${entries.length===1?"":"s"}`}),
+                createElement("div",{className:"yabd-effect-grid bd-scroller-thin",onScroll,children:entries.length ? visibleEntries.map(item=>createElement("button",{
+                    key:item.skuId,className:`yabd-effect-choice ${String(selected)===String(item.skuId)?"is-selected":""}`,title:`Apply ${item.title||"profile effect"}`,onClick:()=>self.applyLocalChoice({effect:item.skuId},`${item.title||"Profile effect"} applied`),
+                    children:[
+                        item.thumbnailPreviewSrc ? createElement("img",{src:item.thumbnailPreviewSrc,alt:`${item.title||"Profile effect"} preview`,loading:"lazy",decoding:"async",onError:event=>event.currentTarget.classList.add("is-missing")}) : createElement("div",{className:"yabd-effect-placeholder",children:"Preview unavailable"}),
+                        createElement("span",{children:item.title||"Unnamed profile effect"})
+                    ]
+                })) : createElement("div",{className:"yabd-picker-empty",children:normalizedQuery ? "No matching effect. Check the name in Discord Shop and try a shorter search." : "Effects are still loading. Close this window and reopen it in a moment."})}),
+                visibleCount<entries.length ? createElement("button",{className:"yabd-generic-button yabd-load-more",children:`Load ${Math.min(PAGE_SIZE,entries.length-visibleCount)} more effects`,onClick:loadMore}) : null
+            ]});
         }
-
-        //Profile Effects Modal
-        function EffectsModal(){
-            const [query,setQuery] = useState("");
-            const [skuId, setSkuId] = useState("");
-
-            return createElement("div", {
-                style: {
-                    width: "100%",
-                    display: "block",
-                    color: "white",
-                    whiteSpace: "nowrap",
-                    overflow: "visible",
-                    marginTop: ".5em"
-                },
-                children: [
-                    settings.advancedProfileCustomization ? createElement(Components.TextInput, {
-                        value: skuId,
-                        placeholder: "Custom SKU ID... (enter to copy)",
-                        onKeyDown: (e) => {
-                            if(e.keyCode == 13){
-                                let encodedStr = secondsightifyEncodeOnly("fx" + skuId);
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                            }
-                        },
-                        onChange: (value) => {
-                            setSkuId(value);
-                        },
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }) : null,
-                    settings.advancedProfileCustomization ? createElement('br') : null,
-                    settings.advancedProfileCustomization ? createElement('br') : null,
-                    createElement(Components.SearchInput, {
-                        value: query,
-                        placeholder: "Search...",
-                        onChange: (e) => setQuery(e.target.value),
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }),
-                    createElement(ProfileEffects, {query})
-                ]
-            });
-        }
-
-        return createElement("button", {
-            children: "Change Effect [YABDP4Nitro]",
-            className: `yabd-generic-button`,
-            size: "bd-button-small",
-            id: "changeProfileEffectButton",
-            style: {
-                width: "100px",
-                height: "32px",
-                color: "white",
-                marginLeft: "4px"
-            },
-            onClick: () => {
-                UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)",createElement(EffectsModal),{cancelText: ""});
-            }
-        })
+        return createElement("button",{className:"yabd-generic-button",children:compact?"Choose profile effect":"Choose effect visually",onClick:()=>UI.showConfirmationModal("Profile effect gallery",createElement(Picker),{cancelText:"",confirmText:"Done",size:"large"})});
     }
 
     profileFxUI(){
@@ -1671,128 +1547,22 @@ module.exports = class YABDP4Nitro {
             //Append Change Effect button
             ret.props.children.props.children.push(
                 //self explanatory create react element
-                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})
+                createElement(this.EffectsButton, {self: this})
             );
         }); //end patch of profile effect section renderer function
     }
     //#endregion
 
     //#region Banner UI
-    CustomBannerInput({secondsightifyEncodeOnly}) {
-        let profileBannerUrlInput = createElement("input",{
-            id: "profileBannerUrlInput",
-            placeholder: "Banner Imgur URL",
-            style: {
-                float: "right",
-                width: "116px",
-                height: "20%",
-                maxHeight: "50%",
-                marginTop: "3px"
-            }
-        });
-
-        return createElement('div',{
-            style: {
-                marginTop: "8px",
-                display: "flex",
-            },
-            children: [
-                profileBannerUrlInput,
-                createElement("button",{
-                    id: "profileBannerButton",
-                    children: "Copy Banner 3y3",
-                    className: `yabd-generic-button`,
-                    size: "bd-button-small",
-                    style: {
-                        whiteSpace: "nowrap",
-                        marginLeft: "4px",
-                        width: "116px",
-                        height: "30px"
-                    },
-                    onClick: async function() { //Upon clicking Copy 3y3 button
-
-                        //grab text from banner URL input textarea 
-                        let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
-
-                        //if it's empty, stop processing and issue a warning.
-                        if(profileBannerUrlInputValue == undefined) {
-                            emptyWarn();
-                            return;
-                        }
-                        if(profileBannerUrlInputValue == "") {
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profileBannerUrlInputValue
-                            .replace("http://","") //get rid of protocol
-                            .replace("https://","")
-                            .replace(".jpg","")
-                            .replace(".png","")
-                            .replace(".mp4","")
-                            .replace("webm","")
-                            .replace("i.imgur.com","imgur.com"); //change i.imgur.com to imgur.com
-
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
-
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode),{
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
-                                        .replace("https://","") //get rid of protocol
-                                        .replace("i.imgur.com","imgur.com")
-                                        .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err) {
-                                    Logger.error(err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
-                                    return;
-                                }
-                            }
-                            if(stringToEncode == "") {
-                                UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
-                                Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
-                                return;
-                            }
-                            //add starting "B{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                            //If this is not an Imgur URL, yell at the user.
-                        } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-                            UI.showToast("Please use Imgur!",{type: "warning"});
-                            return;
-                        }
-
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
-
-                        //copy to clipboard
-                        copyToClipboard(encodedStr,"3y3 copied to clipboard!");
-
-                    } //end of onClick function
-                }) //end of button react createElement
-            ] //end of children
-        })
+    CustomBannerInput({self}) {
+        const [value,setValue]=useState("");
+        return createElement("div",{className:"yabd-inline-local-input",children:[
+            createElement("input",{value,placeholder:"Paste any direct image/GIF URL",onChange:e=>setValue(e.target.value)}),
+            createElement("button",{className:"yabd-generic-button",children:"Use banner locally",onClick:async()=>{
+                try { const key=await self.normalizeMediaInput(value); if(!key) throw new Error("Paste a direct HTTP(S) image or GIF URL first."); self.applyLocalChoice({banner:key},"Profile banner applied"); }
+                catch(err){ UI.showToast(err.message,{type:"warning"}); }
+            }})
+        ]});
     }
 
     //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
@@ -1815,7 +1585,7 @@ module.exports = class YABDP4Nitro {
             
             if(ret?.props?.children){
                 ret.props.children = [ret.props.children];
-                ret.props.children.push(createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})); //end of profileBannerButton element push
+                ret.props.children.push(createElement(this.CustomBannerInput, {self: this})); //end of profileBannerButton element push
             }
 
         }); //end of patched function
@@ -1826,56 +1596,16 @@ module.exports = class YABDP4Nitro {
     //#region Profile Themes UI
     //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
     profileThemesUI(){
-        let profileThemesSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("__invalid_profileThemesSection"), "ProfileThemesSection");
-        if(!profileThemesSectionFnName) return;
-
-        Patcher.after(this.settingsUIMod.declarations, profileThemesSectionFnName, (_, [args], ret) => {
-            //enable in per-server profile section
-            ret.props.disabled = false;
-
-            ret.props.children.props.children.push( //append copy colors 3y3 button
-                createElement("button", {
-                    id: "copy3y3button",
-                    children: "Copy Colors 3y3",
-                    className: `yabd-generic-button`,
-                    style: {
-                        height: "32px",
-                        width: "auto",
-                        marginLeft: "10px",
-                        marginTop: "10px"
-                    },
-                    onClick: () => {
-                        let primary = args?.pendingColors?.[0];
-                        let accent = args?.pendingColors?.[1];
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
-                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
-                        }
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            Logger.error("Primary:",primary,"Accent:",accent);
-                            UI.showToast("Nothing has been copied!", { type: "error" });
-                            return;
-                        }
- 
-                        let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
-
-                        const padding = "";
-                        let encoded = Array.from(message)
-                            .map(x => x.codePointAt(0))
-                            .filter(x => x >= 0x20 && x <= 0x7f)
-                            .map(x => String.fromCodePoint(x + 0xe0000))
-                            .join("");
-
-                        let encodedStr = ((padding || "") + " " + encoded);
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                    }
-                })
-            );
+        const fn=this.findMangledName(this.settingsUIMod.declarations,Webpack.Filters.byStrings("__invalid_profileThemesSection"),"ProfileThemesSection");
+        if(!fn) return;
+        Patcher.after(this.settingsUIMod.declarations,fn,(_,[args],ret)=>{
+            ret.props.disabled=false;
+            ret.props.children.props.children.push(createElement("button",{className:"yabd-generic-button",children:"Use these colours locally",onClick:()=>{
+                let primary=args?.pendingColors?.[0],accent=args?.pendingColors?.[1];
+                if(isNaN(primary)||isNaN(accent)) return UI.showToast("Choose both colours first.",{type:"warning"});
+                this.applyLocalChoice({primary:`#${primary.toString(16).padStart(6,"0")}`,accent:`#${accent.toString(16).padStart(6,"0")}`},"Profile colours applied");
+            }}));
         });
-
     } //End of profileThemesUI()
     //#endregion
    
@@ -1927,7 +1657,7 @@ module.exports = class YABDP4Nitro {
     
                         if (!Object.prototype.hasOwnProperty.call(ret, "displayNameStyles")) {
                             Object.defineProperty(ret, "displayNameStyles", {
-                                value: cache,
+                                value: styleData,
                                 enumerable: true,
                                 configurable: true,
                                 writable: true,
@@ -1953,7 +1683,7 @@ module.exports = class YABDP4Nitro {
                 if(ret && font && effect && colors){
                     if(ret?.props?.children?.props?.children?.props?.children){
                         ret.props.children.props.children.props.children.splice(1, 0, createElement(Components.Button, {
-                            children: "Copy 3y3",
+                            children: "Use locally",
                             color: Components.Button.Colors.PRIMARY,
                             look: Components.Button.Looks.OUTLINED,
                             style: {
@@ -1964,10 +1694,8 @@ module.exports = class YABDP4Nitro {
                                 background: "var(--control-secondary-background-default)",
                                 borderRadius: "8px"
                             },
-                            onClick: () => {    
-                                //encoding part                          ex: S{11,1,15724528,15724528}
-                                let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
-                                copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
+                            onClick: () => {
+                                this.applyLocalChoice({displayFont: String(font), displayEffect: String(effect), displayColors: colors.toString()}, "Display-name style applied");
                             }
                         }))
                     }
@@ -2373,6 +2101,11 @@ module.exports = class YABDP4Nitro {
     getRevealedText(userId, shouldInclude=""){
         let revealedText = ""; //init variable
 
+        if(userId === CurrentUser?.id){
+            const localPayload = this.getLocalProfilePayload(userId);
+            if(localPayload && (!shouldInclude || this.secondsightifyEncodeOnly(localPayload)?.includes(shouldInclude))) return localPayload;
+        }
+
         let perServer = this.getRevealedTextPerServer(userId, shouldInclude);
         if(perServer != undefined && perServer != "") return perServer;
 
@@ -2425,6 +2158,15 @@ module.exports = class YABDP4Nitro {
         Patcher.after(UserStore, "getUser", (_, [userId], ret) => {
             if(!ret || !userId) return;
             
+            const local = userId === CurrentUser?.id ? this.getLocalProfile(userId) : null;
+            if(local?.enabled !== false && local?.nameplateSku && local?.nameplatePalette){
+                const item = data?.nameplatesV2?.[local.nameplateSku];
+                if(item?.asset){
+                    if(!ret.collectibles) ret.collectibles = {};
+                    ret.collectibles.nameplate = {asset: item.asset, palette: local.nameplatePalette, skuId: String(local.nameplateSku)};
+                    return;
+                }
+            }
             let userNameplate = ret?.collectibles?.nameplate;
 
             //if user has a nameplate
@@ -3484,9 +3226,52 @@ module.exports = class YABDP4Nitro {
     } //End of clientThemes()
     // #endregion
 
+    // High-priority local overrides. These run after legacy patches so local visual choices always win.
+    applyLocalProfileOverrides(){
+        Patcher.after(UserStore, "getUser", (_, [userId], ret) => {
+            if(!ret || userId !== CurrentUser?.id) return;
+            const local = this.getLocalProfile(userId);
+            if(local?.enabled === false) return;
+            if(local.decoration){
+                const asset = local.decorationAsset || data?.avatarDecorations?.[local.decoration];
+                if(asset) ret.avatarDecorationData = {asset, skuId: String(local.decoration), sku_id: String(local.decoration)};
+            }
+            if(local.nameplateSku && local.nameplatePalette){
+                const item = data?.nameplatesV2?.[local.nameplateSku];
+                if(item?.asset){
+                    if(!ret.collectibles) ret.collectibles = {};
+                    ret.collectibles.nameplate = {asset: item.asset, palette: local.nameplatePalette, skuId: String(local.nameplateSku), sku_id: String(local.nameplateSku)};
+                }
+            }
+            if(local.displayFont && local.displayEffect && local.displayColors){
+                const colors = String(local.displayColors).split(",").map(Number).filter(Number.isFinite);
+                ret.displayNameStyles = {fontId: Number(local.displayFont), effectId: Number(local.displayEffect), colors};
+            }
+        });
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
+            if(!ret || userId !== CurrentUser?.id) return;
+            const local = this.getLocalProfile(userId);
+            if(local?.enabled === false) return;
+            if(local.effect){
+                const id = String(local.effect);
+                ret.profileEffect = {id, skuId: id, sku_id: id, expiresAt: null};
+                ret.profileEffectId = id;
+            }
+            if(local.primary && local.accent){
+                ret.themeColors = [parseInt(local.primary.slice(1),16), parseInt(local.accent.slice(1),16)];
+                ret.premiumType = 2;
+            }
+        });
+    }
+
     // #region Custom PFP Decode
     customProfilePictureDecoding(){
         Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
+            const resolvedUserId = user?.id || userId;
+            const local = resolvedUserId === CurrentUser?.id ? this.getLocalProfile(resolvedUserId) : null;
+            if(local?.enabled !== false && local?.avatar){
+                return this.resolveMediaUrl(local.avatar);
+            }
 
             //userpfp closer integration
             //if we haven't fetched userPFP database yet and it's enabled
@@ -3514,7 +3299,7 @@ module.exports = class YABDP4Nitro {
                 }
             }
             //get revealed text                               includes P{ encoded
-            let revealedText = this.getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
+            let revealedText = this.getRevealedText(resolvedUserId, `\uDB40\uDC50\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function.
             if(revealedText == undefined) return originalFunction(userId,size,shouldAnimate);
 
@@ -3679,14 +3464,16 @@ module.exports = class YABDP4Nitro {
         Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             //error prevention
             if(ret == undefined) return;
-            if(ret.bio == undefined) return;
+            if(ret.bio == undefined) ret.bio = "";
 
             let perServer = this.getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+            const localPayload = userId === CurrentUser?.id ? this.getLocalProfilePayload(userId) : "";
 
-            //if main or server bio includes encoded fx 
-            if(perServer || ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
+            //Prefer the no-bio local profile, then fall back to portable profile data.
+            if(localPayload.includes("fx") || perServer || ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
                 let revealedText;
-                if(!perServer) revealedText = this.secondsightifyRevealOnly(ret.bio); //reveal 3y3 encoded text. this string will also include the rest of the bio
+                if(localPayload.includes("fx")) revealedText = localPayload;
+                else if(!perServer) revealedText = this.secondsightifyRevealOnly(ret.bio);
                 else revealedText = perServer;
                 
                 if(revealedText == undefined) return;
@@ -3768,6 +3555,14 @@ module.exports = class YABDP4Nitro {
             let avatarDecorations = data.avatarDecorations;
 
             if(!avatarDecorations) return;
+            const local = args[0] === CurrentUser?.id ? this.getLocalProfile(args[0]) : null;
+            if(local?.enabled !== false && local?.decoration){
+                const asset = avatarDecorations[local.decoration];
+                if(asset){
+                    ret.avatarDecorationData = {asset, skuId: String(local.decoration)};
+                    return;
+                }
+            }
 
             //user has an avatar decoration
             if(ret.avatarDecorationData){
@@ -4547,6 +4342,12 @@ module.exports = class YABDP4Nitro {
     decodeAndApplyProfileColors(){
         Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             if(ret == undefined) return;
+            const local = userId === CurrentUser?.id ? this.getLocalProfile(userId) : null;
+            if(local?.enabled !== false && local?.primary && local?.accent){
+                ret.themeColors = [parseInt(local.primary.slice(1), 16), parseInt(local.accent.slice(1), 16)];
+                ret.premiumType = 2;
+                return;
+            }
             if(ret.bio == null) return;
 
             function decodeProfileColors(string){
@@ -4631,6 +4432,10 @@ module.exports = class YABDP4Nitro {
     } //End of bannerUrlDecoding()
 
     getBannerUrl(userId){
+            if(userId === CurrentUser?.id){
+                const local = this.getLocalProfile(userId);
+                if(local?.enabled !== false && local?.banner) return this.resolveMediaUrl(local.banner);
+            }
             if(settings.userBgIntegration){ //if userBg integration is enabled
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
@@ -4800,6 +4605,7 @@ module.exports = class YABDP4Nitro {
     }
 
     async checkForUpdate(){
+        if(!this.meta?.updateUrl) return false;
         try {
             let res = await fetch(this.meta.updateUrl);
 
@@ -4918,7 +4724,7 @@ module.exports = class YABDP4Nitro {
             currentVersionInfo.version = this.meta.version;
             Data.save("currentVersionInfo", currentVersionInfo);
 
-            if(settings.checkForUpdates) this.checkForUpdate();
+            if(settings.checkForUpdates) setTimeout(() => this.checkForUpdate(), 2500);
 
             if(!currentVersionInfo.hasShownChangelog){
                 UI.showChangelogModal({
@@ -5028,10 +4834,85 @@ module.exports = class YABDP4Nitro {
                 margin-top: 24px;
             }
 
+
+            .yabd-legacy-importer { border:1px solid var(--border-subtle); border-radius:10px; padding:12px; background:var(--background-base-low); }
+            .yabd-legacy-importer summary { cursor:pointer; color:var(--text-normal); font-weight:700; }
+            .yabd-legacy-importer p { margin:10px 0; color:var(--text-muted); font-size:13px; }
+            .yabd-legacy-importer textarea { width:100%; min-height:92px; resize:vertical; box-sizing:border-box; border:1px solid var(--input-border-default); border-radius:8px; padding:10px; background:var(--input-background-default); color:var(--text-normal); font:inherit; }
+            .yabd-legacy-importer .yabd-generic-button { min-height:40px; margin-top:8px; }
+            .yabd-import-status { margin-top:8px; color:var(--text-positive); font-size:13px; font-weight:600; }
+            .yabd-studio-hint { margin: -4px 0 0; color: var(--text-muted); font-size: 13px; }
+            .yabd-studio-visual-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+            .yabd-studio-visual-actions .yabd-generic-button { width:100% !important; min-height:44px; margin:0 !important; }
+            .yabd-visual-picker { display:grid; gap:12px; }
+            .yabd-decoration-grid,.yabd-nameplate-grid { max-height:520px; overflow:auto; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; padding:4px; }
+            .yabd-effect-grid { height:min(66vh,720px); min-height:420px; overflow-y:auto; overscroll-behavior:contain; display:grid; align-content:start; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:14px; padding:8px 10px 20px 4px; scrollbar-gutter:stable; }
+            .yabd-decoration-choice,.yabd-effect-choice,.yabd-nameplate-choice { min-width:0; border:1px solid var(--border-subtle); border-radius:10px; background:var(--background-base-low); color:var(--text-normal); cursor:pointer; overflow:hidden; }
+            .yabd-decoration-choice:hover,.yabd-effect-choice:hover,.yabd-nameplate-choice:hover,.yabd-decoration-choice.is-selected,.yabd-effect-choice.is-selected { border-color:var(--brand-500); background:var(--background-modifier-hover); box-shadow:0 0 0 2px color-mix(in srgb,var(--brand-500) 35%,transparent); }
+            .yabd-picker-empty { grid-column:1/-1; padding:24px; text-align:center; color:var(--text-muted); border:1px dashed var(--border-subtle); border-radius:10px; }
+            .yabd-decoration-choice img { width:100%; aspect-ratio:1; object-fit:contain; display:block; }
+            .yabd-effect-choice { min-height:220px; display:grid; grid-template-rows:minmax(170px,1fr) auto; text-align:left; }
+            .yabd-effect-choice img { width:100%; height:100%; min-height:170px; object-fit:contain; display:block; background:linear-gradient(145deg,var(--background-base-lower),var(--background-base-low)); }
+            .yabd-effect-choice img.is-missing { display:none; }
+            .yabd-effect-choice span { display:block; padding:10px 12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:650; }
+            .yabd-effect-placeholder { min-height:170px; display:grid; place-items:center; padding:16px; color:var(--text-muted); background:var(--background-base-lower); text-align:center; }
+            .yabd-picker-intro { display:grid; gap:4px; padding:12px 14px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--background-base-low); }
+            .yabd-picker-intro strong { color:var(--text-strong); font-size:15px; }
+            .yabd-picker-intro span,.yabd-picker-count { color:var(--text-muted); font-size:13px; line-height:19px; }
+            .yabd-picker-count { padding:0 2px; }
+            .yabd-load-more { width:100%; min-height:44px; }
+            .yabd-nameplate-choice { min-height:54px; padding:6px; }
+            .yabd-inline-local-input { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-top:8px; }
+            .yabd-inline-local-input input { min-width:0; min-height:40px; border:1px solid var(--input-border-default); border-radius:8px; padding:8px 10px; background:var(--input-background-default); color:var(--text-normal); }
             .yabd-hidden {
                 display: none !important;
                 visibility: hidden !important;
             }
+
+            .yabd-export-card { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; padding:16px; border:1px solid color-mix(in srgb,var(--brand-500) 45%,var(--border-subtle)); border-radius:12px; background:color-mix(in srgb,var(--brand-500) 9%,var(--background-base-low)); }
+            .yabd-export-card strong { color:var(--text-strong); font-size:15px; }
+            .yabd-export-card p { margin:5px 0 0; color:var(--text-muted); font-size:13px; line-height:19px; }
+            .yabd-export-primary { min-height:44px; padding:0 18px; border:0; border-radius:8px; background:var(--button-positive-background); color:white; font-weight:700; cursor:pointer; white-space:nowrap; }
+            .yabd-export-primary:hover { background:var(--button-positive-background-hover); }
+            .yabd-export-guide { display:grid; gap:16px; color:var(--text-normal); }
+            .yabd-export-success { display:grid; gap:5px; padding:14px; border:1px solid color-mix(in srgb,var(--status-positive) 45%,var(--border-subtle)); border-radius:10px; background:color-mix(in srgb,var(--status-positive) 10%,var(--background-base-low)); }
+            .yabd-export-success strong { color:var(--text-strong); font-size:15px; }
+            .yabd-export-success span,.yabd-export-guide li,.yabd-export-warning { font-size:14px; line-height:21px; }
+            .yabd-export-guide ol { display:grid; gap:8px; margin:0; padding-left:24px; }
+            .yabd-export-warning { padding:12px 14px; border-left:3px solid var(--status-warning); background:var(--background-base-low); color:var(--text-muted); }
+            .yabd-export-copy { width:100%; min-height:44px; }
+            .yabd-profile-studio-card { margin-top: 16px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--background-base-low); }
+            .yabd-profile-studio-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+            .yabd-profile-studio-title { color: var(--text-strong); font-size: 16px; font-weight: 700; }
+            .yabd-profile-studio-subtitle { color: var(--text-muted); font-size: 13px; line-height: 18px; margin-top: 2px; }
+            .yabd-profile-studio-status { flex: none; padding: 3px 8px; border-radius: 999px; background: var(--background-modifier-accent); color: var(--text-muted); font-size: 12px; font-weight: 700; }
+            .yabd-profile-studio-status.is-on { color: var(--status-positive-text); background: color-mix(in srgb, var(--status-positive) 16%, transparent); }
+            .yabd-profile-studio-open, .yabd-studio-save { width: 100%; min-height: 40px; margin-top: 14px; border: 0; border-radius: 8px; color: white; background: var(--button-positive-background); font-weight: 700; cursor: pointer; }
+            .yabd-profile-studio-open:hover, .yabd-studio-save:hover { background: var(--button-positive-background-hover); }
+            .yabd-profile-studio { display: grid; gap: 16px; color: var(--text-normal); }
+            .yabd-studio-callout { padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--background-base-low); color: var(--text-muted); font-size: 13px; line-height: 19px; }
+            .yabd-studio-preview { min-height: 150px; padding: 20px; border-radius: 12px; display: flex; align-items: flex-end; gap: 14px; overflow: hidden; color: white; }
+            .yabd-studio-preview img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 5px solid var(--background-base-lower); background: var(--background-base-lower); }
+            .yabd-studio-preview div { display: grid; gap: 3px; text-shadow: 0 1px 4px rgba(0,0,0,.65); }
+            .yabd-studio-preview strong { font-size: 20px; }
+            .yabd-studio-preview span { font-size: 13px; opacity: .82; }
+            .yabd-studio-section { display: grid; gap: 12px; }
+            .yabd-studio-section h3 { margin: 0; color: var(--header-primary); font-size: 15px; }
+            .yabd-studio-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+            .yabd-studio-grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+            .yabd-studio-field { min-width: 0; display: grid; gap: 6px; color: var(--header-secondary); font-size: 12px; font-weight: 700; }
+            .yabd-studio-field input { width: 100%; min-height: 40px; box-sizing: border-box; border: 1px solid var(--input-border-default); border-radius: 8px; padding: 8px 10px; background: var(--input-background-default); color: var(--text-normal); outline: none; }
+            .yabd-studio-field input:focus { border-color: var(--input-border-focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-500) 24%, transparent); }
+            .yabd-studio-field input[type=color] { padding: 4px; cursor: pointer; }
+            .yabd-studio-advanced-toggle { min-height: 40px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-normal); background: var(--background-base-low); cursor: pointer; }
+            .yabd-studio-actions { display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
+            .yabd-studio-reset { min-height: 40px; border: 1px solid var(--button-danger-background); border-radius: 8px; color: var(--button-danger-background); background: transparent; font-weight: 700; cursor: pointer; }
+            .yabd-studio-save { margin: 0; }
+            .yabd-studio-portable { border-top: 1px solid var(--border-subtle); padding-top: 12px; color: var(--text-muted); font-size: 13px; }
+            .yabd-studio-portable summary { cursor: pointer; font-weight: 700; color: var(--text-normal); }
+            @media (max-width:760px){.yabd-effect-grid{grid-template-columns:repeat(2,minmax(150px,1fr));height:min(62vh,640px)}.yabd-export-card{grid-template-columns:1fr}.yabd-export-primary{width:100%}}
+            @media (max-width:640px){.yabd-studio-grid,.yabd-studio-grid.three,.yabd-studio-visual-actions{grid-template-columns:1fr}.yabd-studio-actions{grid-template-columns:1fr}.yabd-decoration-grid,.yabd-nameplate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.yabd-effect-grid{grid-template-columns:1fr;min-height:380px}.yabd-inline-local-input{grid-template-columns:1fr}}
+            @media (prefers-reduced-motion:reduce){.yabd-generic-button{transition:none!important}}
         `)
 
         this.saveAndUpdate();
