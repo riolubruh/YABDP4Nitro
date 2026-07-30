@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.4
+ * @version 6.10.5
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -267,18 +267,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.10.4",
+        "version": "6.10.5",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.4",
+            title: "6.10.5",
             items: [
-                "Added context menu button to download all attachments from a given message when \"Extra Context Menus and Options\" is enabled.",
-                "Fixed Call Tile Background not working.",
-                "Removed unused bookmarks code."
+                "Fixed Display Name Styles \"Copy 3y3\" button not appearing the first time it is opened due to lazy-loading. The plugin now does a force load on it.",
+                "Once again fix 3y3 Copying Zone button not appearing due to Discord update.",
+                "Exclude bundles when storing shop info."
             ]
         }
     ],
@@ -765,13 +765,13 @@ module.exports = class YABDP4Nitro {
         }
         
         try{
-            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
+            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled || settings.profileEffects){
                 //subscribe to successful collectible category fetch event
                 Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
     
                 //trigger collectibles fetch
                 FetchCollectibleCategories({
-                    includeBundles: true,
+                    includeBundles: false,
                     includeUnpublished: false,
                     noCache: false,
                     paymentGateway: undefined
@@ -896,12 +896,12 @@ module.exports = class YABDP4Nitro {
     //#region UserProfileModalV2
     //"What You See Is What You Get" user profile, aka UserProfileModalV2.
     async wysiwygUserProfileEditing(){
-        if(!this.UserProfileModalV2) this.UserProfileModalV2 = await Webpack.waitForModule(Webpack.Filters.bySource('UserProfileModalV2', 'allowEditingInModal'), {signal: controller.signal});
+        if(!this.UserProfileModalV2) this.UserProfileModalV2 = await Webpack.waitForModule(Webpack.Filters.bySource('originGuildId','initialTabSection','UserProfileModalV2','profileFrameOverride'), {raw:true,signal: controller.signal});
         if(!this.UserProfileModalV2) return;
 
         this.overrideVariant("2026-06-wysiwyg-show-dns-to-non-nitro", 1);
-        
-        Patcher.instead(this.UserProfileModalV2, this.findMangledName(this.UserProfileModalV2, x=>x), (_,[args],og) => {
+
+        Patcher.instead(this.UserProfileModalV2.declarations, this.findMangledName(this.UserProfileModalV2.declarations, Webpack.Filters.byStrings('originGuildId','initialTabSection','UserProfileModalV2','profileFrameOverride')), (_,[args],og) => {
             let ret = og(args);
             const editPanel = ret?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[0];
             if(editPanel){
@@ -941,6 +941,8 @@ module.exports = class YABDP4Nitro {
                         });
                     }
                 })
+            }else{
+                Logger.warn("editPanel is undefined!", ret);
             }
             return ret;
         })
@@ -959,10 +961,6 @@ module.exports = class YABDP4Nitro {
         if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
         if(!this.settingsUIMod){
             Logger.warn("Settings UI module was undefined.");
-            return;
-        }
-        if(!this.settingsUIMod.declarations){
-            Logger.error("Declarations are undefined for settingsUIMod! If ZeresPluginLibrary is installed, please delete it!");
             return;
         }
 
@@ -1940,39 +1938,45 @@ module.exports = class YABDP4Nitro {
             }
         });
 
+        Utils.forceLoad(259065); // force load display name styles modal
+
         if(!this.DisplayNameStylesModal) this.DisplayNameStylesModal = await Webpack.waitForModule(Webpack.Filters.bySource("DisplayNameStylesModal"), {signal: controller.signal});
         
-        let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
-        if(renderFn){
-            Patcher.after(this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
-                const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
-                const font = selectionArea?.[1]?.props?.selectedFontId;
-                const effect = selectionArea?.[2]?.props?.selectedEffectId;
-                const colors = selectionArea?.[3]?.props?.selectedColors;
-    
-                if(ret && font && effect && colors){
-                    if(ret?.props?.children?.props?.children?.props?.children){
-                        ret.props.children.props.children.props.children.splice(1, 0, createElement(Components.Button, {
-                            children: "Copy 3y3",
-                            color: Components.Button.Colors.PRIMARY,
-                            look: Components.Button.Looks.OUTLINED,
-                            style: {
-                                top: "64px",
-                                width: "90px",
-                                left: "50%",
-                                zIndex: "2",
-                                background: "var(--control-secondary-background-default)",
-                                borderRadius: "8px"
-                            },
-                            onClick: () => {    
-                                //encoding part                          ex: S{11,1,15724528,15724528}
-                                let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
-                                copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
-                            }
-                        }))
+        if(this.DisplayNameStylesModal){
+            let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
+            if(renderFn){
+                Patcher.after(this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
+                    const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
+                    const font = selectionArea?.[1]?.props?.selectedFontId;
+                    const effect = selectionArea?.[2]?.props?.selectedEffectId;
+                    const colors = selectionArea?.[3]?.props?.selectedColors;
+        
+                    if(ret && font && effect && colors){
+                        if(ret?.props?.children?.props?.children?.props?.children){
+                            ret.props.children.props.children.props.children.splice(1, 0, createElement(Components.Button, {
+                                children: "Copy 3y3",
+                                color: Components.Button.Colors.PRIMARY,
+                                look: Components.Button.Looks.OUTLINED,
+                                style: {
+                                    top: "64px",
+                                    width: "90px",
+                                    left: "50%",
+                                    zIndex: "2",
+                                    background: "var(--control-secondary-background-default)",
+                                    borderRadius: "8px"
+                                },
+                                onClick: () => {    
+                                    //encoding part                          ex: S{11,1,15724528,15724528}
+                                    let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
+                                    copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
+                                }
+                            }))
+                        }
                     }
-                }
-            });
+                });
+            }
+        }else{
+            Logger.warn("DisplayNameStylesModal is undefined.")
         }
     }
     //#endregion
@@ -3668,14 +3672,6 @@ module.exports = class YABDP4Nitro {
 
         if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
 
-        //trigger collectibles fetch
-        await FetchCollectibleCategories({
-            includeBundles: true,
-            includeUnpublished: false,
-            noCache: false,
-            paymentGateway: undefined
-        });
-
         Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
             //error prevention
             if(ret == undefined) return;
@@ -3730,26 +3726,28 @@ module.exports = class YABDP4Nitro {
         if(event?.categories?.categories){
             event.categories.categories.forEach(category => {
                 category.products.forEach(product => {
-                    product.items.forEach(item => {
-                        switch(item.type){
-                            case 0:
-                                //store avatar decorations assets
-                                data.avatarDecorations[item.skuId] = item.asset;
-                                break;
-                            case 1:
-                                //profile effects
-                                profileEffects[item.skuId] = item;
-                                break;
-                            case 2:
-                                //store nameplates
-                                data.nameplatesV2[item.skuId] = {
-                                    asset: item.asset.replace('nameplates/', ''),
-                                    palette: item.palette,
-                                    name: product.name
-                                };
-                                break;
-                        }
-                    });
+                    if(product.type !== 1000){ //exclude bundles
+                        product.items.forEach(item => {
+                            switch(item.type){
+                                case 0:
+                                    //store avatar decorations assets
+                                    data.avatarDecorations[item.skuId] = item.asset;
+                                    break;
+                                case 1:
+                                    //profile effects
+                                    profileEffects[item.skuId] = item;
+                                    break;
+                                case 2:
+                                    //store nameplates
+                                    data.nameplatesV2[item.skuId] = {
+                                        asset: item.asset.replace('nameplates/', ''),
+                                        palette: item.palette,
+                                        name: product.name
+                                    };
+                                    break;
+                            }
+                        });
+                    }
                 });
             });
             this.saveDataFile();
@@ -5068,6 +5066,8 @@ module.exports = class YABDP4Nitro {
         if(clipMaBuffer) clipMaBuffer = null;
         if(lastEditedMsg) lastEditedMsg = null;
         if(lastEditedMsgCopy) lastEditedMsgCopy = null;
+        if(profileEffects) profileEffects = {};
+        if(badgeUserIDs) badgeUserIDs = [];
         if(this.usrBgData) this.usrBgData = null;
         if(this.userPfps) this.userPfps = null;
         if(this.settingsUIMod) this.settingsUIMod = null;
@@ -5076,6 +5076,7 @@ module.exports = class YABDP4Nitro {
         
         Data.save("settings", settings);
         this.saveDataFile();
+        if(data) data = null;
         Logger.info("(v" + this.meta.version + ") has stopped.");
     }
     // #endregion
