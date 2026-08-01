@@ -57,7 +57,8 @@ module.exports = __toCommonJS(exports_src);
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
-  FakeUserProfile: () => fakeUserProfile_default
+  FakeUserProfile: () => fakeUserProfile_default,
+  FakeUser: () => fakeUser_default
 });
 
 // src/global/index.ts
@@ -84,6 +85,38 @@ function getRevealedTextPerServer(userId, shouldInclude = "") {
           return revealedText;
         }
       }
+    }
+  }
+}
+function getRevealedText(userId, shouldInclude = "") {
+  let revealedText = "";
+  let perServer = getRevealedTextPerServer(userId, shouldInclude);
+  if (perServer != null && perServer != "")
+    return perServer;
+  let userProfile = UserProfileStore.getUserProfile(userId);
+  if (userProfile) {
+    if (userProfile?.bio != null) {
+      if (userProfile.bio.includes(shouldInclude)) {
+        revealedText = secondsightifyRevealOnly(String(userProfile.bio));
+        if (revealedText != null && revealedText != "") {
+          return revealedText;
+        }
+      }
+    }
+  }
+  let customStatusActivity;
+  try {
+    customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+  } catch (err) {
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+  }
+  if (customStatusActivity) {
+    let customStatus = customStatusActivity.state;
+    if (customStatus == undefined)
+      return;
+    if (customStatus.includes(shouldInclude)) {
+      revealedText = secondsightifyRevealOnly(String(customStatus));
+      return revealedText;
     }
   }
 }
@@ -269,11 +302,53 @@ var fakeUserProfile_default = {
       if (killProfileEffects) {
         ret.profileEffect = {};
       }
-      const foundBadge = !Object.values(ret?.badges).find((x) => x.id.startsWith("yabdp"));
-      if (!disableUserBadge && foundBadge && BadgesStore_default.check(ret.userId)) {
+      const foundBadge = !Object.values(ret?.badges ?? {}).find((x) => x.id.startsWith("yabdp"));
+      if (!disableUserBadge && foundBadge && BadgesStore_default.check(ret?.userId)) {
         ret.badges.push(BadgesStore_default.returnRespondingBadge(ret.userId));
       }
       return ret;
+    });
+  }
+};
+// src/patches/modules/fakeUser.ts
+var { UserStore } = BetterDiscord.Webpack.Stores;
+var DNS_REGEX = /S\{[^}]*?\}/;
+function getColorData(surrogate) {
+  let fontId = Number(surrogate?.[0]);
+  let effectId = Number(surrogate?.[1]);
+  let color1 = Number(surrogate?.[2]);
+  let color2;
+  if (surrogate.length >= 4) {
+    color2 = Number(surrogate?.[3]);
+  }
+  return {
+    fontId,
+    effectId,
+    color1,
+    color2,
+    isNaN: [fontId, effectId, color1, color2].map((id) => Number.isNaN(id)).includes(true)
+  };
+}
+var fakeUser_default = {
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
+  ids: undefined,
+  waitFor: [(x) => x.getUser],
+  apply(finale, patcher) {
+    patcher.after(UserStore, "getUser", (_, [userId], ret) => {
+      const enabled = SettingsStore_default.get("displayNameStyles");
+      if (enabled) {
+        const revealedText = getRevealedText(userId, `\uDB40`);
+        if (!revealedText)
+          return ret;
+        const match = revealedText.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
+        if (!match)
+          return ret;
+        const colorData = getColorData(match);
+        if (colorData) {
+          console.log(colorData);
+        }
+      }
     });
   }
 };

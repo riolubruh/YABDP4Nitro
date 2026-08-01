@@ -48,9 +48,9 @@ export default {
 
             if (killProfileEffects) { ret.profileEffect = {} }
 
-            const foundBadge = !Object.values(ret?.badges).find(x => x.id.startsWith("yabdp"))
+            const foundBadge = !Object.values(ret?.badges ?? {}).find(x => x.id.startsWith("yabdp"))
 
-            if (!disableUserBadge && foundBadge && BadgesStore.check(ret.userId)) {
+            if (!disableUserBadge && foundBadge && BadgesStore.check(ret?.userId)) {
                 ret.badges.push(BadgesStore.returnRespondingBadge(ret.userId))
             }
 
