@@ -1,9 +1,9 @@
 export default new class CustomUserProfileStore {
     private profiles: UserProfile[] = [];
 
-    getMember(id: string)
+    getMember(id: string, guildId: string): UserProfile
     {
-        this.profiles.find(x => x.userId == id)
+        return this.profiles.find(x => x?.userId == id && x.guildId == guildId);
     }
 
     cacheMember(user: UserProfile)
