@@ -63,7 +63,8 @@ const defaultSettings = {
     },
     "appIcon": "AppIcon",
     "voiceTileBannerBackground": false,
-    "advancedProfileCustomization": false
+    "advancedProfileCustomization": false,
+    "lastChangelogVersion": "1.0.0"
 } as const satisfies Record<string, unknown>;
 
 type SettingsResult = { [K in keyof typeof defaultSettings]: (typeof defaultSettings)[K] };

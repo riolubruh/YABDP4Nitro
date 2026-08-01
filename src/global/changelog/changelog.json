@@ -1,14 +1,21 @@
 {
-  "title": "Huge Revamp",
-  "subtitle": "Plugin improvements and entire revamp!",
-  "banner": "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
-  "changes": [{
-    "title": "YABDP4Nitro",
-    "type": "improved",
-    "items": [
-      "Fully rewritten internals from the ground up",
-      "Improved performance and stability",
-      "Cleaner, more maintainable codebase for future updates"
-    ]
+  "7.0.0": [{
+    "banner": "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
+    "changes": [{
+      "title": "YABDP4Nitro Huge Revamp",
+      "type": "improved",
+      "items": [
+        "Fully rewritten internals from the ground up",
+        "Improved performance and stability",
+        "Cleaner, more maintainable codebase for future updates"
+      ]
+    }]
+  }],
+  "1.0.0": [{
+    "changes": [{
+      "title": "test",
+      "type": "improved",
+      "items": ["test"]
+    }]
   }]
 }
