@@ -61,20 +61,8 @@ var BetterDiscord = new BdApi("YABDP4Nitro");
 var exports_modules = {};
 __export(exports_modules, {
   FakeUserProfile: () => fakeUserProfile_default,
-  FakeUser: () => fakeUser_default,
-  AllowClips: () => allowClips_default
+  FakeUser: () => fakeUser_default
 });
-
-// src/global/stores/CustomUserProfileStore.ts
-var CustomUserProfileStore_default = new class CustomUserProfileStore {
-  profiles = [];
-  getMember(id, guildId) {
-    return this.profiles.find((x) => x?.userId == id && x.guildId == guildId);
-  }
-  cacheMember(user) {
-    this.profiles.push(user);
-  }
-};
 
 // src/utils/index.ts
 var { UserProfileStore, SelectedGuildStore, PresenceStore } = BetterDiscord.Webpack.Stores;
@@ -83,8 +71,6 @@ function getRevealedTextPerServer(userId, shouldInclude = "") {
   if (!guildId)
     return;
   const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
-  userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
     return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
   }
@@ -273,18 +259,8 @@ var BadgesStore_default = new class BadgesStore {
 };
 
 // src/patches/modules/fakeUserProfile.ts
-var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
+var { UserProfileStore: UserProfileStore2 } = BetterDiscord.Webpack.Stores;
 var REGEX_FX = /fx\d+/;
-function decodeProfileColors(string) {
-  if (!string)
-    return null;
-  const colorString = string.match(/\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u);
-  if (colorString == null)
-    return null;
-  let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 917504)).join("");
-  let colors = parsed.substring(1, parsed.length - 1).split(",").map((x) => parseInt(x.replace("#", "0x"), 16));
-  return colors;
-}
 var fakeUserProfile_default = {
   name: "User Profile",
   description: "Performs fake profile stuffs.",
@@ -295,13 +271,9 @@ var fakeUserProfile_default = {
       const killProfileEffects = SettingsStore_default.get("killProfileEffects");
       const shouldProfileV2 = SettingsStore_default.get("profileV2");
       const disableUserBadge = SettingsStore_default.get("disableUserBadge");
-      const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
-      if (!ret)
-        return;
       BadgesStore_default.isImportant(userId) && BadgesStore_default.add(userId);
+      shouldProfileV2 && (ret.premiumType = 2);
       const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
-      const guildId = SelectedGuildStore2.getGuildId();
-      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
       const userBio = ret?.bio;
       if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
         BadgesStore_default.add(userId);
@@ -324,15 +296,6 @@ var fakeUserProfile_default = {
       const foundBadge = !Object.values(ret?.badges ?? {}).find((x) => x.id.startsWith("yabdp"));
       if (!disableUserBadge && foundBadge && BadgesStore_default.check(ret?.userId)) {
         ret.badges.push(BadgesStore_default.returnRespondingBadge(ret.userId));
-      }
-      if (profileThemesEnabled) {
-        const userGuildMemberCache = CustomUserProfileStore_default.getMember(userId, guildId);
-        const colors = {
-          serverPronouns: decodeProfileColors(userGuildMemberCache?.pronouns),
-          serverBio: decodeProfileColors(userGuildMemberCache?.bio),
-          global: decodeProfileColors(ret?.bio)
-        };
-        ret.themeColors = Object.values(colors).find(Boolean);
       }
       return ret;
     });
@@ -371,7 +334,7 @@ var fakeUser_default = {
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
-        const match = revealedText?.match(DNS_REGEX)?.[0]?.slice?.(2, -1)?.split?.(",");
+        const match = revealedText?.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
         if (match) {
           const styleData = getStyleData(match);
           styleData && Object.defineProperty(ret, "displayNameStyles", {
@@ -388,7 +351,7 @@ var fakeUser_default = {
       }
       if (decorEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
-        const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice?.(2);
+        const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice(2);
         if (skuId) {
           ret.avatarDecorationData = {
             skuId
@@ -397,7 +360,7 @@ var fakeUser_default = {
       }
       if (nameplatesEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
-        const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2, -1)?.split?.(",");
+        const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2, -1)?.split(",");
         if (match) {
           const [skuId, palette] = match;
           !ret.collectibles && (ret.collectibles = {});
@@ -410,24 +373,6 @@ var fakeUser_default = {
     });
   }
 };
-// src/patches/modules/allowClips.ts
-var { ClipsStore } = BetterDiscord.Webpack.Stores;
-var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource("useEnableClips");
-var allowClips_default = {
-  name: "allowClips",
-  description: "Allow clips",
-  waitFor: [GLOBAL_SOURCE],
-  mangled: {
-    useEnableClips: (x) => x.toString().includes('getConfig({location:"useEnableClips"'),
-    areClipsEnabled: (x) => x.toString().includes("areClipsEnabled")
-  },
-  apply(finale, patcher) {
-    Object.entries(finale.mangled).map(([key, value]) => {
-      patcher.instead(finale.mangled, key, () => true);
-    });
-    ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, () => true));
-  }
-};
 // src/patches/index.ts
 var PatcherAPI = new BdApi("Patcher");
 async function load() {
@@ -436,16 +381,12 @@ async function load() {
     const Patch = module2;
     const finale = {};
     if (Array.isArray(Patch.ids)) {
-      finale.ids = await Promise.all(Patch.ids.map((x) => BetterDiscord.Utils.forceLoad(x)));
+      finale["ids"] = await Promise.all([Patch.ids.map((x) => BetterDiscord.Utils.forceLoad(x))]);
     }
     if (Array.isArray(Patch.waitFor)) {
-      finale.modules = await Promise.all(Patch.waitFor.map((x) => BetterDiscord.Webpack.waitForModule(x)));
-    }
-    if (Patch.mangled) {
-      finale.mangled = BetterDiscord.Webpack.getMangled(Patch.waitFor[0], Patch.mangled);
+      finale["modules"] = await Promise.all([Patch.waitFor.map((x) => BetterDiscord.Webpack.waitForModule(x))]);
     }
     Patch.apply(finale, PatcherAPI.Patcher);
-    loaded.push(Patch);
   }
   return () => {
     for (const patch of loaded)
