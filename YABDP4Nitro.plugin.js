@@ -386,11 +386,13 @@ var changelog_default = {
   subtitle: "Plugin improvements and entire revamp!",
   banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
   changes: [{
-    title: "Important",
-    type: "added",
-    items: [`Feast your eyes on a wholely internally revamped YABDP4Nitro!!
-
-A`]
+    title: "YABDP4Nitro",
+    type: "improved",
+    items: [
+      "Fully rewritten internals from the ground up",
+      "Improved performance and stability",
+      "Cleaner, more maintainable codebase for future updates"
+    ]
   }]
 };
 
