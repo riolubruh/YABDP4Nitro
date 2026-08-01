@@ -7,7 +7,7 @@ interface Collectible {
 }
 
 interface ProfileEffect {
-    skuId: string;
+    skuId?: string;
     expiresAt?: number; // unix seconds
 }
 

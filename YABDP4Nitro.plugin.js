@@ -95,6 +95,145 @@ function secondsightifyRevealOnly(t) {
   }
 }
 
+// src/global/stores/SettingsStore.ts
+var { Utils, Data } = BetterDiscord;
+var defaultSettings = {
+  emojiSize: 64,
+  screenSharing: true,
+  emojiBypass: true,
+  emojiBypassType: 0,
+  emojiBypassForValidEmoji: true,
+  PNGemote: true,
+  uploadStickers: false,
+  CustomFPSEnabled: false,
+  CustomFPS: 60,
+  ResolutionEnabled: false,
+  CustomResolution: 1440,
+  CustomBitrateEnabled: false,
+  minBitrate: -1,
+  maxBitrate: -1,
+  targetBitrate: -1,
+  voiceBitrate: -1,
+  ResolutionSwapper: true,
+  stickerBypass: false,
+  profileV2: false,
+  forceStickersUnlocked: false,
+  changePremiumType2: -1,
+  videoCodec2: -1,
+  clientThemes: true,
+  lastGradientSettingStore: -1,
+  fakeProfileThemes: true,
+  removeProfileUpsell: false,
+  removeScreenshareUpsell: true,
+  fakeProfileBanners: true,
+  fakeAvatarDecorations: true,
+  unlockAppIcons: true,
+  profileEffects: true,
+  killProfileEffects: false,
+  customPFPs: true,
+  experiments: false,
+  userPfpIntegration: true,
+  userBgIntegration: true,
+  useClipBypass: true,
+  forceClip: false,
+  checkForUpdates: true,
+  fakeInlineVencordEmotes: true,
+  soundmojiEnabled: false,
+  useAudioClipBypass: true,
+  forceAudioClip: false,
+  zipClip: true,
+  enableClipsExperiment: false,
+  disableUserBadge: false,
+  nameplatesEnabled: true,
+  clipTimestamp: 2,
+  removeNotStaffWarning: true,
+  editMessageWithEmoji: true,
+  extraContextMenus: true,
+  userSharpenPreferences: {},
+  sharpenStreams: false,
+  displayNameStyles: true,
+  customUserThemeSettings: {
+    custom: false,
+    theme: "dark"
+  },
+  appIcon: "AppIcon",
+  voiceTileBannerBackground: false,
+  advancedProfileCustomization: false
+};
+var SettingsStore_default = new class SettingsStore extends Utils.Store {
+  settings = {
+    ...defaultSettings,
+    ...Data.load("settings") ?? {}
+  };
+  get(id) {
+    return this.settings[id];
+  }
+  set(id, value) {
+    this.settings = { ...this.settings, [id]: value };
+    Data.save("settings", this.settings);
+    this.emitChange();
+  }
+  del(id) {
+    this.settings = { ...this.settings, [id]: defaultSettings[id] };
+    Data.save("settings", this.settings);
+    this.emitChange();
+  }
+  getAll() {
+    return this.settings;
+  }
+};
+
+// src/global/stores/BadgesStore.tsx
+var specialThanks = [
+  "122072911455453184",
+  "760274365853335563",
+  "482224256730791967",
+  "1106012563835195412"
+];
+var Badges = {
+  developers: {
+    ids: ["359063827091816448", "917630027477159986"],
+    badge: {
+      id: "yabdp_developer",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Developer!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  },
+  contributors: {
+    ids: specialThanks,
+    badge: {
+      id: "yabdp_contributor",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Contributor!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  }
+};
+var BadgesStore_default = new class BadgesStore {
+  foundUsers = [];
+  add(id) {
+    if (!this.foundUsers.includes(id)) {
+      this.foundUsers.push(id);
+    }
+  }
+  check(id) {
+    return this.foundUsers.includes(id);
+  }
+  isImportant(id) {
+    return [...Badges.developers.ids, ...Badges.contributors.ids].includes(id);
+  }
+  returnRespondingBadge(id) {
+    const category = Object.values(Badges).find((x) => x.ids.includes(id));
+    return category?.badge ?? {
+      id: "yabdp_user",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+      description: "A fellow YABDP4Nitro user!",
+      link: "https://github.com/riolubruh/YABDP4Nitro"
+    };
+  }
+};
+
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2 } = BetterDiscord.Webpack.Stores;
 var REGEX_FX = /fx\d+/;
@@ -105,9 +244,15 @@ var fakeUserProfile_default = {
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
     patcher.after(UserProfileStore2, "getUserProfile", (_, [userId], ret) => {
+      const killProfileEffects = SettingsStore_default.get("killProfileEffects");
+      const shouldProfileV2 = SettingsStore_default.get("profileV2");
+      const disableUserBadge = SettingsStore_default.get("disableUserBadge");
+      BadgesStore_default.isImportant(userId) && BadgesStore_default.add(userId);
+      shouldProfileV2 && (ret.premiumType = 2);
       const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
       const userBio = ret?.bio;
-      if (revealedSurrogate && revealedSurrogate.includes("fx")) {
+      if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
+        BadgesStore_default.add(userId);
         let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
         if (!parsed)
           return ret;
@@ -120,6 +265,13 @@ var fakeUserProfile_default = {
             expiresAt: undefined
           };
         }
+      }
+      if (killProfileEffects) {
+        ret.profileEffect = {};
+      }
+      const foundBadge = !Object.values(ret?.badges).find((x) => x.id.startsWith("yabdp"));
+      if (!disableUserBadge && foundBadge && BadgesStore_default.check(ret.userId)) {
+        ret.badges.push(BadgesStore_default.returnRespondingBadge(ret.userId));
       }
       return ret;
     });
