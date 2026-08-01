@@ -69,7 +69,7 @@ export default {
                 const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
                 const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2,-1)?.split(',');
                 if(match){
-                    const [skuId, palette] = match;
+                    const [skuId, palette] = match; //
                     !ret.collectibles && (ret.collectibles = {});
                     ret.collectibles.nameplate = {
                         skuId,
