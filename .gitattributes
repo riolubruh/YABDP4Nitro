@@ -3,3 +3,4 @@ ffmpeg/** -linguist-detectable
 ffmpeg/*.js linguist-generated
 ffmpeg/*.js.map linguist-generated
 ffmpeg/*.wasm linguist-generated
+YABDP4Nitro.plugin.js linguist-generated
