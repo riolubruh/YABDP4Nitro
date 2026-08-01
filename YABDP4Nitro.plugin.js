@@ -450,6 +450,7 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
 };
 
 // src/patches/modules/banners.tsx
+var BANNER_REGEX = /B\{[^}]*?\}/;
 var banners_default = {
   name: "fakeBanners",
   description: "3y3 banners",
@@ -460,8 +461,14 @@ var banners_default = {
   },
   apply(finale, patcher) {
     patcher.after(finale.mangled, "renderBanner", (_, [props], ret) => {
-      patcher.after(ret, "type", (a, b, c) => {
-        c.props.bannerSrc = UserBackgroundStore_default.format(props.user.id);
+      if (!SettingsStore_default.get("fakeProfileBanners"))
+        return ret;
+      const unpatch = patcher.after(ret, "type", (a, b, c) => {
+        const parsed = getRevealedText(props.user.id);
+        const match = parsed?.match(BANNER_REGEX)?.[0];
+        const matched = match?.slice(2, -1);
+        c.props.bannerSrc = matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(props.user.id);
+        unpatch();
       });
       return ret;
     });
