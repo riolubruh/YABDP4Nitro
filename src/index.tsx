@@ -1,6 +1,7 @@
 import {BetterDiscord} from "./global";
 import {load} from "@patches/*";
 import SettingsStore from "./global/stores/SettingsStore.ts";
+import {startChangelog} from "./global/changelog";
 
 const { Components } = BetterDiscord;
 const { React } = BetterDiscord;
@@ -14,6 +15,8 @@ const SettingTypes = {
 
 export default class Plugin {
     async start() {
+        startChangelog();
+
         await load();
     }
 

@@ -380,6 +380,25 @@ async function load() {
     PatcherAPI.Patcher.unpatchAll();
   };
 }
+// src/global/changelog/changelog.json
+var changelog_default = {
+  title: "Huge Revamp",
+  subtitle: "Plugin improvements and entire revamp!",
+  banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
+  changes: [{
+    title: "Important",
+    type: "added",
+    items: [`Feast your eyes on a wholely internally revamped YABDP4Nitro!!
+
+A`]
+  }]
+};
+
+// src/global/changelog/index.tsx
+function startChangelog() {
+  console.log(changelog_default);
+  BetterDiscord.UI.showChangelogModal(changelog_default);
+}
 
 // src/index.tsx
 var { Components } = BetterDiscord;
@@ -393,6 +412,7 @@ var SettingTypes = {
 
 class Plugin {
   async start() {
+    startChangelog();
     await load();
   }
   stop() {
