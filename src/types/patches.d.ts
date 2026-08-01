@@ -3,6 +3,6 @@ export interface Patch {
     description: string;
     ids?: (string | number)[];
     waitFor?: WebpackFilter | WebpackFilter[];
-    apply(patcher: typeof BdApi.Patcher): void;
+    apply(finale: Record<any, object>, patcher: typeof BdApi.Patcher): void;
     revert?(): void;
 }

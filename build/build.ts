@@ -32,9 +32,6 @@ function getBetterDiscordPath() {
     }
 }
 
-const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
-fs.writeFileSync(path.join(getBetterDiscordPath(), GLOBAL_NAME), fileData);
-
 await Bun.build({
     entrypoints: ['src/index.tsx'],
     outdir: './',
@@ -43,3 +40,6 @@ await Bun.build({
     format: "cjs",
     target: "node",
 });
+
+const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
+fs.writeFileSync(path.join(getBetterDiscordPath(), GLOBAL_NAME), fileData);

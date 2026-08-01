@@ -10,15 +10,17 @@ export async function load()
 
     for (const [path, module] of Object.entries(modules)) {
         const Patch: Patch = module;
+        const finale = {};
+
         if (Array.isArray(Patch.ids)) {
-            await Promise.all([Patch.ids.map(x => BetterDiscord.Utils.forceLoad(x))])
+            finale["ids"] = await Promise.all([Patch.ids.map(x => BetterDiscord.Utils.forceLoad(x))])
         }
 
         if (Array.isArray(Patch.waitFor)) {
-            await Promise.all([Patch.waitFor.map(x => BetterDiscord.Webpack.waitForModule(x))])
+            finale["modules"] = await Promise.all([Patch.waitFor.map(x => BetterDiscord.Webpack.waitForModule(x))])
         }
 
-        Patch.apply(PatcherAPI.Patcher)
+        Patch.apply(finale, PatcherAPI.Patcher)
     }
 
     return () => {
