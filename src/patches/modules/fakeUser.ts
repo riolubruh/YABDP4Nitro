@@ -7,6 +7,7 @@ const {UserStore} = BetterDiscord.Webpack.Stores;
 
 const DNS_REGEX = /S\{[^}]*?\}/;
 const DECOR_REGEX = /\/a\d+/;
+const NAMEPLATE_REGEX = /n\{[^}]*?\}/;
 
 function getStyleData(surrogate: string[]) {
     let fontId = Number(surrogate?.[0]);
@@ -35,6 +36,7 @@ export default {
         patcher.after(UserStore, "getUser", (_: any, [userId]: string, ret: User) => {
             const dnsEnabled = SettingsStore.get("displayNameStyles");
             const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
+            const nameplatesEnabled = SettingsStore.get("nameplatesEnabled");
 
             if (dnsEnabled) {
                 const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
@@ -57,10 +59,21 @@ export default {
             if(decorEnabled){
                 const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
                 const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice(2);
-                console.log(skuId);
                 if(skuId){
                     ret.avatarDecorationData = {
                         skuId: skuId
+                    };
+                }
+            }
+            if(nameplatesEnabled){
+                const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
+                const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2,-1)?.split(',');
+                if(match){
+                    const [skuId, palette] = match;
+                    !ret.collectibles && (ret.collectibles = {});
+                    ret.collectibles.nameplate = {
+                        skuId,
+                        palette
                     };
                 }
             }
