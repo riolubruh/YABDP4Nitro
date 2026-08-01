@@ -1,1 +1,1 @@
-export { default as KillFX } from "./killFX"
+export { default as FakeUserProfile } from "./fakeUserProfile.ts"

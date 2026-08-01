@@ -13,37 +13,27 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -57,22 +47,24 @@ module.exports = __toCommonJS(exports_src);
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
-  KillFX: () => killFX_default
+  FakeUserProfile: () => fakeUserProfile_default
 });
 
 // src/global/index.ts
 var BetterDiscord = new BdApi("YABDP4Nitro");
 
-// src/patches/modules/killFX.ts
+// src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore } = BetterDiscord.Webpack.Stores;
-var killFX_default = {
-  name: "Profile FX",
-  description: "Kills all FX on Profiles",
+var fakeUserProfile_default = {
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
   ids: undefined,
   waitFor: undefined,
   apply(patcher) {
     patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
-      ret && (ret.profileEffect = undefined);
+      if (settings.killProfileEffects) {
+        ret && (ret.profileEffect = undefined);
+      } else {}
       return ret;
     });
   }
