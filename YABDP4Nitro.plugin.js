@@ -13,37 +13,27 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -313,7 +303,8 @@ var fakeUserProfile_default = {
 // src/patches/modules/fakeUser.ts
 var { UserStore } = BetterDiscord.Webpack.Stores;
 var DNS_REGEX = /S\{[^}]*?\}/;
-function getColorData(surrogate) {
+var DECOR_REGEX = /\/a\d+/;
+function getStyleData(surrogate) {
   let fontId = Number(surrogate?.[0]);
   let effectId = Number(surrogate?.[1]);
   let color1 = Number(surrogate?.[2]);
@@ -336,25 +327,34 @@ var fakeUser_default = {
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
     patcher.after(UserStore, "getUser", (_, [userId], ret) => {
-      const enabled = SettingsStore_default.get("displayNameStyles");
-      if (enabled) {
-        const revealedText = getRevealedText(userId, `\uDB40`);
-        if (!revealedText)
-          return ret;
-        const match = revealedText.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
-        if (!match)
-          return ret;
-        const colorData = getColorData(match);
-        colorData && Object.defineProperty(ret, "displayNameStyles", {
-          value: {
-            fontId: colorData.fontId,
-            effectId: colorData.effectId,
-            colors: [colorData.color1, colorData?.color2 ? colorData.color2 : null].filter(Boolean)
-          },
-          enumerable: true,
-          writable: true,
-          configurable: true
-        });
+      const dnsEnabled = SettingsStore_default.get("displayNameStyles");
+      const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
+      if (dnsEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
+        const match = revealedText?.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
+        if (match) {
+          const styleData = getStyleData(match);
+          styleData && Object.defineProperty(ret, "displayNameStyles", {
+            value: {
+              fontId: styleData.fontId,
+              effectId: styleData.effectId,
+              colors: [styleData.color1, styleData?.color2 ? styleData.color2 : null].filter(Boolean)
+            },
+            enumerable: true,
+            writable: true,
+            configurable: true
+          });
+        }
+      }
+      if (decorEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
+        const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice(2);
+        console.log(skuId);
+        if (skuId) {
+          ret.avatarDecorationData = {
+            skuId
+          };
+        }
       }
     });
   }

@@ -6,8 +6,9 @@ import {getRevealedText} from "@utils/*";
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
 const DNS_REGEX = /S\{[^}]*?\}/;
+const DECOR_REGEX = /\/a\d+/;
 
-function getColorData(surrogate: string[]) {
+function getStyleData(surrogate: string[]) {
     let fontId = Number(surrogate?.[0]);
     let effectId = Number(surrogate?.[1]);
     let color1 = Number(surrogate?.[2]);
@@ -32,26 +33,36 @@ export default {
     waitFor: [x => x.getUser], // filters to wait for.
     apply(finale, patcher) {
         patcher.after(UserStore, "getUser", (_: any, [userId]: string, ret: User) => {
-            const enabled = SettingsStore.get("displayNameStyles");
-            if (enabled) {
-                const revealedText = getRevealedText(userId, `\uDB40`);
-                if (!revealedText) return ret;
+            const dnsEnabled = SettingsStore.get("displayNameStyles");
+            const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
 
-                const match = revealedText.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
-                if (!match) return ret; //merge the getuser patches later mf
+            if (dnsEnabled) {
+                const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
+                const match = revealedText?.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
+                if(match) {
+                    const styleData = getStyleData(match);
 
-                const colorData = getColorData(match);
-
-                colorData && Object.defineProperty(ret, "displayNameStyles", {
-                    value: {
-                        fontId: colorData.fontId,
-                        effectId: colorData.effectId,
-                        colors: [colorData.color1, (colorData?.color2 ? colorData.color2 : null)].filter(Boolean),
-                    },
-                    enumerable: true,
-                    writable: true,
-                    configurable: true,
-                })
+                    styleData && Object.defineProperty(ret, "displayNameStyles", {
+                        value: {
+                            fontId: styleData.fontId,
+                            effectId: styleData.effectId,
+                            colors: [styleData.color1, (styleData?.color2 ? styleData.color2 : null)].filter(Boolean),
+                        },
+                        enumerable: true,
+                        writable: true,
+                        configurable: true,
+                    })
+                }
+            }
+            if(decorEnabled){
+                const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
+                const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice(2);
+                console.log(skuId);
+                if(skuId){
+                    ret.avatarDecorationData = {
+                        skuId: skuId
+                    };
+                }
             }
         })
     }
