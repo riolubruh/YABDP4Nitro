@@ -2,6 +2,7 @@ import {BetterDiscord} from "./global";
 import {load} from "@patches/*";
 import SettingsStore from "./global/stores/SettingsStore.ts";
 import {startChangelog} from "./global/changelog";
+import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 
 const { Components } = BetterDiscord;
 const { React } = BetterDiscord;
@@ -16,6 +17,7 @@ const SettingTypes = {
 export default class Plugin {
     async start() {
         startChangelog();
+        await UserBackgroundStore.fetch();
 
         await load();
     }

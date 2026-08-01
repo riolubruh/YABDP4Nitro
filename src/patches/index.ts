@@ -1,7 +1,6 @@
 import * as modules from "./modules"
 import {BetterDiscord} from "@global/*";
 import type {Patch} from "../types/patches";
-import {mangleExports} from "@utils/index.tsx";
 
 const PatcherAPI = new BdApi("Patcher");
 
