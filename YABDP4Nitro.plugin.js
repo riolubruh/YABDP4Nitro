@@ -13,27 +13,37 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __moduleCache = /* @__PURE__ */ new WeakMap;
+function __accessProp(key) {
+  return this[key];
+}
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 
@@ -58,24 +68,14 @@ __export(exports_modules, {
 var { UserProfileStore, SelectedGuildStore, PresenceStore } = BetterDiscord.Webpack.Stores;
 function getRevealedTextPerServer(userId, shouldInclude = "") {
   const guildId = SelectedGuildStore.getGuildId();
-  if (guildId) {
-    let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-    if (userGuildProfile?.pronouns) {
-      if (userGuildProfile.pronouns.includes(shouldInclude)) {
-        let revealedText = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-        if (revealedText != null && revealedText != "") {
-          return revealedText;
-        }
-      }
-    }
-    if (userGuildProfile?.bio) {
-      if (userGuildProfile.bio.includes(shouldInclude)) {
-        let revealedText = secondsightifyRevealOnly(String(userGuildProfile.bio));
-        if (revealedText != null && revealedText != "") {
-          return revealedText;
-        }
-      }
-    }
+  if (!guildId)
+    return;
+  const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+  if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+    return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+  }
+  if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+    return secondsightifyRevealOnly(String(userGuildProfile.bio));
   }
 }
 function getRevealedText(userId, shouldInclude = "") {
@@ -181,7 +181,8 @@ var defaultSettings = {
   },
   appIcon: "AppIcon",
   voiceTileBannerBackground: false,
-  advancedProfileCustomization: false
+  advancedProfileCustomization: false,
+  lastChangelogVersion: "1.0.0"
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
@@ -393,26 +394,79 @@ async function load() {
     PatcherAPI.Patcher.unpatchAll();
   };
 }
+
 // src/global/changelog/changelog.json
 var changelog_default = {
-  title: "Huge Revamp",
-  subtitle: "Plugin improvements and entire revamp!",
-  banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
-  changes: [{
-    title: "YABDP4Nitro",
-    type: "improved",
-    items: [
-      "Fully rewritten internals from the ground up",
-      "Improved performance and stability",
-      "Cleaner, more maintainable codebase for future updates"
-    ]
+  "7.0.0": [{
+    banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
+    changes: [{
+      title: "YABDP4Nitro Huge Revamp",
+      type: "improved",
+      items: [
+        "Fully rewritten internals from the ground up",
+        "Improved performance and stability",
+        "Cleaner, more maintainable codebase for future updates"
+      ]
+    }]
+  }],
+  "1.0.0": [{
+    changes: [{
+      title: "test",
+      type: "improved",
+      items: ["test"]
+    }]
   }]
+};
+// package.json
+var package_default = {
+  name: "YABDP4Nitro",
+  module: "src/index.tsx",
+  type: "module",
+  version: "7.0.0",
+  private: true,
+  devDependencies: {
+    "@types/bun": "latest"
+  },
+  scripts: {
+    prod: "bun run ./build/build.ts"
+  },
+  peerDependencies: {
+    typescript: "^5"
+  },
+  resolve: {
+    alias: {
+      "react/jsx-dev-runtime": "react/jsx-dev-runtime.js",
+      "react/jsx-runtime": "react/jsx-runtime.js"
+    }
+  },
+  dependencies: {
+    "@types/react": "^19.2.18",
+    react: "^19.2.8"
+  }
 };
 
 // src/global/changelog/index.tsx
+var Meta = package_default;
+function normalizeVersion(v) {
+  const parts = v.split(".");
+  while (parts.length < 3)
+    parts.push("0");
+  return parts.join(".");
+}
 function startChangelog() {
-  console.log(changelog_default);
-  BetterDiscord.UI.showChangelogModal(changelog_default);
+  const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion"));
+  const currentVersion = normalizeVersion(Meta.version);
+  if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0)
+    return;
+  const entry = changelog_default?.[currentVersion]?.[0];
+  if (!entry)
+    return;
+  BetterDiscord.UI.showChangelogModal({
+    title: Meta.name,
+    subtitle: `v${currentVersion}`,
+    ...entry
+  });
+  SettingsStore_default.set("lastChangelogVersion", currentVersion);
 }
 
 // src/index.tsx

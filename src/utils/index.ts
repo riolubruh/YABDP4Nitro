@@ -1,31 +1,49 @@
 import {BetterDiscord} from "@global/*";
+import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
 
 
 const { UserProfileStore, SelectedGuildStore, PresenceStore } = BetterDiscord.Webpack.Stores
 
 export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = ""){
-    //per-server pronoun field check
     const guildId = SelectedGuildStore.getGuildId();
-    if(guildId){
-        let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-        if(userGuildProfile?.pronouns){
-            if(userGuildProfile.pronouns.includes(shouldInclude)){
-                let revealedText = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-                if(revealedText != undefined && revealedText != ""){
-                    return revealedText;
-                }
-            }
-        }
-        //per-server bio check
-        if(userGuildProfile?.bio){
-            if(userGuildProfile.bio.includes(shouldInclude)){
-                let revealedText = secondsightifyRevealOnly(String(userGuildProfile.bio));
-                if(revealedText != undefined && revealedText != ""){
-                    return revealedText;
-                }
-            }
-        }
+    if (!guildId) return;
+
+    const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+
+    // avoid calling getMemberUserProfile inside itself. so we store it and grab it once this is called.
+    // this is called once the profile is opened anyway.
+    CustomUserProfileStore.cacheMember(userGuildProfile)
+
+    if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+        return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
     }
+
+    if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+        return secondsightifyRevealOnly(String(userGuildProfile.bio));
+    }
+
+    //per-server pronoun field check
+    // const guildId = SelectedGuildStore.getGuildId();
+    // if(guildId){
+    //     let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+    //     if(userGuildProfile?.pronouns){
+    //         if(userGuildProfile.pronouns.includes(shouldInclude)){
+    //             let revealedText = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+    //             if(revealedText != undefined && revealedText != ""){
+    //                 return revealedText;
+    //             }
+    //         }
+    //     }
+    //     //per-server bio check
+    //     if(userGuildProfile?.bio){
+    //         if(userGuildProfile.bio.includes(shouldInclude)){
+    //             let revealedText = secondsightifyRevealOnly(String(userGuildProfile.bio));
+    //             if(revealedText != undefined && revealedText != ""){
+    //                 return revealedText;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 //shouldInclude is a string containing the characters that the encoded text should contain
