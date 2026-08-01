@@ -54,15 +54,15 @@ __export(exports_src, {
 });
 module.exports = __toCommonJS(exports_src);
 
+// src/global/index.ts
+var BetterDiscord = new BdApi("YABDP4Nitro");
+
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default
 });
-
-// src/global/index.ts
-var BetterDiscord = new BdApi("YABDP4Nitro");
 
 // src/utils/index.ts
 var { UserProfileStore, SelectedGuildStore, PresenceStore } = BetterDiscord.Webpack.Stores;
@@ -345,9 +345,16 @@ var fakeUser_default = {
         if (!match)
           return ret;
         const colorData = getColorData(match);
-        if (colorData) {
-          console.log(colorData);
-        }
+        colorData && Object.defineProperty(ret, "displayNameStyles", {
+          value: {
+            fontId: colorData.fontId,
+            effectId: colorData.effectId,
+            colors: [colorData.color1, colorData?.color2 ? colorData.color2 : null].filter(Boolean)
+          },
+          enumerable: true,
+          writable: true,
+          configurable: true
+        });
       }
     });
   }
@@ -375,11 +382,40 @@ async function load() {
 }
 
 // src/index.tsx
+var { Components } = BetterDiscord;
+var { React } = BetterDiscord;
+var SettingTypes = {
+  number: Components.NumberInput,
+  bigint: Components.NumberInput,
+  boolean: Components.SwitchInput,
+  string: Components.TextInput
+};
+
 class Plugin {
   async start() {
     await load();
   }
   stop() {
     new BdApi("Patcher").Patcher.unpatchAll();
+  }
+  getSettingsPanel() {
+    return () => {
+      const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
+      return /* @__PURE__ */ React.createElement(Components.SettingGroup, {
+        name: "Settings"
+      }, Object.entries(settings).map(([key, value]) => {
+        const CompType = SettingTypes[typeof value];
+        return /* @__PURE__ */ React.createElement(Components.SettingItem, {
+          key,
+          note: key
+        }, CompType ? /* @__PURE__ */ React.createElement(CompType, {
+          onChange: (v) => SettingsStore_default.set(key, v),
+          value
+        }) : /* @__PURE__ */ React.createElement(Components.TextInput, {
+          value: JSON.stringify(value),
+          disabled: true
+        }));
+      }));
+    };
   }
 }

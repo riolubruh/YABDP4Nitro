@@ -32,13 +32,32 @@ function getBetterDiscordPath() {
     }
 }
 
+const reactPlugin = {
+    name: "reactPlugin",
+    setup(build) {
+        build.onResolve({filter: /^react$/}, args => ({
+            path: args.path,
+            namespace: "react-ns",
+        }));
+        build.onLoad({filter: /.*/, namespace: "react-ns"}, () => ({
+            contents: `export default BdApi.React;export const {PureComponent} = BdApi.React;`,
+            loader: "js",
+        }));
+    },
+};
+
 await Bun.build({
     entrypoints: ['src/index.tsx'],
     outdir: './',
     banner: BANNER,
     naming: GLOBAL_NAME,
+    loader: {".js": "jsx", ".jsx": "jsx", ".ts": "tsx", ".tsx": "tsx", ".css": "text"},
+    resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
+    jsxFactory: "BdApi.React.createElement",
+    jsxFragment: "BdApi.React.Fragment",
     format: "cjs",
     target: "node",
+    plugins: [reactPlugin],
 });
 
 const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');

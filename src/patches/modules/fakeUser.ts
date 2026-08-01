@@ -42,9 +42,16 @@ export default {
 
                 const colorData = getColorData(match);
 
-                if (colorData) {
-                    console.log(colorData)
-                }
+                colorData && Object.defineProperty(ret, "displayNameStyles", {
+                    value: {
+                        fontId: colorData.fontId,
+                        effectId: colorData.effectId,
+                        colors: [colorData.color1, (colorData?.color2 ? colorData.color2 : null)].filter(Boolean),
+                    },
+                    enumerable: true,
+                    writable: true,
+                    configurable: true,
+                })
             }
         })
     }
