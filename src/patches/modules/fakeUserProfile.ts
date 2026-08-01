@@ -9,6 +9,19 @@ const { UserProfileStore } = BetterDiscord.Webpack.Stores
 
 const REGEX_FX = /fx\d+/
 
+function decodeProfileColors(string: string){
+    const colorString = string.match(
+        /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
+    );
+    if(colorString == null) return false;
+    let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
+    let colors = parsed
+        .substring(1, parsed.length - 1)
+        .split(",")
+        .map(x => parseInt(x.replace("#", "0x"), 16));
+    return colors;
+}
+
 export default {
     name: "User Profile",
     description: "Performs fake profile stuffs.",
@@ -16,15 +29,16 @@ export default {
     waitFor: [ x => x.getUser ], // filters to wait for.
     apply(finale, patcher) {
         patcher.after(UserProfileStore, "getUserProfile", (_: any, [userId]: string, ret: UserProfile) => {
-            const killProfileEffects = SettingsStore.get("killProfileEffects")
-            const shouldProfileV2 = SettingsStore.get("profileV2")
-            const disableUserBadge = SettingsStore.get("disableUserBadge")
+            const killProfileEffects = SettingsStore.get("killProfileEffects");
+            const shouldProfileV2 = SettingsStore.get("profileV2");
+            const disableUserBadge = SettingsStore.get("disableUserBadge");
+            const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
 
             BadgesStore.isImportant(userId) && BadgesStore.add(userId);
 
-            shouldProfileV2 && (ret.premiumType = 2);
-
             const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
+
+            (shouldProfileV2 || ret.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`) || revealedSurrogate?.includes("B{"))  && (ret.premiumType = 2);
 
             const userBio = ret?.bio
             if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
@@ -52,6 +66,10 @@ export default {
 
             if (!disableUserBadge && foundBadge && BadgesStore.check(ret?.userId)) {
                 ret.badges.push(BadgesStore.returnRespondingBadge(ret.userId))
+            }
+
+            if(profileThemesEnabled){
+                let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
             }
 
             return ret;

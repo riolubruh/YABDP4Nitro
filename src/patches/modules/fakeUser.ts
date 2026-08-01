@@ -40,7 +40,7 @@ export default {
 
             if (dnsEnabled) {
                 const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
-                const match = revealedText?.match(DNS_REGEX)?.[0]?.slice(2, -1)?.split(",");
+                const match = revealedText?.match(DNS_REGEX)?.[0]?.slice?.(2, -1)?.split?.(",");
                 if(match) {
                     const styleData = getStyleData(match);
 
@@ -58,7 +58,7 @@ export default {
             }
             if(decorEnabled){
                 const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
-                const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice(2);
+                const skuId = revealedText?.match(DECOR_REGEX)?.[0]?.slice?.(2);
                 if(skuId){
                     ret.avatarDecorationData = {
                         skuId: skuId
@@ -67,7 +67,7 @@ export default {
             }
             if(nameplatesEnabled){
                 const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
-                const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2,-1)?.split(',');
+                const match = revealedText?.match(NAMEPLATE_REGEX)?.[0]?.slice(2,-1)?.split?.(',');
                 if(match){
                     const [skuId, palette] = match; //
                     !ret.collectibles && (ret.collectibles = {});
