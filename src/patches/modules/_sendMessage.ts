@@ -52,7 +52,7 @@ export default {
             for (const emoji of msg.validNonShortcutEmojis) {
                 if (!emojiBypassEnabled && !(emojiBypassType === 0)) break;
 
-                if (shouldSkipEmojiBypass(emoji, channelId) || emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet) continue;
+                if (shouldSkipEmojiBypass(emoji, channelId)) continue;
                 const emojiString = getEmojiString(emoji);
 
                 //skip if hyphen precedes the emoji

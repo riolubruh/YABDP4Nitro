@@ -215,7 +215,7 @@ function secondsightifyRevealOnly(t) {
 }
 function shouldSkipEmojiBypass(emoji, currentChannelId) {
   const shouldAlwaysUseEmojiBypass = SettingsStore_default.get("emojiBypassForValidEmoji");
-  return shouldAlwaysUseEmojiBypass && (SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available || emoji.managed);
+  return emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet || shouldAlwaysUseEmojiBypass && (SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available || emoji.managed);
 }
 function getEmojiExtension(emoji) {
   const pngEmote = SettingsStore_default.get("PNGemote");
@@ -485,27 +485,24 @@ var banners_default = {
 // src/patches/modules/_sendMessage.ts
 var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
 async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send) {
-  console.log(filesToDownload);
-  for (let i = 0;i < filesToDownload.length; i++) {
-    const fileToDownload = filesToDownload[i];
-    console.log(fileToDownload);
-    let file = await BetterDiscord.Net.fetch(fileToDownload.url).then((r) => r.blob()).then((blobFile) => new File([blobFile], fileToDownload.filename));
-    console.log(file);
-    let fileUp = new CloudUploader({ file, isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
-    !extraData.attachmentsToUpload && (extraData.attachmentsToUpload = []);
-    if (i == 0 && !extraData.attachmentsToUpload.length) {
-      extraData.attachmentsToUpload = [fileUp];
-      await send(channelId, msg, extraData);
-      extraData.attachmentsToUpload = [];
-      msg.content = "";
-    } else if (i == 0 && extraData.attachmentsToUpload.length > 0) {
-      await send(channelId, msg, extraData);
-      extraData.attachmentsToUpload = [];
-      msg.content = "";
-      await send(channelId, { content: "" }, { attachmentsToUpload: [fileUp] });
-    } else {
-      await send(channelId, { content: "" }, { attachmentsToUpload: [fileUp] });
-    }
+  if (!filesToDownload.length)
+    return;
+  const preexisting = extraData.attachmentsToUpload ?? [];
+  extraData.attachmentsToUpload = preexisting;
+  const uploads = await Promise.all(filesToDownload.map(async (f) => {
+    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+    return new CloudUploader({ file: new File([blob], f.filename), isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
+  }));
+  if (preexisting.length) {
+    await send(channelId, msg, extraData);
+  } else {
+    extraData.attachmentsToUpload = [uploads.shift()];
+    await send(channelId, msg, extraData);
+  }
+  extraData.attachmentsToUpload = [];
+  msg.content = "";
+  for (const upload of uploads) {
+    await send(channelId, { content: "" }, { attachmentsToUpload: [upload] });
   }
 }
 var _sendMessage_default = {
@@ -525,22 +522,22 @@ var _sendMessage_default = {
       console.log(channelId);
       console.log(msg);
       console.log(extraData);
-      if (emojiBypassEnabled && emojiBypassType === 0) {
-        for (const emoji of msg.validNonShortcutEmojis) {
-          if (shouldSkipEmojiBypass(emoji, channelId) || emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet)
-            continue;
-          const emojiString = getEmojiString(emoji);
-          if (msg.content.includes(`-${emojiString}`)) {
-            msg.content = msg.content.replace("-" + emojiString, emojiString);
-            continue;
-          }
-          const emojiUrl = getEmojiUrl(emoji);
-          msg.content = msg.content.replace(emojiString, "");
-          urlsToUpload.push({
-            url: emojiUrl,
-            filename: emoji.name + getEmojiExtension(emoji)
-          });
+      for (const emoji of msg.validNonShortcutEmojis) {
+        if (!emojiBypassEnabled && !(emojiBypassType === 0))
+          break;
+        if (shouldSkipEmojiBypass(emoji, channelId))
+          continue;
+        const emojiString = getEmojiString(emoji);
+        if (msg.content.includes(`-${emojiString}`)) {
+          msg.content = msg.content.replace("-" + emojiString, emojiString);
+          continue;
         }
+        const emojiUrl = getEmojiUrl(emoji);
+        msg.content = msg.content.replace(emojiString, "");
+        urlsToUpload.push({
+          url: emojiUrl,
+          filename: emoji.name + getEmojiExtension(emoji)
+        });
       }
       if (urlsToUpload.length > 0)
         downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);

@@ -128,7 +128,7 @@ export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string){
     //If emoji is from current guild, not animated, and we are actually in a guild channel,
     //and emoji is "available" (could be unavailable due to Server Boost level dropping)
     // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration), cancel emoji bypass
-    return (shouldAlwaysUseEmojiBypass && ((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available) || emoji.managed));
+    return (emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet || shouldAlwaysUseEmojiBypass && ((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available) || emoji.managed));
 }
 
 export function getEmojiExtension(emoji: any){
