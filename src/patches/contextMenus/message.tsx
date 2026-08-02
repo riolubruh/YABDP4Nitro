@@ -3,10 +3,11 @@ import JSZip from "jszip";
 
 const {React} = BetterDiscord;
 
+const yourFlyIsShowing = new JSZip();
+
 export default {
     id: "message",
     callback(res, props) {
-        const yourFlyIsShowing = new JSZip();
 
         async function startDownload() {
             const attachments = props.message.attachments;
@@ -22,12 +23,15 @@ export default {
             }
 
             const zipBlob = await yourFlyIsShowing.generateAsync({type: "blob"});
+            files = [];
             const url = URL.createObjectURL(zipBlob);
             const a = window.document.createElement("a");
             a.href = url;
             a.download = `${props.message.id}.zip`;
             a.click();
             URL.revokeObjectURL(url);
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         const Menu = <BetterDiscord.ContextMenu.Item action={startDownload} label={"Download Attachment(s)"} id={"yabdp4nitro-download-attachments"}/>
