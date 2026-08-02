@@ -3,7 +3,7 @@
  *
  * Unofficial TypeScript declarations for BetterDiscord's `BdApi`, generated
  * from BetterDiscord's internal source (src/betterdiscord/api/*.ts and
- * src/betterdiscord/index.ts). This covers the public surface exposed on
+ * src/betterdiscord/index.tsx). This covers the public surface exposed on
  * `window.BdApi` that plugins interact with.
  *
  * Usage:

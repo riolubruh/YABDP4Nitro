@@ -146,3 +146,26 @@ export function getEmojiUrl(emoji: any, emojiSize:number = SettingsStore.get("em
 export function getEmojiString(emoji: any){
     return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
 }
+
+export const styled = new Proxy(styledBase, {
+    get(target, p) {
+        return (cssOrFn: CSSProperties | ((props: any) => CSSProperties) | undefined) =>
+            target(p as keyof React.JSX.IntrinsicElements, cssOrFn);
+    },
+}) as typeof styledBase & {
+    [key in keyof React.JSX.IntrinsicElements]: (
+        css:
+            | React.JSX.IntrinsicElements[key]["style"]
+            | ((props: any) => React.JSX.IntrinsicElements[key]["style"])
+    ) => React.ComponentType<React.JSX.IntrinsicElements[key]>;
+};
+
+export function styledBase<T extends keyof React.JSX.IntrinsicElements>(
+    tag: T,
+    cssOrFn: CSSProperties | ((props: any) => CSSProperties) | undefined
+): React.ComponentType<React.JSX.IntrinsicElements[T]> {
+    return (props: any) => {
+        const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
+        return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
+    };
+}

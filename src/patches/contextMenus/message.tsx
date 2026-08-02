@@ -1,4 +1,4 @@
-import {BetterDiscord} from "@shared/*";
+import {BetterDiscord, ContextMenuLabel, ContextMenuWrapper} from "@shared/*";
 import JSZip from "jszip";
 
 import { Icon } from "@iconify/react";
@@ -21,7 +21,6 @@ export default {
                 BetterDiscord.UI.showToast("No attachments found? - KJJL");
                 return
             }
-            ;
 
             let files = await Promise.all(attachments.map(async (attachment) => ({
                 blob: await (await BetterDiscord.Net.fetch(attachment.url)).blob(),
@@ -48,10 +47,10 @@ export default {
             action={startDownload}
             icon={<Icon width={"24"} icon={"mdi:download"}/>}
             label={
-                <div style={{display: "flex", flexDirection: "column"}}>
-                    <span style={{fontSize: "14px", opacity: 0.6}}>YABDP4Nitro</span>
+                <ContextMenuWrapper>
+                    <ContextMenuLabel/>
                     <span>Download Attachment(s)</span>
-                </div>
+                </ContextMenuWrapper>
             }
             id={"yabdp4nitro-download-attachments"}
         />;
