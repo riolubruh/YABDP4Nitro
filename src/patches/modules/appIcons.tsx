@@ -1,6 +1,5 @@
 import {BetterDiscord} from "@shared/"
 import type {Patch} from "../../types/patches";
-import {GlobalModules} from "@global/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {AppIconPersistedStoreState} = BetterDiscord.Webpack.Stores
@@ -18,11 +17,6 @@ export default {
     name: "appIcons",
     description: "Lets user select app icon",
     apply(finale: any, patcher: any) {
-        GlobalModules.Dispatcher.dispatch({
-            type: "APP_ICON_UPDATED",
-            id: SettingsStore.get("appIcon")
-        });
-
         const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('M19.73 4.87a18.2'), { //RegularAppIcon
             render: x => x
         })

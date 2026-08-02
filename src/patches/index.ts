@@ -1,10 +1,13 @@
-import * as modules from "./modules"
 import {BetterDiscord} from "@shared/";
+
+import * as modules from "./modules"
+import * as contextMenus from "./contextMenus"
+
 import type {Patch} from "../types/patches";
 
 const PatcherAPI = new BdApi("Patcher");
 
-export async function load()
+export async function loadPatches()
 {
     const loaded: Patch[] = [];
 
@@ -32,4 +35,19 @@ export async function load()
         for (const patch of loaded) patch.revert?.();
         PatcherAPI.Patcher.unpatchAll();
     };
+}
+
+export function loadContextMenus()
+{
+    const loaded = [];
+
+    for (const [path, module] of Object.entries(contextMenus)) {
+        const patch = BetterDiscord.ContextMenu.patch(module.id, (res, props) => module.callback(res, props))
+
+        loaded.push(patch);
+    }
+
+    return () => {
+        for (const patch of loaded) patch?.();
+    }
 }

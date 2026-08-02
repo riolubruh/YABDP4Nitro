@@ -1,8 +1,9 @@
 import {BetterDiscord} from "@shared/";
-import {load} from "@patches/*";
+import {loadContextMenus, loadPatches} from "@patches/*";
 import SettingsStore from "./global/stores/SettingsStore.ts";
 import {startChangelog} from "./global/changelog";
 import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
+import {GlobalModules} from "@global/*";
 
 const { Components } = BetterDiscord;
 const { React } = BetterDiscord;
@@ -14,17 +15,39 @@ const SettingTypes = {
     "string": Components.TextInput,
 }
 
+function normalizeVersion(v: string): string {
+    const parts = v.split(".");
+    while (parts.length < 3) parts.push("0");
+    return parts.join(".");
+}
+
 export default class Plugin {
+    private unpatch = loadContextMenus();
+
     async start() {
         startChangelog();
         await UserBackgroundStore.fetch();
 
-        await load();
+        await loadPatches();
+
+        GlobalModules.Dispatcher.dispatch({
+            type: "APP_ICON_UPDATED",
+            id: SettingsStore.get("appIcon")
+        });
+    }
+
+    checkUpdate()
+    {
+        return;
+
+        // const version = normalizeVersion(SettingsStore.get("lastChangelogVersion"))
+        // const res =
     }
 
     stop() {
         // this.load();
         // this shit no workie.
+        this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
     }
 
