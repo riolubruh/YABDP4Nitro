@@ -483,6 +483,14 @@ var banners_default = {
   }
 };
 // src/patches/modules/_sendMessage.ts
+var { StickersStore } = BetterDiscord.Webpack.Stores;
+var StickerTypeToExtension;
+((StickerTypeToExtension2) => {
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 2] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".json"] = 3] = ".json";
+  StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
+})(StickerTypeToExtension ||= {});
 var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
 async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send) {
   if (!filesToDownload.length)
@@ -539,6 +547,19 @@ var _sendMessage_default = {
           filename: emoji.name + getEmojiExtension(emoji)
         });
       }
+      for (const stickerId of extraData.stickerIds) {
+        const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+        console.log(stickerId);
+        console.log(StickersStore.getStickerById(stickerId));
+        const sticker = StickersStore.getStickerById(stickerId);
+        let extension = StickerTypeToExtension[sticker.format_type];
+        console.log(extension);
+        urlsToUpload.push({
+          url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+          filename: `${sticker.name}${extension}`
+        });
+      }
+      extraData.stickerIds = [];
       if (urlsToUpload.length > 0)
         downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
       else

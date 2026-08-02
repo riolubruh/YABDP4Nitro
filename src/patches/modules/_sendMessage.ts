@@ -1,6 +1,10 @@
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {getEmojiExtension, getEmojiString, getEmojiUrl, shouldSkipEmojiBypass} from "@utils/*";
 import {BetterDiscord} from "@global/*";
+const {StickersStore} = BetterDiscord.Webpack.Stores;
+enum StickerTypeToExtension { // @ts-ignore
+    ".png" = 1, ".png", ".json", ".gif"
+}
 
 const CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", {searchExports: true});
 
@@ -69,6 +73,25 @@ export default {
                     filename: emoji.name + getEmojiExtension(emoji)
                 });
             }
+
+            for(const stickerId of extraData.stickerIds) {
+
+                const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+                console.log(stickerId);
+                console.log(StickersStore.getStickerById(stickerId));
+
+                const sticker = StickersStore.getStickerById(stickerId);
+
+                let extension = StickerTypeToExtension[sticker.format_type];
+
+                console.log(extension);
+
+                urlsToUpload.push({
+                    url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+                    filename: `${sticker.name}${extension}`
+                });
+            }
+            extraData.stickerIds = [];
 
             if (urlsToUpload.length > 0) downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
             else return send(channelId, msg, extraData);
