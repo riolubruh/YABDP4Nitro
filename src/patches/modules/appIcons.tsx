@@ -1,5 +1,6 @@
+import {BetterDiscord} from "@shared/"
 import type {Patch} from "../../types/patches";
-import {BetterDiscord, GlobalModules} from "@global/*";
+import {GlobalModules} from "@global/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {AppIconPersistedStoreState} = BetterDiscord.Webpack.Stores

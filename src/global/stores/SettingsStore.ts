@@ -1,4 +1,4 @@
-import {BetterDiscord} from "../index.ts";
+import {BetterDiscord} from "@shared/";
 
 const {Utils, Data} = BetterDiscord;
 

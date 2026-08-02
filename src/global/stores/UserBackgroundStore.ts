@@ -1,4 +1,4 @@
-import {BetterDiscord} from "../index.ts";
+import {BetterDiscord} from "@shared/";
 
 const USER_BG = "https://usrbg.is-hardly.online/users"
 // dude this api is terribly made.

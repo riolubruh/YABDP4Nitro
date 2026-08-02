@@ -1,4 +1,4 @@
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 import UserBackgroundStore from "../../global/stores/UserBackgroundStore.ts";
 import {getRevealedText} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";

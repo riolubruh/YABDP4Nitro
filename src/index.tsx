@@ -1,4 +1,4 @@
-import {BetterDiscord} from "./global";
+import {BetterDiscord} from "@shared/";
 import {load} from "@patches/*";
 import SettingsStore from "./global/stores/SettingsStore.ts";
 import {startChangelog} from "./global/changelog";

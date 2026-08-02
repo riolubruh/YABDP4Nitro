@@ -1,5 +1,5 @@
 import type {Patch} from "../../types/patches";
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 import {getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";

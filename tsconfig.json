@@ -31,6 +31,9 @@
       ],
       "@type/*": [
         "src/types"
+      ],
+      "@shared/*": [
+        "src/global/shared"
       ]
     },
 

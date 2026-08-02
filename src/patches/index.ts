@@ -1,5 +1,5 @@
 import * as modules from "./modules"
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 import type {Patch} from "../types/patches";
 
 const PatcherAPI = new BdApi("Patcher");

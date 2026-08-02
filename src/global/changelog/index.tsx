@@ -1,5 +1,5 @@
 import changelog from "./changelog.json";
-import {BetterDiscord} from "../index.ts";
+import {BetterDiscord} from "@shared/";
 import Metadata from "../../../package.json";
 import SettingsStore from "../stores/SettingsStore.ts";
 

@@ -1,5 +1,5 @@
 import type {Patch} from "../../types/patches";
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 
 export default {
     name: "Unlock Emojis",

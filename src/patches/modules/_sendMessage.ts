@@ -1,6 +1,6 @@
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {getEmojiExtension, getEmojiString, getEmojiUrl, shouldSkipEmojiBypass} from "@utils/*";
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 const {StickersStore} = BetterDiscord.Webpack.Stores;
 enum StickerTypeToExtension { // @ts-ignore
     ".png" = 1, ".png", ".json", ".gif"

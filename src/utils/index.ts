@@ -1,4 +1,4 @@
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord} from "@shared/";
 import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
 import SettingsStore from "../global/stores/SettingsStore.ts";
 

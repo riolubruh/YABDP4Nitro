@@ -1,7 +1,4 @@
 import {wpGetBulkKeyed} from "./webpack";
-
-export const BetterDiscord = new BdApi("YABDP4Nitro")
-
 const DefaultOptions = {
     options: {
         searchExports: true
