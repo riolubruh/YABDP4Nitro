@@ -32,11 +32,7 @@ export default {
             const maxVideoQuality = {
                 width: e.videoStreamParameters[0].maxResolution.width,
                 height: e.videoStreamParameters[0].maxResolution.height,
-                framerate: e.videoStreamParameters[0].maxFrameRate,
-                pixelCount: 0,
             }
-            //ugly
-            maxVideoQuality.pixelCount = maxVideoQuality.width * maxVideoQuality.height;
 
             let videoCapture = {
                 width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
@@ -49,7 +45,7 @@ export default {
             vqm.options.videoBudget = videoCapture;
             vqm.options.videoCapture = videoCapture;
 
-            //Ladder bypasses - still not 100% sure what this does, possibly related to Adaptive Bitrate. Maybe remove.
+            //Ladder bypasses - still not 100% sure what this does, probably related to Adaptive Bitrate. Maybe remove.
             let pixelBudget = (videoCapture.width * videoCapture.height);
             vqm.ladder.pixelBudget = pixelBudget;
             vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
