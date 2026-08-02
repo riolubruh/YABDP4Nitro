@@ -15,60 +15,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -8983,7 +8962,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9343,9 +9322,9 @@ function getEmojiExtension(emoji) {
   const pngEmote = SettingsStore_default.get("PNGemote");
   return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
 }
+var EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
 function getEmojiUrl(emoji) {
   const emojiSize = SettingsStore_default.get("emojiSize");
-  const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
   return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 function getEmojiString(emoji) {
@@ -9605,7 +9584,7 @@ var banners_default = {
   }
 };
 // src/patches/modules/_sendMessage.ts
-var { StickersStore } = BetterDiscord.Webpack.Stores;
+var { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
 var StickerTypeToExtension;
 ((StickerTypeToExtension2) => {
   StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
@@ -9635,6 +9614,7 @@ async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData,
     await send(channelId, { content: "" }, { attachmentsToUpload: [upload] });
   }
 }
+var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
 var _sendMessage_default = {
   name: "Send Message",
   description: "Upload emoji, soundmoji, stickers, and insta-clips.",
@@ -9644,8 +9624,7 @@ var _sendMessage_default = {
     patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
       const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
-      const pngEmote = SettingsStore_default.get("PNGemote");
-      const soundBoardEnabled = SettingsStore_default.get("soundmojiEnabled");
+      const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
       const stickersEnabled = SettingsStore_default.get("stickerBypass");
       if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
         return send(_, msg);
@@ -9688,7 +9667,27 @@ var _sendMessage_default = {
       if (urlsToUpload.length > 0)
         downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
       else
-        return send(channelId, msg, extraData);
+        send(channelId, msg, extraData);
+      if (soundmojiEnabled) {
+        const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
+        const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
+        const soundmojiObjects = soundmojiStrings?.map?.((x) => SoundboardStore.getSoundById(x?.split?.(":")?.[2]?.slice?.(0, -1)));
+        console.log(soundmojiStrings);
+        console.log(soundmojiObjects);
+        for (let i = 0;i < soundmojiObjects.length; i++) {
+          const sound = soundmojiObjects[i];
+          if (!sound)
+            continue;
+          const soundmojiString = soundmojiStrings[i];
+          console.log(sound);
+          !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
+          if (sound?.emojiId) {
+            let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
+            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
+          }
+          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiObjects[i], `( ${sound.name} ) `));
+        }
+      }
     });
   }
 };
@@ -9787,8 +9786,8 @@ var streamBypass_default = {
         framerate: e.videoStreamParameters[0].maxFrameRate
       };
       voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate);
-      vqm.options.videoBudget = videoCapture;
-      vqm.options.videoCapture = videoCapture;
+      vqmOpt.videoBudget = videoCapture;
+      vqmOpt.videoCapture = videoCapture;
       let pixelBudget = videoCapture.width * videoCapture.height;
       vqm.ladder.pixelBudget = pixelBudget;
       vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
@@ -11348,7 +11347,7 @@ var message_default = {
       }
       let files = await Promise.all(attachments.map(async (attachment) => ({
         blob: await (await BetterDiscord.Net.fetch(attachment.url)).blob(),
-        fileName: attachment.filename
+        fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z")
       })));
       for (const file of files) {
         yourFlyIsShowing.file(file.fileName, file.blob);

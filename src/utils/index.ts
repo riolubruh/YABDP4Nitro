@@ -136,10 +136,11 @@ export function getEmojiExtension(emoji: any){
     return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`
 }
 
+export const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
+
 export function getEmojiUrl(emoji: any){
 
     const emojiSize = SettingsStore.get("emojiSize");
-    const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
 
     return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }

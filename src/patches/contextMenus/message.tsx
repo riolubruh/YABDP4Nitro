@@ -25,7 +25,7 @@ export default {
 
             let files = await Promise.all(attachments.map(async (attachment) => ({
                 blob: await (await BetterDiscord.Net.fetch(attachment.url)).blob(),
-                fileName: attachment.filename,
+                fileName: attachment.filename.replace(".zip.mp4", '.zip').replace('.7z.mp4','.7z'),
             })));
 
             for (const file of files) {

@@ -42,8 +42,8 @@ export default {
 
             (voiceBitrate > 0) && (e.voiceBitrate = voiceBitrate);
 
-            vqm.options.videoBudget = videoCapture;
-            vqm.options.videoCapture = videoCapture;
+            vqmOpt.videoBudget = videoCapture;
+            vqmOpt.videoCapture = videoCapture;
 
             //Ladder bypasses - still not 100% sure what this does, probably related to Adaptive Bitrate. Maybe remove.
             let pixelBudget = (videoCapture.width * videoCapture.height);
