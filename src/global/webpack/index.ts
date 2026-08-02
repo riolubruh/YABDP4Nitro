@@ -1,6 +1,4 @@
-import {BetterDiscord} from "@global/*";
-
-const {Webpack} = BetterDiscord;
+const {Webpack} = BdApi;
 
 type ModuleFilter = (m: any) => boolean;
 type PatchType = "before" | "after" | "instead";

@@ -1,3 +1,4 @@
+import {wpGetBulkKeyed} from "./webpack";
 
 export const BetterDiscord = new BdApi("YABDP4Nitro")
 
@@ -7,7 +8,7 @@ const DefaultOptions = {
     }
 }
 
-export const GlobalModules = BetterDiscord.Webpack.getBulkKeyed({
+export const GlobalModules = wpGetBulkKeyed({
     Typing: {
         filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
     },
