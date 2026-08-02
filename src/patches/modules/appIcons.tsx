@@ -1,5 +1,5 @@
 import type {Patch} from "../../types/patches";
-import {BetterDiscord} from "@global/*";
+import {BetterDiscord, GlobalModules} from "@global/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {AppIconPersistedStoreState} = BetterDiscord.Webpack.Stores
@@ -16,21 +16,27 @@ const bypassMap: Record<string, string> = {
 export default {
     name: "appIcons",
     description: "Lets user select app icon",
-    waitFor: [x => x.RegularAppIcon],
-    mangled: {
-        render: x => x
-    },
     apply(finale: any, patcher: any) {
-        const AppIcon = finale.mangled
+        GlobalModules.Dispatcher.dispatch({
+            type: "APP_ICON_UPDATED",
+            id: SettingsStore.get("appIcon")
+        });
 
+        const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('M19.73 4.87a18.2'), { //RegularAppIcon
+            render: x => x
+        })
         const CustomAppIcon = BetterDiscord.Webpack.getByStrings('.iconSource,width:')
         const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
             canUserUse: x => typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
-        })
+        }, {mapDeclarations: true})
 
         patcher.instead(AppIcon, "render", (_, [args], callback) => {
             const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-            desktopIcon == "AppIcon" ? callback(args) : <CustomAppIcon size={40} id={SettingsStore.get("appIcon")}/>
+            if (desktopIcon == "AppIcon") {
+                return callback(args)
+            } else {
+                return <CustomAppIcon size={40} id={SettingsStore.get("appIcon")}/>
+            }
         })
 
         patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {

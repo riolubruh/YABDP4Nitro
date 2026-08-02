@@ -74,24 +74,27 @@ export default {
                 });
             }
 
-            for(const stickerId of extraData.stickerIds) {
 
-                const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
-                console.log(stickerId);
-                console.log(StickersStore.getStickerById(stickerId));
+            if (extraData.stickerIds) {
+                for(const stickerId of extraData.stickerIds) {
 
-                const sticker = StickersStore.getStickerById(stickerId);
+                    const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+                    console.log(stickerId);
+                    console.log(StickersStore.getStickerById(stickerId));
 
-                let extension = StickerTypeToExtension[sticker.format_type];
+                    const sticker = StickersStore.getStickerById(stickerId);
 
-                console.log(extension);
+                    let extension = StickerTypeToExtension[sticker.format_type];
 
-                urlsToUpload.push({
-                    url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
-                    filename: `${sticker.name}${extension}`
-                });
+                    console.log(extension);
+
+                    urlsToUpload.push({
+                        url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+                        filename: `${sticker.name}${extension}`
+                    });
+                }
+                extraData.stickerIds = [];
             }
-            extraData.stickerIds = [];
 
             if (urlsToUpload.length > 0) downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
             else return send(channelId, msg, extraData);
