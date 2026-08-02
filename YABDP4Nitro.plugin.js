@@ -9593,7 +9593,7 @@ var StickerTypeToExtension;
   StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
 })(StickerTypeToExtension ||= {});
 var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
-async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send) {
+async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send, numFilesInMessage = 1, alwaysSendInNewMessage = false) {
   if (!filesToDownload.length)
     return;
   const preexisting = extraData.attachmentsToUpload ?? [];
@@ -9602,16 +9602,16 @@ async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData,
     const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
     return new CloudUploader({ file: new File([blob], f.filename), isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
   }));
-  if (preexisting.length) {
+  if (preexisting.length || alwaysSendInNewMessage) {
     await send(channelId, msg, extraData);
   } else {
-    extraData.attachmentsToUpload = [uploads.shift()];
+    extraData.attachmentsToUpload = uploads.splice(0, numFilesInMessage);
     await send(channelId, msg, extraData);
   }
   extraData.attachmentsToUpload = [];
   msg.content = "";
-  for (const upload of uploads) {
-    await send(channelId, { content: "" }, { attachmentsToUpload: [upload] });
+  while (uploads.length) {
+    await send(channelId, { content: "" }, { attachmentsToUpload: uploads.splice(0, numFilesInMessage) });
   }
 }
 var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
@@ -9622,16 +9622,14 @@ var _sendMessage_default = {
   waitFor: [(x) => x._sendMessage],
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
+      console.log(_, channelId, msg, extraData);
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
+        return send.apply(_, [channelId, msg, extraData]);
       const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
       const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
       const stickersEnabled = SettingsStore_default.get("stickerBypass");
-      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
-        return send(_, msg);
       let urlsToUpload = [];
-      console.log(channelId);
-      console.log(msg);
-      console.log(extraData);
       for (const emoji of msg.validNonShortcutEmojis) {
         if (!emojiBypassEnabled && !(emojiBypassType === 0))
           break;
@@ -9652,8 +9650,6 @@ var _sendMessage_default = {
       if (extraData.stickerIds && stickersEnabled) {
         for (const stickerId of extraData.stickerIds) {
           const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
-          console.log(stickerId);
-          console.log(StickersStore.getStickerById(stickerId));
           const sticker = StickersStore.getStickerById(stickerId);
           let extension = StickerTypeToExtension[sticker.format_type];
           console.log(extension);
@@ -9664,30 +9660,34 @@ var _sendMessage_default = {
         }
         extraData.stickerIds = [];
       }
-      if (urlsToUpload.length > 0)
-        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
-      else
-        send(channelId, msg, extraData);
+      let soundmojiUrls = [];
       if (soundmojiEnabled) {
         const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
         const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
         const soundmojiObjects = soundmojiStrings?.map?.((x) => SoundboardStore.getSoundById(x?.split?.(":")?.[2]?.slice?.(0, -1)));
-        console.log(soundmojiStrings);
-        console.log(soundmojiObjects);
-        for (let i = 0;i < soundmojiObjects.length; i++) {
+        soundmojiObjects?.forEach?.((x) => soundmojiUrls.push({
+          url: SOUNDBOARD_PREFIX + x.soundId,
+          filename: x.name + ".ogg"
+        }));
+        for (let i = 0;i < soundmojiObjects?.length; i++) {
           const sound = soundmojiObjects[i];
           if (!sound)
             continue;
           const soundmojiString = soundmojiStrings[i];
-          console.log(sound);
           !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
           if (sound?.emojiId) {
             let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
             msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
           }
-          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiObjects[i], `( ${sound.name} ) `));
+          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
         }
       }
+      if (urlsToUpload?.length > 0)
+        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send, 1, false);
+      if (soundmojiUrls?.length > 0)
+        downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send, 10, true);
+      if (!urlsToUpload.length && !soundmojiUrls.length)
+        send(channelId, msg, extraData);
     });
   }
 };
