@@ -2,6 +2,8 @@ import os from "os";
 import path from "path";
 import * as fs from "node:fs";
 
+import { reactPolyfillPlugin } from "./plugins/react-polyfill";
+
 const BANNER = `/**
  * @name YABDP4Nitro
  * @author Riolubruh
@@ -32,20 +34,6 @@ function getBetterDiscordPath() {
     }
 }
 
-const reactPlugin = {
-    name: "reactPlugin",
-    setup(build) {
-        build.onResolve({filter: /^react$/}, args => ({
-            path: args.path,
-            namespace: "react-ns",
-        }));
-        build.onLoad({filter: /.*/, namespace: "react-ns"}, () => ({
-            contents: `export default BdApi.React;export const {PureComponent} = BdApi.React;`,
-            loader: "js",
-        }));
-    },
-};
-
 await Bun.build({
     entrypoints: ['src/index.tsx'],
     outdir: './',
@@ -57,7 +45,7 @@ await Bun.build({
     jsxFragment: "BdApi.React.Fragment",
     format: "cjs",
     target: "node",
-    plugins: [reactPlugin],
+    plugins: [reactPolyfillPlugin],
 });
 
 const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
