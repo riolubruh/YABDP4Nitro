@@ -10,7 +10,7 @@ export default {
     callback(res, props) {
         let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
         if(!src) return;
-        let emojiId = src.match(EMOJI_ID_REGEX).find(Boolean);
+        let emojiId = src.match(EMOJI_ID_REGEX)?.find?.(Boolean);
         if(emojiId){
             let emoji = EmojiStore.getCustomEmojiById(emojiId);
             emoji && (src = getEmojiUrl(emoji, 4096));
