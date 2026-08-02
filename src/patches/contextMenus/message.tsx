@@ -13,7 +13,7 @@ export default {
             const attachments = props.message.attachments;
             if (!attachments.length) return;
 
-            const files = await Promise.all(attachments.map(async (attachment) => ({
+            let files = await Promise.all(attachments.map(async (attachment) => ({
                 blob: await (await BetterDiscord.Net.fetch(attachment.url)).blob(),
                 fileName: attachment.filename,
             })));
