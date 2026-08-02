@@ -46,15 +46,73 @@ module.exports = __toCommonJS(exports_src);
 
 // src/global/index.ts
 var BetterDiscord = new BdApi("YABDP4Nitro");
+var DefaultOptions = {
+  options: {
+    searchExports: true
+  }
+};
+var GlobalModules = BetterDiscord.Webpack.getBulkKeyed({
+  Typing: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
+  },
+  Endpoints: {
+    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
+    ...DefaultOptions
+  },
+  Dispatcher: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    ...DefaultOptions,
+    options: {
+      key: "_dispatcher"
+    }
+  },
+  HTTP: {
+    filter: (m) => typeof m === "object" && m.del && m.put,
+    ...DefaultOptions
+  },
+  Gateway: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
+  },
+  Flux: {
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
+    options: {
+      key: "Ay"
+    }
+  },
+  Intl: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
+  },
+  ModalModule: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+  },
+  SimpleMarkdownWrapper: {
+    filter: (m) => m.reactParserFor
+  },
+  AssetModule: {
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
+    map: {
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
+      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
+    }
+  },
+  Lodash: {
+    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  }
+});
 
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
+  streamBypass: () => streamBypass_default,
   UnlockEmojis: () => unlockEmojis_default,
   SendMessage: () => _sendMessage_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
+  AppIcons: () => appIcons_default,
+  AnimatedUserBanner: () => getUserBannerURL_default,
   AllowClips: () => allowClips_default
 });
 
@@ -524,6 +582,7 @@ var _sendMessage_default = {
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
       const pngEmote = SettingsStore_default.get("PNGemote");
       const soundBoardEnabled = SettingsStore_default.get("soundmojiEnabled");
+      const stickersEnabled = SettingsStore_default.get("stickerBypass");
       if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
         return send(_, msg);
       let urlsToUpload = [];
@@ -547,19 +606,21 @@ var _sendMessage_default = {
           filename: emoji.name + getEmojiExtension(emoji)
         });
       }
-      for (const stickerId of extraData.stickerIds) {
-        const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
-        console.log(stickerId);
-        console.log(StickersStore.getStickerById(stickerId));
-        const sticker = StickersStore.getStickerById(stickerId);
-        let extension = StickerTypeToExtension[sticker.format_type];
-        console.log(extension);
-        urlsToUpload.push({
-          url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
-          filename: `${sticker.name}${extension}`
-        });
+      if (extraData.stickerIds && stickersEnabled) {
+        for (const stickerId of extraData.stickerIds) {
+          const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+          console.log(stickerId);
+          console.log(StickersStore.getStickerById(stickerId));
+          const sticker = StickersStore.getStickerById(stickerId);
+          let extension = StickerTypeToExtension[sticker.format_type];
+          console.log(extension);
+          urlsToUpload.push({
+            url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+            filename: `${sticker.name}${extension}`
+          });
+        }
+        extraData.stickerIds = [];
       }
-      extraData.stickerIds = [];
       if (urlsToUpload.length > 0)
         downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
       else
@@ -576,6 +637,109 @@ var unlockEmojis_default = {
     ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
     patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
       return;
+    });
+  }
+};
+// src/patches/modules/getUserBannerURL.ts
+var getUserBannerURL_default = {
+  name: "getUserBannerURL",
+  description: "Force animate the user banner URL",
+  waitFor: [(x) => x.getEmojiURL],
+  apply(finale, patcher) {
+    const AvatarDefaults = finale.modules[0];
+    patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+      args[0].canAnimate = true;
+    });
+  }
+};
+// src/patches/modules/appIcons.tsx
+var { AppIconPersistedStoreState } = BetterDiscord.Webpack.Stores;
+var bypassMap = {
+  emojisEverywhere: "emojiBypass",
+  animatedEmojis: "emojiBypass",
+  appIcons: "unlockAppIcons",
+  profilePremiumFeatures: "removeProfileUpsell",
+  clientThemes: "clientThemes",
+  soundboardEverywhere: "soundmojiEnabled"
+};
+var appIcons_default = {
+  name: "appIcons",
+  description: "Lets user select app icon",
+  apply(finale, patcher) {
+    GlobalModules.Dispatcher.dispatch({
+      type: "APP_ICON_UPDATED",
+      id: SettingsStore_default.get("appIcon")
+    });
+    const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
+      render: (x) => x
+    });
+    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
+    const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+      canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
+    }, { mapDeclarations: true });
+    patcher.instead(AppIcon, "render", (_, [args], callback) => {
+      const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
+      if (desktopIcon == "AppIcon") {
+        return callback(args);
+      } else {
+        return /* @__PURE__ */ React.createElement(CustomAppIcon, {
+          size: 40,
+          id: SettingsStore_default.get("appIcon")
+        });
+      }
+    });
+    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
+      console.log(feature);
+      const settingKey = bypassMap[feature.name];
+      if (settingKey && SettingsStore_default.get(settingKey))
+        return true;
+      return originalFunction(feature, user);
+    });
+  }
+};
+// src/patches/modules/streamBypass.ts
+var LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", { searchExports: true });
+var streamBypass_default = {
+  name: "streamBypass",
+  description: "Custom Bitrates, FPS, Resolution",
+  waitFor: [BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"), BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")],
+  apply(finale, patcher) {
+    const _class = finale.modules[0];
+    patcher.before(_class.prototype, "updateVideoQuality", (e) => {
+      const customBitrateEnabled = SettingsStore_default.get("CustomBitrateEnabled");
+      const minBitrate = SettingsStore_default.get("minBitrate") > 0 ? SettingsStore_default.get("minBitrate") * 1000 : 500000;
+      const targetBitrate = SettingsStore_default.get("targetBitrate") > 0 ? SettingsStore_default.get("targetBitrate") * 1000 : 4500000;
+      const maxBitrate = SettingsStore_default.get("maxBitrate") > 0 ? SettingsStore_default.get("maxBitrate") * 1000 : 9000000;
+      const voiceBitrate = SettingsStore_default.get("voiceBitrate") * 1000;
+      const vqm = e.videoQualityManager;
+      const vqmOpt = vqm.options;
+      if (customBitrateEnabled) {
+        vqmOpt.desktopBitrate.min = minBitrate;
+        vqmOpt.desktopBitrate.target = targetBitrate;
+        vqmOpt.desktopBitrate.max = maxBitrate;
+      }
+      const maxVideoQuality = {
+        width: e.videoStreamParameters[0].maxResolution.width,
+        height: e.videoStreamParameters[0].maxResolution.height,
+        framerate: e.videoStreamParameters[0].maxFrameRate,
+        pixelCount: 0
+      };
+      maxVideoQuality.pixelCount = maxVideoQuality.width * maxVideoQuality.height;
+      let videoCapture = {
+        width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
+        height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
+        framerate: e.videoStreamParameters[0].maxFrameRate
+      };
+      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate);
+      vqm.options.videoBudget = videoCapture;
+      vqm.options.videoCapture = videoCapture;
+      let pixelBudget = videoCapture.width * videoCapture.height;
+      vqm.ladder.pixelBudget = pixelBudget;
+      vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
+      vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
+    });
+    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {
+      return true;
     });
   }
 };
@@ -681,7 +845,7 @@ function startChangelog() {
 
 // src/index.tsx
 var { Components } = BetterDiscord;
-var { React } = BetterDiscord;
+var { React: React2 } = BetterDiscord;
 var SettingTypes = {
   number: Components.NumberInput,
   bigint: Components.NumberInput,
@@ -701,17 +865,17 @@ class Plugin {
   getSettingsPanel() {
     return () => {
       const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
-      return /* @__PURE__ */ React.createElement(Components.SettingGroup, {
+      return /* @__PURE__ */ React2.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {
         const CompType = SettingTypes[typeof value];
-        return /* @__PURE__ */ React.createElement(Components.SettingItem, {
+        return /* @__PURE__ */ React2.createElement(Components.SettingItem, {
           key,
           note: key
-        }, CompType ? /* @__PURE__ */ React.createElement(CompType, {
+        }, CompType ? /* @__PURE__ */ React2.createElement(CompType, {
           onChange: (v) => SettingsStore_default.set(key, v),
           value
-        }) : /* @__PURE__ */ React.createElement(Components.TextInput, {
+        }) : /* @__PURE__ */ React2.createElement(Components.TextInput, {
           value: JSON.stringify(value),
           disabled: true
         }));

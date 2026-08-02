@@ -1,4 +1,4 @@
-import {BetterDiscord} from "../index.ts";
+import {BetterDiscord} from "@global/*";
 
 const {Webpack} = BetterDiscord;
 

@@ -44,6 +44,7 @@ export default {
             const emojiBypassType = SettingsStore.get("emojiBypassType");
             const pngEmote = SettingsStore.get("PNGemote");
             const soundBoardEnabled = SettingsStore.get("soundmojiEnabled");
+            const stickersEnabled = SettingsStore.get("stickerBypass")
 
             if (extraData.poll || extraData.activityAction || msg.location === "forwarding") return send(_, msg);
 
@@ -75,7 +76,7 @@ export default {
             }
 
 
-            if (extraData.stickerIds) {
+            if (extraData.stickerIds && stickersEnabled) {
                 for(const stickerId of extraData.stickerIds) {
 
                     const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
