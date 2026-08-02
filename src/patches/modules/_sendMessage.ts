@@ -109,17 +109,19 @@ export default {
 
                     // default / system emoji
                     (!sound.emojiId && sound.emojiName) && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
+                    // custom emoji
                     if(sound?.emojiId){
                         let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
                         msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX+sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
                     }
+                    //no emoji
                     (!sound.emojiId && !sound.emojiName) && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
                 }
             }
 
             if (urlsToUpload?.length > 0) downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send, 1, false);
             if (soundmojiUrls?.length > 0) downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send, 10, true);
-            if(!urlsToUpload.length && !soundmojiUrls.length) send(channelId, msg, extraData);
+            if (!urlsToUpload.length && !soundmojiUrls.length) send(channelId, msg, extraData);
 
         })
     }

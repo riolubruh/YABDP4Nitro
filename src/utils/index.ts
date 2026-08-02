@@ -138,9 +138,7 @@ export function getEmojiExtension(emoji: any){
 
 export const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
 
-export function getEmojiUrl(emoji: any){
-
-    const emojiSize = SettingsStore.get("emojiSize");
+export function getEmojiUrl(emoji: any, emojiSize:number = SettingsStore.get("emojiSize")){
 
     return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }

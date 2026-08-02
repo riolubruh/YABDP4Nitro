@@ -9323,8 +9323,7 @@ function getEmojiExtension(emoji) {
   return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
 }
 var EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
-function getEmojiUrl(emoji) {
-  const emojiSize = SettingsStore_default.get("emojiSize");
+function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get("emojiSize")) {
   return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 function getEmojiString(emoji) {
@@ -9801,7 +9800,8 @@ var streamBypass_default = {
 // src/patches/contextMenus/index.ts
 var exports_contextMenus = {};
 __export(exports_contextMenus, {
-  MessageContextMenu: () => message_default
+  MessageContextMenu: () => message_default,
+  ExpressionPickerContextMenu: () => expressionPicker_default
 });
 
 // src/patches/contextMenus/message.tsx
@@ -11377,6 +11377,31 @@ var message_default = {
     });
     const Sep = /* @__PURE__ */ React2.createElement(BetterDiscord.ContextMenu.Separator, null);
     res.props.children.props.children.push(Sep, Menu);
+  }
+};
+// src/patches/contextMenus/expressionPicker.tsx
+var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
+var EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
+var expressionPicker_default = {
+  id: "expression-picker",
+  callback(res, props) {
+    let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
+    if (!src)
+      return;
+    let emojiId = src.match(EMOJI_ID_REGEX).find(Boolean);
+    if (emojiId) {
+      let emoji = EmojiStore2.getCustomEmojiById(emojiId);
+      emoji && (src = getEmojiUrl(emoji, 4096));
+    }
+    function openUrl() {
+      window.open(src);
+    }
+    const MenuItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      label: "Open URL",
+      id: "yabd-open-url-expression-picker",
+      action: openUrl
+    });
+    res.props.children.props.children.push(MenuItem);
   }
 };
 // src/patches/index.ts
