@@ -4,6 +4,7 @@ import SettingsStore from "../global/stores/SettingsStore.ts";
 
 
 const {UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore} = BetterDiscord.Webpack.Stores
+const DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings('await window.navigator.clipboard.writeText', {searchExports:true});
 
 export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = "") {
     const guildId = SelectedGuildStore.getGuildId();
@@ -176,3 +177,37 @@ export const ContextMenuWrapper = styled.div({
 })
 
 export const ContextMenuLabel = () => <span style={{fontSize: "14px", opacity: 0.6}}>YABDP4Nitro</span>
+
+export function copyToClipboard(string: string, successMessage=undefined, errorMessage = "Failed to copy to clipboard!") {
+    try {
+        DiscordCopyToClipboardFn(string);
+        if(successMessage)
+            BetterDiscord.UI.showToast(successMessage,{type: "info"});
+    } catch(err) {
+        BetterDiscord.UI.showToast(errorMessage,{type: "error",forceShow: true});
+        BetterDiscord.Logger.error(err);
+    }
+}
+
+// Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
+// If filter variable is a string, it uses an includes string filter.
+export function findMangledName(module, filter, debugInfo){
+    if(module){
+        if(typeof filter === "string"){
+            filter = (x) => x.toString?.().includes?.(filter);
+        }
+        let keys = Object.keys(module);
+        let values = Object.values(module);
+
+        let index = values.findIndex(filter);
+
+        if(index >= 0) return keys[index];
+        else{
+            BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
+            return null;
+        };
+    }else{
+        BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
+        return null;
+    }
+}

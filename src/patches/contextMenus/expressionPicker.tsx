@@ -15,6 +15,10 @@ export default {
         if(emojiId){
             let emoji = EmojiStore.getCustomEmojiById(emojiId);
             emoji && (src = getEmojiUrl(emoji, 4096));
+        }else{
+            let url = new URL(src);
+            url.searchParams.set("size", 4096);
+            src = url.toString();
         }
 
         function openUrl(){
@@ -26,7 +30,7 @@ export default {
             label={
                 <ContextMenuWrapper>
                     <ContextMenuLabel/>
-                    <span>Open URL</span>
+                    <span>Open {emojiId ? "Emoji" : "Sticker"} URL</span>
                 </ContextMenuWrapper>
             }
             id={"yabd-open-url-expression-picker"}

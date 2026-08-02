@@ -9142,15 +9142,18 @@ __export(exports_src, {
 });
 module.exports = __toCommonJS(exports_src);
 
-// src/global/shared/index.ts
+// src/global/shared/index.tsx
 var BetterDiscord = new BdApi("YABDP4Nitro");
 
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
-  streamBypass: () => streamBypass_default,
+  VideoCodec: () => videoCodecs_default,
   UnlockEmojis: () => unlockEmojis_default,
+  StreamBypass: () => streamBypass_default,
+  SharpenStreams: () => sharpenStreams_default,
   SendMessage: () => _sendMessage_default,
+  GifPickerContext: () => gifPickerContext_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
@@ -9259,8 +9262,9 @@ var SettingsStore_default = new class SettingsStore extends Utils.Store {
   }
 };
 
-// src/utils/index.ts
+// src/utils/index.tsx
 var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord.Webpack.Stores;
+var DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings("await window.navigator.clipboard.writeText", { searchExports: true });
 function getRevealedTextPerServer(userId, shouldInclude = "") {
   const guildId = SelectedGuildStore.getGuildId();
   if (!guildId)
@@ -9328,6 +9332,34 @@ function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get("emojiSize")) 
 }
 function getEmojiString(emoji) {
   return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
+}
+var styled = new Proxy(styledBase, {
+  get(target, p) {
+    return (cssOrFn) => target(p, cssOrFn);
+  }
+});
+function styledBase(tag, cssOrFn) {
+  return (props) => {
+    const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
+    return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
+  };
+}
+var ContextMenuWrapper = styled.div({
+  display: "flex",
+  flexDirection: "column"
+});
+var ContextMenuLabel = () => /* @__PURE__ */ React.createElement("span", {
+  style: { fontSize: "14px", opacity: 0.6 }
+}, "YABDP4Nitro");
+function copyToClipboard(string, successMessage = undefined, errorMessage = "Failed to copy to clipboard!") {
+  try {
+    DiscordCopyToClipboardFn(string);
+    if (successMessage)
+      BetterDiscord.UI.showToast(successMessage, { type: "info" });
+  } catch (err) {
+    BetterDiscord.UI.showToast(errorMessage, { type: "error", forceShow: true });
+    BetterDiscord.Logger.error(err);
+  }
 }
 
 // src/global/stores/BadgesStore.tsx
@@ -9794,6 +9826,71 @@ var streamBypass_default = {
     });
     patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {
       return true;
+    });
+  }
+};
+// src/patches/modules/gifPickerContext.tsx
+var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", { searchExports: true });
+var gifPickerContext_default = {
+  name: "GIF Picker Context Menu",
+  description: "Adds copy/open url context menu to GIFs in GIF Picker.",
+  ids: undefined,
+  waitFor: [],
+  apply(finale, patcher) {
+    patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+      ret.props.onContextMenu = (event) => {
+        console.log(instance);
+        let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
+        console.log(url);
+        url.startsWith("//") && (url = "https:" + url);
+        BetterDiscord.ContextMenu.open(event, BetterDiscord.ContextMenu.buildMenu([{
+          type: "text",
+          label: "Copy Link",
+          onClick: () => {
+            copyToClipboard(url);
+          }
+        }, {
+          type: "text",
+          label: "Open Link",
+          onClick: () => {
+            window.open(url);
+          }
+        }]));
+      };
+    });
+  }
+};
+// src/patches/modules/videoCodecs.ts
+var streamSettingsMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("getCodecOptions"), {
+  Connection: (x) => x?.prototype?.getCodecOptions
+}, { mapDeclarations: true });
+var videoCodecs_default = {
+  name: "Video Codec",
+  description: "Applies chosen video codec.",
+  ids: undefined,
+  apply(finale, patcher) {
+    patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, __, ret) => {
+      const videoCodec = SettingsStore_default.get("videoCodec2");
+      videoCodec >= 0 && (ret.videoEncoder = ret.videoDecoders[videoCodec]);
+    });
+  }
+};
+// src/patches/modules/sharpenStreams.tsx
+var sharpenStreams_default = {
+  name: "Stream Sharpener",
+  description: "Sharpens streams.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent")],
+  apply(finale, patcher) {
+    const mod = Object.values(finale.modules.find(Boolean)).find((x) => x.type);
+    console.log(mod);
+    patcher.after(mod, "type", (_, [args], ret) => {
+      console.log(args);
+      console.log(ret);
+      ret.props.children.push(/* @__PURE__ */ React.createElement("sharpener", {
+        userId: args.userId
+      }));
+      ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` };
     });
   }
 };
@@ -11368,11 +11465,7 @@ var message_default = {
         width: "24",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React2.createElement("div", {
-        style: { display: "flex", flexDirection: "column" }
-      }, /* @__PURE__ */ React2.createElement("span", {
-        style: { fontSize: "14px", opacity: 0.6 }
-      }, "YABDP4Nitro"), /* @__PURE__ */ React2.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React2.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React2.createElement(ContextMenuLabel, null), /* @__PURE__ */ React2.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
     const Sep = /* @__PURE__ */ React2.createElement(BetterDiscord.ContextMenu.Separator, null);
@@ -11388,16 +11481,24 @@ var expressionPicker_default = {
     let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
     if (!src)
       return;
-    let emojiId = src.match(EMOJI_ID_REGEX).find(Boolean);
+    let emojiId = src.match(EMOJI_ID_REGEX)?.find?.(Boolean);
     if (emojiId) {
       let emoji = EmojiStore2.getCustomEmojiById(emojiId);
       emoji && (src = getEmojiUrl(emoji, 4096));
+    } else {
+      let url = new URL(src);
+      url.searchParams.set("size", 4096);
+      src = url.toString();
     }
     function openUrl() {
       window.open(src);
     }
     const MenuItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
-      label: "Open URL",
+      icon: /* @__PURE__ */ React.createElement(Icon, {
+        width: "24",
+        icon: "mdi:external-link"
+      }),
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open ", emojiId ? "Emoji" : "Sticker", " URL")),
       id: "yabd-open-url-expression-picker",
       action: openUrl
     });
