@@ -1,8 +1,9 @@
 import {BetterDiscord} from "@global/*";
 import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
+import SettingsStore from "../global/stores/SettingsStore.ts";
 
 
-const {UserProfileStore, SelectedGuildStore, PresenceStore} = BetterDiscord.Webpack.Stores
+const {UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore} = BetterDiscord.Webpack.Stores
 
 export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = "") {
     const guildId = SelectedGuildStore.getGuildId();
@@ -117,4 +118,32 @@ export function secondsightifyEncodeOnly(t: string) {
         // no 3y3 text detected. encoding...
         return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
     }
+}
+
+//Whether we should skip the emoji bypass for a given emoji.
+// true = skip bypass
+// false = perform bypass
+export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string){
+    const shouldAlwaysUseEmojiBypass = SettingsStore.get("emojiBypassForValidEmoji");
+    //If emoji is from current guild, not animated, and we are actually in a guild channel,
+    //and emoji is "available" (could be unavailable due to Server Boost level dropping)
+    // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration), cancel emoji bypass
+    return (shouldAlwaysUseEmojiBypass && ((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available) || emoji.managed));
+}
+
+export function getEmojiExtension(emoji: any){
+    const pngEmote = SettingsStore.get("PNGemote");
+    return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`
+}
+
+export function getEmojiUrl(emoji: any){
+
+    const emojiSize = SettingsStore.get("emojiSize");
+    const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
+
+    return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
+}
+
+export function getEmojiString(emoji: any){
+    return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
 }

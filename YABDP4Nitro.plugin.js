@@ -13,37 +13,27 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -60,6 +50,8 @@ var BetterDiscord = new BdApi("YABDP4Nitro");
 // src/patches/modules/index.ts
 var exports_modules = {};
 __export(exports_modules, {
+  UnlockEmojis: () => unlockEmojis_default,
+  SendMessage: () => _sendMessage_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
@@ -76,62 +68,6 @@ var CustomUserProfileStore_default = new class CustomUserProfileStore {
     this.profiles.push(user);
   }
 };
-
-// src/utils/index.ts
-var { UserProfileStore, SelectedGuildStore, PresenceStore } = BetterDiscord.Webpack.Stores;
-function getRevealedTextPerServer(userId, shouldInclude = "") {
-  const guildId = SelectedGuildStore.getGuildId();
-  if (!guildId)
-    return;
-  const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
-  userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
-  if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
-    return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-  }
-  if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
-    return secondsightifyRevealOnly(String(userGuildProfile.bio));
-  }
-}
-function getRevealedText(userId, shouldInclude = "") {
-  let revealedText = "";
-  let perServer = getRevealedTextPerServer(userId, shouldInclude);
-  if (perServer != null && perServer != "")
-    return perServer;
-  let userProfile = UserProfileStore.getUserProfile(userId);
-  if (userProfile) {
-    if (userProfile?.bio != null) {
-      if (userProfile.bio.includes(shouldInclude)) {
-        revealedText = secondsightifyRevealOnly(String(userProfile.bio));
-        if (revealedText != null && revealedText != "") {
-          return revealedText;
-        }
-      }
-    }
-  }
-  let customStatusActivity;
-  try {
-    customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
-  } catch (err) {
-    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
-  }
-  if (customStatusActivity) {
-    let customStatus = customStatusActivity.state;
-    if (customStatus == undefined)
-      return;
-    if (customStatus.includes(shouldInclude)) {
-      revealedText = secondsightifyRevealOnly(String(customStatus));
-      return revealedText;
-    }
-  }
-}
-function secondsightifyRevealOnly(t) {
-  if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
-    return ((t2) => [...t2].map((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631 ? String.fromCodePoint(x.codePointAt(0) - 917504) : x).join(""))(t);
-  } else {
-    return;
-  }
-}
 
 // src/global/stores/SettingsStore.ts
 var { Utils, Data } = BetterDiscord;
@@ -221,6 +157,78 @@ var SettingsStore_default = new class SettingsStore extends Utils.Store {
     return this.settings;
   }
 };
+
+// src/utils/index.ts
+var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord.Webpack.Stores;
+function getRevealedTextPerServer(userId, shouldInclude = "") {
+  const guildId = SelectedGuildStore.getGuildId();
+  if (!guildId)
+    return;
+  const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
+  userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
+  if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+    return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+  }
+  if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+    return secondsightifyRevealOnly(String(userGuildProfile.bio));
+  }
+}
+function getRevealedText(userId, shouldInclude = "") {
+  let revealedText = "";
+  let perServer = getRevealedTextPerServer(userId, shouldInclude);
+  if (perServer != null && perServer != "")
+    return perServer;
+  let userProfile = UserProfileStore.getUserProfile(userId);
+  if (userProfile) {
+    if (userProfile?.bio != null) {
+      if (userProfile.bio.includes(shouldInclude)) {
+        revealedText = secondsightifyRevealOnly(String(userProfile.bio));
+        if (revealedText != null && revealedText != "") {
+          return revealedText;
+        }
+      }
+    }
+  }
+  let customStatusActivity;
+  try {
+    customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+  } catch (err) {
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+  }
+  if (customStatusActivity) {
+    let customStatus = customStatusActivity.state;
+    if (customStatus == undefined)
+      return;
+    if (customStatus.includes(shouldInclude)) {
+      revealedText = secondsightifyRevealOnly(String(customStatus));
+      return revealedText;
+    }
+  }
+}
+function secondsightifyRevealOnly(t) {
+  if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
+    return ((t2) => [...t2].map((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631 ? String.fromCodePoint(x.codePointAt(0) - 917504) : x).join(""))(t);
+  } else {
+    return;
+  }
+}
+function shouldSkipEmojiBypass(emoji, currentChannelId) {
+  const shouldAlwaysUseEmojiBypass = SettingsStore_default.get("emojiBypassForValidEmoji");
+  return shouldAlwaysUseEmojiBypass && (SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available || emoji.managed);
+}
+function getEmojiExtension(emoji) {
+  const pngEmote = SettingsStore_default.get("PNGemote");
+  return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
+}
+function getEmojiUrl(emoji) {
+  const emojiSize = SettingsStore_default.get("emojiSize");
+  const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
+  return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
+}
+function getEmojiString(emoji) {
+  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
+}
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
@@ -471,6 +479,85 @@ var banners_default = {
         unpatch();
       });
       return ret;
+    });
+  }
+};
+// src/patches/modules/_sendMessage.ts
+var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
+async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send) {
+  console.log(filesToDownload);
+  for (let i = 0;i < filesToDownload.length; i++) {
+    const fileToDownload = filesToDownload[i];
+    console.log(fileToDownload);
+    let file = await BetterDiscord.Net.fetch(fileToDownload.url).then((r) => r.blob()).then((blobFile) => new File([blobFile], fileToDownload.filename));
+    console.log(file);
+    let fileUp = new CloudUploader({ file, isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
+    !extraData.attachmentsToUpload && (extraData.attachmentsToUpload = []);
+    if (i == 0 && !extraData.attachmentsToUpload.length) {
+      extraData.attachmentsToUpload = [fileUp];
+      await send(channelId, msg, extraData);
+      extraData.attachmentsToUpload = [];
+      msg.content = "";
+    } else if (i == 0 && extraData.attachmentsToUpload.length > 0) {
+      await send(channelId, msg, extraData);
+      extraData.attachmentsToUpload = [];
+      msg.content = "";
+      await send(channelId, { content: "" }, { attachmentsToUpload: [fileUp] });
+    } else {
+      await send(channelId, { content: "" }, { attachmentsToUpload: [fileUp] });
+    }
+  }
+}
+var _sendMessage_default = {
+  name: "Send Message",
+  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
+  ids: undefined,
+  waitFor: [(x) => x._sendMessage],
+  apply(finale, patcher) {
+    patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const pngEmote = SettingsStore_default.get("PNGemote");
+      const soundBoardEnabled = SettingsStore_default.get("soundmojiEnabled");
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
+        return send(_, msg);
+      let urlsToUpload = [];
+      console.log(channelId);
+      console.log(msg);
+      console.log(extraData);
+      if (emojiBypassEnabled && emojiBypassType === 0) {
+        for (const emoji of msg.validNonShortcutEmojis) {
+          if (shouldSkipEmojiBypass(emoji, channelId) || emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet)
+            continue;
+          const emojiString = getEmojiString(emoji);
+          if (msg.content.includes(`-${emojiString}`)) {
+            msg.content = msg.content.replace("-" + emojiString, emojiString);
+            continue;
+          }
+          const emojiUrl = getEmojiUrl(emoji);
+          msg.content = msg.content.replace(emojiString, "");
+          urlsToUpload.push({
+            url: emojiUrl,
+            filename: emoji.name + getEmojiExtension(emoji)
+          });
+        }
+      }
+      if (urlsToUpload.length > 0)
+        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send);
+      else
+        return send(channelId, msg, extraData);
+    });
+  }
+};
+// src/patches/modules/unlockEmojis.ts
+var unlockEmojis_default = {
+  name: "Unlock Emojis",
+  description: "Fully unlocks emojis.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
+  apply(finale, patcher) {
+    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
+    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
+      return;
     });
   }
 };
