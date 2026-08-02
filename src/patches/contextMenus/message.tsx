@@ -1,7 +1,8 @@
-import {BetterDiscord, ContextMenuLabel, ContextMenuWrapper} from "@shared/*";
+import {BetterDiscord} from "@shared/*";
 import JSZip from "jszip";
 
 import { Icon } from "@iconify/react";
+import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
 
 const {React} = BetterDiscord;
 

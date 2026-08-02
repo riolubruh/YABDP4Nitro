@@ -1,5 +1,6 @@
 import {BetterDiscord} from "@shared/*";
-import {getEmojiUrl} from "@utils/*";
+import {ContextMenuLabel, ContextMenuWrapper, getEmojiUrl} from "@utils/*";
+import {Icon} from "@iconify/react";
 
 const {EmojiStore} = BetterDiscord.Webpack.Stores;
 
@@ -21,7 +22,13 @@ export default {
         }
 
         const MenuItem = <BetterDiscord.ContextMenu.Item
-            label={"Open URL"}
+            icon={<Icon width={"24"} icon={"mdi:external-link"}/>}
+            label={
+                <ContextMenuWrapper>
+                    <ContextMenuLabel/>
+                    <span>Open URL</span>
+                </ContextMenuWrapper>
+            }
             id={"yabd-open-url-expression-picker"}
             action={openUrl}
         />;
