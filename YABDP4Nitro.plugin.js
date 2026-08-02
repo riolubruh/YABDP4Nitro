@@ -9,7 +9,6 @@
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
-const BetterDiscord = new BdApi("YABDP4Nitro");
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -56,7 +55,7 @@ __export(exports_src, {
 module.exports = __toCommonJS(exports_src);
 
 // src/global/shared/index.ts
-var BetterDiscord2 = new BdApi("YABDP4Nitro");
+var BetterDiscord = new BdApi("YABDP4Nitro");
 
 // src/patches/modules/index.ts
 var exports_modules = {};
@@ -84,7 +83,7 @@ var CustomUserProfileStore_default = new class CustomUserProfileStore {
 };
 
 // src/global/stores/SettingsStore.ts
-var { Utils, Data } = BetterDiscord2;
+var { Utils, Data } = BetterDiscord;
 var defaultSettings = {
   emojiSize: 64,
   screenSharing: true,
@@ -173,7 +172,7 @@ var SettingsStore_default = new class SettingsStore extends Utils.Store {
 };
 
 // src/utils/index.ts
-var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord2.Webpack.Stores;
+var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord.Webpack.Stores;
 function getRevealedTextPerServer(userId, shouldInclude = "") {
   const guildId = SelectedGuildStore.getGuildId();
   if (!guildId)
@@ -208,7 +207,7 @@ function getRevealedText(userId, shouldInclude = "") {
   try {
     customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
   } catch (err) {
-    BetterDiscord2.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
   }
   if (customStatusActivity) {
     let customStatus = customStatusActivity.state;
@@ -296,7 +295,7 @@ var BadgesStore_default = new class BadgesStore {
 };
 
 // src/patches/modules/fakeUserProfile.ts
-var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord2.Webpack.Stores;
+var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 var REGEX_FX = /fx\d+/;
 function decodeProfileColors(string) {
   if (!string)
@@ -362,7 +361,7 @@ var fakeUserProfile_default = {
   }
 };
 // src/patches/modules/fakeUser.ts
-var { UserStore } = BetterDiscord2.Webpack.Stores;
+var { UserStore } = BetterDiscord.Webpack.Stores;
 var DNS_REGEX = /S\{[^}]*?\}/;
 var DECOR_REGEX = /\/a\d+/;
 var NAMEPLATE_REGEX = /n\{[^}]*?\}/;
@@ -434,8 +433,8 @@ var fakeUser_default = {
   }
 };
 // src/patches/modules/allowClips.ts
-var { ClipsStore } = BetterDiscord2.Webpack.Stores;
-var GLOBAL_SOURCE = BetterDiscord2.Webpack.Filters.bySource("useEnableClips");
+var { ClipsStore } = BetterDiscord.Webpack.Stores;
+var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource("useEnableClips");
 var allowClips_default = {
   name: "allowClips",
   description: "Allow clips",
@@ -453,7 +452,7 @@ var allowClips_default = {
 };
 // src/global/stores/UserBackgroundStore.ts
 var USER_BG = "https://usrbg.is-hardly.online/users";
-var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDiscord2.Utils.Store {
+var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDiscord.Utils.Store {
   users = {};
   meta = {};
   get(userId) {
@@ -464,7 +463,7 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
     return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
   }
   async fetch() {
-    const data = await BetterDiscord2.Net.fetch(USER_BG);
+    const data = await BetterDiscord.Net.fetch(USER_BG);
     const response = await data.json();
     this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
     this.users = response.users;
@@ -477,7 +476,7 @@ var banners_default = {
   name: "fakeBanners",
   description: "3y3 banners",
   ids: undefined,
-  waitFor: [BetterDiscord2.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
+  waitFor: [BetterDiscord.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
   mangled: {
     renderBanner: (x) => x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
   },
@@ -497,7 +496,7 @@ var banners_default = {
   }
 };
 // src/patches/modules/_sendMessage.ts
-var { StickersStore } = BetterDiscord2.Webpack.Stores;
+var { StickersStore } = BetterDiscord.Webpack.Stores;
 var StickerTypeToExtension;
 ((StickerTypeToExtension2) => {
   StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
@@ -505,14 +504,14 @@ var StickerTypeToExtension;
   StickerTypeToExtension2[StickerTypeToExtension2[".json"] = 3] = ".json";
   StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
 })(StickerTypeToExtension ||= {});
-var CloudUploader = BetterDiscord2.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
+var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
 async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send) {
   if (!filesToDownload.length)
     return;
   const preexisting = extraData.attachmentsToUpload ?? [];
   extraData.attachmentsToUpload = preexisting;
   const uploads = await Promise.all(filesToDownload.map(async (f) => {
-    const blob = await BetterDiscord2.Net.fetch(f.url).then((r) => r.blob());
+    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
     return new CloudUploader({ file: new File([blob], f.filename), isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
   }));
   if (preexisting.length) {
@@ -588,7 +587,7 @@ var _sendMessage_default = {
 var unlockEmojis_default = {
   name: "Unlock Emojis",
   description: "Fully unlocks emojis.",
-  waitFor: [BetterDiscord2.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
   apply(finale, patcher) {
     ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
     patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
@@ -727,7 +726,7 @@ var GlobalModules = wpGetBulkKeyed({
 });
 
 // src/patches/modules/appIcons.tsx
-var { AppIconPersistedStoreState } = BetterDiscord2.Webpack.Stores;
+var { AppIconPersistedStoreState } = BetterDiscord.Webpack.Stores;
 var bypassMap = {
   emojisEverywhere: "emojiBypass",
   animatedEmojis: "emojiBypass",
@@ -744,11 +743,11 @@ var appIcons_default = {
       type: "APP_ICON_UPDATED",
       id: SettingsStore_default.get("appIcon")
     });
-    const AppIcon = BetterDiscord2.Webpack.getMangled(BetterDiscord2.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
+    const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
       render: (x) => x
     });
-    const CustomAppIcon = BetterDiscord2.Webpack.getByStrings(".iconSource,width:");
-    const canUserUse = BetterDiscord2.Webpack.getMangled(BetterDiscord2.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
+    const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
       canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
     }, { mapDeclarations: true });
     patcher.instead(AppIcon, "render", (_, [args], callback) => {
@@ -771,11 +770,11 @@ var appIcons_default = {
   }
 };
 // src/patches/modules/streamBypass.ts
-var LadderModule = BetterDiscord2.Webpack.getByKeys("calculateLadder", { searchExports: true });
+var LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", { searchExports: true });
 var streamBypass_default = {
   name: "streamBypass",
   description: "Custom Bitrates, FPS, Resolution",
-  waitFor: [BetterDiscord2.Webpack.Filters.byPrototypeKeys("updateVideoQuality"), BetterDiscord2.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")],
+  waitFor: [BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"), BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")],
   apply(finale, patcher) {
     const _class = finale.modules[0];
     patcher.before(_class.prototype, "updateVideoQuality", (e) => {
@@ -821,13 +820,13 @@ async function load() {
     const Patch = module2;
     const finale = {};
     if (Array.isArray(Patch.ids)) {
-      finale.ids = await Promise.all(Patch.ids.map((x) => BetterDiscord2.Utils.forceLoad(x)));
+      finale.ids = await Promise.all(Patch.ids.map((x) => BetterDiscord.Utils.forceLoad(x)));
     }
     if (Array.isArray(Patch.waitFor)) {
-      finale.modules = await Promise.all(Patch.waitFor.map((x) => BetterDiscord2.Webpack.waitForModule(x)));
+      finale.modules = await Promise.all(Patch.waitFor.map((x) => BetterDiscord.Webpack.waitForModule(x)));
     }
     if (Patch.mangled) {
-      finale.mangled = BetterDiscord2.Webpack.getMangled(Patch.waitFor[0], Patch.mangled);
+      finale.mangled = BetterDiscord.Webpack.getMangled(Patch.waitFor[0], Patch.mangled);
     }
     Patch.apply(finale, PatcherAPI.Patcher);
     loaded.push(Patch);
@@ -900,12 +899,12 @@ function normalizeVersion(v) {
 function startChangelog() {
   const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion"));
   const currentVersion = normalizeVersion(Meta.version);
-  if (BetterDiscord2.Utils.semverCompare(currentVersion, lastSeen) >= 0)
+  if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0)
     return;
   const entry = changelog_default?.[currentVersion]?.[0];
   if (!entry)
     return;
-  BetterDiscord2.UI.showChangelogModal({
+  BetterDiscord.UI.showChangelogModal({
     title: Meta.name,
     subtitle: `v${currentVersion}`,
     ...entry
@@ -914,8 +913,8 @@ function startChangelog() {
 }
 
 // src/index.tsx
-var { Components } = BetterDiscord2;
-var { React: React2 } = BetterDiscord2;
+var { Components } = BetterDiscord;
+var { React: React2 } = BetterDiscord;
 var SettingTypes = {
   number: Components.NumberInput,
   bigint: Components.NumberInput,
@@ -934,7 +933,7 @@ class Plugin {
   }
   getSettingsPanel() {
     return () => {
-      const settings = BetterDiscord2.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
+      const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
       return /* @__PURE__ */ React2.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {

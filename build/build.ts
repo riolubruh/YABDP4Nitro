@@ -60,11 +60,5 @@ await Bun.build({
     plugins: [reactPlugin],
 });
 
-const BETTERDISCORD_DECL = `const BetterDiscord = new BdApi("YABDP4Nitro");\n`;
-
-const built = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
-const bannerEnd = built.indexOf(BANNER) + BANNER.length;
-const fileData = built.slice(0, bannerEnd) + BETTERDISCORD_DECL + built.slice(bannerEnd);
-
-fs.writeFileSync(path.join("./", GLOBAL_NAME), fileData);
+const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
 fs.writeFileSync(path.join(getBetterDiscordPath(), GLOBAL_NAME), fileData);

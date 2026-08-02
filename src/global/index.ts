@@ -1,3 +1,4 @@
+import {BetterDiscord} from "@shared/*";
 import {wpGetBulkKeyed} from "./webpack";
 const DefaultOptions = {
     options: {
