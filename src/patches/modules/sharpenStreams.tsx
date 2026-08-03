@@ -1,21 +1,23 @@
 import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {findMangledName} from "@utils/*";
+const {React} = BetterDiscord;
 
-export function sharpener ({userId}){
+export function Sharpener ({userId}){
     let ref = BetterDiscord.React.useRef(null);
-    const [sharpness, setSharpness] = BetterDiscord.React.useState(0);
+    const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
     const [size, setSize] = BetterDiscord.React.useState({
         width: 0,
         height: 0
     });
-    let filterIntensityFactoringScreen = (size.height / screen.height) * 1.3;
+    let filterIntensityFactoringScreen = (size.height / screen.height) * 2;
+    (filterIntensityFactoringScreen > 1) && (filterIntensityFactoringScreen = 1);
 
     BetterDiscord.React.useEffect(() => {
         if(ref.current){
             const observer = new ResizeObserver((ResizeObserverEntry) => {
                 if(ResizeObserverEntry?.[0]){
-                    setSize(ResizeObserverEntry[0].contentRect.width, ResizeObserverEntry[0].contentRect.height);
+                    setSize({width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height});
                     console.log(ResizeObserverEntry);
                 }
             });
@@ -28,7 +30,7 @@ export function sharpener ({userId}){
     },[]);
 
 
-    return (<svg ref={ref} id={"yabd-svgSharpen-" + userId} colorInterpolationFilters={"sRGB"}>
+    return (<svg ref={ref} id={"yabd-svgSharpen-" + userId} colorInterpolationFilters={"sRGB"} style={{width:"100%", height:"100%"}} >
         <filter>
             <feConvolveMatrix order="3" kernelMatrix="0 -1 0 -1 5 -1 0 -1 0" result="sharpen"/>
             <feComposite
@@ -61,7 +63,7 @@ export default {
         patcher.after(mod, "type", (_, [args], ret) => {
             console.log(args);
             console.log(ret);
-            ret.props.children.push(<sharpener userId={args.userId}/>)
+            ret.props.children.push(<Sharpener userId={args.userId}/>)
             ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
         });
     }

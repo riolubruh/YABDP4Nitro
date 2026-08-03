@@ -9153,6 +9153,7 @@ __export(exports_modules, {
   StreamBypass: () => streamBypass_default,
   SharpenStreams: () => sharpenStreams_default,
   SendMessage: () => _sendMessage_default,
+  MaxFileSize: () => maxFileSize_default,
   GifPickerContext: () => gifPickerContext_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
@@ -9875,7 +9876,86 @@ var videoCodecs_default = {
     });
   }
 };
+// src/patches/modules/maxFileSize.ts
+var MaxFileSizeMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('klass:"photoshop"'), {
+  getMaxFileSize: (x) => x.toString().includes("getUserMaxFileSize"),
+  exceedsMessageSizeLimit: (x) => x.toString().includes("Array.from(", ".size>")
+});
+var maxFileSize_default = {
+  name: "File Size",
+  description: "Disables the max file size popup (used for clips).",
+  ids: undefined,
+  apply(finale, patcher) {
+    console.log(MaxFileSizeMod);
+    patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_, [guildId], originalFunction) => {
+      const videoClipsEnabled = SettingsStore_default.get("useClipBypass");
+      const audioClipsEnabled = SettingsStore_default.get("useAudioClipBypass");
+      const zipClipsEnabled = SettingsStore_default.get("zipClip");
+      let normal = originalFunction(guildId);
+      if (videoClipsEnabled || audioClipsEnabled || zipClipsEnabled)
+        return Math.max(100 * 1024 * 1024, normal);
+      else
+        return normal;
+    });
+    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
+      return false;
+    });
+  }
+};
 // src/patches/modules/sharpenStreams.tsx
+var { React: React2 } = BetterDiscord;
+function Sharpener({ userId }) {
+  let ref = BetterDiscord.React.useRef(null);
+  const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
+  const [size, setSize] = BetterDiscord.React.useState({
+    width: 0,
+    height: 0
+  });
+  let filterIntensityFactoringScreen = size.height / screen.height * 2;
+  filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
+  BetterDiscord.React.useEffect(() => {
+    if (ref.current) {
+      const observer = new ResizeObserver((ResizeObserverEntry) => {
+        if (ResizeObserverEntry?.[0]) {
+          setSize({ width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height });
+          console.log(ResizeObserverEntry);
+        }
+      });
+      observer.observe(ref.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, []);
+  return /* @__PURE__ */ React2.createElement("svg", {
+    ref,
+    id: "yabd-svgSharpen-" + userId,
+    colorInterpolationFilters: "sRGB",
+    style: { width: "100%", height: "100%" }
+  }, /* @__PURE__ */ React2.createElement("filter", null, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
+    order: "3",
+    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
+    result: "sharpen"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    in: "SourceGraphic",
+    in2: "sharpen",
+    operator: "arithmetic",
+    result: "userPreference",
+    k1: "0",
+    k2: 1 - sharpness,
+    k3: sharpness,
+    k4: "0"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    id: `yabd-svgSharpen-${userId}-size`,
+    in: "SourceGraphic",
+    in2: "userPreference",
+    operator: "arithmetic",
+    k1: "0",
+    k2: 1 - filterIntensityFactoringScreen,
+    k3: filterIntensityFactoringScreen,
+    k4: "0"
+  })));
+}
 var sharpenStreams_default = {
   name: "Stream Sharpener",
   description: "Sharpens streams.",
@@ -9887,7 +9967,7 @@ var sharpenStreams_default = {
     patcher.after(mod, "type", (_, [args], ret) => {
       console.log(args);
       console.log(ret);
-      ret.props.children.push(/* @__PURE__ */ React.createElement("sharpener", {
+      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
         userId: args.userId
       }));
       ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` };
@@ -11430,7 +11510,7 @@ var InlineIcon = forwardRef((props, ref) => IconComponent({
 }));
 
 // src/patches/contextMenus/message.tsx
-var { React: React2 } = BetterDiscord;
+var { React: React3 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -11459,16 +11539,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React2.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React2.createElement(Icon, {
+      icon: /* @__PURE__ */ React3.createElement(Icon, {
         width: "24",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React2.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React2.createElement(ContextMenuLabel, null), /* @__PURE__ */ React2.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React3.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React3.createElement(ContextMenuLabel, null), /* @__PURE__ */ React3.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React2.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Separator, null);
     res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -11738,7 +11818,7 @@ var GlobalModules = wpGetBulkKeyed({
 
 // src/index.tsx
 var { Components } = BetterDiscord;
-var { React: React3 } = BetterDiscord;
+var { React: React4 } = BetterDiscord;
 var SettingTypes = {
   number: Components.NumberInput,
   bigint: Components.NumberInput,
@@ -11766,17 +11846,17 @@ class Plugin {
   getSettingsPanel() {
     return () => {
       const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
-      return /* @__PURE__ */ React3.createElement(Components.SettingGroup, {
+      return /* @__PURE__ */ React4.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {
         const CompType = SettingTypes[typeof value];
-        return /* @__PURE__ */ React3.createElement(Components.SettingItem, {
+        return /* @__PURE__ */ React4.createElement(Components.SettingItem, {
           key,
           note: key
-        }, CompType ? /* @__PURE__ */ React3.createElement(CompType, {
+        }, CompType ? /* @__PURE__ */ React4.createElement(CompType, {
           onChange: (v) => SettingsStore_default.set(key, v),
           value
-        }) : /* @__PURE__ */ React3.createElement(Components.TextInput, {
+        }) : /* @__PURE__ */ React4.createElement(Components.TextInput, {
           value: JSON.stringify(value),
           disabled: true
         }));
