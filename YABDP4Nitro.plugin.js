@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.5
+ * @version 6.10.6
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -93,7 +93,7 @@ const [
     StreamButtons,
     DownloadIcon
 ] = Webpack.getBulk(
-    {filter: Webpack.Filters.bySource('pendingBanner', 'displayProfile', 'foreignObject'), map: {
+    {filter: Webpack.Filters.bySource("backgroundColor:\"COMPLETE\"==="), map: {
         renderBanner: x=>x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
     }},
     {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
@@ -134,7 +134,7 @@ const [
     {filter: Webpack.Filters.bySource('backgroundKey', 'onForceIdle')}, //PictureInPicturePlayer
     {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", 'canUseCustomStickersEverywhere'), map: { //stickerSendabilityModule
         getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
-        isSendableSticker: x=>x.toString().includes(')=>0===')
+        isSendableSticker: x=>x.toString().includes('0===')
     }},
     {filter: Webpack.Filters.bySource('getConfig({location:"useEnableClips'), map: { //ClipsEnabledMod
         useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
@@ -267,18 +267,19 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.10.5",
+        "version": "6.10.6",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.5",
+            title: "6.10.6",
             items: [
-                "Fixed Display Name Styles \"Copy 3y3\" button not appearing the first time it is opened due to lazy-loading. The plugin now does a force load on it.",
-                "Once again fix 3y3 Copying Zone button not appearing due to Discord update.",
-                "Exclude bundles when storing shop info."
+                "Improved badge code and made it no longer rely on Imgur for the big yoshi badge.",
+                "Fixed fake banners not working.",
+                "Fixed users not being added to list of users to show with a YABD4Nitro User Badge when using Display Name Styles or Nameplates.",
+                "Fixed stickers not being unlocked when they're supposed to be."
             ]
         }
     ],
@@ -1933,6 +1934,9 @@ module.exports = class YABDP4Nitro {
                         } else {
                             ret.displayNameStyles = styleData;
                         }
+                        
+                        //add user to list of badge users
+                        if(userId && !badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
                     }
                 }
             }
@@ -2481,6 +2485,9 @@ module.exports = class YABDP4Nitro {
                         palette,
                         skuId
                     }
+
+                    //add user to list of badge users
+                    if(userId && !badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
                 }
             }
         });
@@ -3551,29 +3558,6 @@ module.exports = class YABDP4Nitro {
     //Apply custom badges.
     honorBadge(){
 
-        // Use CSS to select badge elements via aria-label and change them to the correct icon.
-        DOM.addStyle("YABDP4NitroBadges", `
-            a[aria-label="A fellow YABDP4Nitro user!"] img {
-                content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
-            }
-            
-            div [aria-label="A fellow YABDP4Nitro user!"] > a > img {
-                content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
-            }
-
-            a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
-                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-            }
-            
-            div [aria-label="YABDP4Nitro Creator!"] > a > img {
-                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-            }
-            
-            div [aria-label="YABDP4Nitro Contributor!"] > a > img {
-                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-            }
-        `);
-
         //User profile badge patches
         Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
             //bad data checks
@@ -3594,7 +3578,7 @@ module.exports = class YABDP4Nitro {
                 //add the yabdp user badge to the user's list of badges.
                 ret.badges.push({
                     id: "yabdp_user",
-                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
                     description: "A fellow YABDP4Nitro user!",
                     link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
                 });
@@ -3614,7 +3598,7 @@ module.exports = class YABDP4Nitro {
                 //add the yabdp creator badge to riolubruh's list of badges.
                 ret.badges.push({
                     id: "yabdp_creator",
-                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
                     description: "YABDP4Nitro Creator!",
                     link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
                 });
@@ -3635,7 +3619,7 @@ module.exports = class YABDP4Nitro {
                 //add the yabdp contributor badge to the contributor's list of badges
                 ret.badges.push({
                     id: "yabdp_contributor",
-                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
                     description: "YABDP4Nitro Contributor!",
                     link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
                 });
@@ -4494,15 +4478,14 @@ module.exports = class YABDP4Nitro {
 
                 e.remoteSinkWantsMaxFramerate = e.videoStreamParameters[0].maxFrameRate;
 
-                //janky fix to #218
+                //slightly improved fix to #218
                 if(videoQuality.height <= 0){
-                    videoQuality.height = 1440;
+                    videoQuality.height = screen.height;
                 }
                 if(videoQuality.width <= 0){
-                    videoQuality.width = 2160;
-                    if(parseInt(((e.videoStreamParameters[0].maxResolution.height * (16 / 9)) > (2160 * (16 / 9)))))
-                        videoQuality.width = parseInt(e.videoStreamParameters[0].maxResolution.height * (16 / 9));
+                    videoQuality.width = screen.width;
                 }
+
 
                 //Ensure video budget and capture quality parameters match stream parameters
                 e.videoQualityManager.options.videoBudget = videoQuality;
@@ -4619,11 +4602,7 @@ module.exports = class YABDP4Nitro {
         Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
             nodePatcher.patch(ret, (props, res) => {
                 let bannerUrl = this.getBannerUrl(props.user.id);
-                if(bannerUrl){
-                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
-                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
-                    }
-                }
+                if(bannerUrl) res.props.bannerSrc = bannerUrl;
             });
         });
     } //End of bannerUrlDecoding()
@@ -5044,7 +5023,6 @@ module.exports = class YABDP4Nitro {
         Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
         Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
         Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
-        DOM.removeStyle("YABDP4NitroBadges");
         DOM.removeStyle("YABDP4NitroGeneral");
         ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
         ContextMenu.unpatch('stream-context', this.streamContextPatch);
