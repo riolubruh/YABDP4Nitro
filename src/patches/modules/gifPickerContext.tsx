@@ -18,52 +18,42 @@ export default {
                 url.startsWith('//') && (url = "https:" + url);
 
                 //this shit keeps crashing fuck this
-                // function copyUrl(){
-                //     copyToClipboard(url);
-                // }
-                //
-                // function openUrl(){
-                //     window.open(url);
-                // }
 
-                // const Menu = <BetterDiscord.ContextMenu.Menu>
-                //     <BetterDiscord.ContextMenu.Item
-                //         icon={<Icon width={"24"} icon={"mdi:external-link"}/>}
-                //         label={
-                //             <ContextMenuWrapper>
-                //                 <ContextMenuLabel/>
-                //                 <span>Copy GIF URL</span>
-                //             </ContextMenuWrapper>
-                //         }
-                //         id={"yabd-copy-url-gif-picker"}
-                //         action={copyUrl}
-                //     />;
-                //     <BetterDiscord.ContextMenu.Item
-                //         icon={<Icon width={"24"} icon={"mdi:external-link"}/>}
-                //         label={
-                //             <ContextMenuWrapper>
-                //                 <ContextMenuLabel/>
-                //                 <span>Open GIF URL</span>
-                //             </ContextMenuWrapper>
-                //         }
-                //         id={"yabd-open-url-gif-picker"}
-                //         action={openUrl}
-                //     />;
-                // </BetterDiscord.ContextMenu.Menu>;
+                //dude you didnt return a function AND you put semi colons lmao - 7:30 PM
+                function copyUrl(){
+                    copyToClipboard(url);
+                }
 
-                BetterDiscord.ContextMenu.open(event, BetterDiscord.ContextMenu.buildMenu([{
-                    type: "text",
-                    label: "Copy Link",
-                    onClick: () => {
-                        copyToClipboard(url);
-                    }
-                },{
-                    type:"text",
-                    label: "Open Link",
-                    onClick: () => {
-                        window.open(url);
-                    }
-                }]))
+                function openUrl(){
+                    window.open(url);
+                }
+
+                const Menu = <BetterDiscord.ContextMenu.Menu>
+                    <BetterDiscord.ContextMenu.Item
+                        icon={<Icon width={"24"} icon={"mdi:content-copy"}/>}
+                        label={
+                            <ContextMenuWrapper>
+                                <ContextMenuLabel/>
+                                <span>Copy GIF URL</span>
+                            </ContextMenuWrapper>
+                        }
+                        id={"yabd-copy-url-gif-picker"}
+                        action={copyUrl}
+                    />
+                    <BetterDiscord.ContextMenu.Item
+                        icon={<Icon width={"24"} icon={"mdi:open-in-browser"}/>}
+                        label={
+                            <ContextMenuWrapper>
+                                <ContextMenuLabel/>
+                                <span>Open GIF URL</span>
+                            </ContextMenuWrapper>
+                        }
+                        id={"yabd-open-url-gif-picker"}
+                        action={openUrl}
+                    />
+                </BetterDiscord.ContextMenu.Menu>;
+
+                BetterDiscord.ContextMenu.open(event, () => Menu)
             }
         })
     }
