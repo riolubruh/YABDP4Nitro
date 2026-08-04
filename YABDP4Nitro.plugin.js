@@ -9796,17 +9796,14 @@ var streamBypass_default = {
   apply(finale, patcher) {
     const _class = finale.modules[0];
     patcher.before(_class.prototype, "updateVideoQuality", (e) => {
-      const customBitrateEnabled = SettingsStore_default.get("CustomBitrateEnabled");
-      const minBitrate = SettingsStore_default.get("minBitrate") > 0 ? SettingsStore_default.get("minBitrate") * 1000 : 500000;
-      const targetBitrate = SettingsStore_default.get("targetBitrate") > 0 ? SettingsStore_default.get("targetBitrate") * 1000 : 4500000;
-      const maxBitrate = SettingsStore_default.get("maxBitrate") > 0 ? SettingsStore_default.get("maxBitrate") * 1000 : 9000000;
-      const voiceBitrate = SettingsStore_default.get("voiceBitrate") * 1000;
+      const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
       const vqm = e.videoQualityManager;
       const vqmOpt = vqm.options;
-      if (customBitrateEnabled) {
-        vqmOpt.desktopBitrate.min = minBitrate;
-        vqmOpt.desktopBitrate.target = targetBitrate;
-        vqmOpt.desktopBitrate.max = maxBitrate;
+      console.log(vqm);
+      if (CustomBitrateEnabled) {
+        vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
+        vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
+        vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
       }
       const maxVideoQuality = {
         width: e.videoStreamParameters[0].maxResolution.width,
@@ -9817,7 +9814,7 @@ var streamBypass_default = {
         height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
         framerate: e.videoStreamParameters[0].maxFrameRate
       };
-      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate);
+      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate * 1000);
       vqmOpt.videoBudget = videoCapture;
       vqmOpt.videoCapture = videoCapture;
       let pixelBudget = videoCapture.width * videoCapture.height;
@@ -11377,7 +11374,7 @@ var gifPickerContext_default = {
         }
         const Menu = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Menu, null, /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
           icon: /* @__PURE__ */ React.createElement(Icon, {
-            width: "24",
+            width: "22",
             icon: "mdi:content-copy"
           }),
           label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Copy GIF URL")),
@@ -11385,7 +11382,7 @@ var gifPickerContext_default = {
           action: copyUrl
         }), /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
           icon: /* @__PURE__ */ React.createElement(Icon, {
-            width: "24",
+            width: "22",
             icon: "mdi:open-in-browser"
           }),
           label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open GIF URL")),
@@ -11441,10 +11438,11 @@ var maxFileSize_default = {
 var { React: React2 } = BetterDiscord;
 function Sharpener({ userId }) {
   let ref = BetterDiscord.React.useRef(null);
-  const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
+  const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences")[userId] ? SettingsStore_default.get("userSharpenPreferences")[userId] : 0);
+  const sharpness = sharpnessSetting / 100;
   const [size, setSize] = BetterDiscord.React.useState({
-    width: 0,
-    height: 0
+    width: 1980,
+    height: 1980
   });
   let filterIntensityFactoringScreen = size.height / screen.height * 2;
   filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
@@ -11464,10 +11462,11 @@ function Sharpener({ userId }) {
   }, []);
   return /* @__PURE__ */ React2.createElement("svg", {
     ref,
-    id: "yabd-svgSharpen-" + userId,
-    colorInterpolationFilters: "sRGB",
     style: { width: "100%", height: "100%" }
-  }, /* @__PURE__ */ React2.createElement("filter", null, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
+  }, /* @__PURE__ */ React2.createElement("filter", {
+    id: "yabd-svgSharpen-" + userId,
+    colorInterpolationFilters: "sRGB"
+  }, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
     order: "3",
     kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
     result: "sharpen"
@@ -11551,7 +11550,7 @@ var message_default = {
     const Menu = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
       icon: /* @__PURE__ */ React3.createElement(Icon, {
-        width: "24",
+        width: "22",
         icon: "mdi:download"
       }),
       label: /* @__PURE__ */ React3.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React3.createElement(ContextMenuLabel, null), /* @__PURE__ */ React3.createElement("span", null, "Download Attachment(s)")),
@@ -11584,7 +11583,7 @@ var expressionPicker_default = {
     }
     const MenuItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       icon: /* @__PURE__ */ React.createElement(Icon, {
-        width: "24",
+        width: "22",
         icon: "mdi:external-link"
       }),
       label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open ", emojiId ? "Emoji" : "Sticker", " URL")),
@@ -11605,28 +11604,26 @@ var streamContext_default = {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
     const currentUserId = UserStore2.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
-    const userSharpnessPreferences = SettingsStore_default.get("userSharpenPreferences");
+    const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
     if (!sharpenStreamsEnabled || !props?.stream?.ownerId || props?.stream?.ownerId == currentUserId)
       return;
-    function handleChange(percentSharpness) {}
-    function handleSave(percentSharpness) {
-      console.log(`save ${percentSharpness} for ${streamingUserId}`);
-      userSharpnessPreferences[streamingUserId] = percentSharpness;
-      SettingsStore_default.set("userSharpenPreferences", userSharpnessPreferences);
+    function handleChange(percentSharpness) {
+      SettingsStore_default.set("userSharpenPreferences", { ...SettingsStore_default.get("userSharpenPreferences"), [streamingUserId]: percentSharpness });
+      console.log(streamingUserId, percentSharpness);
     }
     const ContextMenuSlider = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       id: "yabd-sharpness-slider",
       label: /* @__PURE__ */ React.createElement(Slider, {
         initialValue: streamSharpnessPreference,
-        label: /* @__PURE__ */ React.createElement(BetterDiscord.Components.Text, {
+        label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement(BetterDiscord.Components.Text, {
           style: {
             fontSize: "14px",
             fontWeight: "var(--font-weight-medium)"
           }
-        }, "Sharpness"),
-        asValueChanges: handleChange,
-        onValueChange: handleSave
+        }, "Sharpness")),
+        onValueChange: handleChange,
+        asValueChanges: handleChange
       })
     });
     res.props.children.props.children.splice(2, 0, ContextMenuSlider);

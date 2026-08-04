@@ -12,21 +12,18 @@ export default {
 
         const _class = finale.modules[0];
         patcher.before(_class.prototype, "updateVideoQuality", (e:any) => {
-            const customBitrateEnabled = SettingsStore.get("CustomBitrateEnabled");
-            const minBitrate = SettingsStore.get("minBitrate") > 0 ? SettingsStore.get("minBitrate") * 1000 : 5e5;
-            const targetBitrate = SettingsStore.get("targetBitrate") > 0 ? SettingsStore.get("targetBitrate") * 1000 : 45e5;
-            const maxBitrate = SettingsStore.get("maxBitrate") > 0 ? SettingsStore.get("maxBitrate") * 1000 : 9e6;
-            const voiceBitrate = SettingsStore.get("voiceBitrate") * 1000;
+            const {CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate} = SettingsStore.getAll();
 
             //(shorthands)
             const vqm = e.videoQualityManager;
             const vqmOpt = vqm.options;
+            console.log(vqm);
 
-            if(customBitrateEnabled){
+            if(CustomBitrateEnabled){
                 //old plugin changes ALL different variables related to bitrate, but these seem to be enough?
-                vqmOpt.desktopBitrate.min = minBitrate;
-                vqmOpt.desktopBitrate.target = targetBitrate;
-                vqmOpt.desktopBitrate.max = maxBitrate;
+                vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 5e5;
+                vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 45e5;
+                vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9e6;
             }
 
             const maxVideoQuality = {
@@ -40,7 +37,7 @@ export default {
                 framerate: e.videoStreamParameters[0].maxFrameRate
             };
 
-            (voiceBitrate > 0) && (e.voiceBitrate = voiceBitrate);
+            (voiceBitrate > 0) && (e.voiceBitrate = voiceBitrate * 1000);
 
             vqmOpt.videoBudget = videoCapture;
             vqmOpt.videoCapture = videoCapture;
