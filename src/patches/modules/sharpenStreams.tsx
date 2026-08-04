@@ -5,7 +5,8 @@ const {React} = BetterDiscord;
 
 export function Sharpener ({userId}){
     let ref = BetterDiscord.React.useRef(null);
-    const sharpness = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get("userSharpenPreferences")[userId])
+    const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get("userSharpenPreferences")[userId])
+    const sharpness = sharpnessSetting / 100;
     const [size, setSize] = BetterDiscord.React.useState({
         width: 0,
         height: 0
@@ -30,8 +31,8 @@ export function Sharpener ({userId}){
     },[]);
 
 
-    return (<svg ref={ref} id={"yabd-svgSharpen-" + userId} colorInterpolationFilters={"sRGB"} style={{width:"100%", height:"100%"}} >
-        <filter>
+    return (<svg ref={ref} style={{width:"100%", height:"100%"}} >
+        <filter id={"yabd-svgSharpen-" + userId} colorInterpolationFilters={"sRGB"}>
             <feConvolveMatrix order="3" kernelMatrix="0 -1 0 -1 5 -1 0 -1 0" result="sharpen"/>
             <feComposite
                 in="SourceGraphic"
