@@ -1,6 +1,5 @@
 import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
-import {findMangledName} from "@utils/*";
 const {React} = BetterDiscord;
 
 export function Sharpener ({userId}){
