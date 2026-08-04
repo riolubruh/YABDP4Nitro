@@ -41,6 +41,7 @@ export default {
                             >Sharpness</BetterDiscord.Components.Text>
                         </ContextMenuWrapper>}
                         onValueChange={handleChange}
+                        asValueChanges={handleChange}
                     />
                 }
         />

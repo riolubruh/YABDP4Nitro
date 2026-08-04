@@ -8,8 +8,8 @@ export function Sharpener ({userId}){
     const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get("userSharpenPreferences")[userId])
     const sharpness = sharpnessSetting / 100;
     const [size, setSize] = BetterDiscord.React.useState({
-        width: 0,
-        height: 0
+        width: 1980,
+        height: 1980
     });
     let filterIntensityFactoringScreen = (size.height / screen.height) * 2;
     (filterIntensityFactoringScreen > 1) && (filterIntensityFactoringScreen = 1);
