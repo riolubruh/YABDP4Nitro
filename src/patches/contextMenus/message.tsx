@@ -46,7 +46,7 @@ export default {
 
         const Menu = <BetterDiscord.ContextMenu.Item
             action={startDownload}
-            icon={<Icon width={"24"} icon={"mdi:download"}/>}
+            icon={<Icon width={"22"} icon={"mdi:download"}/>}
             label={
                 <ContextMenuWrapper>
                     <ContextMenuLabel/>

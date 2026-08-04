@@ -26,7 +26,7 @@ export default {
         }
 
         const MenuItem = <BetterDiscord.ContextMenu.Item
-            icon={<Icon width={"24"} icon={"mdi:external-link"}/>}
+            icon={<Icon width={"22"} icon={"mdi:external-link"}/>}
             label={
                 <ContextMenuWrapper>
                     <ContextMenuLabel/>
