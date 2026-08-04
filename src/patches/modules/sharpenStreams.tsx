@@ -5,7 +5,7 @@ const {React} = BetterDiscord;
 
 export function Sharpener ({userId}){
     let ref = BetterDiscord.React.useRef(null);
-    const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
+    const sharpness = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get("userSharpenPreferences")[userId])
     const [size, setSize] = BetterDiscord.React.useState({
         width: 0,
         height: 0

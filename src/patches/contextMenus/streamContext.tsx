@@ -1,6 +1,7 @@
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 import {BetterDiscord} from "@shared/";
+import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
 
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
@@ -14,18 +15,14 @@ export default {
         const sharpenStreamsEnabled = SettingsStore.get('sharpenStreams');
         const currentUserId = UserStore.getCurrentUser().id;
         const streamingUserId = props?.stream?.ownerId;
-        const userSharpnessPreferences = SettingsStore.get('userSharpenPreferences');
+        const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get('userSharpenPreferences'));
         const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
 
         if(!sharpenStreamsEnabled || !props?.stream?.ownerId || props?.stream?.ownerId == currentUserId) return;
 
         function handleChange(percentSharpness: number){
-            // console.log(streamingUserId, percentSharpness);
-        }
-        function handleSave(percentSharpness: number){
-            console.log(`save ${percentSharpness} for ${streamingUserId}`);
-            userSharpnessPreferences[streamingUserId] = percentSharpness;
-            SettingsStore.set("userSharpenPreferences", userSharpnessPreferences)
+            SettingsStore.set("userSharpenPreferences", {...SettingsStore.get("userSharpenPreferences"), [streamingUserId]: percentSharpness});
+            console.log(streamingUserId, percentSharpness);
         }
 
         const ContextMenuSlider = <BetterDiscord.ContextMenu.Item
@@ -34,16 +31,16 @@ export default {
                     <Slider
                         initialValue={streamSharpnessPreference}
                         label={
-                        <BetterDiscord.Components.Text
-                            style={{
-                                fontSize:'14px',
-                                fontWeight:"var(--font-weight-medium)"
-                            }}
-                        >
-                            Sharpness
-                        </BetterDiscord.Components.Text>}
-                        asValueChanges={handleChange}
-                        onValueChange={handleSave}
+                        <ContextMenuWrapper>
+                            <ContextMenuLabel/>
+                            <BetterDiscord.Components.Text
+                                style={{
+                                    fontSize:'14px',
+                                    fontWeight:"var(--font-weight-medium)"
+                                }}
+                            >Sharpness</BetterDiscord.Components.Text>
+                        </ContextMenuWrapper>}
+                        onValueChange={handleChange}
                     />
                 }
         />
