@@ -9830,160 +9830,6 @@ var streamBypass_default = {
     });
   }
 };
-// src/patches/modules/gifPickerContext.tsx
-var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", { searchExports: true });
-var gifPickerContext_default = {
-  name: "GIF Picker Context Menu",
-  description: "Adds copy/open url context menu to GIFs in GIF Picker.",
-  ids: undefined,
-  waitFor: [],
-  apply(finale, patcher) {
-    patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
-      ret.props.onContextMenu = (event) => {
-        console.log(instance);
-        let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
-        console.log(url);
-        url.startsWith("//") && (url = "https:" + url);
-        BetterDiscord.ContextMenu.open(event, BetterDiscord.ContextMenu.buildMenu([{
-          type: "text",
-          label: "Copy Link",
-          onClick: () => {
-            copyToClipboard(url);
-          }
-        }, {
-          type: "text",
-          label: "Open Link",
-          onClick: () => {
-            window.open(url);
-          }
-        }]));
-      };
-    });
-  }
-};
-// src/patches/modules/videoCodecs.ts
-var streamSettingsMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("getCodecOptions"), {
-  Connection: (x) => x?.prototype?.getCodecOptions
-}, { mapDeclarations: true });
-var videoCodecs_default = {
-  name: "Video Codec",
-  description: "Applies chosen video codec.",
-  ids: undefined,
-  apply(finale, patcher) {
-    patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, __, ret) => {
-      const videoCodec = SettingsStore_default.get("videoCodec2");
-      videoCodec >= 0 && (ret.videoEncoder = ret.videoDecoders[videoCodec]);
-    });
-  }
-};
-// src/patches/modules/maxFileSize.ts
-var MaxFileSizeMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('klass:"photoshop"'), {
-  getMaxFileSize: (x) => x.toString().includes("getUserMaxFileSize"),
-  exceedsMessageSizeLimit: (x) => x.toString().includes("Array.from(", ".size>")
-});
-var maxFileSize_default = {
-  name: "File Size",
-  description: "Disables the max file size popup (used for clips).",
-  ids: undefined,
-  apply(finale, patcher) {
-    console.log(MaxFileSizeMod);
-    patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_, [guildId], originalFunction) => {
-      const videoClipsEnabled = SettingsStore_default.get("useClipBypass");
-      const audioClipsEnabled = SettingsStore_default.get("useAudioClipBypass");
-      const zipClipsEnabled = SettingsStore_default.get("zipClip");
-      let normal = originalFunction(guildId);
-      if (videoClipsEnabled || audioClipsEnabled || zipClipsEnabled)
-        return Math.max(100 * 1024 * 1024, normal);
-      else
-        return normal;
-    });
-    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
-      return false;
-    });
-  }
-};
-// src/patches/modules/sharpenStreams.tsx
-var { React: React2 } = BetterDiscord;
-function Sharpener({ userId }) {
-  let ref = BetterDiscord.React.useRef(null);
-  const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
-  const [size, setSize] = BetterDiscord.React.useState({
-    width: 0,
-    height: 0
-  });
-  let filterIntensityFactoringScreen = size.height / screen.height * 2;
-  filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
-  BetterDiscord.React.useEffect(() => {
-    if (ref.current) {
-      const observer = new ResizeObserver((ResizeObserverEntry) => {
-        if (ResizeObserverEntry?.[0]) {
-          setSize({ width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height });
-          console.log(ResizeObserverEntry);
-        }
-      });
-      observer.observe(ref.current);
-      return () => {
-        observer.disconnect();
-      };
-    }
-  }, []);
-  return /* @__PURE__ */ React2.createElement("svg", {
-    ref,
-    id: "yabd-svgSharpen-" + userId,
-    colorInterpolationFilters: "sRGB",
-    style: { width: "100%", height: "100%" }
-  }, /* @__PURE__ */ React2.createElement("filter", null, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
-    order: "3",
-    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
-    result: "sharpen"
-  }), /* @__PURE__ */ React2.createElement("feComposite", {
-    in: "SourceGraphic",
-    in2: "sharpen",
-    operator: "arithmetic",
-    result: "userPreference",
-    k1: "0",
-    k2: 1 - sharpness,
-    k3: sharpness,
-    k4: "0"
-  }), /* @__PURE__ */ React2.createElement("feComposite", {
-    id: `yabd-svgSharpen-${userId}-size`,
-    in: "SourceGraphic",
-    in2: "userPreference",
-    operator: "arithmetic",
-    k1: "0",
-    k2: 1 - filterIntensityFactoringScreen,
-    k3: filterIntensityFactoringScreen,
-    k4: "0"
-  })));
-}
-var sharpenStreams_default = {
-  name: "Stream Sharpener",
-  description: "Sharpens streams.",
-  ids: undefined,
-  waitFor: [BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent")],
-  apply(finale, patcher) {
-    const mod = Object.values(finale.modules.find(Boolean)).find((x) => x.type);
-    console.log(mod);
-    patcher.after(mod, "type", (_, [args], ret) => {
-      console.log(args);
-      console.log(ret);
-      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
-        userId: args.userId
-      }));
-      ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` };
-    });
-  }
-};
-// src/patches/contextMenus/index.ts
-var exports_contextMenus = {};
-__export(exports_contextMenus, {
-  MessageContextMenu: () => message_default,
-  ExpressionPickerContextMenu: () => expressionPicker_default
-});
-
-// src/patches/contextMenus/message.tsx
-var import_jszip = __toESM(require_lib3(), 1);
-
 // bdapi-react-shim:react
 var Children = BdApi.React["Children"];
 var Component = BdApi.React["Component"];
@@ -11509,7 +11355,170 @@ var InlineIcon = forwardRef((props, ref) => IconComponent({
   _ref: ref
 }));
 
+// src/patches/modules/gifPickerContext.tsx
+var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", { searchExports: true });
+var gifPickerContext_default = {
+  name: "GIF Picker Context Menu",
+  description: "Adds copy/open url context menu to GIFs in GIF Picker.",
+  ids: undefined,
+  waitFor: [],
+  apply(finale, patcher) {
+    patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+      ret.props.onContextMenu = (event) => {
+        console.log(instance);
+        let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
+        console.log(url);
+        url.startsWith("//") && (url = "https:" + url);
+        function copyUrl() {
+          copyToClipboard(url);
+        }
+        function openUrl() {
+          window.open(url);
+        }
+        const Menu = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Menu, null, /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+          icon: /* @__PURE__ */ React.createElement(Icon, {
+            width: "24",
+            icon: "mdi:content-copy"
+          }),
+          label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Copy GIF URL")),
+          id: "yabd-copy-url-gif-picker",
+          action: copyUrl
+        }), /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+          icon: /* @__PURE__ */ React.createElement(Icon, {
+            width: "24",
+            icon: "mdi:open-in-browser"
+          }),
+          label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open GIF URL")),
+          id: "yabd-open-url-gif-picker",
+          action: openUrl
+        }));
+        BetterDiscord.ContextMenu.open(event, () => Menu);
+      };
+    });
+  }
+};
+// src/patches/modules/videoCodecs.ts
+var streamSettingsMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("getCodecOptions"), {
+  Connection: (x) => x?.prototype?.getCodecOptions
+}, { mapDeclarations: true });
+var videoCodecs_default = {
+  name: "Video Codec",
+  description: "Applies chosen video codec.",
+  ids: undefined,
+  apply(finale, patcher) {
+    patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, __, ret) => {
+      const videoCodec = SettingsStore_default.get("videoCodec2");
+      videoCodec >= 0 && (ret.videoEncoder = ret.videoDecoders[videoCodec]);
+    });
+  }
+};
+// src/patches/modules/maxFileSize.ts
+var MaxFileSizeMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('klass:"photoshop"'), {
+  getMaxFileSize: (x) => x.toString().includes("getUserMaxFileSize"),
+  exceedsMessageSizeLimit: (x) => x.toString().includes("Array.from(", ".size>")
+});
+var maxFileSize_default = {
+  name: "File Size",
+  description: "Disables the max file size popup (used for clips).",
+  ids: undefined,
+  apply(finale, patcher) {
+    patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_, [guildId], originalFunction) => {
+      const videoClipsEnabled = SettingsStore_default.get("useClipBypass");
+      const audioClipsEnabled = SettingsStore_default.get("useAudioClipBypass");
+      const zipClipsEnabled = SettingsStore_default.get("zipClip");
+      let normal = originalFunction(guildId);
+      if (videoClipsEnabled || audioClipsEnabled || zipClipsEnabled)
+        return Math.max(100 * 1024 * 1024, normal);
+      else
+        return normal;
+    });
+    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
+      return false;
+    });
+  }
+};
+// src/patches/modules/sharpenStreams.tsx
+var { React: React2 } = BetterDiscord;
+function Sharpener({ userId }) {
+  let ref = BetterDiscord.React.useRef(null);
+  const [sharpness, setSharpness] = BetterDiscord.React.useState(1);
+  const [size, setSize] = BetterDiscord.React.useState({
+    width: 0,
+    height: 0
+  });
+  let filterIntensityFactoringScreen = size.height / screen.height * 2;
+  filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
+  BetterDiscord.React.useEffect(() => {
+    if (ref.current) {
+      const observer = new ResizeObserver((ResizeObserverEntry) => {
+        if (ResizeObserverEntry?.[0]) {
+          setSize({ width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height });
+          console.log(ResizeObserverEntry);
+        }
+      });
+      observer.observe(ref.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, []);
+  return /* @__PURE__ */ React2.createElement("svg", {
+    ref,
+    id: "yabd-svgSharpen-" + userId,
+    colorInterpolationFilters: "sRGB",
+    style: { width: "100%", height: "100%" }
+  }, /* @__PURE__ */ React2.createElement("filter", null, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
+    order: "3",
+    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
+    result: "sharpen"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    in: "SourceGraphic",
+    in2: "sharpen",
+    operator: "arithmetic",
+    result: "userPreference",
+    k1: "0",
+    k2: 1 - sharpness,
+    k3: sharpness,
+    k4: "0"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    id: `yabd-svgSharpen-${userId}-size`,
+    in: "SourceGraphic",
+    in2: "userPreference",
+    operator: "arithmetic",
+    k1: "0",
+    k2: 1 - filterIntensityFactoringScreen,
+    k3: filterIntensityFactoringScreen,
+    k4: "0"
+  })));
+}
+var sharpenStreams_default = {
+  name: "Stream Sharpener",
+  description: "Sharpens streams.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent")],
+  apply(finale, patcher) {
+    const mod = Object.values(finale.modules.find(Boolean)).find((x) => x.type);
+    console.log(mod);
+    patcher.after(mod, "type", (_, [args], ret) => {
+      console.log(args);
+      console.log(ret);
+      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
+        userId: args.userId
+      }));
+      ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` };
+    });
+  }
+};
+// src/patches/contextMenus/index.ts
+var exports_contextMenus = {};
+__export(exports_contextMenus, {
+  StreamContextMenu: () => streamContext_default,
+  MessageContextMenu: () => message_default,
+  ExpressionPickerContextMenu: () => expressionPicker_default
+});
+
 // src/patches/contextMenus/message.tsx
+var import_jszip = __toESM(require_lib3(), 1);
 var { React: React3 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
@@ -11583,6 +11592,44 @@ var expressionPicker_default = {
       action: openUrl
     });
     res.props.children.props.children.push(MenuItem);
+  }
+};
+// src/patches/contextMenus/streamContext.tsx
+var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
+var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
+var streamContext_default = {
+  id: "stream-context",
+  callback(res, props) {
+    console.log(res);
+    console.log(props);
+    const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
+    const currentUserId = UserStore2.getCurrentUser().id;
+    const streamingUserId = props?.stream?.ownerId;
+    const userSharpnessPreferences = SettingsStore_default.get("userSharpenPreferences");
+    const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
+    if (!sharpenStreamsEnabled || !props?.stream?.ownerId || props?.stream?.ownerId == currentUserId)
+      return;
+    function handleChange(percentSharpness) {}
+    function handleSave(percentSharpness) {
+      console.log(`save ${percentSharpness} for ${streamingUserId}`);
+      userSharpnessPreferences[streamingUserId] = percentSharpness;
+      SettingsStore_default.set("userSharpenPreferences", userSharpnessPreferences);
+    }
+    const ContextMenuSlider = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      id: "yabd-sharpness-slider",
+      label: /* @__PURE__ */ React.createElement(Slider, {
+        initialValue: streamSharpnessPreference,
+        label: /* @__PURE__ */ React.createElement(BetterDiscord.Components.Text, {
+          style: {
+            fontSize: "14px",
+            fontWeight: "var(--font-weight-medium)"
+          }
+        }, "Sharpness"),
+        asValueChanges: handleChange,
+        onValueChange: handleSave
+      })
+    });
+    res.props.children.props.children.splice(2, 0, ContextMenuSlider);
   }
 };
 // src/patches/index.ts
