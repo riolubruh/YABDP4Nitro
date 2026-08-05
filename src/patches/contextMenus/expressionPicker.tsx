@@ -1,10 +1,10 @@
 import {BetterDiscord} from "@shared/*";
-import {ContextMenuLabel, ContextMenuWrapper, getEmojiUrl} from "@utils/*";
+import {ContextMenuLabel, ContextMenuWrapper, EMOJI_ID_REGEX, getEmojiUrl} from "@utils/*";
 import {Icon} from "@iconify/react";
 
 const {EmojiStore} = BetterDiscord.Webpack.Stores;
 
-const EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
+
 
 export default {
     id: "expression-picker",

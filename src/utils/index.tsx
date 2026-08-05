@@ -211,3 +211,5 @@ export function findMangledName(module, filter, debugInfo){
         return null;
     }
 }
+
+export const EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;

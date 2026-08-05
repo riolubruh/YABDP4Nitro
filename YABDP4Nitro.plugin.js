@@ -9154,6 +9154,8 @@ __export(exports_modules, {
   StreamBypass: () => streamBypass_default,
   SharpenStreams: () => sharpenStreams_default,
   SendMessage: () => _sendMessage_default,
+  RenderMessageEmbeds: () => renderMessageEmbeds_default,
+  RenderMessage: () => renderMessage_default,
   MaxFileSize: () => maxFileSize_default,
   GifPickerContext: () => gifPickerContext_default,
   FakeUserProfile: () => fakeUserProfile_default,
@@ -9384,6 +9386,7 @@ Filter: `, filter, `
     return null;
   }
 }
+var EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
@@ -9676,14 +9679,15 @@ var _sendMessage_default = {
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
       console.log(_, channelId, msg, extraData);
-      if (extraData.poll || extraData.activityAction || msg.location === "forwarding" || Boolean(UserStore2.getCurrentUser().premiumState))
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
         return send.apply(_, [channelId, msg, extraData]);
       const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
       const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
       const stickersEnabled = SettingsStore_default.get("stickerBypass");
       let urlsToUpload = [];
-      for (const emoji of msg.validNonShortcutEmojis) {
+      for (let i = 0;i < msg.validNonShortcutEmojis.length; i++) {
+        const emoji = msg.validNonShortcutEmojis[i];
         if (!emojiBypassEnabled)
           break;
         if (shouldSkipEmojiBypass(emoji, channelId))
@@ -9704,10 +9708,10 @@ var _sendMessage_default = {
             break;
           case 1:
           case 3:
-            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl})`);
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i})`);
             break;
           case 2:
-            msg.content = msg.content.replace(emojiString, emojiUrl);
+            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i}`);
             break;
         }
       }
@@ -11571,6 +11575,70 @@ var unlockStickers_default = {
     });
   }
 };
+// src/patches/modules/renderMessage.tsx
+var { React: React3 } = BetterDiscord;
+var MessageEmoji = BetterDiscord.Webpack.getByStrings(",nudgeAlignIntoViewport:!0,position:", "jumboable?", { searchExports: true });
+var renderMessage_default = {
+  name: "Render Message",
+  description: "Replaces hyperlinked emojis with fakemoji.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource(".SEND_FAILED,")],
+  apply(finale, patcher) {
+    const inlineFakemojiEnabled = SettingsStore_default.get("fakeInlineVencordEmotes");
+    if (!inlineFakemojiEnabled)
+      return;
+    const mod = Object.values(finale.modules[0]).find((o) => typeof o === "object");
+    patcher.before(mod, "type", (_, [args]) => {
+      for (let i = 0;i < args.content.length; i++) {
+        let contentItem = args.content[i];
+        if (!contentItem?.props?.title || !contentItem?.props?.href.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title)
+          continue;
+        const emojiName = contentItem.props?.children[0]?.props?.children ? contentItem.props?.children[0]?.props?.children : "unknownEmoji";
+        const emojiElem = /* @__PURE__ */ React3.createElement(MessageEmoji, {
+          node: {
+            name: `:${emojiName}:`,
+            src: contentItem.props.href,
+            type: "emoji",
+            emojiId: contentItem.props.href.match(EMOJI_ID_REGEX).find(Boolean),
+            animated: true,
+            jumboable: false
+          },
+          channelId: args.message.channel_id,
+          messageId: args.message.id,
+          enableClick: true
+        });
+        args.content[i] = emojiElem;
+      }
+    });
+  }
+};
+// src/patches/modules/renderMessageEmbeds.ts
+var EMOJI_HYPERLINK_REGEX = /\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/;
+var renderMessageEmbeds_default = {
+  name: "Render Message Embeds",
+  description: "Removes emoji link embeds for inline fakemoji.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("renderEmbeds", "renderSuppressEmbeds")],
+  mangled: {
+    renderEmbeds: (x) => x?.toString?.().includes?.("renderSuppressEmbeds")
+  },
+  apply(finale, patcher) {
+    const inlineFakemojiEnabled = SettingsStore_default.get("fakeInlineVencordEmotes");
+    if (!inlineFakemojiEnabled)
+      return;
+    patcher.before(finale.mangled, "renderEmbeds", (_, [args]) => {
+      const message = args?.message;
+      let embeds = message?.embeds;
+      for (let i = 0;i < embeds?.length; i++) {
+        const embed = embeds[i];
+        if (!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "")
+          continue;
+        delete embeds[i];
+      }
+      message.embeds = embeds.filter(Boolean);
+    });
+  }
+};
 // src/patches/contextMenus/index.ts
 var exports_contextMenus = {};
 __export(exports_contextMenus, {
@@ -11581,7 +11649,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React3 } = BetterDiscord;
+var { React: React4 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -11610,22 +11678,21 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React4.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React3.createElement(Icon, {
+      icon: /* @__PURE__ */ React4.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React3.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React3.createElement(ContextMenuLabel, null), /* @__PURE__ */ React3.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React4.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React4.createElement(ContextMenuLabel, null), /* @__PURE__ */ React4.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React4.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
 // src/patches/contextMenus/expressionPicker.tsx
 var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
-var EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
 var expressionPicker_default = {
   id: "expression-picker",
   callback(res, props) {
@@ -11925,7 +11992,7 @@ var GlobalModules = wpGetBulkKeyed({
 
 // src/index.tsx
 var { Components } = BetterDiscord;
-var { React: React4 } = BetterDiscord;
+var { React: React5 } = BetterDiscord;
 var SettingTypes = {
   number: Components.NumberInput,
   bigint: Components.NumberInput,
@@ -11957,17 +12024,17 @@ class Plugin {
           return acc;
         }, {});
       });
-      return /* @__PURE__ */ React4.createElement(Components.SettingGroup, {
+      return /* @__PURE__ */ React5.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {
         const CompType = SettingTypes[typeof value];
-        return /* @__PURE__ */ React4.createElement(Components.SettingItem, {
+        return /* @__PURE__ */ React5.createElement(Components.SettingItem, {
           key,
           note: key
-        }, CompType ? /* @__PURE__ */ React4.createElement(CompType, {
+        }, CompType ? /* @__PURE__ */ React5.createElement(CompType, {
           onChange: (v) => SettingsStore_default.set(key, v),
           value
-        }) : /* @__PURE__ */ React4.createElement(Components.TextInput, {
+        }) : /* @__PURE__ */ React5.createElement(Components.TextInput, {
           value: JSON.stringify(value),
           disabled: true
         }));

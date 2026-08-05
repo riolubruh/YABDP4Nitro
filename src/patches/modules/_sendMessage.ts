@@ -52,7 +52,8 @@ export default {
 
             let urlsToUpload: any = [];
 
-            for (const emoji of msg.validNonShortcutEmojis) {
+            for (let i = 0; i < msg.validNonShortcutEmojis.length; i++) {
+                const emoji = msg.validNonShortcutEmojis[i];
                 if (!emojiBypassEnabled) break;
 
                 if (shouldSkipEmojiBypass(emoji, channelId)) continue;
@@ -76,10 +77,10 @@ export default {
                         break;
                     case 1: //ghost mode (removed)
                     case 3: //vencord mode
-                        msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl})`);
+                        msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i})`);
                         break;
                     case 2: //classic
-                        msg.content = msg.content.replace(emojiString, emojiUrl);
+                        msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i}`);
                         break;
                 }
             }
