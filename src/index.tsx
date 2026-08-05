@@ -32,10 +32,7 @@ export default class Plugin {
 
         await loadPatches();
 
-        GlobalModules.Dispatcher.dispatch({
-            type: "APP_ICON_UPDATED",
-            id: SettingsStore.get("appIcon")
-        });
+        GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
     }
 
     checkUpdate() {

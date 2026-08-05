@@ -58,6 +58,6 @@ export default {
 
         const Sep = <BetterDiscord.ContextMenu.Separator/>
 
-        res.props.children.props.children.push(Sep, Menu)
+        props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu)
     }
 }

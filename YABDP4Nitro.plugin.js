@@ -11607,7 +11607,7 @@ var message_default = {
       id: "yabdp4nitro-download-attachments"
     });
     const Sep = /* @__PURE__ */ React3.createElement(BetterDiscord.ContextMenu.Separator, null);
-    res.props.children.props.children.push(Sep, Menu);
+    props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
 // src/patches/contextMenus/expressionPicker.tsx
@@ -11926,10 +11926,7 @@ class Plugin {
     startChangelog();
     await UserBackgroundStore_default.fetch();
     await loadPatches();
-    GlobalModules.Dispatcher.dispatch({
-      type: "APP_ICON_UPDATED",
-      id: SettingsStore_default.get("appIcon")
-    });
+    GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
   }
   checkUpdate() {
     return;
