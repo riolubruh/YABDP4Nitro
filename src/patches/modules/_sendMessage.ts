@@ -1,7 +1,7 @@
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {EMOJI_PREFIX, getEmojiExtension, getEmojiString, getEmojiUrl, shouldSkipEmojiBypass} from "@utils/*";
 import {BetterDiscord} from "@shared/";
-const {StickersStore, SoundboardStore, EmojiStore} = BetterDiscord.Webpack.Stores;
+const {StickersStore, SoundboardStore, EmojiStore, UserStore} = BetterDiscord.Webpack.Stores;
 enum StickerTypeToExtension { // @ts-ignore
     ".png" = 1, ".png", ".json", ".gif"
 }
@@ -43,7 +43,7 @@ export default {
     apply(finale, patcher) {
         patcher.instead(finale.modules[0], "_sendMessage", async (_: any, [channelId, msg, extraData]: any, send: Function) => {
             console.log(_,channelId,msg,extraData);
-            if (extraData.poll || extraData.activityAction || msg.location === "forwarding") return send.apply(_, [channelId, msg, extraData]);
+            if (extraData.poll || extraData.activityAction || msg.location === "forwarding" || Boolean(UserStore.getCurrentUser().premiumState)) return send.apply(_, [channelId, msg, extraData]);
 
             const emojiBypassEnabled = SettingsStore.get("emojiBypass");
             const emojiBypassType = SettingsStore.get("emojiBypassType");

@@ -15,39 +15,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 
@@ -8962,7 +8983,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        } else {}
+        }
       }
     },
     readEndOfCentral: function() {
@@ -9362,6 +9383,27 @@ function copyToClipboard(string, successMessage = undefined, errorMessage = "Fai
     BetterDiscord.Logger.error(err);
   }
 }
+function findMangledName(module2, filter, debugInfo) {
+  if (module2) {
+    if (typeof filter === "string") {
+      filter = (x) => x.toString?.().includes?.(filter);
+    }
+    let keys = Object.keys(module2);
+    let values = Object.values(module2);
+    let index = values.findIndex(filter);
+    if (index >= 0)
+      return keys[index];
+    else {
+      BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.
+Filter: `, filter, `
+`, module2);
+      return null;
+    }
+  } else {
+    BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
+    return null;
+  }
+}
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
@@ -9616,7 +9658,7 @@ var banners_default = {
   }
 };
 // src/patches/modules/_sendMessage.ts
-var { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
+var { StickersStore, SoundboardStore, EmojiStore, UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
 var StickerTypeToExtension;
 ((StickerTypeToExtension2) => {
   StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
@@ -9655,7 +9697,7 @@ var _sendMessage_default = {
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
       console.log(_, channelId, msg, extraData);
-      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding" || Boolean(UserStore2.getCurrentUser().premiumState))
         return send.apply(_, [channelId, msg, extraData]);
       const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
@@ -11444,7 +11486,7 @@ function Sharpener({ userId }) {
     width: 1980,
     height: 1980
   });
-  let filterIntensityFactoringScreen = size.height / screen.height * 2;
+  let filterIntensityFactoringScreen = size.height / screen.height * 1.5;
   filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
   BetterDiscord.React.useEffect(() => {
     if (ref.current) {
@@ -11494,10 +11536,9 @@ var sharpenStreams_default = {
   name: "Stream Sharpener",
   description: "Sharpens streams.",
   ids: undefined,
-  waitFor: [BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent")],
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent"), BetterDiscord.Webpack.Filters.bySource("backgroundKey", "onForceIdle")],
   apply(finale, patcher) {
-    const mod = Object.values(finale.modules.find(Boolean)).find((x) => x.type);
-    console.log(mod);
+    const mod = Object.values(finale.modules[0]).find((x) => x.type);
     patcher.after(mod, "type", (_, [args], ret) => {
       console.log(args);
       console.log(ret);
@@ -11505,6 +11546,15 @@ var sharpenStreams_default = {
         userId: args.userId
       }));
       ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` };
+    });
+    patcher.after(finale.modules[1], findMangledName(finale.modules[1], (x) => x?.toString?.()?.includes?.("backgroundKey")), (_, [args], ret) => {
+      const userId = args?.backgroundKey?.split?.(":")?.[3];
+      if (!userId)
+        return;
+      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
+        userId
+      }));
+      ret.props.style = { filter: `url(#yabd-svgSharpen-${userId})` };
     });
   }
 };
@@ -11594,7 +11644,7 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
@@ -11602,7 +11652,7 @@ var streamContext_default = {
     console.log(res);
     console.log(props);
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore2.getCurrentUser().id;
+    const currentUserId = UserStore3.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -11869,6 +11919,7 @@ var SettingTypes = {
   boolean: Components.SwitchInput,
   string: Components.TextInput
 };
+var SettingBlacklist = ["userSharpenPreferences", "customUserThemeSettings", "lastChangelogVersion", "appIcon", "lastGradientSettingStore"];
 class Plugin {
   unpatch = loadContextMenus();
   async start() {
@@ -11889,7 +11940,13 @@ class Plugin {
   }
   getSettingsPanel() {
     return () => {
-      const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
+      const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => {
+        const all = SettingsStore_default.getAll();
+        return Object.keys(all).filter((key) => !SettingBlacklist.includes(key)).reduce((acc, key) => {
+          acc[key] = all[key];
+          return acc;
+        }, {});
+      });
       return /* @__PURE__ */ React4.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {

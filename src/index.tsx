@@ -5,8 +5,8 @@ import {startChangelog} from "./global/changelog";
 import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import {GlobalModules} from "@global/*";
 
-const { Components } = BetterDiscord;
-const { React } = BetterDiscord;
+const {Components} = BetterDiscord;
+const {React} = BetterDiscord;
 
 const SettingTypes = {
     "number": Components.NumberInput,
@@ -14,6 +14,8 @@ const SettingTypes = {
     "boolean": Components.SwitchInput,
     "string": Components.TextInput,
 }
+
+const SettingBlacklist = ["userSharpenPreferences", "customUserThemeSettings", "lastChangelogVersion", "appIcon", "lastGradientSettingStore"]
 
 function normalizeVersion(v: string): string {
     const parts = v.split(".");
@@ -36,8 +38,7 @@ export default class Plugin {
         });
     }
 
-    checkUpdate()
-    {
+    checkUpdate() {
         return;
 
         // const version = normalizeVersion(SettingsStore.get("lastChangelogVersion"))
@@ -53,7 +54,15 @@ export default class Plugin {
 
     getSettingsPanel() {
         return () => {
-            const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll());
+            const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => {
+                const all = SettingsStore.getAll();
+                return Object.keys(all)
+                    .filter(key => !SettingBlacklist.includes(key))
+                    .reduce((acc, key) => {
+                        acc[key] = all[key];
+                        return acc;
+                    }, {} as Record<string, any>);
+            });
 
             return <Components.SettingGroup name={"Settings"}>
                 {Object.entries(settings).map(([key, value]) => {
@@ -61,8 +70,8 @@ export default class Plugin {
 
                     return <Components.SettingItem key={key} note={key}>
                         {CompType
-                            ? <CompType onChange={(v: any) => SettingsStore.set(key as any, v)} value={value} />
-                            : <Components.TextInput value={JSON.stringify(value)} disabled />}
+                            ? <CompType onChange={(v: any) => SettingsStore.set(key as any, v)} value={value}/>
+                            : <Components.TextInput value={JSON.stringify(value)} disabled/>}
                     </Components.SettingItem>;
                 })}
             </Components.SettingGroup>;
