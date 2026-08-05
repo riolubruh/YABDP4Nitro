@@ -15,60 +15,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -8983,7 +8962,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9170,6 +9149,7 @@ var BetterDiscord = new BdApi("YABDP4Nitro");
 var exports_modules = {};
 __export(exports_modules, {
   VideoCodec: () => videoCodecs_default,
+  UnlockStickers: () => unlockStickers_default,
   UnlockEmojis: () => unlockEmojis_default,
   StreamBypass: () => streamBypass_default,
   SharpenStreams: () => sharpenStreams_default,
@@ -9602,7 +9582,6 @@ var allowClips_default = {
   description: "Allow clips",
   waitFor: [GLOBAL_SOURCE],
   mangled: {
-    useEnableClips: (x) => x.toString().includes('getConfig({location:"useEnableClips"'),
     areClipsEnabled: (x) => x.toString().includes("areClipsEnabled")
   },
   apply(finale, patcher) {
@@ -9771,6 +9750,9 @@ var unlockEmojis_default = {
   description: "Fully unlocks emojis.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
   apply(finale, patcher) {
+    const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+    if (!emojiBypassEnabled)
+      return;
     ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
     patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
       return;
@@ -11555,6 +11537,26 @@ var sharpenStreams_default = {
         userId
       }));
       ret.props.style = { filter: `url(#yabd-svgSharpen-${userId})` };
+    });
+  }
+};
+// src/patches/modules/unlockStickers.ts
+var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere"), {
+  getStickerSendability: (x) => x.toString().includes("canUseCustomStickersEverywhere"),
+  isSendableSticker: (x) => typeof x === "function" && !x.toString().includes("canUseCustomStickersEverywhere")
+});
+var unlockStickers_default = {
+  name: "Unlock Stickers",
+  description: "Fully unlocks stickers.",
+  apply(finale, patcher) {
+    const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
+    if (!stickerBypass && !forceStickersUnlocked)
+      return;
+    patcher.instead(stickerSendability, "getStickerSendability", () => {
+      return 0;
+    });
+    patcher.instead(stickerSendability, "isSendableSticker", () => {
+      return true;
     });
   }
 };
