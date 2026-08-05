@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {EMOJI_ID_REGEX, EMOJI_PREFIX} from "@utils/*";
+import {EMOJI_ID_FROM_URL_REGEX, EMOJI_PREFIX} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 const {React} = BetterDiscord;
 
@@ -28,7 +28,7 @@ export default {
                         name: `:${emojiName}:`,
                         src: contentItem.props.href,
                         type: "emoji",
-                        emojiId: contentItem.props.href.match(EMOJI_ID_REGEX).find(Boolean),
+                        emojiId: contentItem.props.href.match(EMOJI_ID_FROM_URL_REGEX).find(Boolean),
                         animated: true,
                         jumboable: false
                     }}

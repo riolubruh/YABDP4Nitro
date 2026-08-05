@@ -20,7 +20,7 @@ export default {
             let embeds = message?.embeds;
             for(let i = 0; i < embeds?.length; i++) {
                 const embed = embeds[i];
-                if(!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "" ) continue;
+                if(!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "" || !args.message.content.includes(`](${embed.url})`) ) continue;
 
                 delete embeds[i];
             }

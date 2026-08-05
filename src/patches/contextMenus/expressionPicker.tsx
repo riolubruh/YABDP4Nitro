@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {ContextMenuLabel, ContextMenuWrapper, EMOJI_ID_REGEX, getEmojiUrl} from "@utils/*";
+import {ContextMenuLabel, ContextMenuWrapper, EMOJI_ID_FROM_URL_REGEX, getEmojiUrl} from "@utils/*";
 import {Icon} from "@iconify/react";
 
 const {EmojiStore} = BetterDiscord.Webpack.Stores;
@@ -11,7 +11,7 @@ export default {
     callback(res, props) {
         let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
         if(!src) return;
-        let emojiId = src.match(EMOJI_ID_REGEX)?.find?.(Boolean);
+        let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
         if(emojiId){
             let emoji = EmojiStore.getCustomEmojiById(emojiId);
             emoji && (src = getEmojiUrl(emoji, 4096));

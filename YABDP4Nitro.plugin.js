@@ -9161,6 +9161,7 @@ __export(exports_modules, {
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
+  EditMessage: () => editMessage_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
   AllowClips: () => allowClips_default
@@ -9386,7 +9387,9 @@ Filter: `, filter, `
     return null;
   }
 }
-var EMOJI_ID_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
+var EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/g;
+var EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
+var HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
@@ -11599,7 +11602,7 @@ var renderMessage_default = {
             name: `:${emojiName}:`,
             src: contentItem.props.href,
             type: "emoji",
-            emojiId: contentItem.props.href.match(EMOJI_ID_REGEX).find(Boolean),
+            emojiId: contentItem.props.href.match(EMOJI_ID_FROM_URL_REGEX).find(Boolean),
             animated: true,
             jumboable: false
           },
@@ -11631,11 +11634,60 @@ var renderMessageEmbeds_default = {
       let embeds = message?.embeds;
       for (let i = 0;i < embeds?.length; i++) {
         const embed = embeds[i];
-        if (!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "")
+        if (!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "" || !args.message.content.includes(`](${embed.url})`))
           continue;
         delete embeds[i];
       }
       message.embeds = embeds.filter(Boolean);
+    });
+  }
+};
+// src/patches/modules/editMessage.ts
+var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
+var editMessage_default = {
+  name: "Edit Message",
+  description: "Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.",
+  ids: undefined,
+  waitFor: [(x) => x._sendMessage],
+  apply(finale, patcher) {
+    patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]) => {
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
+      if (!editMessageWithEmoji)
+        return;
+      console.log("msg", msg);
+      let matches = msg.content.match(EMOJI_STRING_REGEX);
+      console.log("matches", matches);
+      for (let i = 0;i < matches?.length; i++) {
+        const emojiString = matches[i];
+        let emojiId = emojiString.replace("<", "").replace(">", "").split(":")[2];
+        const emoji = EmojiStore2.getCustomEmojiById(emojiId);
+        if (shouldSkipEmojiBypass(emoji, channelId))
+          continue;
+        const emojiUrl = getEmojiUrl(emoji);
+        switch (emojiBypassType) {
+          case 0:
+          case 1:
+          case 3:
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i})`);
+            break;
+          case 2:
+            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i}`);
+            break;
+        }
+      }
+    });
+    patcher.before(finale.modules[0], "startEditMessageRecord", (_, [channelId, msg]) => {
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
+      if (!msg?.content || !editMessageWithEmoji)
+        return;
+      function replaceMatchWithEmojiString(match) {
+        const emoji = EmojiStore2.getCustomEmojiById(match.match(EMOJI_ID_FROM_URL_REGEX));
+        const emojiString = getEmojiString(emoji);
+        msg.content = msg.content.replace(match, emojiString);
+      }
+      let hyperlinkMatches = msg.content.match(HYPERLINK_EMOJI_REGEX);
+      hyperlinkMatches?.forEach?.((match) => replaceMatchWithEmojiString(match));
     });
   }
 };
@@ -11692,16 +11744,16 @@ var message_default = {
   }
 };
 // src/patches/contextMenus/expressionPicker.tsx
-var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
+var { EmojiStore: EmojiStore3 } = BetterDiscord.Webpack.Stores;
 var expressionPicker_default = {
   id: "expression-picker",
   callback(res, props) {
     let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
     if (!src)
       return;
-    let emojiId = src.match(EMOJI_ID_REGEX)?.find?.(Boolean);
+    let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
     if (emojiId) {
-      let emoji = EmojiStore2.getCustomEmojiById(emojiId);
+      let emoji = EmojiStore3.getCustomEmojiById(emojiId);
       emoji && (src = getEmojiUrl(emoji, 4096));
     } else {
       let url = new URL(src);
