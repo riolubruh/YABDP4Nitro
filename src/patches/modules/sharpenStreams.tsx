@@ -1,5 +1,6 @@
 import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
+import {findMangledName} from "@utils/*";
 const {React} = BetterDiscord;
 
 export function Sharpener ({userId}){
@@ -10,7 +11,7 @@ export function Sharpener ({userId}){
         width: 1980,
         height: 1980
     });
-    let filterIntensityFactoringScreen = (size.height / screen.height) * 2;
+    let filterIntensityFactoringScreen = (size.height / screen.height) * 1.5;
     (filterIntensityFactoringScreen > 1) && (filterIntensityFactoringScreen = 1);
 
     BetterDiscord.React.useEffect(() => {
@@ -56,15 +57,24 @@ export default {
     name: "Stream Sharpener",
     description: "Sharpens streams.",
     ids: undefined, // array of entry ids
-    waitFor: [BetterDiscord.Webpack.Filters.bySource('VideoStream', 'videoComponent')],
+    waitFor: [BetterDiscord.Webpack.Filters.bySource('VideoStream', 'videoComponent'), BetterDiscord.Webpack.Filters.bySource('backgroundKey', 'onForceIdle')],
     apply(finale, patcher) {
-        const mod = Object.values(finale.modules.find(Boolean)).find(x=>x.type);
-        console.log(mod);
+        const mod = Object.values(finale.modules[0]).find(x=>x.type);
+        //video call tile
         patcher.after(mod, "type", (_, [args], ret) => {
             console.log(args);
             console.log(ret);
             ret.props.children.push(<Sharpener userId={args.userId}/>)
             ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
         });
+
+        //pip player
+        patcher.after(finale.modules[1], findMangledName(finale.modules[1], x=>x?.toString?.()?.includes?.('backgroundKey')), (_,[args],ret) => {
+            const userId = args?.backgroundKey?.split?.(":")?.[3];
+            if(!userId) return;
+
+            ret.props.children.push(<Sharpener userId={userId}/>);
+            ret.props.style = {filter: `url(#yabd-svgSharpen-${userId})`};
+        })
     }
 }
