@@ -10,7 +10,8 @@ export default {
     description: "Allow clips",
     waitFor: [GLOBAL_SOURCE],
     mangled: {
-        useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
+        // useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
+        // why does react crash at this.. ? :think:
         areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
     },
     apply(finale, patcher) {
