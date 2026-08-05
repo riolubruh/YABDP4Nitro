@@ -46,14 +46,14 @@ export default {
             if (extraData.poll || extraData.activityAction || msg.location === "forwarding") return send.apply(_, [channelId, msg, extraData]);
 
             const emojiBypassEnabled = SettingsStore.get("emojiBypass");
-            const emojiBypassType = SettingsStore.get("emojiBypassType");
+            const emojiBypassType: number = SettingsStore.get("emojiBypassType");
             const soundmojiEnabled = SettingsStore.get("soundmojiEnabled");
             const stickersEnabled = SettingsStore.get("stickerBypass")
 
             let urlsToUpload: any = [];
 
             for (const emoji of msg.validNonShortcutEmojis) {
-                if (!emojiBypassEnabled && !(emojiBypassType === 0)) break;
+                if (!emojiBypassEnabled) break;
 
                 if (shouldSkipEmojiBypass(emoji, channelId)) continue;
                 const emojiString = getEmojiString(emoji);
@@ -65,12 +65,23 @@ export default {
                 }
 
                 const emojiUrl = getEmojiUrl(emoji);
-                msg.content = msg.content.replace(emojiString, "");
 
-                urlsToUpload.push({
-                    url: emojiUrl,
-                    filename: emoji.name + getEmojiExtension(emoji)
-                });
+                switch(emojiBypassType){
+                    case 0: //upload
+                        msg.content = msg.content.replace(emojiString, "");
+                        urlsToUpload.push({
+                            url: emojiUrl,
+                            filename: emoji.name + getEmojiExtension(emoji)
+                        });
+                        break;
+                    case 1: //ghost mode (removed)
+                    case 3: //vencord mode
+                        msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl})`);
+                        break;
+                    case 2: //classic
+                        msg.content = msg.content.replace(emojiString, emojiUrl);
+                        break;
+                }
             }
 
 

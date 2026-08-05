@@ -9684,7 +9684,7 @@ var _sendMessage_default = {
       const stickersEnabled = SettingsStore_default.get("stickerBypass");
       let urlsToUpload = [];
       for (const emoji of msg.validNonShortcutEmojis) {
-        if (!emojiBypassEnabled && !(emojiBypassType === 0))
+        if (!emojiBypassEnabled)
           break;
         if (shouldSkipEmojiBypass(emoji, channelId))
           continue;
@@ -9694,11 +9694,22 @@ var _sendMessage_default = {
           continue;
         }
         const emojiUrl = getEmojiUrl(emoji);
-        msg.content = msg.content.replace(emojiString, "");
-        urlsToUpload.push({
-          url: emojiUrl,
-          filename: emoji.name + getEmojiExtension(emoji)
-        });
+        switch (emojiBypassType) {
+          case 0:
+            msg.content = msg.content.replace(emojiString, "");
+            urlsToUpload.push({
+              url: emojiUrl,
+              filename: emoji.name + getEmojiExtension(emoji)
+            });
+            break;
+          case 1:
+          case 3:
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl})`);
+            break;
+          case 2:
+            msg.content = msg.content.replace(emojiString, emojiUrl);
+            break;
+        }
       }
       if (extraData.stickerIds && stickersEnabled) {
         for (const stickerId of extraData.stickerIds) {

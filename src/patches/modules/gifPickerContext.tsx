@@ -17,9 +17,6 @@ export default {
                 console.log(url);
                 url.startsWith('//') && (url = "https:" + url);
 
-                //this shit keeps crashing fuck this
-
-                //dude you didnt return a function AND you put semi colons lmao - 7:30 PM
                 function copyUrl(){
                     copyToClipboard(url);
                 }
