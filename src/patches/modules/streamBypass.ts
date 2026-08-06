@@ -17,7 +17,6 @@ export default {
             //(shorthands)
             const vqm = e.videoQualityManager;
             const vqmOpt = vqm.options;
-            console.log(vqm);
 
             if(CustomBitrateEnabled){
                 //old plugin changes ALL different variables related to bitrate, but these seem to be enough?

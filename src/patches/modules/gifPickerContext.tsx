@@ -12,9 +12,7 @@ export default {
     apply(finale, patcher) {
         patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
             ret.props.onContextMenu = (event: any) => {
-                console.log(instance);
                 let url: string = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
-                console.log(url);
                 url.startsWith('//') && (url = "https:" + url);
 
                 function copyUrl(){

@@ -19,7 +19,6 @@ export function Sharpener ({userId}){
             const observer = new ResizeObserver((ResizeObserverEntry) => {
                 if(ResizeObserverEntry?.[0]){
                     setSize({width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height});
-                    console.log(ResizeObserverEntry);
                 }
             });
             observer.observe(ref.current);
@@ -62,8 +61,6 @@ export default {
         const mod = Object.values(finale.modules[0]).find(x=>x.type);
         //video call tile
         patcher.after(mod, "type", (_, [args], ret) => {
-            console.log(args);
-            console.log(ret);
             ret.props.children.push(<Sharpener userId={args.userId}/>)
             ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
         });

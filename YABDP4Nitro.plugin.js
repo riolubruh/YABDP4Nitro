@@ -9162,6 +9162,7 @@ __export(exports_modules, {
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
   EditMessage: () => editMessage_default,
+  ClientThemes: () => clientThemes_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
   AllowClips: () => allowClips_default
@@ -9681,7 +9682,6 @@ var _sendMessage_default = {
   waitFor: [(x) => x._sendMessage],
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
-      console.log(_, channelId, msg, extraData);
       if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
         return send.apply(_, [channelId, msg, extraData]);
       const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
@@ -9723,7 +9723,6 @@ var _sendMessage_default = {
           const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
           const sticker = StickersStore.getStickerById(stickerId);
           let extension = StickerTypeToExtension[sticker.format_type];
-          console.log(extension);
           urlsToUpload.push({
             url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
             filename: `${sticker.name}${extension}`
@@ -9789,6 +9788,124 @@ var getUserBannerURL_default = {
     });
   }
 };
+// src/global/webpack/index.ts
+var { Webpack } = BdApi;
+function queryToFilter(query) {
+  if ("filter" in query)
+    return query.filter;
+  if ("keys" in query)
+    return Webpack.Filters.byKeys(...query.keys);
+  if ("prototypeKeys" in query)
+    return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
+  if ("strings" in query)
+    return Webpack.Filters.byStrings(...query.strings);
+  if ("source" in query)
+    return Webpack.Filters.bySource(...query.source);
+  if ("regex" in query)
+    return Webpack.Filters.byRegex(query.regex);
+  if ("displayName" in query)
+    return Webpack.Filters.byDisplayName(query.displayName);
+  return Webpack.Filters.byStoreName(query.storeName);
+}
+function resolveModule(filter, options) {
+  const opts = options ?? {};
+  if (opts.declaration) {
+    const { declaration, key, raw, ...rest } = opts;
+    const result = Webpack.getMangled(filter, { __value: declaration }, {
+      ...rest,
+      mapDeclarations: true
+    });
+    return result?.__value ?? null;
+  }
+  const mod = Webpack.getModule(filter, opts);
+  if (mod == null)
+    return null;
+  return opts.key ? mod[opts.key] : mod;
+}
+function resolveQuery(query) {
+  if ("map" in query) {
+    const q = query;
+    const newModule = {};
+    const foundModule = Webpack.getModule(q.filter);
+    if (foundModule) {
+      const remaining = new Map(Object.entries(q.map));
+      for (const value of Object.values(foundModule)) {
+        for (const [queryKey, queryValue] of remaining) {
+          if (queryValue(value)) {
+            newModule[queryKey] = value;
+            remaining.delete(queryKey);
+            break;
+          }
+        }
+        if (remaining.size === 0)
+          break;
+      }
+    }
+    return newModule;
+  }
+  return resolveModule(queryToFilter(query), query.options);
+}
+function wpGetBulkKeyed(queries) {
+  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
+}
+
+// src/global/index.ts
+var DefaultOptions = {
+  options: {
+    searchExports: true
+  }
+};
+var GlobalModules = wpGetBulkKeyed({
+  Typing: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
+  },
+  Endpoints: {
+    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
+    ...DefaultOptions
+  },
+  Dispatcher: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    ...DefaultOptions,
+    options: {
+      key: "_dispatcher"
+    }
+  },
+  HTTP: {
+    filter: (m) => typeof m === "object" && m.del && m.put,
+    ...DefaultOptions
+  },
+  Gateway: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
+  },
+  Flux: {
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
+    options: {
+      key: "Ay"
+    }
+  },
+  Intl: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
+  },
+  ModalModule: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+  },
+  SimpleMarkdownWrapper: {
+    filter: (m) => m.reactParserFor
+  },
+  AssetModule: {
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
+    map: {
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
+      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
+    }
+  },
+  Lodash: {
+    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  }
+});
+
 // src/patches/modules/appIcons.tsx
 var { AppIconPersistedStoreState } = BetterDiscord.Webpack.Stores;
 var bypassMap = {
@@ -9803,6 +9920,10 @@ var appIcons_default = {
   name: "appIcons",
   description: "Lets user select app icon",
   apply(finale, patcher) {
+    GlobalModules.Dispatcher.dispatch({
+      type: "APP_ICON_UPDATED",
+      id: SettingsStore_default.get("appIcon")
+    });
     const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
       render: (x) => x
     });
@@ -9841,7 +9962,6 @@ var streamBypass_default = {
       const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
       const vqm = e.videoQualityManager;
       const vqmOpt = vqm.options;
-      console.log(vqm);
       if (CustomBitrateEnabled) {
         vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
         vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
@@ -11404,9 +11524,7 @@ var gifPickerContext_default = {
   apply(finale, patcher) {
     patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
       ret.props.onContextMenu = (event) => {
-        console.log(instance);
         let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
-        console.log(url);
         url.startsWith("//") && (url = "https:" + url);
         function copyUrl() {
           copyToClipboard(url);
@@ -11493,7 +11611,6 @@ function Sharpener({ userId }) {
       const observer = new ResizeObserver((ResizeObserverEntry) => {
         if (ResizeObserverEntry?.[0]) {
           setSize({ width: ResizeObserverEntry[0].contentRect.width, height: ResizeObserverEntry[0].contentRect.height });
-          console.log(ResizeObserverEntry);
         }
       });
       observer.observe(ref.current);
@@ -11540,8 +11657,6 @@ var sharpenStreams_default = {
   apply(finale, patcher) {
     const mod = Object.values(finale.modules[0]).find((x) => x.type);
     patcher.after(mod, "type", (_, [args], ret) => {
-      console.log(args);
-      console.log(ret);
       ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
         userId: args.userId
       }));
@@ -11655,9 +11770,7 @@ var editMessage_default = {
       const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
       if (!editMessageWithEmoji)
         return;
-      console.log("msg", msg);
       let matches = msg.content.match(EMOJI_STRING_REGEX);
-      console.log("matches", matches);
       for (let i = 0;i < matches?.length; i++) {
         const emojiString = matches[i];
         let emojiId = emojiString.replace("<", "").replace(">", "").split(":")[2];
@@ -11688,6 +11801,58 @@ var editMessage_default = {
       }
       let hyperlinkMatches = msg.content.match(HYPERLINK_EMOJI_REGEX);
       hyperlinkMatches?.forEach?.((match) => replaceMatchWithEmojiString(match));
+    });
+  }
+};
+// src/patches/modules/clientThemes.tsx
+var CustomUserThemeState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("setColors", "setChassisMixAmount", "setGradientAngle", "setAll", "colors:[],"), {
+  state: (x) => x?.setState
+});
+function applySavedClientTheme() {
+  const customUserThemeSettings = SettingsStore_default.get("customUserThemeSettings");
+  const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
+  if (customUserThemeSettings.custom) {
+    CustomUserThemeState.state.getState().setAll({
+      colors: customUserThemeSettings.custom.colors,
+      chassisMixAmount: customUserThemeSettings.custom.baseMix,
+      gradientAngle: customUserThemeSettings.custom.gradientAngle
+    });
+  }
+  GlobalModules.Dispatcher.dispatch({
+    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+    changes: {
+      appearance: {
+        shouldSync: false,
+        settings: {
+          clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? { backgroundGradientPresetId: gradientPresetId } : null,
+          theme: customUserThemeSettings.theme
+        }
+      }
+    }
+  });
+  if (gradientPresetId >= 0) {
+    GlobalModules.Dispatcher.dispatch({
+      type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+      presetId: gradientPresetId
+    });
+  }
+}
+var clientThemes_default = {
+  name: "clientThemes",
+  description: "Saves and applies gradient client themes.",
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{")],
+  mangled: {
+    saveClientTheme: (x) => x?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE")
+  },
+  apply(finale, patcher) {
+    applySavedClientTheme();
+    patcher.instead(finale.mangled, "saveClientTheme", (_, [args]) => {
+      SettingsStore_default.set("customUserThemeSettings", {
+        custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
+        theme: args.theme
+      });
+      SettingsStore_default.set("lastGradientSettingStore", args.backgroundGradientPresetId >= 0 ? args.backgroundGradientPresetId : -1);
+      applySavedClientTheme();
     });
   }
 };
@@ -11781,8 +11946,6 @@ var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sorted
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
-    console.log(res);
-    console.log(props);
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
     const currentUserId = UserStore3.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
@@ -11792,7 +11955,6 @@ var streamContext_default = {
       return;
     function handleChange(percentSharpness) {
       SettingsStore_default.set("userSharpenPreferences", { ...SettingsStore_default.get("userSharpenPreferences"), [streamingUserId]: percentSharpness });
-      console.log(streamingUserId, percentSharpness);
     }
     const ContextMenuSlider = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       id: "yabd-sharpness-slider",
@@ -11923,124 +12085,6 @@ function startChangelog() {
   });
   SettingsStore_default.set("lastChangelogVersion", currentVersion);
 }
-
-// src/global/webpack/index.ts
-var { Webpack } = BdApi;
-function queryToFilter(query) {
-  if ("filter" in query)
-    return query.filter;
-  if ("keys" in query)
-    return Webpack.Filters.byKeys(...query.keys);
-  if ("prototypeKeys" in query)
-    return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
-  if ("strings" in query)
-    return Webpack.Filters.byStrings(...query.strings);
-  if ("source" in query)
-    return Webpack.Filters.bySource(...query.source);
-  if ("regex" in query)
-    return Webpack.Filters.byRegex(query.regex);
-  if ("displayName" in query)
-    return Webpack.Filters.byDisplayName(query.displayName);
-  return Webpack.Filters.byStoreName(query.storeName);
-}
-function resolveModule(filter, options) {
-  const opts = options ?? {};
-  if (opts.declaration) {
-    const { declaration, key, raw, ...rest } = opts;
-    const result = Webpack.getMangled(filter, { __value: declaration }, {
-      ...rest,
-      mapDeclarations: true
-    });
-    return result?.__value ?? null;
-  }
-  const mod = Webpack.getModule(filter, opts);
-  if (mod == null)
-    return null;
-  return opts.key ? mod[opts.key] : mod;
-}
-function resolveQuery(query) {
-  if ("map" in query) {
-    const q = query;
-    const newModule = {};
-    const foundModule = Webpack.getModule(q.filter);
-    if (foundModule) {
-      const remaining = new Map(Object.entries(q.map));
-      for (const value of Object.values(foundModule)) {
-        for (const [queryKey, queryValue] of remaining) {
-          if (queryValue(value)) {
-            newModule[queryKey] = value;
-            remaining.delete(queryKey);
-            break;
-          }
-        }
-        if (remaining.size === 0)
-          break;
-      }
-    }
-    return newModule;
-  }
-  return resolveModule(queryToFilter(query), query.options);
-}
-function wpGetBulkKeyed(queries) {
-  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
-}
-
-// src/global/index.ts
-var DefaultOptions = {
-  options: {
-    searchExports: true
-  }
-};
-var GlobalModules = wpGetBulkKeyed({
-  Typing: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
-  },
-  Endpoints: {
-    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
-    ...DefaultOptions
-  },
-  Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
-    ...DefaultOptions,
-    options: {
-      key: "_dispatcher"
-    }
-  },
-  HTTP: {
-    filter: (m) => typeof m === "object" && m.del && m.put,
-    ...DefaultOptions
-  },
-  Gateway: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
-  },
-  Flux: {
-    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
-    options: {
-      key: "Ay"
-    }
-  },
-  Intl: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
-  },
-  ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
-  },
-  SimpleMarkdownWrapper: {
-    filter: (m) => m.reactParserFor
-  },
-  AssetModule: {
-    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
-    map: {
-      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
-      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
-      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
-      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
-    }
-  },
-  Lodash: {
-    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
-  }
-});
 
 // src/index.tsx
 var { Components } = BetterDiscord;

@@ -10,8 +10,6 @@ const Slider = BetterDiscord.Webpack.getByStrings('initialValue', 'label', 'sort
 export default {
     id: "stream-context",
     callback(res, props) {
-        console.log(res);
-        console.log(props);
         const sharpenStreamsEnabled = SettingsStore.get('sharpenStreams');
         const currentUserId = UserStore.getCurrentUser().id;
         const streamingUserId = props?.stream?.ownerId;
@@ -22,7 +20,6 @@ export default {
 
         function handleChange(percentSharpness: number){
             SettingsStore.set("userSharpenPreferences", {...SettingsStore.get("userSharpenPreferences"), [streamingUserId]: percentSharpness});
-            console.log(streamingUserId, percentSharpness);
         }
 
         const ContextMenuSlider = <BetterDiscord.ContextMenu.Item

@@ -42,7 +42,6 @@ export default {
     waitFor: [x => x._sendMessage],
     apply(finale, patcher) {
         patcher.instead(finale.modules[0], "_sendMessage", async (_: any, [channelId, msg, extraData]: any, send: Function) => {
-            console.log(_,channelId,msg,extraData);
             if (extraData.poll || extraData.activityAction || msg.location === "forwarding") return send.apply(_, [channelId, msg, extraData]);
 
             const emojiBypassEnabled = SettingsStore.get("emojiBypass");
@@ -94,8 +93,6 @@ export default {
                     const sticker = StickersStore.getStickerById(stickerId);
 
                     let extension = StickerTypeToExtension[sticker.format_type];
-
-                    console.log(extension);
 
                     urlsToUpload.push({
                         url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
