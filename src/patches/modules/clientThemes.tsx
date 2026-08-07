@@ -27,7 +27,8 @@ function applySavedClientTheme(){
                 shouldSync: false,
                 settings: {
                     clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? {backgroundGradientPresetId: gradientPresetId} : null,
-                    theme: customUserThemeSettings.theme
+                    theme: customUserThemeSettings.theme,
+                    developerMode: true
                 }
             }
         }
@@ -49,10 +50,10 @@ export default {
         saveClientTheme: x=>x?.toString?.()?.includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE')
     },
     apply(finale: any, patcher: any) {
+        if(!SettingsStore.get("clientThemes")) return;
         applySavedClientTheme();
 
         patcher.instead(finale.mangled, 'saveClientTheme', (_: any, [args]: any) => {
-
             SettingsStore.set("customUserThemeSettings", {
                 custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
                 theme: args.theme

@@ -1,9 +1,8 @@
 import {BetterDiscord} from "@shared/";
 import UserBackgroundStore from "../../global/stores/UserBackgroundStore.ts";
-import {getRevealedText} from "@utils/*";
+import {getBannerUrl, getRevealedText} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
-const BANNER_REGEX = /B\{[^}]*?\}/;
 
 export default {
     name: "fakeBanners",
@@ -18,13 +17,8 @@ export default {
             if (!SettingsStore.get("fakeProfileBanners")) return ret;
 
             const unpatch = patcher.after(ret, 'type', (a, b, c) => {
-                const parsed = getRevealedText(props.user.id);
-                const match = parsed?.match(BANNER_REGEX)?.[0];
-                const matched = match?.slice(2, -1);
 
-                c.props.bannerSrc = matched
-                    ? `https://i.imgur.com/${matched}`
-                    : UserBackgroundStore.format(props.user.id);
+                c.props.bannerSrc = getBannerUrl(props.user.id);
 
                 unpatch();
             });

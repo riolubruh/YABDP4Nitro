@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/";
 import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
 import SettingsStore from "../global/stores/SettingsStore.ts";
+import UserBackgroundStore from "../global/stores/UserBackgroundStore.ts";
 
 
 const {UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore} = BetterDiscord.Webpack.Stores
@@ -216,3 +217,12 @@ export const EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|av
 export const EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
 export const EMOJI_URL_REGEX = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?(?=$| )/gi;
 export const HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
+export const BANNER_REGEX = /B\{[^}]*?\}/;
+
+export function getBannerUrl(userId: string){
+    const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
+    const match = parsed?.match(BANNER_REGEX)?.[0];
+    const matched = match?.slice(2, -1);
+
+    return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore.format(userId);
+}

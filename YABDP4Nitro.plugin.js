@@ -9149,6 +9149,7 @@ var BetterDiscord = new BdApi("YABDP4Nitro");
 var exports_modules = {};
 __export(exports_modules, {
   VideoCodec: () => videoCodecs_default,
+  UserBgCallTile: () => userCallTileBg_default,
   UnlockStickers: () => unlockStickers_default,
   UnlockEmojis: () => unlockEmojis_default,
   StreamBypass: () => streamBypass_default,
@@ -9157,6 +9158,7 @@ __export(exports_modules, {
   RenderMessageEmbeds: () => renderMessageEmbeds_default,
   RenderMessage: () => renderMessage_default,
   MaxFileSize: () => maxFileSize_default,
+  GoLiveModal: () => goLiveModal_default,
   GifPickerContext: () => gifPickerContext_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
@@ -9265,6 +9267,26 @@ var SettingsStore_default = new class SettingsStore extends Utils.Store {
   }
   getAll() {
     return this.settings;
+  }
+};
+
+// src/global/stores/UserBackgroundStore.ts
+var USER_BG = "https://usrbg.is-hardly.online/users";
+var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDiscord.Utils.Store {
+  users = {};
+  meta = {};
+  get(userId) {
+    return this.users[userId];
+  }
+  format(userId) {
+    const userHash = this.get(userId);
+    return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
+  }
+  async fetch() {
+    const data = await BetterDiscord.Net.fetch(USER_BG);
+    const response = await data.json();
+    this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
+    this.users = response.users;
   }
 };
 
@@ -9391,6 +9413,13 @@ Filter: `, filter, `
 var EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/g;
 var EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
 var HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
+var BANNER_REGEX = /B\{[^}]*?\}/;
+function getBannerUrl(userId) {
+  const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
+  const match = parsed?.match(BANNER_REGEX)?.[0];
+  const matched = match?.slice(2, -1);
+  return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(userId);
+}
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
@@ -9598,28 +9627,7 @@ var allowClips_default = {
     ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, () => true));
   }
 };
-// src/global/stores/UserBackgroundStore.ts
-var USER_BG = "https://usrbg.is-hardly.online/users";
-var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDiscord.Utils.Store {
-  users = {};
-  meta = {};
-  get(userId) {
-    return this.users[userId];
-  }
-  format(userId) {
-    const userHash = this.get(userId);
-    return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
-  }
-  async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_BG);
-    const response = await data.json();
-    this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
-    this.users = response.users;
-  }
-};
-
 // src/patches/modules/banners.tsx
-var BANNER_REGEX = /B\{[^}]*?\}/;
 var banners_default = {
   name: "fakeBanners",
   description: "3y3 banners",
@@ -9633,10 +9641,7 @@ var banners_default = {
       if (!SettingsStore_default.get("fakeProfileBanners"))
         return ret;
       const unpatch = patcher.after(ret, "type", (a, b, c) => {
-        const parsed = getRevealedText(props.user.id);
-        const match = parsed?.match(BANNER_REGEX)?.[0];
-        const matched = match?.slice(2, -1);
-        c.props.bannerSrc = matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(props.user.id);
+        c.props.bannerSrc = getBannerUrl(props.user.id);
         unpatch();
       });
       return ret;
@@ -11825,7 +11830,8 @@ function applySavedClientTheme() {
         shouldSync: false,
         settings: {
           clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? { backgroundGradientPresetId: gradientPresetId } : null,
-          theme: customUserThemeSettings.theme
+          theme: customUserThemeSettings.theme,
+          developerMode: true
         }
       }
     }
@@ -11845,6 +11851,8 @@ var clientThemes_default = {
     saveClientTheme: (x) => x?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE")
   },
   apply(finale, patcher) {
+    if (!SettingsStore_default.get("clientThemes"))
+      return;
     applySavedClientTheme();
     patcher.instead(finale.mangled, "saveClientTheme", (_, [args]) => {
       SettingsStore_default.set("customUserThemeSettings", {
@@ -11853,6 +11861,45 @@ var clientThemes_default = {
       });
       SettingsStore_default.set("lastGradientSettingStore", args.backgroundGradientPresetId >= 0 ? args.backgroundGradientPresetId : -1);
       applySavedClientTheme();
+    });
+  }
+};
+// src/patches/modules/userCallTileBg.ts
+var { React: React4 } = BetterDiscord;
+var userCallTileBg_default = {
+  name: "fakeBanners",
+  description: "3y3 banners",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("getSelectedParticipant", "CHANNEL_CALL_POPOUT", "avatarDecoration", "backgroundSrc", "getAvatarURL")],
+  apply(finale, patcher) {
+    patcher.instead(finale.modules[0], findMangledName(finale.modules[0], (x) => x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_, [args], ogFunction) => {
+      let ret = ogFunction(args);
+      const bannerUrl = getBannerUrl(args.participant.id);
+      const callTileBackgroundEnabled = SettingsStore_default.get("voiceTileBannerBackground");
+      if (!bannerUrl || !callTileBackgroundEnabled)
+        return;
+      ret.props.children = React4.cloneElement(ret.props.children, {
+        style: {
+          backgroundImage: `url('${bannerUrl}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat"
+        }
+      });
+      return ret;
+    });
+  }
+};
+// src/patches/modules/goLiveModal.tsx
+var goLiveModal_default = {
+  name: "goLiveModal",
+  description: "Streaming modal customization.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("GO_LIVE_MODAL_V2", "getUseSystemScreensharePicker", "canStreamQuality")],
+  apply(finale, patcher) {
+    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      console.log(args);
+      console.log(ret);
     });
   }
 };
@@ -11866,7 +11913,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React4 } = BetterDiscord;
+var { React: React5 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -11895,16 +11942,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React4.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React5.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React4.createElement(Icon, {
+      icon: /* @__PURE__ */ React5.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React4.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React4.createElement(ContextMenuLabel, null), /* @__PURE__ */ React4.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React5.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React5.createElement(ContextMenuLabel, null), /* @__PURE__ */ React5.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React4.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React5.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -12088,7 +12135,7 @@ function startChangelog() {
 
 // src/index.tsx
 var { Components } = BetterDiscord;
-var { React: React5 } = BetterDiscord;
+var { React: React6 } = BetterDiscord;
 var SettingTypes = {
   number: Components.NumberInput,
   bigint: Components.NumberInput,
@@ -12120,17 +12167,17 @@ class Plugin {
           return acc;
         }, {});
       });
-      return /* @__PURE__ */ React5.createElement(Components.SettingGroup, {
+      return /* @__PURE__ */ React6.createElement(Components.SettingGroup, {
         name: "Settings"
       }, Object.entries(settings).map(([key, value]) => {
         const CompType = SettingTypes[typeof value];
-        return /* @__PURE__ */ React5.createElement(Components.SettingItem, {
+        return /* @__PURE__ */ React6.createElement(Components.SettingItem, {
           key,
           note: key
-        }, CompType ? /* @__PURE__ */ React5.createElement(CompType, {
+        }, CompType ? /* @__PURE__ */ React6.createElement(CompType, {
           onChange: (v) => SettingsStore_default.set(key, v),
           value
-        }) : /* @__PURE__ */ React5.createElement(Components.TextInput, {
+        }) : /* @__PURE__ */ React6.createElement(Components.TextInput, {
           value: JSON.stringify(value),
           disabled: true
         }));
