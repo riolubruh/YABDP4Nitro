@@ -86,9 +86,6 @@ const MODES = [
 
 function ConfigModal({props, onClose, forceQuality}) {
     const [start, dispatch] = BdApi.Webpack.getById(477156, {raw: true}).declarations.eG();
-    console.log(start, dispatch)
-
-    const state = BetterDiscord.Hooks.useStateFromStores([ApplicationStreamingSettingsStore], () => ApplicationStreamingSettingsStore.getState())
 
     const [data, setData] = React.useState(() => SettingsStore.getAll());
 
