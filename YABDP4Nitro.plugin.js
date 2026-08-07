@@ -11872,8 +11872,7 @@ var userCallTileBg_default = {
   ids: undefined,
   waitFor: [BetterDiscord.Webpack.Filters.bySource("getSelectedParticipant", "CHANNEL_CALL_POPOUT", "avatarDecoration", "backgroundSrc", "getAvatarURL")],
   apply(finale, patcher) {
-    patcher.instead(finale.modules[0], findMangledName(finale.modules[0], (x) => x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_, [args], ogFunction) => {
-      let ret = ogFunction(args);
+    patcher.after(finale.modules[0], findMangledName(finale.modules[0], (x) => x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_, [args], ret) => {
       const bannerUrl = getBannerUrl(args.participant.id);
       const callTileBackgroundEnabled = SettingsStore_default.get("voiceTileBannerBackground");
       if (!bannerUrl || !callTileBackgroundEnabled)
@@ -11886,7 +11885,6 @@ var userCallTileBg_default = {
           backgroundRepeat: "no-repeat"
         }
       });
-      return ret;
     });
   }
 };
