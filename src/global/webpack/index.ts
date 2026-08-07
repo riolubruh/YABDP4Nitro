@@ -435,3 +435,83 @@ export async function wpWaitGetBulkKeyed<T extends Record<string, WaitQueryWithT
     );
     return Object.fromEntries(entries) as any;
 }
+
+type PathSegment = string | symbol;
+
+const PASSTHROUGH_PROPS = new Set<PathSegment>([
+    "then",
+    "toJSON",
+    "valueOf",
+    "toString",
+    Symbol.toPrimitive,
+    Symbol.toStringTag,
+    Symbol.iterator,
+]);
+
+function resolveLive(filter: ModuleFilter, options: GetOptions | undefined, path: PathSegment[]): any {
+    let current: any = resolveModule(filter, options);
+    for (const seg of path) {
+        if (current == null) return undefined;
+        current = current[seg as any];
+    }
+    return current;
+}
+
+function createLiveProxy(filter: ModuleFilter, options: GetOptions | undefined, path: PathSegment[]): any {
+    const target = function wpGetProxyTarget() {} as any;
+
+    return new Proxy(target, {
+        get(_t, prop) {
+            if (PASSTHROUGH_PROPS.has(prop)) {
+                const val = resolveLive(filter, options, path);
+                if (val == null) return undefined;
+                const member = (val as any)[prop as any];
+                return typeof member === "function" ? member.bind(val) : member;
+            }
+            return createLiveProxy(filter, options, [...path, prop]);
+        },
+
+        apply(_t, thisArg, args) {
+            const fn = resolveLive(filter, options, path);
+            const parent = resolveLive(filter, options, path.slice(0, -1));
+            return fn.apply(parent ?? thisArg, args);
+        },
+
+        set(_t, prop, value) {
+            const val = resolveLive(filter, options, path);
+            if (val == null) return false;
+            (val as any)[prop as any] = value;
+            return true;
+        },
+
+        has(_t, prop) {
+            const val = resolveLive(filter, options, path);
+            return val != null && prop in Object(val);
+        },
+
+        ownKeys(_t) {
+            const val = resolveLive(filter, options, path);
+            return val ? Reflect.ownKeys(val) : [];
+        },
+
+        getOwnPropertyDescriptor(_t, prop) {
+            const val = resolveLive(filter, options, path);
+            if (val == null) return undefined;
+            return (
+                Object.getOwnPropertyDescriptor(val, prop) ?? {
+                    enumerable: true,
+                    configurable: true,
+                    value: (val as any)[prop as any],
+                }
+            );
+        },
+    });
+}
+
+export function wpGetProxy<T = any>(filter: ModuleFilter, options?: GetOptions): T {
+    return createLiveProxy(filter, options, []) as T;
+}
+
+export function wpGetProxyQuery<T = any>(query: Query): T {
+    return createLiveProxy(queryToFilter(query), query.options, []) as T;
+}

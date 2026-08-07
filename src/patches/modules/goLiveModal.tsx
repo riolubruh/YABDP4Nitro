@@ -1,12 +1,12 @@
 import {BetterDiscord} from "@shared/*";
 import GoLiveStore from "../../global/stores/GoLiveStore.ts";
 import {GlobalModules} from "@global/*";
-import {wpGetByKeys} from "../../global/webpack";
+import {wpFilter, wpGetByKeys, wpGetBySource, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React, Components} = BetterDiscord;
-const { ApplicationStreamingSettingsStore } = BetterDiscord.Webpack.Stores;
+const {ApplicationStreamingSettingsStore} = BetterDiscord.Webpack.Stores;
 
 const FooterColumn = styled.div({
     display: "flex",
@@ -84,22 +84,52 @@ const MODES = [
     },
 ];
 
-function ConfigModal({props, onClose, forceQuality}) {
-    const [start, dispatch] = BdApi.Webpack.getById(477156, {raw: true}).declarations.eG();
+const TYPE_MAP = {
+    CustomFPS: "set_fps",
+    CustomResolution: "set_resolution",
+    maxBitrate: "set_max_bitrate",
+    minBitrate: "set_min_bitrate",
+    targetBitrate: "set_target_bitrate",
+    voiceBitrate: "set_voice_bitrate",
+};
 
+const FIELD_MAP = {
+    CustomFPS: "fps",
+    CustomResolution: "resolution",
+    maxBitrate: "maxBitrate",
+    minBitrate: "minBitrate",
+    targetBitrate: "targetBitrate",
+    voiceBitrate: "voiceBitrate",
+};
+
+const StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"),{raw:true})
+
+function ConfigModal({props, onClose, forceQuality}) {
     const [data, setData] = React.useState(() => SettingsStore.getAll());
 
     const commit = (key, value) => {
         SettingsStore.set(key, value);
         setData(prev => ({...prev, [key]: value}));
-        forceQuality(key === "CustomFPS" ? "set_fps" : "set_resolution");
+
+        const type = TYPE_MAP[key];
+        const field = FIELD_MAP[key];
+        if (!type || !field) {
+            return;
+        }
+
+        forceQuality(type, {[field]: value});
     };
 
     const applyMode = (patch) => {
         Object.entries(patch).forEach(([key, value]) => SettingsStore.set(key, value));
         setData(prev => ({...prev, ...patch}));
-        forceQuality("set_resolution");
-        forceQuality("set_fps");
+
+        if ("CustomResolution" in patch) {
+            forceQuality("set_resolution", {resolution: patch.CustomResolution});
+        }
+        if ("CustomFPS" in patch) {
+            forceQuality("set_fps", {fps: patch.CustomFPS});
+        }
     };
 
     const fields = [
@@ -143,33 +173,10 @@ function openConfigModal(forceQuality) {
 }
 
 function CustomFooter() {
-    const dispatch = BetterDiscord.React.useContext(
-        BdApi.Webpack.getById(477156, {raw: true}).declarations.eL
-    );
+    const [start, dispatch] = StreamingModule.declarations.eG();
 
-    const forceQuality = (type) => {
-        const config = GoLiveStore.getConfig();
-        dispatch({type: type, resolution: config.resolution, fps: config.fps});
-    };
-
-    const openContextMenu = (event) => {
-        BdApi.ContextMenu.open(
-            event,
-            BdApi.ContextMenu.buildMenu([
-                {
-                    label: "Configure Stream Settings",
-                    action: () => openConfigModal(forceQuality),
-                },
-                {
-                    label: "Force Apply Resolution",
-                    action: () => forceQuality("set_resolution"),
-                },
-                {
-                    label: "Force Apply FPS",
-                    action: () => forceQuality("set_fps"),
-                },
-            ])
-        );
+    const forceQuality = (type, value) => {
+        dispatch({type: type, ...value});
     };
 
     return (
@@ -189,7 +196,6 @@ function CustomFooter() {
                 tooltip={"YABDP4Nitro Configuration"}
                 tooltipPosition={"top"}
                 onClick={() => openConfigModal(forceQuality)}
-                onContextMenu={openContextMenu}
                 key={"balls-2"}
                 icon={() => <AdminIcon/>}
             />
@@ -197,11 +203,12 @@ function CustomFooter() {
     );
 }
 
+const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality')
 export default {
     name: "goLiveModal",
     description: "Streaming modal customization.",
     ids: undefined,
-    waitFor: [BetterDiscord.Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality')],
+    waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
         this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
             const config = GoLiveStore.getConfig();
@@ -222,24 +229,26 @@ export default {
         const validatorMod = BdApi.Webpack.getById(327649, {raw: true});
         patcher.instead(validatorMod.declarations, "o", () => true);
 
-        patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-            const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footerContent"));
-            if (!footer) return ret;
+        BetterDiscord.Webpack.waitForModule(LIVE_FILTER).then(() => {
+            patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+                const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footerContent"));
+                if (!footer) return ret;
 
-            const doesExist = BetterDiscord.Utils.findInTree(footer, x => String(x?.key).includes("gay"));
-            if (!doesExist)
-                footer.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
+                const doesExist = BetterDiscord.Utils.findInTree(footer, x => String(x?.key).includes("gay"));
+                if (!doesExist)
+                    footer.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
 
-            const originalChildren = footer.children;
+                const originalChildren = footer.children;
 
-            footer.children = (
-                <FooterColumn>
-                    <FooterRow>
-                        {originalChildren}
-                    </FooterRow>
-                </FooterColumn>
-            );
-            return ret;
-        });
+                footer.children = (
+                    <FooterColumn>
+                        <FooterRow>
+                            {originalChildren}
+                        </FooterRow>
+                    </FooterColumn>
+                );
+                return ret;
+            });
+        })
     },
 }
