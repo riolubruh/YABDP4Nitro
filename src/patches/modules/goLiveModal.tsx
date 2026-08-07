@@ -6,6 +6,7 @@ import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React, Components} = BetterDiscord;
+const { ApplicationStreamingSettingsStore } = BetterDiscord.Webpack.Stores;
 
 const FooterColumn = styled.div({
     display: "flex",
@@ -40,6 +41,20 @@ const FieldLabel = styled.label({
     textTransform: "uppercase",
 });
 
+const ModeRow = styled.div({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    padding: "0 16px 16px 16px",
+});
+
+const ToggleRow = styled.div({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    padding: "0 16px 16px 16px",
+});
+
 const AdminIcon = () =>
     <svg xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 24 24">
         <path d="M0 0h24v24H0z" fill="none"/>
@@ -50,13 +65,44 @@ const AdminIcon = () =>
 const IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
 const ModalModule = wpGetByKeys(["Modal"]);
 
-function ConfigModal({props, onClose, callback}) {
+const MODES = [
+    {
+        label: "4K Mode",
+        patch: {CustomResolution: 2160, CustomFPS: 60},
+    },
+    {
+        label: "2K Mode",
+        patch: {CustomResolution: 1440, CustomFPS: 60},
+    },
+    {
+        label: "Deez Nutz Mode",
+        patch: {CustomResolution: 20, CustomFPS: 60},
+    },
+    {
+        label: "Screen Reader Mode",
+        patch: {CustomResolution: 1440, CustomFPS: 15},
+    },
+];
+
+function ConfigModal({props, onClose, forceQuality}) {
+    const [start, dispatch] = BdApi.Webpack.getById(477156, {raw: true}).declarations.eG();
+    console.log(start, dispatch)
+
+    const state = BetterDiscord.Hooks.useStateFromStores([ApplicationStreamingSettingsStore], () => ApplicationStreamingSettingsStore.getState())
+
     const [data, setData] = React.useState(() => SettingsStore.getAll());
 
     const commit = (key, value) => {
         SettingsStore.set(key, value);
         setData(prev => ({...prev, [key]: value}));
-        callback();
+        forceQuality(key === "CustomFPS" ? "set_fps" : "set_resolution");
+    };
+
+    const applyMode = (patch) => {
+        Object.entries(patch).forEach(([key, value]) => SettingsStore.set(key, value));
+        setData(prev => ({...prev, ...patch}));
+        forceQuality("set_resolution");
+        forceQuality("set_fps");
     };
 
     const fields = [
@@ -70,6 +116,13 @@ function ConfigModal({props, onClose, callback}) {
 
     return (
         <ModalModule.Modal {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+            <ModeRow>
+                {MODES.map(({label, patch}) => (
+                    <Components.Button key={label} onClick={() => applyMode(patch)}>
+                        {label}
+                    </Components.Button>
+                ))}
+            </ModeRow>
             <ModalBody>
                 {fields.map(({key, label}) => (
                     <FieldWrapper key={key}>
@@ -87,8 +140,9 @@ function ConfigModal({props, onClose, callback}) {
 }
 
 function openConfigModal(forceQuality) {
-    GlobalModules.ModalModule.openModal(props => <ConfigModal callback={forceQuality} props={props}
-                                                              onClose={props.onClose}/>);
+    GlobalModules.ModalModule.openModal(props => (
+        <ConfigModal forceQuality={forceQuality} props={props} onClose={props.onClose}/>
+    ));
 }
 
 function CustomFooter() {
@@ -96,10 +150,9 @@ function CustomFooter() {
         BdApi.Webpack.getById(477156, {raw: true}).declarations.eL
     );
 
-    const forceQuality = () => {
+    const forceQuality = (type) => {
         const config = GoLiveStore.getConfig();
-        dispatch({type: "set_resolution", resolution: config.resolution});
-        dispatch({type: "set_fps", fps: config.fps});
+        dispatch({type: type, resolution: config.resolution, fps: config.fps});
     };
 
     const openContextMenu = (event) => {
@@ -111,8 +164,12 @@ function CustomFooter() {
                     action: () => openConfigModal(forceQuality),
                 },
                 {
-                    label: "Force Apply Quality Now",
-                    action: () => forceQuality(),
+                    label: "Force Apply Resolution",
+                    action: () => forceQuality("set_resolution"),
+                },
+                {
+                    label: "Force Apply FPS",
+                    action: () => forceQuality("set_fps"),
                 },
             ])
         );
