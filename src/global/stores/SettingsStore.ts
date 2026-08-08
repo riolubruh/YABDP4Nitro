@@ -2,7 +2,7 @@ import {BetterDiscord} from "@shared/";
 
 const {Utils, Data} = BetterDiscord;
 
-const defaultSettings = {
+export const defaultSettings = {
     "emojiSize": 64,
     "screenSharing": true,
     "emojiBypass": true,
