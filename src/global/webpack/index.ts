@@ -515,3 +515,9 @@ export function wpGetProxy<T = any>(filter: ModuleFilter, options?: GetOptions):
 export function wpGetProxyQuery<T = any>(query: Query): T {
     return createLiveProxy(queryToFilter(query), query.options, []) as T;
 }
+
+export function getKey(module2, fn) {
+    for (const key in module2) {
+        if (fn(module2[key])) return { key, module: module2 };
+    }
+}
