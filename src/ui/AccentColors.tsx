@@ -7,8 +7,8 @@ export default function AccentColors(){
     const CurrentUser = UserStore.getCurrentUser();
     const currentUserProfile = UserProfileStore.getUserProfile(CurrentUser.id);
 
-    const [primary, setPrimary] = React.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#000000");
-    const [accent, setAccent] = React.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#000000");
+    const [primary, setPrimary] = React.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
+    const [accent, setAccent] = React.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8"); // waifu color of zero two.
 
     return <div>
         <Components.Text
@@ -18,7 +18,7 @@ export default function AccentColors(){
         }}>Primary</Components.Text>
         <Components.ColorInput
             value={primary}
-            defaultValue={"#000000"}
+            defaultValue={primary}
             disabled={false}
             onChange={(e) => setPrimary(e)}
         /><br/>
@@ -30,7 +30,7 @@ export default function AccentColors(){
         </Components.Text><br/>
         <Components.ColorInput
             value={accent}
-            defaultValue={"#000000"}
+            defaultValue={accent}
             disabled={false}
             onChange={(e) => setAccent(e)}
         /><br/>

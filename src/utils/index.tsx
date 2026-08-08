@@ -5,7 +5,7 @@ import UserBackgroundStore from "../global/stores/UserBackgroundStore.ts";
 
 
 const {UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore} = BetterDiscord.Webpack.Stores
-const DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings('await window.navigator.clipboard.writeText', {searchExports:true});
+const DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings('await window.navigator.clipboard.writeText', {searchExports: true});
 
 export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = "") {
     const guildId = SelectedGuildStore.getGuildId();
@@ -125,7 +125,7 @@ export function secondsightifyEncodeOnly(t: string) {
 //Whether we should skip the emoji bypass for a given emoji.
 // true = skip bypass
 // false = perform bypass
-export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string){
+export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string) {
     const shouldAlwaysUseEmojiBypass = SettingsStore.get("emojiBypassForValidEmoji");
     //If emoji is from current guild, not animated, and we are actually in a guild channel,
     //and emoji is "available" (could be unavailable due to Server Boost level dropping)
@@ -133,19 +133,19 @@ export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string){
     return (emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet || shouldAlwaysUseEmojiBypass && ((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available) || emoji.managed));
 }
 
-export function getEmojiExtension(emoji: any){
+export function getEmojiExtension(emoji: any) {
     const pngEmote = SettingsStore.get("PNGemote");
     return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`
 }
 
 export const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
 
-export function getEmojiUrl(emoji: any, emojiSize:number = SettingsStore.get("emojiSize")){
+export function getEmojiUrl(emoji: any, emojiSize: number = SettingsStore.get("emojiSize")) {
 
     return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 
-export function getEmojiString(emoji: any){
+export function getEmojiString(emoji: any) {
     return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
 }
 
@@ -168,7 +168,7 @@ export function styledBase<T extends keyof React.JSX.IntrinsicElements>(
 ): React.ComponentType<React.JSX.IntrinsicElements[T]> {
     return (props: any) => {
         const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
-        return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
+        return React.createElement(tag, {...props, style: {...style, ...props.style}});
     };
 }
 
@@ -179,22 +179,22 @@ export const ContextMenuWrapper = styled.div({
 
 export const ContextMenuLabel = () => <span style={{fontSize: "14px", opacity: 0.6}}>YABDP4Nitro</span>
 
-export function copyToClipboard(string: string, successMessage=undefined, errorMessage = "Failed to copy to clipboard!") {
+export function copyToClipboard(string: string, successMessage = undefined, errorMessage = "Failed to copy to clipboard!") {
     try {
         DiscordCopyToClipboardFn(string);
-        if(successMessage)
-            BetterDiscord.UI.showToast(successMessage,{type: "info"});
-    } catch(err) {
-        BetterDiscord.UI.showToast(errorMessage,{type: "error",forceShow: true});
+        if (successMessage)
+            BetterDiscord.UI.showToast(successMessage, {type: "info"});
+    } catch (err) {
+        BetterDiscord.UI.showToast(errorMessage, {type: "error", forceShow: true});
         BetterDiscord.Logger.error(err);
     }
 }
 
 // Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
 // If filter variable is a string, it uses an includes string filter.
-export function findMangledName(module, filter, debugInfo){
-    if(module){
-        if(typeof filter === "string"){
+export function findMangledName(module, filter, debugInfo) {
+    if (module) {
+        if (typeof filter === "string") {
             filter = (x) => x.toString?.().includes?.(filter);
         }
         let keys = Object.keys(module);
@@ -202,12 +202,13 @@ export function findMangledName(module, filter, debugInfo){
 
         let index = values.findIndex(filter);
 
-        if(index >= 0) return keys[index];
-        else{
+        if (index >= 0) return keys[index];
+        else {
             BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
             return null;
-        };
-    }else{
+        }
+        ;
+    } else {
         BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
         return null;
     }
@@ -219,7 +220,7 @@ export const EMOJI_URL_REGEX = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(pn
 export const HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
 export const BANNER_REGEX = /B\{[^}]*?\}/;
 
-export function getBannerUrl(userId: string){
+export function getBannerUrl(userId: string) {
     const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
     const match = parsed?.match(BANNER_REGEX)?.[0];
     const matched = match?.slice(2, -1);

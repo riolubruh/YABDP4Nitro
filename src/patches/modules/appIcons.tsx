@@ -3,7 +3,7 @@ import type {Patch} from "../../types/patches";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {GlobalModules} from "@global/*";
 
-const {AppIconPersistedStoreState} = BetterDiscord.Webpack.Stores
+const {AppIconPersistedStoreState, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 
 const bypassMap: Record<string, string> = {
     emojisEverywhere: "emojiBypass",
@@ -35,7 +35,8 @@ export default {
 
         patcher.instead(AppIcon, "render", (_, [args], callback) => {
             const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-            if (desktopIcon == "AppIcon") {
+            if (desktopIcon == "AppIcon" || SelectedGuildStore.getGuildId() != undefined || SelectedGuildStore.getGuildId() != undefined) {
+                // funny bug with dms
                 return callback(args)
             } else {
                 return <CustomAppIcon size={40} id={SettingsStore.get("appIcon")}/>
