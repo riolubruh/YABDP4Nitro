@@ -2,8 +2,12 @@ import {BetterDiscord} from "@shared/*";
 import {getKey, wpGet} from "../../global/webpack";
 const {React} = BetterDiscord;
 
-const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource('originGuildId', 'initialTabSection', 'UserProfileModalV2', 'profileFrameOverride');
+const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
+function CustomSettingsTab()
+{
+    return <div>uwu ;3</div>
+}
 
 export default {
     name: "User Profile V2",
@@ -11,13 +15,26 @@ export default {
     ids: undefined,
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
-        const module = getKey(wpGet(GLOBAL_FILTER, {raw:true}).declarations, BetterDiscord.Webpack.Filters.bySource('originGuildId', 'initialTabSection', 'UserProfileModalV2', 'profileFrameOverride'));
-        console.log(module);
-        return;
+        const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw:true}).declarations
+        const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
+        const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
-        patcher.after(module, key, (_, props, res) => {
-            console.log(props);
-            console.log(res);
+        patcher.after(module.module, module.key, (a,[args],callback) => {
+            if (args.section == "YABDP4Nitro") {
+                return <CustomSettingsTab/>
+            }
+
+            return callback
         });
+
+        patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a,[args],res) => {
+            if (args?.items && args.items.find(x => x.text.includes("YABD"))) return;
+
+            args.items.push({
+                text: "YABDP4Nitro",
+                section: "YABDP4Nitro",
+            })
+        })
+        return;
     }
 }
