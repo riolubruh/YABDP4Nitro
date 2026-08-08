@@ -1,12 +1,14 @@
 import {BetterDiscord} from "@shared/*";
+import {AccentColors} from "../../ui";
 import {getKey, wpGet} from "../../global/webpack";
+
 const {React} = BetterDiscord;
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
 function CustomSettingsTab()
 {
-    return <div>uwu ;3</div>
+    return <AccentColors />
 }
 
 export default {

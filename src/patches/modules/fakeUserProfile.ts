@@ -45,7 +45,7 @@ export default {
             const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
             const guildId = SelectedGuildStore.getGuildId();
 
-            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
+            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
 
             const userBio = ret?.bio
             if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {

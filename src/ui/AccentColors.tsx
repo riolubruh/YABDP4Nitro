@@ -42,7 +42,7 @@ export default function AccentColors(){
                 marginTop: "10px"
             }}
             onClick={()=>{
-                copyToClipboard(secondsightifyEncodeOnly(`[${primary},${accent}]`, "3y3 copied to clipboard!"))
+                copyToClipboard(secondsightifyEncodeOnly(`[${primary},${accent}]`), "3y3 copied to clipboard!");
             }}
         >
             Copy Colors 3y3

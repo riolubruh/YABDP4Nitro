@@ -18,10 +18,10 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __toESM = (mod, isNodeMode, target) => {
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key2 of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key2))
-      __defProp(to, key2, {
-        get: () => mod[key2],
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
         enumerable: true
       });
   return to;
@@ -33,9 +33,9 @@ var __toCommonJS = (from) => {
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
   if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key2) => !__hasOwnProp.call(entry, key2) && __defProp(entry, key2, {
-      get: () => from[key2],
-      enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
     }));
   __moduleCache.set(from, entry);
   return entry;
@@ -111,8 +111,8 @@ var require_safe_buffer = __commonJS((exports2, module2) => {
   var buffer = require("buffer");
   var Buffer2 = buffer.Buffer;
   function copyProps(src, dst) {
-    for (var key2 in src) {
-      dst[key2] = src[key2];
+    for (var key in src) {
+      dst[key] = src[key];
     }
   }
   if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
@@ -888,8 +888,8 @@ var require__stream_duplex = __commonJS((exports2, module2) => {
   var pna = require_process_nextick_args();
   var objectKeys = Object.keys || function(obj) {
     var keys2 = [];
-    for (var key2 in obj) {
-      keys2.push(key2);
+    for (var key in obj) {
+      keys2.push(key);
     }
     return keys2;
   };
@@ -3129,17 +3129,17 @@ var require_GenericWorker = __commonJS((exports2, module2) => {
     processChunk: function(chunk) {
       this.push(chunk);
     },
-    withStreamInfo: function(key2, value) {
-      this.extraStreamInfo[key2] = value;
+    withStreamInfo: function(key, value) {
+      this.extraStreamInfo[key] = value;
       this.mergeStreamInfo();
       return this;
     },
     mergeStreamInfo: function() {
-      for (var key2 in this.extraStreamInfo) {
-        if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key2)) {
+      for (var key in this.extraStreamInfo) {
+        if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key)) {
           continue;
         }
-        this.streamInfo[key2] = this.extraStreamInfo[key2];
+        this.streamInfo[key] = this.extraStreamInfo[key];
       }
     },
     lock: function() {
@@ -3829,8 +3829,8 @@ var require_zipObject = __commonJS((exports2, module2) => {
 // node_modules/pako/lib/utils/common.js
 var require_common = __commonJS((exports2) => {
   var TYPED_OK = typeof Uint8Array !== "undefined" && typeof Uint16Array !== "undefined" && typeof Int32Array !== "undefined";
-  function _has(obj, key2) {
-    return Object.prototype.hasOwnProperty.call(obj, key2);
+  function _has(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
   }
   exports2.assign = function(obj) {
     var sources = Array.prototype.slice.call(arguments, 1);
@@ -9350,6 +9350,13 @@ function secondsightifyRevealOnly(t) {
     return;
   }
 }
+function secondsightifyEncodeOnly(t) {
+  if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
+    return;
+  } else {
+    return ((t2) => [...t2].map((x) => 0 < x.codePointAt(0) && x.codePointAt(0) < 127 ? String.fromCodePoint(x.codePointAt(0) + 917504) : x).join(""))(t);
+  }
+}
 function shouldSkipEmojiBypass(emoji, currentChannelId) {
   const shouldAlwaysUseEmojiBypass = SettingsStore_default.get("emojiBypassForValidEmoji");
   return emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet || shouldAlwaysUseEmojiBypass && (SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available || emoji.managed);
@@ -9505,7 +9512,7 @@ var fakeUserProfile_default = {
       BadgesStore_default.isImportant(userId) && BadgesStore_default.add(userId);
       const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
       const guildId = SelectedGuildStore2.getGuildId();
-      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
+      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
       const userBio = ret?.bio;
       if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
         BadgesStore_default.add(userId);
@@ -9625,8 +9632,8 @@ var allowClips_default = {
     areClipsEnabled: (x) => x.toString().includes("areClipsEnabled")
   },
   apply(finale, patcher) {
-    Object.entries(finale.mangled).map(([key2, value]) => {
-      patcher.instead(finale.mangled, key2, () => true);
+    Object.entries(finale.mangled).map(([key, value]) => {
+      patcher.instead(finale.mangled, key, () => true);
     });
     ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, () => true));
   }
@@ -9821,7 +9828,7 @@ function queryToFilter(query) {
 function resolveModule(filter, options) {
   const opts = options ?? {};
   if (opts.declaration) {
-    const { declaration, key: key2, raw, ...rest } = opts;
+    const { declaration, key, raw, ...rest } = opts;
     const result = Webpack.getMangled(filter, { __value: declaration }, {
       ...rest,
       mapDeclarations: true
@@ -9874,7 +9881,7 @@ function wpGetByKeys(keys, options) {
   return resolveModule(Webpack.Filters.byKeys(...keys), options);
 }
 function wpGetBulkKeyed(queries) {
-  return Object.fromEntries(Object.entries(queries).map(([key2, query]) => [key2, resolveQuery(query)]));
+  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
 }
 var PASSTHROUGH_PROPS = new Set([
   "then",
@@ -9943,9 +9950,9 @@ function wpGetProxy(filter, options) {
   return createLiveProxy(filter, options, []);
 }
 function getKey(module2, fn) {
-  for (const key2 in module2) {
-    if (fn(module2[key2]))
-      return { key: key2, module: module2 };
+  for (const key in module2) {
+    if (fn(module2[key]))
+      return { key, module: module2 };
   }
 }
 
@@ -10180,14 +10187,14 @@ function mergeIconTransformations(obj1, obj2) {
 }
 function mergeIconData(parent, child) {
   const result = mergeIconTransformations(parent, child);
-  for (const key2 in defaultExtendedIconProps)
-    if (key2 in defaultIconTransformations) {
-      if (key2 in parent && !(key2 in result))
-        result[key2] = defaultIconTransformations[key2];
-    } else if (key2 in child)
-      result[key2] = child[key2];
-    else if (key2 in parent)
-      result[key2] = parent[key2];
+  for (const key in defaultExtendedIconProps)
+    if (key in defaultIconTransformations) {
+      if (key in parent && !(key in result))
+        result[key] = defaultIconTransformations[key];
+    } else if (key in child)
+      result[key] = child[key];
+    else if (key in parent)
+      result[key] = parent[key];
   return result;
 }
 function internalGetIconData(data, name, tree) {
@@ -11243,14 +11250,14 @@ var loadIcons = (icons, callback) => {
 };
 function mergeCustomisations(defaults, item) {
   const result = { ...defaults };
-  for (const key2 in item) {
-    const value = item[key2];
+  for (const key in item) {
+    const value = item[key];
     const valueType = typeof value;
-    if (key2 in defaultIconSizeCustomisations) {
+    if (key in defaultIconSizeCustomisations) {
       if (value === null || value && (valueType === "string" || valueType === "number"))
-        result[key2] = value;
-    } else if (valueType === typeof result[key2])
-      result[key2] = key2 === "rotate" ? value % 4 : value;
+        result[key] = value;
+    } else if (valueType === typeof result[key])
+      result[key] = key === "rotate" ? value % 4 : value;
   }
   return result;
 }
@@ -11392,12 +11399,12 @@ var render = (icon, props, name) => {
       componentProps.className = classNames.join(" ");
     }
   }
-  for (let key2 in props) {
-    const value = props[key2];
+  for (let key in props) {
+    const value = props[key];
     if (value === undefined) {
       continue;
     }
-    switch (key2) {
+    switch (key) {
       case "icon":
       case "style":
       case "children":
@@ -11410,12 +11417,12 @@ var render = (icon, props, name) => {
         componentProps.ref = value;
         break;
       case "className":
-        componentProps[key2] = (componentProps[key2] ? componentProps[key2] + " " : "") + value;
+        componentProps[key] = (componentProps[key] ? componentProps[key] + " " : "") + value;
         break;
       case "inline":
       case "hFlip":
       case "vFlip":
-        customisations[key2] = value === true || value === "true" || value === 1;
+        customisations[key] = value === true || value === "true" || value === 1;
         break;
       case "flip":
         if (typeof value === "string") {
@@ -11427,9 +11434,9 @@ var render = (icon, props, name) => {
         break;
       case "rotate":
         if (typeof value === "string") {
-          customisations[key2] = rotateFromString(value);
+          customisations[key] = rotateFromString(value);
         } else if (typeof value === "number") {
-          customisations[key2] = value;
+          customisations[key] = value;
         }
         break;
       case "ariaHidden":
@@ -11439,8 +11446,8 @@ var render = (icon, props, name) => {
         }
         break;
       default:
-        if (defaultProps[key2] === undefined) {
-          componentProps[key2] = value;
+        if (defaultProps[key] === undefined) {
+          componentProps[key] = value;
         }
     }
   }
@@ -11505,14 +11512,14 @@ if (typeof document !== "undefined" && typeof window !== "undefined") {
   if (_window.IconifyProviders !== undefined) {
     const providers = _window.IconifyProviders;
     if (typeof providers === "object" && providers !== null) {
-      for (let key2 in providers) {
-        const err = "IconifyProviders[" + key2 + "] is invalid.";
+      for (let key in providers) {
+        const err = "IconifyProviders[" + key + "] is invalid.";
         try {
-          const value = providers[key2];
+          const value = providers[key];
           if (typeof value !== "object" || !value || value.resources === undefined) {
             continue;
           }
-          if (!addAPIProvider(key2, value)) {
+          if (!addAPIProvider(key, value)) {
             console.error(err);
           }
         } catch (e) {
@@ -12100,18 +12107,18 @@ var FIELD_MAP = {
 var StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
 function ConfigModal({ props, onClose, forceQuality }) {
   const [data, setData] = React5.useState(() => SettingsStore_default.getAll());
-  const commit = (key2, value) => {
-    SettingsStore_default.set(key2, value);
-    setData((prev) => ({ ...prev, [key2]: value }));
-    const type = TYPE_MAP[key2];
-    const field = FIELD_MAP[key2];
+  const commit = (key, value) => {
+    SettingsStore_default.set(key, value);
+    setData((prev) => ({ ...prev, [key]: value }));
+    const type = TYPE_MAP[key];
+    const field = FIELD_MAP[key];
     if (!type || !field) {
       return;
     }
     forceQuality(type, { [field]: value });
   };
   const applyMode = (patch) => {
-    Object.entries(patch).forEach(([key2, value]) => SettingsStore_default.set(key2, value));
+    Object.entries(patch).forEach(([key, value]) => SettingsStore_default.set(key, value));
     setData((prev) => ({ ...prev, ...patch }));
     if ("CustomResolution" in patch) {
       forceQuality("set_resolution", { resolution: patch.CustomResolution });
@@ -12135,14 +12142,14 @@ function ConfigModal({ props, onClose, forceQuality }) {
   }, /* @__PURE__ */ React5.createElement(ModeRow, null, MODES.map(({ label, patch }) => /* @__PURE__ */ React5.createElement(Components.Button, {
     key: label,
     onClick: () => applyMode(patch)
-  }, label))), /* @__PURE__ */ React5.createElement(ModalBody, null, fields.map(({ key: key2, label }) => /* @__PURE__ */ React5.createElement(FieldWrapper, {
-    key: key2
+  }, label))), /* @__PURE__ */ React5.createElement(ModalBody, null, fields.map(({ key, label }) => /* @__PURE__ */ React5.createElement(FieldWrapper, {
+    key
   }, /* @__PURE__ */ React5.createElement(FieldLabel, {
-    htmlFor: `yabd-${key2}`
+    htmlFor: `yabd-${key}`
   }, label), /* @__PURE__ */ React5.createElement(Components.NumberInput, {
-    id: `yabd-${key2}`,
-    value: data[key2],
-    onChange: (val) => commit(key2, val)
+    id: `yabd-${key}`,
+    value: data[key],
+    onChange: (val) => commit(key, val)
   })))));
 }
 function openConfigModal(forceQuality) {
@@ -12212,21 +12219,76 @@ var goLiveModal_default = {
     });
   }
 };
+// src/ui/AccentColors.tsx
+var { UserProfileStore: UserProfileStore3, UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
+var { React: React6, Components: Components2 } = BetterDiscord;
+function AccentColors() {
+  const CurrentUser = UserStore3.getCurrentUser();
+  const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
+  const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#000000");
+  const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#000000");
+  return /* @__PURE__ */ React6.createElement("div", null, /* @__PURE__ */ React6.createElement(Components2.Text, {
+    style: {
+      fontSize: "14px",
+      fontWeight: "var(--font-weight-bold)"
+    }
+  }, "Primary"), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
+    value: primary,
+    defaultValue: "#000000",
+    disabled: false,
+    onChange: (e) => setPrimary(e)
+  }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Text, {
+    style: {
+      fontSize: "14px",
+      fontWeight: "var(--font-weight-bold)"
+    }
+  }, "Accent"), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
+    value: accent,
+    defaultValue: "#000000",
+    disabled: false,
+    onChange: (e) => setAccent(e)
+  }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Button, {
+    className: "yabd-generic-button",
+    style: {
+      height: "32px",
+      width: "auto",
+      marginTop: "10px"
+    },
+    onClick: () => {
+      copyToClipboard(secondsightifyEncodeOnly(`[${primary},${accent}]`), "3y3 copied to clipboard!");
+    }
+  }, "Copy Colors 3y3"));
+}
 // src/patches/modules/UserProfileV2.tsx
-var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource("originGuildId", "initialTabSection", "UserProfileModalV2", "profileFrameOverride");
+var { React: React7 } = BetterDiscord;
+var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+function CustomSettingsTab() {
+  return /* @__PURE__ */ React7.createElement(AccentColors, null);
+}
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
   ids: undefined,
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
-    const module2 = getKey(wpGet(GLOBAL_FILTER, { raw: true }).declarations, BetterDiscord.Webpack.Filters.bySource("originGuildId", "initialTabSection", "UserProfileModalV2", "profileFrameOverride"));
-    console.log(module2);
-    return;
-    patcher.after(module2, key, (_, props, res) => {
-      console.log(props);
-      console.log(res);
+    const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
+    const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
+    const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
+    patcher.after(module2.module, module2.key, (a, [args], callback) => {
+      if (args.section == "YABDP4Nitro") {
+        return /* @__PURE__ */ React7.createElement(CustomSettingsTab, null);
+      }
+      return callback;
     });
+    patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
+      if (args?.items && args.items.find((x) => x.text.includes("YABD")))
+        return;
+      args.items.push({
+        text: "YABDP4Nitro",
+        section: "YABDP4Nitro"
+      });
+    });
+    return;
   }
 };
 // src/patches/contextMenus/index.ts
@@ -12239,7 +12301,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React6 } = BetterDiscord;
+var { React: React8 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -12268,16 +12330,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React6.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React8.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React6.createElement(Icon, {
+      icon: /* @__PURE__ */ React8.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React6.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React6.createElement(ContextMenuLabel, null), /* @__PURE__ */ React6.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React8.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React8.createElement(ContextMenuLabel, null), /* @__PURE__ */ React8.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React6.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React8.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -12314,13 +12376,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore3.getCurrentUser().id;
+    const currentUserId = UserStore4.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -12485,8 +12547,8 @@ function startChangelog() {
 }
 
 // src/index.tsx
-var { Components: Components2 } = BetterDiscord;
-var { React: React7 } = BetterDiscord;
+var { Components: Components3 } = BetterDiscord;
+var { React: React9 } = BetterDiscord;
 var SettingBlacklist = [
   "userSharpenPreferences",
   "customUserThemeSettings",
@@ -12646,34 +12708,34 @@ class Plugin {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
   }
-  renderControl(key2, value) {
-    const onChange = (v) => SettingsStore_default.set(key2, v);
-    if (SelectOptions[key2]) {
-      return /* @__PURE__ */ React7.createElement(Components2.SwitchInput, {
+  renderControl(key, value) {
+    const onChange = (v) => SettingsStore_default.set(key, v);
+    if (SelectOptions[key]) {
+      return /* @__PURE__ */ React9.createElement(Components3.SwitchInput, {
         value,
-        options: SelectOptions[key2],
+        options: SelectOptions[key],
         onChange
       });
     }
     switch (typeof value) {
       case "boolean":
-        return /* @__PURE__ */ React7.createElement(Components2.SwitchInput, {
+        return /* @__PURE__ */ React9.createElement(Components3.SwitchInput, {
           value,
           onChange
         });
       case "number":
       case "bigint":
-        return /* @__PURE__ */ React7.createElement(Components2.NumberInput, {
+        return /* @__PURE__ */ React9.createElement(Components3.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React7.createElement(Components2.TextInput, {
+        return /* @__PURE__ */ React9.createElement(Components3.TextInput, {
           value,
           onChange
         });
       default:
-        return /* @__PURE__ */ React7.createElement(Components2.TextInput, {
+        return /* @__PURE__ */ React9.createElement(Components3.TextInput, {
           value: JSON.stringify(value),
           disabled: true
         });
@@ -12683,14 +12745,14 @@ class Plugin {
     return () => {
       const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => {
         const all = SettingsStore_default.getAll();
-        return Object.keys(all).filter((key2) => !SettingBlacklist.includes(key2)).reduce((acc, key2) => {
-          acc[key2] = all[key2];
+        return Object.keys(all).filter((key) => !SettingBlacklist.includes(key)).reduce((acc, key) => {
+          acc[key] = all[key];
           return acc;
         }, {});
       });
-      const grouped = Object.entries(settings).reduce((acc, [key2, value]) => {
-        const category = SettingCategories[key2] ?? "General";
-        (acc[category] ??= []).push([key2, value]);
+      const grouped = Object.entries(settings).reduce((acc, [key, value]) => {
+        const category = SettingCategories[key] ?? "General";
+        (acc[category] ??= []).push([key, value]);
         return acc;
       }, {});
       const categoryNames = Object.keys(grouped).sort((a, b) => {
@@ -12704,17 +12766,17 @@ class Plugin {
           return -1;
         return ai - bi;
       });
-      return /* @__PURE__ */ React7.createElement(React7.Fragment, null, categoryNames.map((category) => /* @__PURE__ */ React7.createElement(Components2.SettingGroup, {
+      return /* @__PURE__ */ React9.createElement(React9.Fragment, null, categoryNames.map((category) => /* @__PURE__ */ React9.createElement(Components3.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, grouped[category].map(([key2, value]) => {
-        const meta = map[key2] ?? { label: key2, note: "" };
-        return /* @__PURE__ */ React7.createElement(Components2.SettingItem, {
-          key: key2,
+      }, grouped[category].map(([key, value]) => {
+        const meta = map[key] ?? { label: key, note: "" };
+        return /* @__PURE__ */ React9.createElement(Components3.SettingItem, {
+          key,
           name: meta.label,
           note: meta.note
-        }, this.renderControl(key2, value));
+        }, this.renderControl(key, value));
       }))));
     };
   }
