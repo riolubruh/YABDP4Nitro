@@ -1,14 +1,21 @@
 import {BetterDiscord} from "@shared/*";
 import {AccentColors} from "../../ui";
 import {getKey, wpGet} from "../../global/webpack";
+import {styled} from "@utils/*";
 
 const {React} = BetterDiscord;
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
+const Margin = styled.div({
+    marginBottom: "10px"
+})
+
 function CustomSettingsTab()
 {
-    return <AccentColors />
+    return <Margin>
+        <AccentColors />
+    </Margin>
 }
 
 export default {
