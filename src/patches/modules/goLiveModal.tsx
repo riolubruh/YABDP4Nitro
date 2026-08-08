@@ -1,7 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import GoLiveStore from "../../global/stores/GoLiveStore.ts";
 import {GlobalModules} from "@global/*";
-import {wpFilter, wpGetByKeys, wpGetBySource, wpGetProxy} from "../../global/webpack";
+import {wpFilter, wpGetByKeys, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
@@ -102,7 +102,7 @@ const FIELD_MAP = {
     voiceBitrate: "voiceBitrate",
 };
 
-const StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"),{raw:true})
+const StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), {raw: true})
 
 function ConfigModal({props, onClose, forceQuality}) {
     const [data, setData] = React.useState(() => SettingsStore.getAll());
@@ -207,11 +207,9 @@ const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource('GO_LIVE_MODAL_V2', '
 export default {
     name: "goLiveModal",
     description: "Streaming modal customization.",
-    ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'),{raw:true}).then(x => x.id)],
+    ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'), {raw: true}).then(x => x.id)],
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
-        console.log(finale.ids);
-
         this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
             const config = GoLiveStore.getConfig();
 
@@ -231,26 +229,24 @@ export default {
         const validatorMod = BetterDiscord.Webpack.getById(327649, {raw: true});
         patcher.instead(validatorMod.declarations, "o", () => true);
 
-        BetterDiscord.Webpack.waitForModule(LIVE_FILTER).then(() => {
-            patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-                const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footerContent"));
-                if (!footer) return ret;
+        patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+            const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footerContent"));
+            if (!footer) return ret;
 
-                const doesExist = BetterDiscord.Utils.findInTree(footer, x => String(x?.key).includes("gay"));
-                if (!doesExist)
-                    footer.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
+            const doesExist = BetterDiscord.Utils.findInTree(footer, x => String(x?.key).includes("gay"));
+            if (!doesExist)
+                footer.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
 
-                const originalChildren = footer.children;
+            const originalChildren = footer.children;
 
-                footer.children = (
-                    <FooterColumn>
-                        <FooterRow>
-                            {originalChildren}
-                        </FooterRow>
-                    </FooterColumn>
-                );
-                return ret;
-            });
-        })
+            footer.children = (
+                <FooterColumn>
+                    <FooterRow>
+                        {originalChildren}
+                    </FooterRow>
+                </FooterColumn>
+            );
+            return ret;
+        });
     }
 }

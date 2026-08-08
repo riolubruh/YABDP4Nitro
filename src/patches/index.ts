@@ -16,13 +16,20 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
     }));
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+    return Promise.race([
+        p,
+        new Promise<T>((_, rej) => setTimeout(() => rej(new Error(`timeout waiting for ${label}`)), ms)),
+    ]);
+}
+
 async function loadPatch(patch: Patch) {
     const finale: Record<string, any> = {};
 
     const [ids, waitModules] = await Promise.all([
         resolveIds(patch.ids),
         Array.isArray(patch.waitFor)
-            ? Promise.all(patch.waitFor.map(x => BetterDiscord.Webpack.waitForModule(x)))
+            ? Promise.all(patch.waitFor.map(x => withTimeout(BetterDiscord.Webpack.waitForModule(x), 10000, patch.name)))
             : undefined,
     ]);
 
