@@ -35,7 +35,7 @@ export default {
 
         patcher.instead(AppIcon, "render", (_, [args], callback) => {
             const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-            if (desktopIcon == "AppIcon" || SelectedGuildStore.getGuildId() != undefined || SelectedGuildStore.getGuildId() != undefined) {
+            if (desktopIcon == "AppIcon" || SelectedGuildStore.getGuildId() == undefined) {
                 // funny bug with dms
                 return callback(args)
             } else {
