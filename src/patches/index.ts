@@ -1,35 +1,54 @@
-import {BetterDiscord} from "@shared/";
+import {BetterDiscord} from "@shared/*";
 
-import * as modules from "./modules"
-import * as contextMenus from "./contextMenus"
+import * as modules from "./modules";
+import * as contextMenus from "./contextMenus";
 
-import type {Patch} from "../types/patches";
+import type {Ids, Patch} from "../types/patches";
 
 const PatcherAPI = new BdApi("Patcher");
 
-export async function loadPatches()
-{
+async function resolveIds(ids?: Ids): Promise<number[]> {
+    if (!ids) return [];
+    const entries = typeof ids === "function" ? await ids() : ids;
+    return Promise.all(entries.map(async entry => {
+        const id = typeof entry === "function" ? await entry() : entry;
+        return BetterDiscord.Utils.forceLoad(id);
+    }));
+}
+
+async function loadPatch(patch: Patch) {
+    const finale: Record<string, any> = {};
+
+    const [ids, waitModules] = await Promise.all([
+        resolveIds(patch.ids),
+        Array.isArray(patch.waitFor)
+            ? Promise.all(patch.waitFor.map(x => BetterDiscord.Webpack.waitForModule(x)))
+            : undefined,
+    ]);
+
+    if (ids.length) finale.ids = ids;
+    if (waitModules) finale.modules = waitModules;
+
+    if (patch.mangled) {
+        finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor![0], patch.mangled);
+    }
+
+    return finale;
+}
+
+export async function loadPatches() {
+    const patches = Object.values(modules) as Patch[];
     const loaded: Patch[] = [];
 
-    for (const [path, module] of Object.entries(modules)) {
-        const Patch: Patch = module;
-        const finale: Record<string, any> = {};
-
-        if (Array.isArray(Patch.ids)) {
-            finale.ids = await Promise.all(Patch.ids.map(x => BetterDiscord.Utils.forceLoad(x)));
+    await Promise.allSettled(patches.map(async patch => {
+        try {
+            const finale = await loadPatch(patch);
+            patch.apply(finale, PatcherAPI.Patcher);
+            loaded.push(patch);
+        } catch (e) {
+            console.error(`[Patcher] "${patch.name}" failed`, e);
         }
-
-        if (Array.isArray(Patch.waitFor)) {
-            finale.modules = await Promise.all(Patch.waitFor.map(x => BetterDiscord.Webpack.waitForModule(x)));
-        }
-
-        if (Patch.mangled) {
-            finale.mangled = BetterDiscord.Webpack.getMangled(Patch.waitFor[0], Patch.mangled)
-        }
-
-        Patch.apply(finale, PatcherAPI.Patcher);
-        loaded.push(Patch);
-    }
+    }));
 
     return () => {
         for (const patch of loaded) patch.revert?.();
@@ -37,17 +56,15 @@ export async function loadPatches()
     };
 }
 
-export function loadContextMenus()
-{
-    const loaded = [];
+export function loadContextMenus() {
+    const loaded: (() => void)[] = [];
 
-    for (const [path, module] of Object.entries(contextMenus)) {
-        const patch = BetterDiscord.ContextMenu.patch(module.id, (res, props) => module.callback(res, props))
-
+    for (const module of Object.values(contextMenus) as any[]) {
+        const patch = BetterDiscord.ContextMenu.patch(module.id, (res, props) => module.callback(res, props));
         loaded.push(patch);
     }
 
     return () => {
         for (const patch of loaded) patch?.();
-    }
+    };
 }

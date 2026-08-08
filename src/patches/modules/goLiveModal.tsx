@@ -207,9 +207,11 @@ const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource('GO_LIVE_MODAL_V2', '
 export default {
     name: "goLiveModal",
     description: "Streaming modal customization.",
-    ids: undefined,
+    ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'),{raw:true}).then(x => x.id)],
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
+        console.log(finale.ids);
+
         this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
             const config = GoLiveStore.getConfig();
 
@@ -226,7 +228,7 @@ export default {
             return false;
         });
 
-        const validatorMod = BdApi.Webpack.getById(327649, {raw: true});
+        const validatorMod = BetterDiscord.Webpack.getById(327649, {raw: true});
         patcher.instead(validatorMod.declarations, "o", () => true);
 
         BetterDiscord.Webpack.waitForModule(LIVE_FILTER).then(() => {
@@ -250,5 +252,5 @@ export default {
                 return ret;
             });
         })
-    },
+    }
 }
