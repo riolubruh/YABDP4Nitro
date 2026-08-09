@@ -4,6 +4,7 @@ import SettingsStore, {defaultSettings} from "./global/stores/SettingsStore.ts";
 import {startChangelog} from "./global/changelog";
 import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import {GlobalModules} from "@global/*";
+import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -466,6 +467,13 @@ export default class Plugin {
         await loadPatches();
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
+        // GlobalModules.Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", (data) => {
+        //     ShopCollectiblesStore.set(data)
+        //     console.log(data)
+        // })
+        // not needed because aamia is a goddess.
+
+        window.store = ShopCollectiblesStore;
     }
 
     checkUpdate() {

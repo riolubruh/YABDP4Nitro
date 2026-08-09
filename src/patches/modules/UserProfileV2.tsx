@@ -5,6 +5,7 @@ import {styled} from "@utils/*";
 import {Separator, SepWithText} from "../../ui/Sep.tsx";
 
 const {React} = BetterDiscord;
+const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
@@ -43,6 +44,7 @@ export default {
         });
 
         patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a,[args],res) => {
+            if (args.displayProfile.userId != UserStore.getCurrentUser().id) return res;
             if (args?.items && args.items.find(x => x.text.includes("YABD"))) return;
 
             args.items.push({
