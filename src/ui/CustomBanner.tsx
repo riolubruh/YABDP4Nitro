@@ -2,7 +2,7 @@ import {BetterDiscord} from "@shared/";
 import {copyToClipboard, getDirectImgurHash, secondsightifyEncodeOnly} from "@utils/*";
 const {React, Components} = BetterDiscord;
 
-export default function CustomPFP(){
+export default function CustomBanner(){
     const [url, setUrl] = React.useState("");
 
     function handleClick(){
@@ -12,12 +12,12 @@ export default function CustomPFP(){
         }
         let hash = getDirectImgurHash(url);
 
-        copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`));
+        copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`));
     }
 
     return <div>
         <Components.TextInput
-            placeholder={"PFP Imgur URL"}
+            placeholder={"Banner Imgur URL"}
             onChange={e=> setUrl(e)}
         />
         <Components.Button
@@ -27,7 +27,7 @@ export default function CustomPFP(){
                 marginTop: "10px",
             }}
         >
-        Copy PFP 3y3
+        Copy Banner 3y3
         </Components.Button>
 
     </div>

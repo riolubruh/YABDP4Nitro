@@ -12247,7 +12247,7 @@ function AccentColors() {
       fontSize: "14px",
       fontWeight: "var(--font-weight-bold)"
     }
-  }, "Accent"), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
+  }, "Accent"), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
     value: accent,
     defaultValue: accent,
     disabled: false,
@@ -12281,17 +12281,51 @@ function CustomPFP() {
     onChange: (e) => setUrl(e)
   }), /* @__PURE__ */ React7.createElement(Components3.Button, {
     onClick: handleClick,
-    disabled: url == ""
+    disabled: url == "",
+    style: {
+      marginTop: "10px"
+    }
   }, "Copy PFP 3y3"));
 }
+// src/ui/CustomBanner.tsx
+var { React: React8, Components: Components4 } = BetterDiscord;
+function CustomBanner() {
+  const [url, setUrl] = React8.useState("");
+  function handleClick() {
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
+      return;
+    }
+    let hash = getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`));
+  }
+  return /* @__PURE__ */ React8.createElement("div", null, /* @__PURE__ */ React8.createElement(Components4.TextInput, {
+    placeholder: "Banner Imgur URL",
+    onChange: (e) => setUrl(e)
+  }), /* @__PURE__ */ React8.createElement(Components4.Button, {
+    onClick: handleClick,
+    disabled: url == "",
+    style: {
+      marginTop: "10px"
+    }
+  }, "Copy Banner 3y3"));
+}
+// src/ui/Sep.tsx
+var Separator = styled.div({
+  width: "100%",
+  height: "2px",
+  margin: "10px 0",
+  background: "white"
+});
+
 // src/patches/modules/UserProfileV2.tsx
-var { React: React8 } = BetterDiscord;
+var { React: React9 } = BetterDiscord;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Margin = styled.div({
-  marginBottom: "10px"
+  marginBottom: "-50px"
 });
 function CustomSettingsTab() {
-  return /* @__PURE__ */ React8.createElement(Margin, null, /* @__PURE__ */ React8.createElement(AccentColors, null), /* @__PURE__ */ React8.createElement(CustomPFP, null));
+  return /* @__PURE__ */ React9.createElement(Margin, null, /* @__PURE__ */ React9.createElement(AccentColors, null), /* @__PURE__ */ React9.createElement(Separator, null), /* @__PURE__ */ React9.createElement(CustomPFP, null), /* @__PURE__ */ React9.createElement(Separator, null), /* @__PURE__ */ React9.createElement(CustomBanner, null));
 }
 var UserProfileV2_default = {
   name: "User Profile V2",
@@ -12304,7 +12338,7 @@ var UserProfileV2_default = {
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
-        return /* @__PURE__ */ React8.createElement(CustomSettingsTab, null);
+        return /* @__PURE__ */ React9.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
@@ -12329,7 +12363,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React9 } = BetterDiscord;
+var { React: React10 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -12358,16 +12392,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React9.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React10.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React9.createElement(Icon, {
+      icon: /* @__PURE__ */ React10.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React9.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React9.createElement(ContextMenuLabel, null), /* @__PURE__ */ React9.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React10.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React10.createElement(ContextMenuLabel, null), /* @__PURE__ */ React10.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React9.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React10.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -12575,8 +12609,8 @@ function startChangelog() {
 }
 
 // src/index.tsx
-var { Components: Components4 } = BetterDiscord;
-var { React: React10 } = BetterDiscord;
+var { Components: Components5 } = BetterDiscord;
+var { React: React11 } = BetterDiscord;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -13017,22 +13051,22 @@ class Plugin {
     const onChange = (v) => SettingsStore_default.set(def.key, v);
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React10.createElement(Components4.SwitchInput, {
+        return /* @__PURE__ */ React11.createElement(Components5.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React10.createElement(Components4.NumberInput, {
+        return /* @__PURE__ */ React11.createElement(Components5.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React10.createElement(Components4.TextInput, {
+        return /* @__PURE__ */ React11.createElement(Components5.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React10.createElement(Components4.DropdownInput, {
+        return /* @__PURE__ */ React11.createElement(Components5.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -13052,11 +13086,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React10.createElement(React10.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React10.createElement(Components4.SettingGroup, {
+      return /* @__PURE__ */ React11.createElement(React11.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React11.createElement(Components5.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React10.createElement(Components4.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React11.createElement(Components5.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note

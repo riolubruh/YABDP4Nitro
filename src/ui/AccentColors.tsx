@@ -13,9 +13,9 @@ export default function AccentColors(){
     return <div>
         <Components.Text
             style={{
-            fontSize: "14px",
-            fontWeight: "var(--font-weight-bold)"
-        }}>Primary</Components.Text>
+                fontSize: "14px",
+                fontWeight: "var(--font-weight-bold)"
+            }}>Primary</Components.Text>
         <Components.ColorInput
             value={primary}
             defaultValue={primary}
@@ -27,7 +27,7 @@ export default function AccentColors(){
                 fontSize: "14px",
                 fontWeight: "var(--font-weight-bold)"
             }}>Accent
-        </Components.Text><br/>
+        </Components.Text>
         <Components.ColorInput
             value={accent}
             defaultValue={accent}
