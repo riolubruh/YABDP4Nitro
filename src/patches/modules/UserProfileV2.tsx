@@ -2,7 +2,7 @@ import {BetterDiscord} from "@shared/*";
 import {AccentColors, CustomBanner, CustomPFP} from "../../ui";
 import {getKey, wpGet} from "../../global/webpack";
 import {styled} from "@utils/*";
-import {Separator} from "../../ui/Sep.tsx";
+import {Separator, SepWithText} from "../../ui/Sep.tsx";
 
 const {React} = BetterDiscord;
 
@@ -15,10 +15,11 @@ const Margin = styled.div({
 function CustomSettingsTab()
 {
     return <Margin>
+        <SepWithText>Custom Theme Colors</SepWithText>
         <AccentColors />
-        <Separator/>
+        <SepWithText>Custom PFP</SepWithText>
         <CustomPFP/>
-        <Separator/>
+        <SepWithText>Custom Banner</SepWithText>
         <CustomBanner/>
     </Margin>
 }
