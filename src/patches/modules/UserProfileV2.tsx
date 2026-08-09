@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {AccentColors} from "../../ui";
+import {AccentColors, CustomPFP} from "../../ui";
 import {getKey, wpGet} from "../../global/webpack";
 import {styled} from "@utils/*";
 
@@ -15,6 +15,7 @@ function CustomSettingsTab()
 {
     return <Margin>
         <AccentColors />
+        <CustomPFP/>
     </Margin>
 }
 

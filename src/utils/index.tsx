@@ -219,6 +219,7 @@ export const EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
 export const EMOJI_URL_REGEX = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?(?=$| )/gi;
 export const HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
 export const BANNER_REGEX = /B\{[^}]*?\}/;
+export const IMGUR_URL_REGEX = /https?:\/\/i\.imgur\.com\/(\w+)\.(?:jpe?g|png|gif|webp)/;
 
 export function getBannerUrl(userId: string) {
     const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
@@ -226,4 +227,9 @@ export function getBannerUrl(userId: string) {
     const matched = match?.slice(2, -1);
 
     return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore.format(userId);
+}
+
+export async function getDirectImgurHash(url: string){
+    const res = await (await BetterDiscord.Net.fetch(url)).text();
+    return res.match(IMGUR_URL_REGEX)?.[1];
 }

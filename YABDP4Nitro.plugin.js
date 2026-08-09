@@ -9425,11 +9425,16 @@ var EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jp
 var EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
 var HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
 var BANNER_REGEX = /B\{[^}]*?\}/;
+var IMGUR_URL_REGEX = /https?:\/\/i\.imgur\.com\/(\w+)\.(?:jpe?g|png|gif|webp)/;
 function getBannerUrl(userId) {
   const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
   const match = parsed?.match(BANNER_REGEX)?.[0];
   const matched = match?.slice(2, -1);
   return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(userId);
+}
+async function getDirectImgurHash(url) {
+  const res = await (await BetterDiscord.Net.fetch(url)).text();
+  return res.match(IMGUR_URL_REGEX)?.[1];
 }
 
 // src/global/stores/BadgesStore.tsx
@@ -10014,7 +10019,7 @@ var GlobalModules = wpGetBulkKeyed({
 });
 
 // src/patches/modules/appIcons.tsx
-var { AppIconPersistedStoreState } = BetterDiscord.Webpack.Stores;
+var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } = BetterDiscord.Webpack.Stores;
 var bypassMap = {
   emojisEverywhere: "emojiBypass",
   animatedEmojis: "emojiBypass",
@@ -10040,7 +10045,7 @@ var appIcons_default = {
     }, { mapDeclarations: true });
     patcher.instead(AppIcon, "render", (_, [args], callback) => {
       const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-      if (desktopIcon == "AppIcon") {
+      if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
         return callback(args);
       } else {
         return /* @__PURE__ */ React.createElement(CustomAppIcon, {
@@ -12225,8 +12230,8 @@ var { React: React6, Components: Components2 } = BetterDiscord;
 function AccentColors() {
   const CurrentUser = UserStore3.getCurrentUser();
   const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
-  const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#000000");
-  const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#000000");
+  const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
+  const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8");
   return /* @__PURE__ */ React6.createElement("div", null, /* @__PURE__ */ React6.createElement(Components2.Text, {
     style: {
       fontSize: "14px",
@@ -12234,7 +12239,7 @@ function AccentColors() {
     }
   }, "Primary"), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
     value: primary,
-    defaultValue: "#000000",
+    defaultValue: primary,
     disabled: false,
     onChange: (e) => setPrimary(e)
   }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Text, {
@@ -12244,7 +12249,7 @@ function AccentColors() {
     }
   }, "Accent"), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
     value: accent,
-    defaultValue: "#000000",
+    defaultValue: accent,
     disabled: false,
     onChange: (e) => setAccent(e)
   }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Button, {
@@ -12259,14 +12264,34 @@ function AccentColors() {
     }
   }, "Copy Colors 3y3"));
 }
+// src/ui/CustomPFP.tsx
+var { React: React7, Components: Components3 } = BetterDiscord;
+function CustomPFP() {
+  const [url, setUrl] = React7.useState("");
+  function handleClick() {
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
+      return;
+    }
+    let hash = getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`));
+  }
+  return /* @__PURE__ */ React7.createElement("div", null, /* @__PURE__ */ React7.createElement(Components3.TextInput, {
+    placeholder: "PFP Imgur URL",
+    onChange: (e) => setUrl(e)
+  }), /* @__PURE__ */ React7.createElement(Components3.Button, {
+    onClick: handleClick,
+    disabled: url == ""
+  }, "Copy PFP 3y3"));
+}
 // src/patches/modules/UserProfileV2.tsx
-var { React: React7 } = BetterDiscord;
+var { React: React8 } = BetterDiscord;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Margin = styled.div({
   marginBottom: "10px"
 });
 function CustomSettingsTab() {
-  return /* @__PURE__ */ React7.createElement(Margin, null, /* @__PURE__ */ React7.createElement(AccentColors, null));
+  return /* @__PURE__ */ React8.createElement(Margin, null, /* @__PURE__ */ React8.createElement(AccentColors, null), /* @__PURE__ */ React8.createElement(CustomPFP, null));
 }
 var UserProfileV2_default = {
   name: "User Profile V2",
@@ -12279,7 +12304,7 @@ var UserProfileV2_default = {
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
-        return /* @__PURE__ */ React7.createElement(CustomSettingsTab, null);
+        return /* @__PURE__ */ React8.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
@@ -12304,7 +12329,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React8 } = BetterDiscord;
+var { React: React9 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -12333,16 +12358,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React8.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React9.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React8.createElement(Icon, {
+      icon: /* @__PURE__ */ React9.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React8.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React8.createElement(ContextMenuLabel, null), /* @__PURE__ */ React8.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React9.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React9.createElement(ContextMenuLabel, null), /* @__PURE__ */ React9.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React8.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React9.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -12550,178 +12575,429 @@ function startChangelog() {
 }
 
 // src/index.tsx
-var { Components: Components3 } = BetterDiscord;
-var { React: React9 } = BetterDiscord;
-var SettingBlacklist = [
-  "userSharpenPreferences",
-  "customUserThemeSettings",
-  "lastChangelogVersion",
-  "appIcon",
-  "lastGradientSettingStore"
-];
-var map = {
-  screenSharing: { label: "High Quality Screensharing", note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options." },
-  ResolutionEnabled: { label: "Custom Screenshare Resolution", note: "Choose your own screen share resolution!" },
-  CustomResolution: { label: "Resolution", note: "The custom resolution you want (in pixels)" },
-  CustomFPSEnabled: { label: "Custom Screenshare FPS", note: "Choose your own screen share FPS!" },
-  CustomFPS: { label: "FPS", note: "The custom FPS you want to stream at." },
-  ResolutionSwapper: { label: "Stream Settings Quick Swapper", note: "Lets you change your custom resolution and FPS quickly in the stream settings modal!" },
-  CustomBitrateEnabled: { label: "Custom Bitrate", note: "Choose the bitrate for your streams!" },
-  minBitrate: { label: "Minimum Bitrate", note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used." },
-  targetBitrate: { label: "Target Bitrate", note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used." },
-  maxBitrate: { label: "Maximum Bitrate", note: `The maximum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used. 
+var { Components: Components4 } = BetterDiscord;
+var { React: React10 } = BetterDiscord;
+var SettingsSchema = [
+  {
+    key: "screenSharing",
+    label: "High Quality Screensharing",
+    note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "ResolutionEnabled",
+    label: "Custom Screenshare Resolution",
+    note: "Choose your own screen share resolution!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "CustomResolution",
+    label: "Resolution",
+    note: "The custom resolution you want (in pixels)",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "CustomFPSEnabled",
+    label: "Custom Screenshare FPS",
+    note: "Choose your own screen share FPS!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "CustomFPS",
+    label: "FPS",
+    note: "The custom FPS you want to stream at.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "ResolutionSwapper",
+    label: "Stream Settings Quick Swapper",
+    note: "Lets you change your custom resolution and FPS quickly in the stream settings modal!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "CustomBitrateEnabled",
+    label: "Custom Bitrate",
+    note: "Choose the bitrate for your streams!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "minBitrate",
+    label: "Minimum Bitrate",
+    note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "targetBitrate",
+    label: "Target Bitrate",
+    note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "maxBitrate",
+    label: "Maximum Bitrate",
+    note: `The maximum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used. 
                     The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025. 
                     There is also a strange bug(?) where setting your max bitrate will cause issues with your stream's preview. 
-                    If you want to avoid these issues, please disable this option.` },
-  voiceBitrate: { label: "Voice Audio Bitrate", note: `
+                    If you want to avoid these issues, please disable this option.`,
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "voiceBitrate",
+    label: "Voice Audio Bitrate",
+    note: `
                     Allows you to change the voice bitrate to whatever you want. 
                     Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. 
-                    Bitrate in kbps. Disabled if this is set to -1.` },
-  sharpenStreams: { label: "Stream Sharpness", note: "Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!" },
-  videoCodec2: { label: "Force Video Codec (Advanced Users Only)", note: `
+                    Bitrate in kbps. Disabled if this is set to -1.`,
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "sharpenStreams",
+    label: "Stream Sharpness",
+    note: "Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "videoCodec2",
+    label: "Force Video Codec (Advanced Users Only)",
+    note: `
                     Allows you to force a specified video codec to be used. Normally, Discord would automatically 
                     choose this based on your hardware, options in Voice & Video, and the viewers watching.
                     Mobile and Web clients can only view H.264 and VP8 streams.
-                    If a client does not support the codec you choose, the stream will infinitely load for them!` },
-  emojiBypass: { label: "Nitro Emotes Bypass", note: "Enable or disable using the emoji bypass." },
-  emojiSize: { label: "Size", note: "The size of the emoji in pixels." },
-  emojiBypassType: { label: "Emoji Bypass Method", note: "The method of bypass to use." },
-  editMessageWithEmoji: { label: "Replace Fakemoji When Editing Message", note: "Replaces text-based fakemoji with their emoji when editing a message." },
-  emojiBypassForValidEmoji: { label: "Don't Use Emote Bypass if Emote is Unlocked", note: "Disable to use emoji bypass even if bypass is not required for that emoji." },
-  PNGemote: { label: "Use PNG instead of WEBP", note: "Use the PNG version of static emoji for higher quality!" },
-  stickerBypass: { label: "Sticker Bypass", note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate." },
-  uploadStickers: { label: "Upload Stickers", note: "Upload stickers in the same way as emotes." },
-  forceStickersUnlocked: { label: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked." },
-  fakeInlineVencordEmotes: { label: "Fake Inline Hyperlink Emotes", note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes." },
-  soundmojiEnabled: { label: "Soundmoji Bypass", note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.' },
-  profileV2: { label: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent." },
-  fakeProfileThemes: { label: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio." },
-  fakeProfileBanners: { label: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons." },
-  userBgIntegration: { label: "UsrBG Integration", note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you." },
-  voiceTileBannerBackground: { label: "Call Tile Background", note: "Uses fake banners as the background for call tiles." },
-  fakeAvatarDecorations: { label: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status." },
-  profileEffects: { label: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio." },
-  killProfileEffects: { label: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects." },
-  customPFPs: { label: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons." },
-  userPfpIntegration: { label: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this." },
-  disableUserBadge: { label: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)" },
-  nameplatesEnabled: { label: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas." },
-  displayNameStyles: { label: "Fake Display Name Styles", note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio." },
-  advancedProfileCustomization: { label: "Advanced Profile Editing", note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise." },
-  useClipBypass: { label: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB." },
-  clipTimestamp: { label: "Timestamp", note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip." },
-  forceClip: { label: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled." },
-  useAudioClipBypass: { label: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files." },
-  forceAudioClip: { label: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled." },
-  zipClip: { label: "ZipClip", note: `Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit "Open Inside", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.` },
-  enableClipsExperiment: { label: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings." },
-  changePremiumType2: { label: "Change Premium Type", note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED." },
-  clientThemes: { label: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes." },
-  removeProfileUpsell: { label: "Remove Profile Customization Upsell", note: 'Removes the "Try It Out" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.' },
-  removeScreenshareUpsell: { label: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu." },
-  unlockAppIcons: { label: "App Icons", note: "Unlocks app icons." },
-  removeNotStaffWarning: { label: "Remove Not Staff Warning", note: 'Removes the "NOT STAFF" warning on DMs when Experiments are enabled.' },
-  extraContextMenus: { label: "Extra Context Menus and Options", note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list), and a context menu on messages with attachments that lets you download all attachments." },
-  experiments: { label: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk." },
-  checkForUpdates: { label: "Check for Updates", note: "Should the plugin check for updates on startup?" }
-};
-var SettingCategories = {
-  screenSharing: "Screen Share Features",
-  ResolutionEnabled: "Screen Share Features",
-  CustomResolution: "Screen Share Features",
-  CustomFPSEnabled: "Screen Share Features",
-  CustomFPS: "Screen Share Features",
-  ResolutionSwapper: "Screen Share Features",
-  CustomBitrateEnabled: "Screen Share Features",
-  minBitrate: "Screen Share Features",
-  targetBitrate: "Screen Share Features",
-  maxBitrate: "Screen Share Features",
-  voiceBitrate: "Screen Share Features",
-  sharpenStreams: "Screen Share Features",
-  videoCodec2: "Screen Share Features",
-  emojiBypass: "Emojis",
-  emojiSize: "Emojis",
-  emojiBypassType: "Emojis",
-  editMessageWithEmoji: "Emojis",
-  emojiBypassForValidEmoji: "Emojis",
-  PNGemote: "Emojis",
-  stickerBypass: "Emojis",
-  uploadStickers: "Emojis",
-  forceStickersUnlocked: "Emojis",
-  fakeInlineVencordEmotes: "Emojis",
-  soundmojiEnabled: "Emojis",
-  profileV2: "Profile",
-  fakeProfileThemes: "Profile",
-  fakeProfileBanners: "Profile",
-  userBgIntegration: "Profile",
-  voiceTileBannerBackground: "Profile",
-  fakeAvatarDecorations: "Profile",
-  profileEffects: "Profile",
-  killProfileEffects: "Profile",
-  customPFPs: "Profile",
-  userPfpIntegration: "Profile",
-  disableUserBadge: "Profile",
-  nameplatesEnabled: "Profile",
-  displayNameStyles: "Profile",
-  advancedProfileCustomization: "Profile",
-  useClipBypass: "Clips",
-  clipTimestamp: "Clips",
-  forceClip: "Clips",
-  useAudioClipBypass: "Clips",
-  forceAudioClip: "Clips",
-  zipClip: "Clips",
-  enableClipsExperiment: "Clips",
-  changePremiumType2: "Miscellaneous",
-  clientThemes: "Miscellaneous",
-  removeProfileUpsell: "Miscellaneous",
-  removeScreenshareUpsell: "Miscellaneous",
-  unlockAppIcons: "Miscellaneous",
-  removeNotStaffWarning: "Miscellaneous",
-  extraContextMenus: "Miscellaneous",
-  experiments: "Miscellaneous",
-  checkForUpdates: "Miscellaneous"
-};
-var CategoryOrder = ["Screen Share Features", "Emojis", "Profile", "Clips", "Miscellaneous"];
-var SelectOptions = {
-  emojiSize: [
-    { label: "32px (Default small/inline)", value: 32 },
-    { label: "48px (Recommended, default large)", value: 48 },
-    { label: "16px", value: 16 },
-    { label: "24px", value: 24 },
-    { label: "40px", value: 40 },
-    { label: "56px", value: 56 },
-    { label: "64px", value: 64 },
-    { label: "80px", value: 80 },
-    { label: "96px", value: 96 },
-    { label: "128px (Max emoji size)", value: 128 },
-    { label: "256px (Max GIF emoji size)", value: 256 }
-  ],
-  emojiBypassType: [
-    { label: "Upload Emojis", value: 0 },
-    { label: "Hyperlink/Vencord-Like Mode", value: 3 },
-    { label: "Classic Mode", value: 2 }
-  ],
-  changePremiumType2: [
-    { label: "Disabled (Actual Nitro Status)", value: -1 },
-    { label: "Free User", value: null },
-    { label: "Nitro Basic", value: 3 },
-    { label: "Nitro Classic", value: 1 },
-    { label: "Nitro", value: 2 }
-  ],
-  videoCodec2: [
-    { label: "Default (recommended, automatic)", value: -1 },
-    { label: "AV1", value: 0 },
-    { label: "H265", value: 1 },
-    { label: "H264", value: 2 },
-    { label: "VP8", value: 3 },
-    { label: "VP9", value: 4 }
-  ],
-  clipTimestamp: [
-    { label: "Zero (January 1st, 2015)", value: 0 },
-    { label: "Current Date/Time", value: 1 },
-    { label: "Last Modified Date/Time of File", value: 2 }
-  ]
-};
+                    If a client does not support the codec you choose, the stream will infinitely load for them!`,
+    category: "Screen Share Features",
+    type: "select",
+    options: [
+      { label: "Default (recommended, automatic)", value: -1 },
+      { label: "AV1", value: 0 },
+      { label: "H265", value: 1 },
+      { label: "H264", value: 2 },
+      { label: "VP8", value: 3 }
+    ]
+  },
+  {
+    key: "emojiBypass",
+    label: "Nitro Emotes Bypass",
+    note: "Enable or disable using the emoji bypass.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "emojiSize",
+    label: "Size",
+    note: "The size of the emoji in pixels.",
+    category: "Emojis",
+    type: "select",
+    options: [
+      { label: "32px (Default small/inline)", value: 32 },
+      { label: "48px (Recommended, default large)", value: 48 },
+      { label: "16px", value: 16 },
+      { label: "24px", value: 24 },
+      { label: "40px", value: 40 },
+      { label: "56px", value: 56 },
+      { label: "64px", value: 64 },
+      { label: "80px", value: 80 },
+      { label: "96px", value: 96 },
+      { label: "128px (Max emoji size)", value: 128 },
+      { label: "256px (Max GIF emoji size)", value: 256 }
+    ]
+  },
+  {
+    key: "emojiBypassType",
+    label: "Emoji Bypass Method",
+    note: "The method of bypass to use.",
+    category: "Emojis",
+    type: "select",
+    options: [
+      { label: "Upload Emojis", value: 0 },
+      { label: "Hyperlink/Vencord-Like Mode", value: 3 },
+      { label: "Classic Mode", value: 2 }
+    ]
+  },
+  {
+    key: "editMessageWithEmoji",
+    label: "Replace Fakemoji When Editing Message",
+    note: "Replaces text-based fakemoji with their emoji when editing a message.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "emojiBypassForValidEmoji",
+    label: "Don't Use Emote Bypass if Emote is Unlocked",
+    note: "Disable to use emoji bypass even if bypass is not required for that emoji.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "PNGemote",
+    label: "Use PNG instead of WEBP",
+    note: "Use the PNG version of static emoji for higher quality!",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "stickerBypass",
+    label: "Sticker Bypass",
+    note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "uploadStickers",
+    label: "Upload Stickers",
+    note: "Upload stickers in the same way as emotes.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "forceStickersUnlocked",
+    label: "Force Stickers Unlocked",
+    note: "Enable to cause Stickers to be unlocked.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "fakeInlineVencordEmotes",
+    label: "Fake Inline Hyperlink Emotes",
+    note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "soundmojiEnabled",
+    label: "Soundmoji Bypass",
+    note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.',
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "profileV2",
+    label: "Profile Accents",
+    note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeProfileThemes",
+    label: "Fake Profile Themes",
+    note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeProfileBanners",
+    label: "Fake Profile Banners",
+    note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "userBgIntegration",
+    label: "UsrBG Integration",
+    note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "voiceTileBannerBackground",
+    label: "Call Tile Background",
+    note: "Uses fake banners as the background for call tiles.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeAvatarDecorations",
+    label: "Fake Avatar Decorations",
+    note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "profileEffects",
+    label: "Fake Profile Effects",
+    note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "killProfileEffects",
+    label: "Kill Profile Effects",
+    note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "customPFPs",
+    label: "Fake Profile Pictures",
+    note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "userPfpIntegration",
+    label: "UserPFP Integration",
+    note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "disableUserBadge",
+    label: "Disable User Badge",
+    note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "nameplatesEnabled",
+    label: "Fake Nameplates",
+    note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "displayNameStyles",
+    label: "Fake Display Name Styles",
+    note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "advancedProfileCustomization",
+    label: "Advanced Profile Editing",
+    note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "useClipBypass",
+    label: "Use Clips Bypass",
+    note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "clipTimestamp",
+    label: "Timestamp",
+    note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.",
+    category: "Clips",
+    type: "select",
+    options: [
+      { label: "Zero (January 1st, 2015)", value: 0 },
+      { label: "Current Date/Time", value: 1 },
+      { label: "Last Modified Date/Time of File", value: 2 }
+    ]
+  },
+  {
+    key: "forceClip",
+    label: "Force Clip",
+    note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "useAudioClipBypass",
+    label: "Audio Clips Bypass",
+    note: "Identical to the Clips Bypass for videos, except it works with audio files.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "forceAudioClip",
+    label: "Force Audio Clip",
+    note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "zipClip",
+    label: "ZipClip",
+    note: `Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit "Open Inside", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.`,
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "enableClipsExperiment",
+    label: "Enable Clips Experiments",
+    note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "changePremiumType2",
+    label: "Change Premium Type",
+    note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED.",
+    category: "Miscellaneous",
+    type: "select",
+    options: [
+      { label: "Disabled (Actual Nitro Status)", value: -1 },
+      { label: "Free User", value: null },
+      { label: "Nitro Basic", value: 3 },
+      { label: "Nitro Classic", value: 1 },
+      { label: "Nitro", value: 2 }
+    ]
+  },
+  {
+    key: "clientThemes",
+    label: "Gradient Client Themes",
+    note: "Allows you to use Nitro-exclusive Client Themes.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "removeProfileUpsell",
+    label: "Remove Profile Customization Upsell",
+    note: 'Removes the "Try It Out" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.',
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "removeScreenshareUpsell",
+    label: "Remove Screen Share Nitro Upsell",
+    note: "Removes the Nitro upsell in the Screen Share quality option menu.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  { key: "unlockAppIcons", label: "App Icons", note: "Unlocks app icons.", category: "Miscellaneous", type: "boolean" },
+  {
+    key: "removeNotStaffWarning",
+    label: "Remove Not Staff Warning",
+    note: 'Removes the "NOT STAFF" warning on DMs when Experiments are enabled.',
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "extraContextMenus",
+    label: "Extra Context Menus and Options",
+    note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list), and a context menu on messages with attachments that lets you download all attachments.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "experiments",
+    label: "Experiments",
+    note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "checkForUpdates",
+    label: "Check for Updates",
+    note: "Should the plugin check for updates on startup?",
+    category: "Miscellaneous",
+    type: "boolean"
+  }
+];
 class Plugin {
   unpatch = loadContextMenus();
   async start() {
@@ -12737,76 +13013,54 @@ class Plugin {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
   }
-  renderControl(key, value) {
-    const onChange = (v) => SettingsStore_default.set(key, v);
-    if (SelectOptions[key]) {
-      return /* @__PURE__ */ React9.createElement(Components3.SwitchInput, {
-        value,
-        options: SelectOptions[key],
-        onChange
-      });
-    }
-    switch (typeof value) {
+  renderControl(def, value) {
+    const onChange = (v) => SettingsStore_default.set(def.key, v);
+    switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React9.createElement(Components3.SwitchInput, {
+        return /* @__PURE__ */ React10.createElement(Components4.SwitchInput, {
           value,
           onChange
         });
       case "number":
-      case "bigint":
-        return /* @__PURE__ */ React9.createElement(Components3.NumberInput, {
+        return /* @__PURE__ */ React10.createElement(Components4.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React9.createElement(Components3.TextInput, {
+        return /* @__PURE__ */ React10.createElement(Components4.TextInput, {
           value,
           onChange
         });
-      default:
-        return /* @__PURE__ */ React9.createElement(Components3.TextInput, {
-          value: JSON.stringify(value),
-          disabled: true
+      case "select":
+        return /* @__PURE__ */ React10.createElement(Components4.DropdownInput, {
+          value,
+          options: def.options,
+          onChange
         });
     }
   }
   getSettingsPanel() {
     return () => {
-      const settings = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => {
+      const values = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => {
         const all = SettingsStore_default.getAll();
-        return Object.keys(all).filter((key) => !SettingBlacklist.includes(key)).reduce((acc, key) => {
-          acc[key] = all[key];
+        return SettingsSchema.reduce((acc, def) => {
+          acc[def.key] = def.key in all ? all[def.key] : defaultSettings[def.key];
           return acc;
         }, {});
       });
-      const grouped = Object.entries(settings).reduce((acc, [key, value]) => {
-        const category = SettingCategories[key] ?? "General";
-        (acc[category] ??= []).push([key, value]);
+      const grouped = SettingsSchema.reduce((acc, def) => {
+        (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      const categoryNames = Object.keys(grouped).sort((a, b) => {
-        const ai = CategoryOrder.indexOf(a);
-        const bi = CategoryOrder.indexOf(b);
-        if (ai === -1 && bi === -1)
-          return a.localeCompare(b);
-        if (ai === -1)
-          return 1;
-        if (bi === -1)
-          return -1;
-        return ai - bi;
-      });
-      return /* @__PURE__ */ React9.createElement(React9.Fragment, null, categoryNames.map((category) => /* @__PURE__ */ React9.createElement(Components3.SettingGroup, {
+      return /* @__PURE__ */ React10.createElement(React10.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React10.createElement(Components4.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, grouped[category].map(([key, value]) => {
-        const meta = map[key] ?? { label: key, note: "" };
-        return /* @__PURE__ */ React9.createElement(Components3.SettingItem, {
-          key,
-          name: meta.label,
-          note: meta.note
-        }, this.renderControl(key, value));
-      }))));
+      }, defs.map((def) => /* @__PURE__ */ React10.createElement(Components4.SettingItem, {
+        key: def.key,
+        name: def.label,
+        note: def.note
+      }, this.renderControl(def, values[def.key]))))));
     };
   }
 }
