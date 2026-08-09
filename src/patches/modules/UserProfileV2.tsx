@@ -2,6 +2,7 @@ import {BetterDiscord} from "@shared/*";
 import {AccentColors, CustomPFP} from "../../ui";
 import {getKey, wpGet} from "../../global/webpack";
 import {styled} from "@utils/*";
+import {Separator} from "../../ui/Sep.tsx";
 
 const {React} = BetterDiscord;
 
@@ -15,6 +16,7 @@ function CustomSettingsTab()
 {
     return <Margin>
         <AccentColors />
+        <Separator/>
         <CustomPFP/>
     </Margin>
 }
