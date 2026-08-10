@@ -37,8 +37,8 @@ function CustomSettingsTab()
         <CustomPFP/>
         <SepWithText>Custom Banner</SepWithText>
         <CustomBanner/>
-        <SepWithText>Profile Effect</SepWithText>
-        <DisplayProducts/>
+        {/*<SepWithText>Profile Effect</SepWithText>*/}
+        {/*<DisplayProducts/>*/}
     </Margin>
 }
 
