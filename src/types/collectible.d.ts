@@ -188,3 +188,141 @@ export interface ShopCollection {
     mobile_bg_url: string;
     hero_banner_display_config: HeroBannerDisplayConfig;
 }
+
+/**
+ * Types for Discord's Quests payload (as returned by whatever endpoint
+ * you pulled this from — looks like the quest-bar/eligible-quests list).
+ */
+
+export type QuestList = Quest[];
+
+export interface Quest {
+    id: string;
+    config: QuestConfig;
+    user_status: unknown | null;
+    targeted_content: unknown[];
+    preview: boolean;
+    /** base64-encoded traffic metadata blob */
+    traffic_metadata_raw: string;
+}
+
+export interface QuestConfig {
+    id: string;
+    config_version: number;
+    starts_at: string; // ISO 8601
+    expires_at: string; // ISO 8601
+    /** feature flag ids gating this quest */
+    features: number[];
+    application: QuestApplication;
+    assets: QuestAssets;
+    colors: QuestColors;
+    messages: QuestMessages;
+    task_config_v2: QuestTaskConfig;
+    rewards_config: QuestRewardsConfig;
+    share_policy: QuestSharePolicy;
+    cta_config: QuestCtaConfig;
+}
+
+export interface QuestApplication {
+    link: string;
+    id: string; // application/game snowflake
+    name: string;
+}
+
+export interface QuestAssets {
+    hero: string;
+    hero_video?: string;
+    quest_bar_hero_blurhash?: string;
+    quest_bar_hero: string;
+    quest_bar_hero_video?: string;
+    /** often literally the string "PLACEHOLDER" when unset */
+    game_tile: string;
+    logotype: string;
+    game_tile_light: string;
+    game_tile_dark: string;
+    logotype_light: string;
+    logotype_dark: string;
+}
+
+export interface QuestColors {
+    primary: string; // hex
+    secondary: string; // hex
+}
+
+export interface QuestMessages {
+    quest_name: string;
+    game_title: string;
+    game_publisher: string;
+}
+
+export type QuestJoinOperator = "and" | "or";
+
+export interface QuestTaskConfig {
+    tasks: Partial<Record<QuestTaskType, QuestTask>>;
+    join_operator: QuestJoinOperator;
+}
+
+export type QuestTaskType =
+    | "PLAY_ON_DESKTOP"
+    | "PLAY_ON_MOBILE"
+    | "WATCH_VIDEO"
+    | "WATCH_VIDEO_ON_MOBILE"
+    | "STREAM_ON_DESKTOP";
+
+export type QuestTask = PlayOnDesktopTask | WatchVideoTask;
+
+export interface PlayOnDesktopTask {
+    type: "PLAY_ON_DESKTOP";
+    /** seconds of playtime required */
+    target: number;
+    applications: { id: string }[];
+}
+
+export interface WatchVideoTask {
+    type: "WATCH_VIDEO" | "WATCH_VIDEO_ON_MOBILE";
+    /** seconds of watch time required */
+    target: number;
+    assets: {
+        video: QuestVideoAsset;
+        video_low_res: QuestVideoAsset;
+        video_hls: QuestVideoAsset;
+    };
+    messages: {
+        video_title: string;
+    };
+}
+
+export interface QuestVideoAsset {
+    url: string;
+    width: number;
+    height: number;
+    thumbnail: string;
+}
+
+export interface QuestRewardsConfig {
+    assignment_method: number;
+    rewards: QuestReward[];
+    rewards_expire_at: string; // ISO 8601
+    /** 0 = desktop, etc. — platform enum ids */
+    platforms: number[];
+}
+
+export interface QuestReward {
+    type: number;
+    sku_id: string;
+    messages: {
+        name: string;
+        name_with_article: string;
+        /** keyed by platform id (as string) */
+        redemption_instructions_by_platform: Record<string, string>;
+    };
+    orb_quantity: number;
+    premium_orb_quantity: number;
+}
+
+export type QuestSharePolicy = "shareable_everywhere" | (string & {});
+
+export interface QuestCtaConfig {
+    link: string;
+    button_label: string;
+}

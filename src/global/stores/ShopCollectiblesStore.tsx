@@ -3,7 +3,7 @@ import {
     type AvatarDecorationItem,
     type NameplateItem,
     type ProfileEffectItem,
-    type ProfileFrameItem,
+    type ProfileFrameItem, type Quest,
     type ShopCollection,
     ShopItemType,
     type ShopProduct,
@@ -17,6 +17,7 @@ interface ShopCollectiblesDispatchData {
 
 export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store {
     private collections: ShopCollection[] = [];
+    private questCollectibles: Quest[] = [];
 
     constructor() {
         super();
@@ -26,12 +27,20 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
 
     async fetch()
     {
-        this.collections = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then(x => x.json())
+        const aamiaCollections = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then(x => x.json());
+        const aamiaQuests = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then(x => x.json());
+
+        this.collections = aamiaCollections;
+        this.questCollectibles = aamiaQuests;
     }
 
     set(data: ShopCollectiblesDispatchData) {
         this.collections = data.categories.categories;
         this.emitChange();
+    }
+
+    getQuestCollectible(skuId: string): Quest {
+        this.questCollectibles.find(q => q.id === skuId);
     }
 
     getCategory(categorySkuId: string): ShopCollection | undefined {

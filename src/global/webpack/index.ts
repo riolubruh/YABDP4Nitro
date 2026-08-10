@@ -448,6 +448,13 @@ const PASSTHROUGH_PROPS = new Set<PathSegment>([
     Symbol.iterator,
 ]);
 
+const IDENTITY_PROPS = new Set<PathSegment>([
+    "prototype",
+    "contextType",
+    "defaultProps",
+    "$$typeof",
+]);
+
 function resolveLive(filter: ModuleFilter, options: GetOptions | undefined, path: PathSegment[]): any {
     let current: any = resolveModule(filter, options);
     for (const seg of path) {
@@ -458,11 +465,11 @@ function resolveLive(filter: ModuleFilter, options: GetOptions | undefined, path
 }
 
 function createLiveProxy(filter: ModuleFilter, options: GetOptions | undefined, path: PathSegment[]): any {
-    const target = function wpGetProxyTarget() {} as any;
+    const target = function wpGetProxyTarget() {} as any; // constructible target
 
     return new Proxy(target, {
         get(_t, prop) {
-            if (PASSTHROUGH_PROPS.has(prop)) {
+            if (PASSTHROUGH_PROPS.has(prop) || IDENTITY_PROPS.has(prop)) {
                 const val = resolveLive(filter, options, path);
                 if (val == null) return undefined;
                 const member = (val as any)[prop as any];
@@ -475,6 +482,14 @@ function createLiveProxy(filter: ModuleFilter, options: GetOptions | undefined, 
             const fn = resolveLive(filter, options, path);
             const parent = resolveLive(filter, options, path.slice(0, -1));
             return fn.apply(parent ?? thisArg, args);
+        },
+
+        construct(_t, args, _newTarget) {
+            const ctor = resolveLive(filter, options, path);
+            if (typeof ctor !== "function") {
+                throw new TypeError(`${String(path[path.length - 1] ?? "target")} is not a constructor`);
+            }
+            return Reflect.construct(ctor, args, ctor); // always use the real ctor as newTarget
         },
 
         set(_t, prop, value) {
@@ -491,10 +506,19 @@ function createLiveProxy(filter: ModuleFilter, options: GetOptions | undefined, 
 
         ownKeys(_t) {
             const val = resolveLive(filter, options, path);
-            return val ? Reflect.ownKeys(val) : [];
+            const keys = val ? Reflect.ownKeys(val) : [];
+            // 'prototype' is a non-configurable own key on the target function,
+            // so the invariant requires it to always appear in the trap result.
+            if (!keys.includes("prototype")) keys.push("prototype");
+            return keys;
         },
 
         getOwnPropertyDescriptor(_t, prop) {
+            if (prop === "prototype") {
+                // Must exactly match the target's real (non-configurable) descriptor,
+                // can't fabricate one for this key without violating the invariant.
+                return Reflect.getOwnPropertyDescriptor(_t, prop);
+            }
             const val = resolveLive(filter, options, path);
             if (val == null) return undefined;
             return (

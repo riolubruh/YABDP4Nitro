@@ -32,7 +32,7 @@ function Debug({user}: {user: User}) {
     }
 
     return <TopLeft>
-        <Icon icon={"mdi:bug"} width={"22px"} color={"white"} onClick={OpenModal} />
+        <Icon icon={"mdi:bug"} width={"24px"} color={"white"} onClick={OpenModal} />
     </TopLeft>
 }
 

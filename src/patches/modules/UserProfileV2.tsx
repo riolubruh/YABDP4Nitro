@@ -1,17 +1,32 @@
 import {BetterDiscord} from "@shared/*";
 import {AccentColors, CustomBanner, CustomPFP} from "../../ui";
-import {getKey, wpGet} from "../../global/webpack";
+import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import {Separator, SepWithText} from "../../ui/Sep.tsx";
+import ShopCollectiblesStore from "../../global/stores/ShopCollectiblesStore.tsx";
 
 const {React} = BetterDiscord;
 const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
+const ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"))
+
+console.log(ProductDisplayer);
 const Margin = styled.div({
     marginBottom: "-50px"
 })
+
+function DisplayProducts()
+{
+    const decorations = ShopCollectiblesStore.getAvatarDecorations("1212565175790473246")
+
+    return <div style={{display: "flex", justifyContent: "space-between"}}>
+        {decorations?.map(decoration => <div key={"nased"} style={{maxHeight: "200px", maxWidth: "200px"}}>
+            <ProductDisplayer.A key={`based-da-${decoration.sku_id}`} skuId={decoration.sku_id} isCardHovered={true}/>
+        </div>)}
+    </div>
+}
 
 function CustomSettingsTab()
 {
@@ -22,6 +37,8 @@ function CustomSettingsTab()
         <CustomPFP/>
         <SepWithText>Custom Banner</SepWithText>
         <CustomBanner/>
+        <SepWithText>Profile Effect</SepWithText>
+        <DisplayProducts/>
     </Margin>
 }
 
