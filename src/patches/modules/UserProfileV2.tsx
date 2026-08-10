@@ -12,7 +12,6 @@ const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,")
 
 const ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"))
 
-console.log(ProductDisplayer);
 const Margin = styled.div({
     marginBottom: "-50px"
 })

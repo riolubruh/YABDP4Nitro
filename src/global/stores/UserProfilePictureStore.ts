@@ -1,0 +1,32 @@
+import {BetterDiscord} from "@shared/";
+
+const USER_BG = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json"
+// this api is kawaii. thank you. very simple.
+
+export default new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
+    private users: Record<string, string> = {};
+
+    constructor() {
+        super();
+
+        this.fetch();
+    }
+
+    get(userId: string)
+    {
+        return this.users[userId];
+    }
+
+    hasHash(id: string)
+    {
+        return Boolean(this.users[id])
+    }
+
+    async fetch()
+    {
+        const data = await BetterDiscord.Net.fetch(USER_BG)
+        const response = await data.json();
+
+        this.users = response.avatars;
+    }
+}

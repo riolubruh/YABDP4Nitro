@@ -40,8 +40,6 @@ export default {
 
             if (!ret) return;
 
-            BadgesStore.isImportant(userId) && BadgesStore.add(userId);
-
             const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
             const guildId = SelectedGuildStore.getGuildId();
 
@@ -49,8 +47,6 @@ export default {
 
             const userBio = ret?.bio
             if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
-                BadgesStore.add(userId)
-
                 let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
 
                 if (!parsed) return ret;

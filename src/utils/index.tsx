@@ -2,6 +2,7 @@ import {BetterDiscord} from "@shared/";
 import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
 import SettingsStore from "../global/stores/SettingsStore.ts";
 import UserBackgroundStore from "../global/stores/UserBackgroundStore.ts";
+import BadgesStore from "../global/stores/BadgesStore.tsx";
 
 
 const {UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore} = BetterDiscord.Webpack.Stores
@@ -19,10 +20,12 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
     userGuildProfile && CustomUserProfileStore.cacheMember(userGuildProfile)
 
     if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+        BadgesStore.add(userId)
         return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
     }
 
     if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+        BadgesStore.add(userId)
         return secondsightifyRevealOnly(String(userGuildProfile.bio));
     }
 
@@ -72,6 +75,7 @@ export function getRevealedText(userId: string, shouldInclude = "") {
                 //if there's no 3y3 text, move on to the next check.
                 if (revealedText != undefined && revealedText != "") {
                     //return bio with the 3y3 decoded
+                    BadgesStore.add(userId)
                     return revealedText;
                 }
             }
@@ -97,6 +101,7 @@ export function getRevealedText(userId: string, shouldInclude = "") {
         if (customStatus.includes(shouldInclude)) {
             revealedText = secondsightifyRevealOnly(String(customStatus));
             //return custom status with the 3y3 decoded
+            BadgesStore.add(userId)
             return revealedText;
         }
     }

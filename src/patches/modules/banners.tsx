@@ -20,7 +20,8 @@ function Debug({user}: {user: User}) {
         dns3y3: getRevealedText(user.id, '\uDB40\uDC53\uDB40\uDC7B'),
         decor3y3: getRevealedText(user.id, '\uDB40\uDC2F\uDB40\uDC61'),
         nameplate3y3: getRevealedText(user.id, '\uDB40\uDC6E\uDB40\uDC7B'),
-        badge: BadgesStore.returnRespondingBadge(user.id).id
+        pfp3y3: getRevealedText(user.id, '\uDB40\uDC50\uDB40\uDC7B'),
+        badge: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadge(user.id).id : "not known user"
     }
 
     function OpenModal() {
