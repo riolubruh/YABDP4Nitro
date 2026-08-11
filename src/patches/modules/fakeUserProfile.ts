@@ -31,6 +31,7 @@ export default {
             const shouldProfileV2 = SettingsStore.get("profileV2");
             const disableUserBadge = SettingsStore.get("disableUserBadge");
             const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
+            const profileFramesEnabled = SettingsStore.get("profileFrames");
 
             if (!ret) return;
 
@@ -80,9 +81,9 @@ export default {
                 ret.themeColors = Object.values(colors).find(Boolean);
             }
 
-            if (revealedSurrogate && revealedSurrogate.includes("pf")) {
+            if (revealedSurrogate && revealedSurrogate.includes("pf") && profileFramesEnabled) {
                 const match = revealedSurrogate.match(suggondeeznutz.PROFILE_FRAME)?.[0]?.substring(2);
-                if (match) ret.profileEffect = { skuId: match, expiresAt: null };
+                if (match) ret.profileFrame = { skuId: match, expiresAt: undefined };
             }
 
             return ret;

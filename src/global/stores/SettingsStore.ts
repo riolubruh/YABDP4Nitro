@@ -34,6 +34,7 @@ export const defaultSettings = {
     "fakeAvatarDecorations": true,
     "unlockAppIcons": true,
     "profileEffects": true,
+    "profileFrames": true,
     "killProfileEffects": false,
     "customPFPs": true,
     "experiments": false,
