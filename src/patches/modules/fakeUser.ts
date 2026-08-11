@@ -2,7 +2,7 @@ import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {getRevealedText} from "@utils/*";
-import suggondeeznutz from "../../global/shared/surrogates.ts"
+import suggondeeznutz from "../../global/shared/regexReveals.ts"
 
 const {UserStore} = BetterDiscord.Webpack.Stores;
 

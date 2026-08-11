@@ -4,7 +4,7 @@ import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import UserProfilePictureStore from "../../global/stores/UserProfilePictureStore.ts";
 import {getRevealedText} from "@utils/*";
-import suggondeeznutz from "../../global/shared/surrogates.ts"
+import suggondeeznutz from "../../global/shared/regexReveals.ts"
 
 const UserClass = wpGet(x => x.prototype?.getAvatarURL, {searchExports: true})
 

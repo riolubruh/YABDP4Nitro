@@ -4,7 +4,7 @@ import {getRevealedText, getRevealedTextPerServer, secondsightifyRevealOnly} fro
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.ts";
-import suggondeeznutz from "../../global/shared/surrogates.ts"
+import suggondeeznutz from "../../global/shared/regexReveals.ts"
 
 const {UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 
