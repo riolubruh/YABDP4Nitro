@@ -15,60 +15,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -8983,7 +8962,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9182,10 +9161,12 @@ __export(exports_modules, {
   MaxFileSize: () => maxFileSize_default,
   GoLiveModal: () => goLiveModal_default,
   GifPickerContext: () => gifPickerContext_default,
+  GetAvatarURL: () => getAvatarURL_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
   EditMessage: () => editMessage_default,
+  DEV: () => dev_default,
   ClientThemes: () => clientThemes_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
@@ -9315,6 +9296,57 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
   }
 };
 
+// src/global/stores/BadgesStore.tsx
+var specialThanks = [
+  "122072911455453184",
+  "760274365853335563",
+  "482224256730791967",
+  "1106012563835195412"
+];
+var Badges = {
+  developers: {
+    ids: ["359063827091816448", "917630027477159986"],
+    badge: {
+      id: "yabdp_developer",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Developer!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  },
+  contributors: {
+    ids: specialThanks,
+    badge: {
+      id: "yabdp_contributor",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Contributor!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  }
+};
+var BadgesStore_default = new class BadgesStore {
+  foundUsers = [];
+  add(id) {
+    if (!this.foundUsers.includes(id)) {
+      this.foundUsers.push(id);
+    }
+  }
+  check(id) {
+    return this.foundUsers.includes(id);
+  }
+  isImportant(id) {
+    return [...Badges.developers.ids, ...Badges.contributors.ids].includes(id);
+  }
+  returnRespondingBadge(id) {
+    const category = Object.values(Badges).find((x) => x.ids.includes(id));
+    return category?.badge ?? {
+      id: "yabdp_user",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+      description: "A fellow YABDP4Nitro user!",
+      link: "https://github.com/riolubruh/YABDP4Nitro"
+    };
+  }
+};
+
 // src/utils/index.tsx
 var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord.Webpack.Stores;
 var DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings("await window.navigator.clipboard.writeText", { searchExports: true });
@@ -9326,9 +9358,11 @@ function getRevealedTextPerServer(userId, shouldInclude = "") {
   userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
   userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+    BadgesStore_default.add(userId);
     return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
   }
   if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+    BadgesStore_default.add(userId);
     return secondsightifyRevealOnly(String(userGuildProfile.bio));
   }
 }
@@ -9343,6 +9377,7 @@ function getRevealedText(userId, shouldInclude = "") {
       if (userProfile.bio.includes(shouldInclude)) {
         revealedText = secondsightifyRevealOnly(String(userProfile.bio));
         if (revealedText != null && revealedText != "") {
+          BadgesStore_default.add(userId);
           return revealedText;
         }
       }
@@ -9360,6 +9395,7 @@ function getRevealedText(userId, shouldInclude = "") {
       return;
     if (customStatus.includes(shouldInclude)) {
       revealedText = secondsightifyRevealOnly(String(customStatus));
+      BadgesStore_default.add(userId);
       return revealedText;
     }
   }
@@ -9458,57 +9494,6 @@ async function getDirectImgurHash(url) {
   return res.match(IMGUR_URL_REGEX)?.[1];
 }
 
-// src/global/stores/BadgesStore.tsx
-var specialThanks = [
-  "122072911455453184",
-  "760274365853335563",
-  "482224256730791967",
-  "1106012563835195412"
-];
-var Badges = {
-  developers: {
-    ids: ["359063827091816448", "917630027477159986"],
-    badge: {
-      id: "yabdp_developer",
-      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
-      description: "YABDP4Nitro Developer!",
-      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
-    }
-  },
-  contributors: {
-    ids: specialThanks,
-    badge: {
-      id: "yabdp_contributor",
-      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
-      description: "YABDP4Nitro Contributor!",
-      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
-    }
-  }
-};
-var BadgesStore_default = new class BadgesStore {
-  foundUsers = [];
-  add(id) {
-    if (!this.foundUsers.includes(id)) {
-      this.foundUsers.push(id);
-    }
-  }
-  check(id) {
-    return this.foundUsers.includes(id);
-  }
-  isImportant(id) {
-    return [...Badges.developers.ids, ...Badges.contributors.ids].includes(id);
-  }
-  returnRespondingBadge(id) {
-    const category = Object.values(Badges).find((x) => x.ids.includes(id));
-    return category?.badge ?? {
-      id: "yabdp_user",
-      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
-      description: "A fellow YABDP4Nitro user!",
-      link: "https://github.com/riolubruh/YABDP4Nitro"
-    };
-  }
-};
-
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 var REGEX_FX = /fx\d+/;
@@ -9535,13 +9520,11 @@ var fakeUserProfile_default = {
       const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
       if (!ret)
         return;
-      BadgesStore_default.isImportant(userId) && BadgesStore_default.add(userId);
       const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
       const guildId = SelectedGuildStore2.getGuildId();
       (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
       const userBio = ret?.bio;
       if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
-        BadgesStore_default.add(userId);
         let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
         if (!parsed)
           return ret;
@@ -9662,464 +9645,6 @@ var allowClips_default = {
       patcher.instead(finale.mangled, key, () => true);
     });
     ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, () => true));
-  }
-};
-// src/patches/modules/banners.tsx
-var banners_default = {
-  name: "fakeBanners",
-  description: "3y3 banners",
-  ids: undefined,
-  waitFor: [BetterDiscord.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
-  mangled: {
-    renderBanner: (x) => x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
-  },
-  apply(finale, patcher) {
-    patcher.after(finale.mangled, "renderBanner", (_, [props], ret) => {
-      if (!SettingsStore_default.get("fakeProfileBanners"))
-        return ret;
-      const unpatch = patcher.after(ret, "type", (a, b, c) => {
-        if (UserBackgroundStore_default.hasHash(props.user.id)) {
-          c.props.bannerSrc = getBannerUrl(props.user.id);
-        }
-        unpatch();
-      });
-      return ret;
-    });
-  }
-};
-// src/patches/modules/_sendMessage.ts
-var { StickersStore, SoundboardStore, EmojiStore, UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
-var StickerTypeToExtension;
-((StickerTypeToExtension2) => {
-  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
-  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 2] = ".png";
-  StickerTypeToExtension2[StickerTypeToExtension2[".json"] = 3] = ".json";
-  StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
-})(StickerTypeToExtension ||= {});
-var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
-async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send, numFilesInMessage = 1, alwaysSendInNewMessage = false) {
-  if (!filesToDownload.length)
-    return;
-  const preexisting = extraData.attachmentsToUpload ?? [];
-  extraData.attachmentsToUpload = preexisting;
-  const uploads = await Promise.all(filesToDownload.map(async (f) => {
-    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
-    return new CloudUploader({ file: new File([blob], f.filename), isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
-  }));
-  if (preexisting.length || alwaysSendInNewMessage) {
-    await send(channelId, msg, extraData);
-  } else {
-    extraData.attachmentsToUpload = uploads.splice(0, numFilesInMessage);
-    await send(channelId, msg, extraData);
-  }
-  extraData.attachmentsToUpload = [];
-  msg.content = "";
-  while (uploads.length) {
-    await send(channelId, { content: "" }, { attachmentsToUpload: uploads.splice(0, numFilesInMessage) });
-  }
-}
-var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
-var _sendMessage_default = {
-  name: "Send Message",
-  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
-  ids: undefined,
-  waitFor: [(x) => x._sendMessage],
-  apply(finale, patcher) {
-    patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send) => {
-      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
-        return send.apply(_, [channelId, msg, extraData]);
-      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
-      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
-      const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
-      const stickersEnabled = SettingsStore_default.get("stickerBypass");
-      let urlsToUpload = [];
-      for (let i = 0;i < msg.validNonShortcutEmojis.length; i++) {
-        const emoji = msg.validNonShortcutEmojis[i];
-        if (!emojiBypassEnabled)
-          break;
-        if (shouldSkipEmojiBypass(emoji, channelId))
-          continue;
-        const emojiString = getEmojiString(emoji);
-        if (msg.content.includes(`-${emojiString}`)) {
-          msg.content = msg.content.replace("-" + emojiString, emojiString);
-          continue;
-        }
-        const emojiUrl = getEmojiUrl(emoji);
-        switch (emojiBypassType) {
-          case 0:
-            msg.content = msg.content.replace(emojiString, "");
-            urlsToUpload.push({
-              url: emojiUrl,
-              filename: emoji.name + getEmojiExtension(emoji)
-            });
-            break;
-          case 1:
-          case 3:
-            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i})`);
-            break;
-          case 2:
-            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i}`);
-            break;
-        }
-      }
-      if (extraData.stickerIds && stickersEnabled) {
-        for (const stickerId of extraData.stickerIds) {
-          const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
-          const sticker = StickersStore.getStickerById(stickerId);
-          let extension = StickerTypeToExtension[sticker.format_type];
-          urlsToUpload.push({
-            url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
-            filename: `${sticker.name}${extension}`
-          });
-        }
-        extraData.stickerIds = [];
-      }
-      let soundmojiUrls = [];
-      if (soundmojiEnabled) {
-        const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
-        const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
-        const soundmojiObjects = soundmojiStrings?.map?.((x) => SoundboardStore.getSoundById(x?.split?.(":")?.[2]?.slice?.(0, -1)));
-        soundmojiObjects?.forEach?.((x) => soundmojiUrls.push({
-          url: SOUNDBOARD_PREFIX + x.soundId,
-          filename: x.name + ".ogg"
-        }));
-        for (let i = 0;i < soundmojiObjects?.length; i++) {
-          const sound = soundmojiObjects[i];
-          if (!sound)
-            continue;
-          const soundmojiString = soundmojiStrings[i];
-          !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
-          if (sound?.emojiId) {
-            let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
-            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
-          }
-          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
-        }
-      }
-      if (urlsToUpload?.length > 0)
-        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send, 1, false);
-      if (soundmojiUrls?.length > 0)
-        downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send, 10, true);
-      if (!urlsToUpload.length && !soundmojiUrls.length)
-        send(channelId, msg, extraData);
-    });
-  }
-};
-// src/patches/modules/unlockEmojis.ts
-var unlockEmojis_default = {
-  name: "Unlock Emojis",
-  description: "Fully unlocks emojis.",
-  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
-  apply(finale, patcher) {
-    const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
-    if (!emojiBypassEnabled)
-      return;
-    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
-    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
-      return;
-    });
-  }
-};
-// src/patches/modules/getUserBannerURL.ts
-var getUserBannerURL_default = {
-  name: "getUserBannerURL",
-  description: "Force animate the user banner URL",
-  waitFor: [(x) => x.getEmojiURL],
-  apply(finale, patcher) {
-    const AvatarDefaults = finale.modules[0];
-    patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
-      args[0].canAnimate = true;
-    });
-  }
-};
-// src/global/webpack/index.ts
-var { Webpack } = BdApi;
-function queryToFilter(query) {
-  if ("filter" in query)
-    return query.filter;
-  if ("keys" in query)
-    return Webpack.Filters.byKeys(...query.keys);
-  if ("prototypeKeys" in query)
-    return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
-  if ("strings" in query)
-    return Webpack.Filters.byStrings(...query.strings);
-  if ("source" in query)
-    return Webpack.Filters.bySource(...query.source);
-  if ("regex" in query)
-    return Webpack.Filters.byRegex(query.regex);
-  if ("displayName" in query)
-    return Webpack.Filters.byDisplayName(query.displayName);
-  return Webpack.Filters.byStoreName(query.storeName);
-}
-function resolveModule(filter, options) {
-  const opts = options ?? {};
-  if (opts.declaration) {
-    const { declaration, key, raw, ...rest } = opts;
-    const result = Webpack.getMangled(filter, { __value: declaration }, {
-      ...rest,
-      mapDeclarations: true
-    });
-    return result?.__value ?? null;
-  }
-  const mod = Webpack.getModule(filter, opts);
-  if (mod == null)
-    return null;
-  return opts.key ? mod[opts.key] : mod;
-}
-function resolveQuery(query) {
-  if ("map" in query) {
-    const q = query;
-    const newModule = {};
-    const foundModule = Webpack.getModule(q.filter);
-    if (foundModule) {
-      const remaining = new Map(Object.entries(q.map));
-      for (const value of Object.values(foundModule)) {
-        for (const [queryKey, queryValue] of remaining) {
-          if (queryValue(value)) {
-            newModule[queryKey] = value;
-            remaining.delete(queryKey);
-            break;
-          }
-        }
-        if (remaining.size === 0)
-          break;
-      }
-    }
-    return newModule;
-  }
-  return resolveModule(queryToFilter(query), query.options);
-}
-var wpFilter = {
-  byKeys: (...keys) => Webpack.Filters.byKeys(...keys),
-  byPrototypeKeys: (...keys) => Webpack.Filters.byPrototypeKeys(...keys),
-  byStrings: (...strings) => Webpack.Filters.byStrings(...strings),
-  bySource: (...source) => Webpack.Filters.bySource(...source),
-  byRegex: (regex) => Webpack.Filters.byRegex(regex),
-  byDisplayName: (name) => Webpack.Filters.byDisplayName(name),
-  byStoreName: (name) => Webpack.Filters.byStoreName(name),
-  combine: (...filters) => Webpack.Filters.combine(...filters),
-  not: (filter) => Webpack.Filters.not(filter)
-};
-function wpGet(filter, options) {
-  return resolveModule(filter, options);
-}
-function wpGetByKeys(keys, options) {
-  return resolveModule(Webpack.Filters.byKeys(...keys), options);
-}
-function wpGetBulkKeyed(queries) {
-  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
-}
-var PASSTHROUGH_PROPS = new Set([
-  "then",
-  "toJSON",
-  "valueOf",
-  "toString",
-  Symbol.toPrimitive,
-  Symbol.toStringTag,
-  Symbol.iterator
-]);
-function resolveLive(filter, options, path) {
-  let current = resolveModule(filter, options);
-  for (const seg of path) {
-    if (current == null)
-      return;
-    current = current[seg];
-  }
-  return current;
-}
-function createLiveProxy(filter, options, path) {
-  const target = function wpGetProxyTarget() {};
-  return new Proxy(target, {
-    get(_t, prop) {
-      if (PASSTHROUGH_PROPS.has(prop)) {
-        const val = resolveLive(filter, options, path);
-        if (val == null)
-          return;
-        const member = val[prop];
-        return typeof member === "function" ? member.bind(val) : member;
-      }
-      return createLiveProxy(filter, options, [...path, prop]);
-    },
-    apply(_t, thisArg, args) {
-      const fn = resolveLive(filter, options, path);
-      const parent = resolveLive(filter, options, path.slice(0, -1));
-      return fn.apply(parent ?? thisArg, args);
-    },
-    set(_t, prop, value) {
-      const val = resolveLive(filter, options, path);
-      if (val == null)
-        return false;
-      val[prop] = value;
-      return true;
-    },
-    has(_t, prop) {
-      const val = resolveLive(filter, options, path);
-      return val != null && prop in Object(val);
-    },
-    ownKeys(_t) {
-      const val = resolveLive(filter, options, path);
-      return val ? Reflect.ownKeys(val) : [];
-    },
-    getOwnPropertyDescriptor(_t, prop) {
-      const val = resolveLive(filter, options, path);
-      if (val == null)
-        return;
-      return Object.getOwnPropertyDescriptor(val, prop) ?? {
-        enumerable: true,
-        configurable: true,
-        value: val[prop]
-      };
-    }
-  });
-}
-function wpGetProxy(filter, options) {
-  return createLiveProxy(filter, options, []);
-}
-function getKey(module2, fn) {
-  for (const key in module2) {
-    if (fn(module2[key]))
-      return { key, module: module2 };
-  }
-}
-
-// src/global/index.ts
-var DefaultOptions = {
-  options: {
-    searchExports: true
-  }
-};
-var GlobalModules = wpGetBulkKeyed({
-  Typing: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
-  },
-  Endpoints: {
-    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
-    ...DefaultOptions
-  },
-  Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
-    ...DefaultOptions,
-    options: {
-      key: "_dispatcher"
-    }
-  },
-  HTTP: {
-    filter: (m) => typeof m === "object" && m.del && m.put,
-    ...DefaultOptions
-  },
-  Gateway: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
-  },
-  Flux: {
-    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
-    options: {
-      key: "Ay"
-    }
-  },
-  Intl: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
-  },
-  ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
-  },
-  SimpleMarkdownWrapper: {
-    filter: (m) => m.reactParserFor
-  },
-  AssetModule: {
-    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
-    map: {
-      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
-      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
-      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
-      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
-    }
-  },
-  Lodash: {
-    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
-  }
-});
-
-// src/patches/modules/appIcons.tsx
-var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } = BetterDiscord.Webpack.Stores;
-var bypassMap = {
-  emojisEverywhere: "emojiBypass",
-  animatedEmojis: "emojiBypass",
-  appIcons: "unlockAppIcons",
-  profilePremiumFeatures: "removeProfileUpsell",
-  clientThemes: "clientThemes",
-  soundboardEverywhere: "soundmojiEnabled"
-};
-var appIcons_default = {
-  name: "appIcons",
-  description: "Lets user select app icon",
-  apply(finale, patcher) {
-    GlobalModules.Dispatcher.dispatch({
-      type: "APP_ICON_UPDATED",
-      id: SettingsStore_default.get("appIcon")
-    });
-    const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
-      render: (x) => x
-    });
-    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
-    const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
-      canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
-    }, { mapDeclarations: true });
-    patcher.instead(AppIcon, "render", (_, [args], callback) => {
-      const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-      if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
-        return callback(args);
-      } else {
-        return /* @__PURE__ */ React.createElement(CustomAppIcon, {
-          size: 40,
-          id: SettingsStore_default.get("appIcon")
-        });
-      }
-    });
-    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
-      const settingKey = bypassMap[feature.name];
-      if (settingKey && SettingsStore_default.get(settingKey))
-        return true;
-      return originalFunction(feature, user);
-    });
-  }
-};
-// src/patches/modules/streamBypass.ts
-var LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", { searchExports: true });
-var streamBypass_default = {
-  name: "streamBypass",
-  description: "Custom Bitrates, FPS, Resolution",
-  waitFor: [BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"), BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")],
-  apply(finale, patcher) {
-    const _class = finale.modules[0];
-    patcher.before(_class.prototype, "updateVideoQuality", (e) => {
-      const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
-      const vqm = e.videoQualityManager;
-      const vqmOpt = vqm.options;
-      if (CustomBitrateEnabled) {
-        vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
-        vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
-        vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
-      }
-      const maxVideoQuality = {
-        width: e.videoStreamParameters[0].maxResolution.width,
-        height: e.videoStreamParameters[0].maxResolution.height
-      };
-      let videoCapture = {
-        width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
-        height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
-        framerate: e.videoStreamParameters[0].maxFrameRate
-      };
-      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate * 1000);
-      vqmOpt.videoBudget = videoCapture;
-      vqmOpt.videoCapture = videoCapture;
-      let pixelBudget = videoCapture.width * videoCapture.height;
-      vqm.ladder.pixelBudget = pixelBudget;
-      vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
-      vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
-    });
-    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {
-      return true;
-    });
   }
 };
 // bdapi-react-shim:react
@@ -11647,6 +11172,514 @@ var InlineIcon = forwardRef((props, ref) => IconComponent({
   _ref: ref
 }));
 
+// src/global/webpack/index.ts
+var { Webpack } = BdApi;
+function queryToFilter(query) {
+  if ("filter" in query)
+    return query.filter;
+  if ("keys" in query)
+    return Webpack.Filters.byKeys(...query.keys);
+  if ("prototypeKeys" in query)
+    return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
+  if ("strings" in query)
+    return Webpack.Filters.byStrings(...query.strings);
+  if ("source" in query)
+    return Webpack.Filters.bySource(...query.source);
+  if ("regex" in query)
+    return Webpack.Filters.byRegex(query.regex);
+  if ("displayName" in query)
+    return Webpack.Filters.byDisplayName(query.displayName);
+  return Webpack.Filters.byStoreName(query.storeName);
+}
+function resolveModule(filter, options) {
+  const opts = options ?? {};
+  if (opts.declaration) {
+    const { declaration, key, raw, ...rest } = opts;
+    const result = Webpack.getMangled(filter, { __value: declaration }, {
+      ...rest,
+      mapDeclarations: true
+    });
+    return result?.__value ?? null;
+  }
+  const mod = Webpack.getModule(filter, opts);
+  if (mod == null)
+    return null;
+  return opts.key ? mod[opts.key] : mod;
+}
+function resolveQuery(query) {
+  if ("map" in query) {
+    const q = query;
+    const newModule = {};
+    const foundModule = Webpack.getModule(q.filter);
+    if (foundModule) {
+      const remaining = new Map(Object.entries(q.map));
+      for (const value of Object.values(foundModule)) {
+        for (const [queryKey, queryValue] of remaining) {
+          if (queryValue(value)) {
+            newModule[queryKey] = value;
+            remaining.delete(queryKey);
+            break;
+          }
+        }
+        if (remaining.size === 0)
+          break;
+      }
+    }
+    return newModule;
+  }
+  return resolveModule(queryToFilter(query), query.options);
+}
+var wpFilter = {
+  byKeys: (...keys) => Webpack.Filters.byKeys(...keys),
+  byPrototypeKeys: (...keys) => Webpack.Filters.byPrototypeKeys(...keys),
+  byStrings: (...strings) => Webpack.Filters.byStrings(...strings),
+  bySource: (...source) => Webpack.Filters.bySource(...source),
+  byRegex: (regex2) => Webpack.Filters.byRegex(regex2),
+  byDisplayName: (name) => Webpack.Filters.byDisplayName(name),
+  byStoreName: (name) => Webpack.Filters.byStoreName(name),
+  combine: (...filters) => Webpack.Filters.combine(...filters),
+  not: (filter) => Webpack.Filters.not(filter)
+};
+function wpGet(filter, options) {
+  return resolveModule(filter, options);
+}
+function wpGetByKeys(keys, options) {
+  return resolveModule(Webpack.Filters.byKeys(...keys), options);
+}
+function wpGetBulkKeyed(queries) {
+  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
+}
+var PASSTHROUGH_PROPS = new Set([
+  "then",
+  "toJSON",
+  "valueOf",
+  "toString",
+  Symbol.toPrimitive,
+  Symbol.toStringTag,
+  Symbol.iterator
+]);
+var IDENTITY_PROPS = new Set([
+  "prototype",
+  "contextType",
+  "defaultProps",
+  "$$typeof"
+]);
+function resolveLive(filter, options, path) {
+  let current = resolveModule(filter, options);
+  for (const seg of path) {
+    if (current == null)
+      return;
+    current = current[seg];
+  }
+  return current;
+}
+function createLiveProxy(filter, options, path) {
+  const target = function wpGetProxyTarget() {};
+  return new Proxy(target, {
+    get(_t, prop) {
+      if (PASSTHROUGH_PROPS.has(prop) || IDENTITY_PROPS.has(prop)) {
+        const val = resolveLive(filter, options, path);
+        if (val == null)
+          return;
+        const member = val[prop];
+        return typeof member === "function" ? member.bind(val) : member;
+      }
+      return createLiveProxy(filter, options, [...path, prop]);
+    },
+    apply(_t, thisArg, args) {
+      const fn = resolveLive(filter, options, path);
+      const parent = resolveLive(filter, options, path.slice(0, -1));
+      return fn.apply(parent ?? thisArg, args);
+    },
+    construct(_t, args, _newTarget) {
+      const ctor = resolveLive(filter, options, path);
+      if (typeof ctor !== "function") {
+        throw new TypeError(`${String(path[path.length - 1] ?? "target")} is not a constructor`);
+      }
+      return Reflect.construct(ctor, args, ctor);
+    },
+    set(_t, prop, value) {
+      const val = resolveLive(filter, options, path);
+      if (val == null)
+        return false;
+      val[prop] = value;
+      return true;
+    },
+    has(_t, prop) {
+      const val = resolveLive(filter, options, path);
+      return val != null && prop in Object(val);
+    },
+    ownKeys(_t) {
+      const val = resolveLive(filter, options, path);
+      const keys = val ? Reflect.ownKeys(val) : [];
+      if (!keys.includes("prototype"))
+        keys.push("prototype");
+      return keys;
+    },
+    getOwnPropertyDescriptor(_t, prop) {
+      if (prop === "prototype") {
+        return Reflect.getOwnPropertyDescriptor(_t, prop);
+      }
+      const val = resolveLive(filter, options, path);
+      if (val == null)
+        return;
+      return Object.getOwnPropertyDescriptor(val, prop) ?? {
+        enumerable: true,
+        configurable: true,
+        value: val[prop]
+      };
+    }
+  });
+}
+function wpGetProxy(filter, options) {
+  return createLiveProxy(filter, options, []);
+}
+function getKey(module2, fn) {
+  for (const key in module2) {
+    if (fn(module2[key]))
+      return { key, module: module2 };
+  }
+}
+
+// src/global/index.ts
+var DefaultOptions = {
+  options: {
+    searchExports: true
+  }
+};
+var GlobalModules = wpGetBulkKeyed({
+  Typing: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
+  },
+  Endpoints: {
+    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
+    ...DefaultOptions
+  },
+  Dispatcher: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    ...DefaultOptions,
+    options: {
+      key: "_dispatcher"
+    }
+  },
+  HTTP: {
+    filter: (m) => typeof m === "object" && m.del && m.put,
+    ...DefaultOptions
+  },
+  Gateway: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
+  },
+  Flux: {
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
+    options: {
+      key: "Ay"
+    }
+  },
+  Intl: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
+  },
+  ModalModule: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+  },
+  SimpleMarkdownWrapper: {
+    filter: (m) => m.reactParserFor
+  },
+  AssetModule: {
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
+    map: {
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
+      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
+    }
+  },
+  Lodash: {
+    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  }
+});
+
+// src/patches/modules/banners.tsx
+var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
+var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
+var ModalModule = wpGetByKeys(["Modal"]);
+function Debug({ user }) {
+  const data = {
+    hasBanner: UserBackgroundStore_default.hasHash(user.id),
+    url: UserBackgroundStore_default.get(user.id),
+    isImportant: BadgesStore_default.isImportant(user.id),
+    dns3y3: getRevealedText(user.id, "\uDB40\uDC53\uDB40\uDC7B"),
+    decor3y3: getRevealedText(user.id, "\uDB40\uDC2F\uDB40\uDC61"),
+    nameplate3y3: getRevealedText(user.id, "\uDB40\uDC6E\uDB40\uDC7B"),
+    pfp3y3: getRevealedText(user.id, "\uDB40\uDC50\uDB40\uDC7B"),
+    badge: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadge(user.id).id : "not known user"
+  };
+  function OpenModal() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React.createElement(ModalModule.Modal, {
+        title: "Debug",
+        ...props
+      }, /* @__PURE__ */ React.createElement("code", null, JSON.stringify(data, null, 2)));
+    });
+  }
+  return /* @__PURE__ */ React.createElement(TopLeft, null, /* @__PURE__ */ React.createElement(Icon, {
+    icon: "mdi:bug",
+    width: "24px",
+    color: "white",
+    onClick: OpenModal
+  }));
+}
+var banners_default = {
+  name: "fakeBanners",
+  description: "3y3 banners",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
+  mangled: {
+    renderBanner: (x) => x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
+  },
+  apply(finale, patcher) {
+    patcher.after(finale.mangled, "renderBanner", (_, [props], ret) => {
+      if (!SettingsStore_default.get("fakeProfileBanners"))
+        return ret;
+      const unpatch = patcher.after(ret, "type", (a, b, c) => {
+        if (UserBackgroundStore_default.hasHash(props.user.id)) {
+          c.props.bannerSrc = getBannerUrl(props.user.id);
+        }
+        unpatch();
+      });
+      return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
+        user: props.user
+      }), ret] : ret;
+    });
+  }
+};
+// src/patches/modules/_sendMessage.ts
+var { StickersStore, SoundboardStore, EmojiStore, UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
+var StickerTypeToExtension;
+((StickerTypeToExtension2) => {
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 2] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".json"] = 3] = ".json";
+  StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
+})(StickerTypeToExtension ||= {});
+var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", { searchExports: true });
+async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send2, numFilesInMessage = 1, alwaysSendInNewMessage = false) {
+  if (!filesToDownload.length)
+    return;
+  const preexisting = extraData.attachmentsToUpload ?? [];
+  extraData.attachmentsToUpload = preexisting;
+  const uploads = await Promise.all(filesToDownload.map(async (f) => {
+    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+    return new CloudUploader({ file: new File([blob], f.filename), isClip: false, isThumbnail: false, platform: 1, isImage: true }, channelId, false, 0);
+  }));
+  if (preexisting.length || alwaysSendInNewMessage) {
+    await send2(channelId, msg, extraData);
+  } else {
+    extraData.attachmentsToUpload = uploads.splice(0, numFilesInMessage);
+    await send2(channelId, msg, extraData);
+  }
+  extraData.attachmentsToUpload = [];
+  msg.content = "";
+  while (uploads.length) {
+    await send2(channelId, { content: "" }, { attachmentsToUpload: uploads.splice(0, numFilesInMessage) });
+  }
+}
+var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
+var _sendMessage_default = {
+  name: "Send Message",
+  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
+  ids: undefined,
+  waitFor: [(x) => x._sendMessage],
+  apply(finale, patcher) {
+    patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send2) => {
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
+        return send2.apply(_, [channelId, msg, extraData]);
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
+      const stickersEnabled = SettingsStore_default.get("stickerBypass");
+      let urlsToUpload = [];
+      for (let i = 0;i < msg.validNonShortcutEmojis.length; i++) {
+        const emoji = msg.validNonShortcutEmojis[i];
+        if (!emojiBypassEnabled)
+          break;
+        if (shouldSkipEmojiBypass(emoji, channelId))
+          continue;
+        const emojiString = getEmojiString(emoji);
+        if (msg.content.includes(`-${emojiString}`)) {
+          msg.content = msg.content.replace("-" + emojiString, emojiString);
+          continue;
+        }
+        const emojiUrl = getEmojiUrl(emoji);
+        switch (emojiBypassType) {
+          case 0:
+            msg.content = msg.content.replace(emojiString, "");
+            urlsToUpload.push({
+              url: emojiUrl,
+              filename: emoji.name + getEmojiExtension(emoji)
+            });
+            break;
+          case 1:
+          case 3:
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i})`);
+            break;
+          case 2:
+            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i}`);
+            break;
+        }
+      }
+      if (extraData.stickerIds && stickersEnabled) {
+        for (const stickerId of extraData.stickerIds) {
+          const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+          const sticker = StickersStore.getStickerById(stickerId);
+          let extension = StickerTypeToExtension[sticker.format_type];
+          urlsToUpload.push({
+            url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+            filename: `${sticker.name}${extension}`
+          });
+        }
+        extraData.stickerIds = [];
+      }
+      let soundmojiUrls = [];
+      if (soundmojiEnabled) {
+        const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
+        const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
+        const soundmojiObjects = soundmojiStrings?.map?.((x) => SoundboardStore.getSoundById(x?.split?.(":")?.[2]?.slice?.(0, -1)));
+        soundmojiObjects?.forEach?.((x) => soundmojiUrls.push({
+          url: SOUNDBOARD_PREFIX + x.soundId,
+          filename: x.name + ".ogg"
+        }));
+        for (let i = 0;i < soundmojiObjects?.length; i++) {
+          const sound = soundmojiObjects[i];
+          if (!sound)
+            continue;
+          const soundmojiString = soundmojiStrings[i];
+          !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
+          if (sound?.emojiId) {
+            let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
+            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
+          }
+          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
+        }
+      }
+      if (urlsToUpload?.length > 0)
+        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send2, 1, false);
+      if (soundmojiUrls?.length > 0)
+        downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send2, 10, true);
+      if (!urlsToUpload.length && !soundmojiUrls.length)
+        send2(channelId, msg, extraData);
+    });
+  }
+};
+// src/patches/modules/unlockEmojis.ts
+var unlockEmojis_default = {
+  name: "Unlock Emojis",
+  description: "Fully unlocks emojis.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
+  apply(finale, patcher) {
+    const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+    if (!emojiBypassEnabled)
+      return;
+    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
+    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
+      return;
+    });
+  }
+};
+// src/patches/modules/getUserBannerURL.ts
+var getUserBannerURL_default = {
+  name: "getUserBannerURL",
+  description: "Force animate the user banner URL",
+  waitFor: [(x) => x.getEmojiURL],
+  apply(finale, patcher) {
+    const AvatarDefaults = finale.modules[0];
+    patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+      args[0].canAnimate = true;
+    });
+  }
+};
+// src/patches/modules/appIcons.tsx
+var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } = BetterDiscord.Webpack.Stores;
+var bypassMap = {
+  emojisEverywhere: "emojiBypass",
+  animatedEmojis: "emojiBypass",
+  appIcons: "unlockAppIcons",
+  profilePremiumFeatures: "removeProfileUpsell",
+  clientThemes: "clientThemes",
+  soundboardEverywhere: "soundmojiEnabled"
+};
+var appIcons_default = {
+  name: "appIcons",
+  description: "Lets user select app icon",
+  apply(finale, patcher) {
+    GlobalModules.Dispatcher.dispatch({
+      type: "APP_ICON_UPDATED",
+      id: SettingsStore_default.get("appIcon")
+    });
+    const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
+      render: (x) => x
+    });
+    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
+    const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+      canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
+    }, { mapDeclarations: true });
+    patcher.instead(AppIcon, "render", (_, [args], callback) => {
+      const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
+      if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
+        return callback(args);
+      } else {
+        return /* @__PURE__ */ React.createElement(CustomAppIcon, {
+          size: 40,
+          id: SettingsStore_default.get("appIcon")
+        });
+      }
+    });
+    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
+      const settingKey = bypassMap[feature.name];
+      if (settingKey && SettingsStore_default.get(settingKey))
+        return true;
+      return originalFunction(feature, user);
+    });
+  }
+};
+// src/patches/modules/streamBypass.ts
+var LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", { searchExports: true });
+var streamBypass_default = {
+  name: "streamBypass",
+  description: "Custom Bitrates, FPS, Resolution",
+  waitFor: [BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"), BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")],
+  apply(finale, patcher) {
+    const _class = finale.modules[0];
+    patcher.before(_class.prototype, "updateVideoQuality", (e) => {
+      const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
+      const vqm = e.videoQualityManager;
+      const vqmOpt = vqm.options;
+      if (CustomBitrateEnabled) {
+        vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
+        vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
+        vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
+      }
+      const maxVideoQuality = {
+        width: e.videoStreamParameters[0].maxResolution.width,
+        height: e.videoStreamParameters[0].maxResolution.height
+      };
+      let videoCapture = {
+        width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
+        height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
+        framerate: e.videoStreamParameters[0].maxFrameRate
+      };
+      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate * 1000);
+      vqmOpt.videoBudget = videoCapture;
+      vqmOpt.videoCapture = videoCapture;
+      let pixelBudget = videoCapture.width * videoCapture.height;
+      vqm.ladder.pixelBudget = pixelBudget;
+      vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
+      vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
+    });
+    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {
+      return true;
+    });
+  }
+};
 // src/patches/modules/gifPickerContext.tsx
 var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", { searchExports: true });
 var gifPickerContext_default = {
@@ -12095,7 +12128,7 @@ var AdminIcon = () => /* @__PURE__ */ React5.createElement("svg", {
   d: "M12 12h7c-.53 4.11-3.28 7.78-7 8.92zH5V6.3l7-3.11M12 1L3 5v6c0 5.55 3.84 10.73 9 12c5.16-1.27 9-6.45 9-12V5z"
 }));
 var IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
-var ModalModule = wpGetByKeys(["Modal"]);
+var ModalModule2 = wpGetByKeys(["Modal"]);
 var MODES = [
   {
     label: "4K Mode",
@@ -12161,7 +12194,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
     { key: "targetBitrate", label: "Target Bitrate" },
     { key: "voiceBitrate", label: "Voice Bitrate" }
   ];
-  return /* @__PURE__ */ React5.createElement(ModalModule.Modal, {
+  return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
     ...props,
     onClose,
     title: "YABDP4Nitro Configuration"
@@ -12246,10 +12279,10 @@ var goLiveModal_default = {
   }
 };
 // src/ui/AccentColors.tsx
-var { UserProfileStore: UserProfileStore3, UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
+var { UserProfileStore: UserProfileStore3, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
 var { React: React6, Components: Components2 } = BetterDiscord;
 function AccentColors() {
-  const CurrentUser = UserStore3.getCurrentUser();
+  const CurrentUser = UserStore4.getCurrentUser();
   const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
   const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
   const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8");
@@ -12331,6 +12364,78 @@ function CustomBanner() {
     }
   }, "Copy Banner 3y3"));
 }
+// src/ui/DisplayNameStyle.tsx
+var { React: React9, Components: Components5 } = BetterDiscord;
+var FONTS = [
+  "gg sans",
+  "Tempo",
+  "Sakura",
+  "Jellybean",
+  "Modern",
+  "Medieval",
+  "8Bit",
+  "Vampyre"
+];
+var EFFECTS = [
+  "Solid",
+  "Gradient",
+  "Neon",
+  "Toon",
+  "Pop"
+];
+function FontButton({ onClick, selected, fontFamily }) {
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    style: {
+      fontFamily,
+      backgroundColor: "var(--control-secondary-background-default)",
+      border: selected ? "1px solid white" : "none",
+      margin: "0px 5px 5px 0px",
+      display: "inline-block"
+    },
+    onClick
+  }, fontFamily);
+}
+function EffectButton({ onClick, selected, children }) {
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    style: {
+      backgroundColor: "var(--control-secondary-background-default)",
+      border: selected ? "1px solid white" : "none",
+      margin: "0px 5px 5px 0px",
+      display: "inline-block"
+    },
+    onClick
+  }, ...children);
+}
+function DisplayNameStyle() {
+  const [fontId, setFontId] = React9.useState(0);
+  const [effectId, setEffectId] = React9.useState(0);
+  const [colors, setColors] = React9.useState({
+    primary: "#ffffff",
+    accent: "#000000"
+  });
+  let fontButtons = [];
+  for (let i = 0;i < FONTS.length; i++) {
+    fontButtons.push(/* @__PURE__ */ React9.createElement(FontButton, {
+      fontFamily: FONTS[i],
+      selected: fontId === i,
+      onClick: () => setFontId(i)
+    }));
+  }
+  let effectButtons = [];
+  for (let i = 0;i < EFFECTS.length; i++) {
+    effectButtons.push(/* @__PURE__ */ React9.createElement(EffectButton, {
+      onClick: () => setEffectId(i),
+      selected: effectId === i
+    }, EFFECTS[i]));
+  }
+  return /* @__PURE__ */ React9.createElement("div", {
+    style: {}
+  }, /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), ...fontButtons, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), ...effectButtons, /* @__PURE__ */ React9.createElement(Components5.Button, {
+    onClick: () => {
+      BetterDiscord.UI.showToast(`Font: ${fontId} Effect: ${effectId}`);
+    }
+  }, "Show selection"));
+}
 // src/ui/Sep.tsx
 var Separator = styled.div({
   width: "100%",
@@ -12362,14 +12467,76 @@ function SepWithText({ children }) {
   return /* @__PURE__ */ React.createElement(Wrapper, null, /* @__PURE__ */ React.createElement(Line, null), /* @__PURE__ */ React.createElement(Label, null, children), /* @__PURE__ */ React.createElement(Line, null));
 }
 
+// src/global/stores/ShopCollectiblesStore.tsx
+var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends BetterDiscord.Utils.Store {
+  collections = [];
+  questCollectibles = [];
+  constructor() {
+    super();
+    this.fetch();
+  }
+  async fetch() {
+    const aamiaCollections = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then((x) => x.json());
+    const aamiaQuests = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then((x) => x.json());
+    this.collections = aamiaCollections;
+    this.questCollectibles = aamiaQuests;
+  }
+  set(data) {
+    this.collections = data.categories.categories;
+    this.emitChange();
+  }
+  getQuestCollectible(skuId) {
+    this.questCollectibles.find((q) => q.id === skuId);
+  }
+  getCategory(categorySkuId) {
+    return this.collections.find((x) => x.sku_id === categorySkuId);
+  }
+  getItemsFromCategory(categorySkuId) {
+    const category = this.getCategory(categorySkuId);
+    if (!category)
+      return null;
+    return category.products.filter((product) => product.type !== 1000);
+  }
+  getAvatarDecorations(categorySkuId) {
+    const category = this.getCategory(categorySkuId);
+    if (!category)
+      return null;
+    return category.products.flatMap((product) => product.items.filter((item) => item.type === 0 /* AvatarDecoration */));
+  }
+  getNameplates(categorySkuId) {
+    const category = this.getCategory(categorySkuId);
+    if (!category)
+      return null;
+    return category.products.flatMap((product) => product.items.filter((item) => item.type === 2 /* Nameplate */));
+  }
+  getProfileEffects(categorySkuId) {
+    const category = this.getCategory(categorySkuId);
+    if (!category)
+      return null;
+    return category.products.flatMap((product) => product.items.filter((item) => item.type === 1 /* ProfileEffect */));
+  }
+  getProfileFrames(categorySkuId) {
+    const category = this.getCategory(categorySkuId);
+    if (!category)
+      return null;
+    return category.products.flatMap((product) => product.items.filter((item) => item.type === 3 /* ProfileFrame */));
+  }
+};
+
 // src/patches/modules/UserProfileV2.tsx
-var { React: React9 } = BetterDiscord;
+var { React: React10 } = BetterDiscord;
+var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+var ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"));
 var Margin = styled.div({
   marginBottom: "-50px"
 });
+var Scroller = styled.div({
+  overflowY: "scroll",
+  scrollbarWidth: "none"
+});
 function CustomSettingsTab() {
-  return /* @__PURE__ */ React9.createElement(Margin, null, /* @__PURE__ */ React9.createElement(AccentColors, null), /* @__PURE__ */ React9.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React9.createElement(CustomPFP, null), /* @__PURE__ */ React9.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React9.createElement(CustomBanner, null));
+  return /* @__PURE__ */ React10.createElement(Scroller, null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React10.createElement(AccentColors, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React10.createElement(CustomPFP, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React10.createElement(CustomBanner, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React10.createElement(DisplayNameStyle, null));
 }
 var UserProfileV2_default = {
   name: "User Profile V2",
@@ -12382,11 +12549,13 @@ var UserProfileV2_default = {
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
-        return /* @__PURE__ */ React9.createElement(CustomSettingsTab, null);
+        return /* @__PURE__ */ React10.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
+      if (args?.displayProfile?.userId != UserStore5.getCurrentUser().id)
+        return res;
       if (args?.items && args.items.find((x) => x.text.includes("YABD")))
         return;
       args.items.push({
@@ -12395,6 +12564,68 @@ var UserProfileV2_default = {
       });
     });
     return;
+  }
+};
+// src/global/stores/UserProfilePictureStore.ts
+var USER_BG2 = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+var UserProfilePictureStore_default = new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
+  users = {};
+  constructor() {
+    super();
+    this.fetch();
+  }
+  get(userId) {
+    return this.users[userId];
+  }
+  hasHash(id) {
+    return Boolean(this.users[id]);
+  }
+  async fetch() {
+    const data = await BetterDiscord.Net.fetch(USER_BG2);
+    const response = await data.json();
+    this.users = response.avatars;
+  }
+};
+
+// src/patches/modules/getAvatarURL.ts
+var UserClass = wpGet((x) => x.prototype?.getAvatarURL, { searchExports: true });
+var PFP_REGEX = /P\{[^}]*?\}/;
+var getAvatarURL_default = {
+  name: "getAvatarURL",
+  apply(finale, patcher) {
+    patcher.instead(UserClass.prototype, "getAvatarURL", (_, [args], callback) => {
+      if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration"))
+        return callback(args);
+      const userPicture = UserProfilePictureStore_default.get(_.id);
+      if (!userPicture)
+        return callback(args);
+      const foundPFP = getRevealedText(_.id, `\uDB40\uDC50\uDB40\uDC7B`);
+      if (!foundPFP)
+        return userPicture;
+      const matches = foundPFP.match(PFP_REGEX)?.[0].replace("P{", "").replace("}", "");
+      if (!matches)
+        return userPicture;
+      return `https://i.imgur.com/${matches}`;
+    });
+  }
+};
+// src/patches/modules/dev.tsx
+var dev_default = {
+  name: "dev",
+  apply(finale, patcher) {
+    const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+    patcher.after(module2.Ay, "type", (_, args, res) => {
+      const user = args[0].message.author;
+      if (!res.props.badges.find((x) => x.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
+        res.props.badges.push(/* @__PURE__ */ React.createElement("img", {
+          key: "yabd-badge",
+          height: "16px",
+          width: "16px",
+          src: BadgesStore_default.returnRespondingBadge(user.id).iconSrc
+        }));
+      }
+      return res;
+    });
   }
 };
 // src/patches/contextMenus/index.ts
@@ -12407,7 +12638,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React10 } = BetterDiscord;
+var { React: React11 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -12436,16 +12667,16 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React10.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React11.createElement(BetterDiscord.ContextMenu.Item, {
       action: startDownload,
-      icon: /* @__PURE__ */ React10.createElement(Icon, {
+      icon: /* @__PURE__ */ React11.createElement(Icon, {
         width: "22",
         icon: "mdi:download"
       }),
-      label: /* @__PURE__ */ React10.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React10.createElement(ContextMenuLabel, null), /* @__PURE__ */ React10.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React11.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React11.createElement(ContextMenuLabel, null), /* @__PURE__ */ React11.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React10.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React11.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -12482,13 +12713,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore4.getCurrentUser().id;
+    const currentUserId = UserStore6.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -12653,8 +12884,8 @@ function startChangelog() {
 }
 
 // src/index.tsx
-var { Components: Components5 } = BetterDiscord;
-var { React: React11 } = BetterDiscord;
+var { Components: Components6 } = BetterDiscord;
+var { React: React12 } = BetterDiscord;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -13083,6 +13314,7 @@ class Plugin {
     await UserBackgroundStore_default.fetch();
     await loadPatches();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
+    window.store = ShopCollectiblesStore_default;
   }
   checkUpdate() {
     return;
@@ -13095,22 +13327,22 @@ class Plugin {
     const onChange = (v) => SettingsStore_default.set(def.key, v);
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React11.createElement(Components5.SwitchInput, {
+        return /* @__PURE__ */ React12.createElement(Components6.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React11.createElement(Components5.NumberInput, {
+        return /* @__PURE__ */ React12.createElement(Components6.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React11.createElement(Components5.TextInput, {
+        return /* @__PURE__ */ React12.createElement(Components6.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React11.createElement(Components5.DropdownInput, {
+        return /* @__PURE__ */ React12.createElement(Components6.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -13130,11 +13362,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React11.createElement(React11.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React11.createElement(Components5.SettingGroup, {
+      return /* @__PURE__ */ React12.createElement(React12.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React12.createElement(Components6.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React11.createElement(Components5.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React12.createElement(Components6.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note

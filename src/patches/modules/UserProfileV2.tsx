@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {AccentColors, CustomBanner, CustomPFP} from "../../ui";
+import {AccentColors, CustomBanner, CustomPFP, DisplayNameStyle} from "../../ui";
 import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import {Separator, SepWithText} from "../../ui/Sep.tsx";
@@ -16,6 +16,11 @@ const Margin = styled.div({
     marginBottom: "-50px"
 })
 
+const Scroller = styled.div({
+    overflowY: "scroll",
+    scrollbarWidth: "none"
+})
+
 function DisplayProducts()
 {
     const decorations = ShopCollectiblesStore.getAvatarDecorations("1212565175790473246")
@@ -29,16 +34,18 @@ function DisplayProducts()
 
 function CustomSettingsTab()
 {
-    return <Margin>
+    return <Scroller>
         <SepWithText>Custom Theme Colors</SepWithText>
         <AccentColors />
         <SepWithText>Custom PFP</SepWithText>
         <CustomPFP/>
         <SepWithText>Custom Banner</SepWithText>
         <CustomBanner/>
+        <SepWithText>Display Name Style</SepWithText>
+        <DisplayNameStyle/>
         {/*<SepWithText>Profile Effect</SepWithText>*/}
         {/*<DisplayProducts/>*/}
-    </Margin>
+    </Scroller>
 }
 
 export default {
@@ -60,7 +67,7 @@ export default {
         });
 
         patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a,[args],res) => {
-            if (args.displayProfile.userId != UserStore.getCurrentUser().id) return res;
+            if (args?.displayProfile?.userId != UserStore.getCurrentUser().id) return res;
             if (args?.items && args.items.find(x => x.text.includes("YABD"))) return;
 
             args.items.push({
