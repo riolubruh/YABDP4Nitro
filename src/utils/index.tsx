@@ -238,3 +238,12 @@ export async function getDirectImgurHash(url: string){
     const res = await (await BetterDiscord.Net.fetch(url)).text();
     return res.match(IMGUR_URL_REGEX)?.[1];
 }
+
+function hasTagChars(s: string | undefined): boolean {
+    if (!s) return false;
+    for (let i = 0; i < s.length; i++) {
+        const cp = s.codePointAt(i);
+        if (cp && cp > 0xdb40 && cp < 0xdb41) continue;
+    }
+    return s.includes("\uDB40");
+}

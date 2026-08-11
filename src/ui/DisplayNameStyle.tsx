@@ -25,6 +25,7 @@ function FontButton({onClick, selected, fontFamily}){
     return <Components.Button
         style={{
             fontFamily: fontFamily,
+            color: 'var(--text-default)',
             backgroundColor: "var(--control-secondary-background-default)",
             border: selected ? "1px solid white" : "none",
             margin: "0px 5px 5px 0px",
@@ -38,6 +39,7 @@ function EffectButton({onClick, selected, children}){
     return <Components.Button
         style={{
             backgroundColor: "var(--control-secondary-background-default)",
+            color: 'var(--text-default)',
             border: selected ? "1px solid white" : "none",
             margin: "0px 5px 5px 0px",
             display: "inline-block",
@@ -71,8 +73,7 @@ export default function DisplayNameStyle() {
         >{EFFECTS[i]}</EffectButton>)
     }
 
-    return <div style={{
-    }}>
+    return <div>
         <Components.Text>Font</Components.Text>
         {...fontButtons}
         <br/><br/>

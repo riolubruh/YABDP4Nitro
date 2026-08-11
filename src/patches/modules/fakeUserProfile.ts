@@ -1,6 +1,6 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
-import {getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
+import {getRevealedText, getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.ts";
@@ -11,18 +11,13 @@ const {UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 function decodeProfileColors(string: string) {
     if (!string) return null;
 
-    const colorString = string.match(
-        /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
-    );
+    const decoded = secondsightifyRevealOnly(string);
+    if (!decoded) return null;
 
-    if (colorString == null) return null;
+    const match = decoded.match(/\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/);
+    if (!match) return null;
 
-    let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
-    let colors = parsed
-        .substring(1, parsed.length - 1)
-        .split(",")
-        .map(x => parseInt(x.replace("#", "0x"), 16));
-    return colors;
+    return [match[1], match[2]].map(x => parseInt(x, 16));
 }
 
 export default {
@@ -39,7 +34,9 @@ export default {
 
             if (!ret) return;
 
-            const revealedSurrogate = getRevealedTextPerServer(userId, `\uDB40`);
+            const perServer = getRevealedTextPerServer(userId, `\uDB40`);
+            const revealedSurrogate = perServer ?? (ret?.bio ? secondsightifyRevealOnly(ret.bio) : undefined);
+
             const guildId = SelectedGuildStore.getGuildId();
 
             (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
@@ -81,6 +78,11 @@ export default {
                 };
 
                 ret.themeColors = Object.values(colors).find(Boolean);
+            }
+
+            if (revealedSurrogate && revealedSurrogate.includes("pf")) {
+                const match = revealedSurrogate.match(suggondeeznutz.PROFILE_FRAME)?.[0]?.substring(2);
+                if (match) ret.profileEffect = { skuId: match, expiresAt: null };
             }
 
             return ret;

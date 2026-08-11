@@ -1,11 +1,12 @@
 import {BetterDiscord} from "@shared/*";
 import {AccentColors, CustomBanner, CustomPFP, DisplayNameStyle} from "../../ui";
 import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
-import {styled} from "@utils/*";
-import {Separator, SepWithText} from "../../ui/Sep.tsx";
+import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
+import {SepWithText} from "../../ui/Sep.tsx";
 import ShopCollectiblesStore from "../../global/stores/ShopCollectiblesStore.tsx";
+import BadgesStore from "../../global/stores/BadgesStore.tsx";
 
-const {React} = BetterDiscord;
+const {React, Components} = BetterDiscord;
 const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
@@ -21,8 +22,7 @@ const Scroller = styled.div({
     scrollbarWidth: "none"
 })
 
-function DisplayProducts()
-{
+function DisplayProducts() {
     const decorations = ShopCollectiblesStore.getAvatarDecorations("1212565175790473246")
 
     return <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -32,11 +32,13 @@ function DisplayProducts()
     </div>
 }
 
-function CustomSettingsTab()
-{
+function CustomSettingsTab() {
+    const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id)
+    const [text, setText] = React.useState<string>("")
+
     return <Scroller>
         <SepWithText>Custom Theme Colors</SepWithText>
-        <AccentColors />
+        <AccentColors/>
         <SepWithText>Custom PFP</SepWithText>
         <CustomPFP/>
         <SepWithText>Custom Banner</SepWithText>
@@ -45,6 +47,13 @@ function CustomSettingsTab()
         <DisplayNameStyle/>
         {/*<SepWithText>Profile Effect</SepWithText>*/}
         {/*<DisplayProducts/>*/}
+        {isDeveloper ? <div>
+            <SepWithText>Developer</SepWithText>
+            <Components.TextInput value={text} onChange={e => setText(e)}/>
+            <Components.Button onClick={() => {
+                copyToClipboard(secondsightifyEncodeOnly(text), "[DEV] Copied uwu!")
+            }}>Encode</Components.Button>
+        </div> : null}
     </Scroller>
 }
 
@@ -54,11 +63,11 @@ export default {
     ids: undefined,
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
-        const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw:true}).declarations
+        const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw: true}).declarations
         const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
-        patcher.after(module.module, module.key, (a,[args],callback) => {
+        patcher.after(module.module, module.key, (a, [args], callback) => {
             if (args.section == "YABDP4Nitro") {
                 return <CustomSettingsTab/>
             }
@@ -66,7 +75,7 @@ export default {
             return callback
         });
 
-        patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a,[args],res) => {
+        patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
             if (args?.displayProfile?.userId != UserStore.getCurrentUser().id) return res;
             if (args?.items && args.items.find(x => x.text.includes("YABD"))) return;
 
