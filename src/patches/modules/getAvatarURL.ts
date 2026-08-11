@@ -4,10 +4,9 @@ import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import UserProfilePictureStore from "../../global/stores/UserProfilePictureStore.ts";
 import {getRevealedText} from "@utils/*";
+import suggondeeznutz from "../../global/shared/surrogates.ts"
 
 const UserClass = wpGet(x => x.prototype?.getAvatarURL, {searchExports: true})
-
-const PFP_REGEX = /P\{[^}]*?\}/
 
 export default {
     name: 'getAvatarURL',
@@ -21,7 +20,7 @@ export default {
             const foundPFP = getRevealedText(_.id, `\uDB40\uDC50\uDB40\uDC7B`);
             if (!foundPFP) return userPicture;
 
-            const matches = foundPFP.match(PFP_REGEX)?.[0].replace("P{","").replace("}","");
+            const matches = foundPFP.match(suggondeeznutz.PROFILE_PICTURE)?.[0].replace("P{","").replace("}","");
             if (!matches) return userPicture;
 
             return `https://i.imgur.com/${matches}`;

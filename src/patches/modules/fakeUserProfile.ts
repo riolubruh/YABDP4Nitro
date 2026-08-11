@@ -4,10 +4,9 @@ import {getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.ts";
+import suggondeeznutz from "../../global/shared/surrogates.ts"
 
 const {UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores
-
-const REGEX_FX = /fx\d+/
 
 function decodeProfileColors(string: string) {
     if (!string) return null;
@@ -52,7 +51,7 @@ export default {
                 if (!parsed) return ret;
 
                 if (parsed.includes("fx")) {
-                    const skuId = (parsed.match(REGEX_FX)?.[0])?.slice(2);
+                    const skuId = (parsed.match(suggondeeznutz.PROFILE_EFFECTS)?.[0])?.slice(2);
                     if (!skuId) return ret;
 
                     ret.profileEffect = {

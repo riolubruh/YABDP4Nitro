@@ -19,7 +19,7 @@ export default {
         patcher.before(mod, "type", (_: any, [args]: any) => {
             for(let i = 0; i < args.content.length; i++) {
                 let contentItem = args.content[i];
-                if(!contentItem?.props?.title || !contentItem?.props?.href.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title) continue;
+                if(!contentItem?.props?.title || !contentItem?.props?.href?.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title) continue;
 
                 const emojiName = contentItem.props?.children[0]?.props?.children ? contentItem.props?.children[0]?.props?.children : "unknownEmoji";
 

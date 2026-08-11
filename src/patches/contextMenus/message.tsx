@@ -8,8 +8,6 @@ const {React} = BetterDiscord;
 
 const yourFlyIsShowing = new JSZip();
 
-// KJJL
-
 export default {
     id: "message",
     callback(res, props) {
@@ -19,7 +17,7 @@ export default {
 
             const attachments = props.message.attachments;
             if (!attachments.length) {
-                BetterDiscord.UI.showToast("No attachments found? - KJJL");
+                BetterDiscord.UI.showToast("No attachments found?");
                 return
             }
 
