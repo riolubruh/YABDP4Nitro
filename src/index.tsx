@@ -5,9 +5,12 @@ import {startChangelog} from "./global/changelog";
 import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import {GlobalModules} from "@global/*";
 import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
+import BadgesStore from "./global/stores/BadgesStore.tsx";
+import {getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
+const {UserStore} = BetterDiscord.Webpack.Stores;
 
 type ControlType = "boolean" | "number" | "string" | "select";
 
@@ -473,7 +476,9 @@ export default class Plugin {
         // })
         // not needed because aamia is a goddess.
 
-        window.store = ShopCollectiblesStore;
+        if (BadgesStore.isImportant(UserStore.getCurrentUser().id)) {
+            window.YABD_DEBUG = { ShopCollectiblesStore, BadgesStore, getRevealedText, secondsightifyRevealOnly };
+        }
     }
 
     checkUpdate() {

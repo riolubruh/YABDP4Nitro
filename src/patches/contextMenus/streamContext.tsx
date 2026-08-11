@@ -2,6 +2,7 @@ import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 import {BetterDiscord} from "@shared/";
 import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
+import {CloseAllContextMenus} from "@global/*";
 
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
@@ -22,7 +23,7 @@ export default {
             SettingsStore.set("userSharpenPreferences", {...SettingsStore.get("userSharpenPreferences"), [streamingUserId]: percentSharpness});
         }
 
-        const ContextMenuSlider = <BetterDiscord.ContextMenu.Item
+        const ContextMenuSlider = <BetterDiscord.ContextMenu.Item onClose={CloseAllContextMenus}
                 id={"yabd-sharpness-slider"}
                 label={
                     <Slider

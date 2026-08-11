@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import {Icon} from "@iconify/react";
 import {ContextMenuLabel, ContextMenuWrapper, copyToClipboard} from "@utils/*";
+import {CloseAllContextMenus} from "@global/*";
 
 const GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys('renderGIF', {searchExports:true})
 
@@ -23,7 +24,7 @@ export default {
                     window.open(url);
                 }
 
-                const Menu = <BetterDiscord.ContextMenu.Menu>
+                const Menu = <BetterDiscord.ContextMenu.Menu onClose={CloseAllContextMenus}>
                     <BetterDiscord.ContextMenu.Item
                         leadingAccessory={{
                             type: "icon",

@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import {ContextMenuLabel, ContextMenuWrapper, EMOJI_ID_FROM_URL_REGEX, getEmojiUrl} from "@utils/*";
 import {Icon} from "@iconify/react";
+import {CloseAllContextMenus} from "@global/*";
 
 const {EmojiStore} = BetterDiscord.Webpack.Stores;
 
@@ -25,7 +26,7 @@ export default {
             window.open(src);
         }
 
-        const MenuItem = <BetterDiscord.ContextMenu.Item
+        const MenuItem = <BetterDiscord.ContextMenu.Item onClose={CloseAllContextMenus}
             leadingAccessory={{
                 type: "icon",
                 icon: () => <Icon width={"22"} icon={"mdi:external-link"}/>

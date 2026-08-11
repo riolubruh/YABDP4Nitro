@@ -57,3 +57,27 @@ export const GlobalModules = wpGetBulkKeyed({
         filter: BetterDiscord.Webpack.Filters.bySource("=\"Expected a function\","),
     }
 })
+
+export const LayerManager = {
+    pushLayer(component) {
+        GlobalModules.Dispatcher.dispatch({
+            type: "LAYER_PUSH",
+            component
+        });
+    },
+    popLayer() {
+        GlobalModules.Dispatcher.dispatch({
+            type: "LAYER_POP"
+        });
+    },
+    popAllLayers() {
+        GlobalModules.Dispatcher.dispatch({
+            type: "LAYER_POP_ALL"
+        });
+    }
+};
+
+export function CloseAllContextMenus()
+{
+    GlobalModules.Dispatcher.dispatch({type: "CONTEXT_MENU_CLOSE"})
+}

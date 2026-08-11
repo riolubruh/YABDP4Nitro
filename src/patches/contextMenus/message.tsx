@@ -3,6 +3,7 @@ import JSZip from "jszip";
 
 import { Icon } from "@iconify/react";
 import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
+import {CloseAllContextMenus} from "@global/*";
 
 const {React} = BetterDiscord;
 
@@ -42,7 +43,7 @@ export default {
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
-        const Menu = <BetterDiscord.ContextMenu.Item
+        const Menu = <BetterDiscord.ContextMenu.Item onClose={CloseAllContextMenus}
             action={startDownload}
             leadingAccessory={{
                 type: "icon",
