@@ -286,57 +286,195 @@ declare global {
 
         // -- ContextMenu --------------------------------------------------------
 
-        type ContextMenuItemType = "text" | "submenu" | "toggle" | "radio" | "control" | "separator" | "customitem";
+        type MenuColor = "default" | "brand" | "danger" | "premium" | "premium-gradient" | "success";
 
-        interface ContextMenuItemBase {
-            type?: ContextMenuItemType;
-            id?: string;
-            label?: string;
-            danger?: boolean;
-            disabled?: boolean;
-            action?: (event: MouseEvent) => void;
-            onClick?: (event: MouseEvent) => void;
+        type MenuBadge = string | { type: string; [key: string]: any };
+
+        interface MenuIconAccessory {
+            type: "icon";
+            icon: React.ComponentType<any>;
+            color?: string;
+            className?: string;
             [key: string]: any;
         }
 
-        interface ContextMenuSubmenuItem extends ContextMenuItemBase {
-            type: "submenu";
-            items?: ContextMenuItemSetup[];
-            render?: ContextMenuItemSetup[];
-            children?: React.ReactNode;
+        interface MenuEmojiAccessory {
+            type: "emoji";
+            emojiId?: string;
+            src?: string;
+            animated?: boolean;
         }
 
-        interface ContextMenuToggleItem extends ContextMenuItemBase {
-            type: "toggle";
-            checked?: boolean;
-            active?: boolean;
+        interface MenuImageAccessory {
+            type: "image";
+            src: string;
         }
 
-        interface ContextMenuRadioItem extends ContextMenuItemBase {
-            type: "radio";
-            checked?: boolean;
-            active?: boolean;
+        interface MenuAvatarAccessory {
+            type: "avatar";
+            src: string;
+        }
+
+        interface MenuRoleDotAccessory {
+            type: "roleDot";
+            variant: "dot" | "pill";
+            color: string;
+            colors?: string[] | null;
+        }
+
+        interface MenuStatusAccessory {
+            type: "status";
+            status: string;
+        }
+
+        interface MenuGuildTagAccessory {
+            type: "guildTag";
+            element: React.ReactNode;
+        }
+
+        /** Left-hand accessory rendered before an item's label (icon, emoji, avatar, role dot, presence status, guild tag). */
+        type MenuAccessory =
+            | MenuIconAccessory
+            | MenuEmojiAccessory
+            | MenuImageAccessory
+            | MenuAvatarAccessory
+            | MenuRoleDotAccessory
+            | MenuStatusAccessory
+            | MenuGuildTagAccessory;
+
+        /** Right-hand icon indicator, distinct from the submenu caret. */
+        interface MenuTrailingIndicator {
+            type: string;
+            icon: React.ComponentType<any>;
+            color?: string;
+            className?: string;
+            [key: string]: any;
+        }
+
+        interface BaseMenuItemProps {
+            id: string;
+            color?: MenuColor;
+            disabled?: boolean;
+            navigable?: boolean;
+        }
+
+        interface ContextMenuItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            icon?: React.ComponentType<any> | React.ReactNode;
+            iconLeft?: React.ComponentType<any> | React.ReactNode;
+            leadingAccessory?: MenuAccessory;
+            trailingIndicator?: MenuTrailingIndicator;
+            shortcut?: React.ReactNode;
+            subtext?: React.ReactNode;
+            subtextLineClamp?: number;
+            loading?: boolean;
+            badge?: MenuBadge;
+            action?: (event: MouseEvent) => void;
+            onClick?: (event: MouseEvent) => void;
+            /** Fire the action without closing the menu when shift is held. */
+            dontCloseOnActionIfHoldingShiftKey?: boolean;
+            dontCloseOnAction?: boolean;
+            /** Presence of children makes this a submenu item. */
+            children?: ContextMenuItemSetup[];
+            childRowHeight?: number;
+            className?: string;
+            focusedClassName?: string;
+            [key: string]: any;
+        }
+
+        interface ContextMenuCheckboxItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            checked: boolean;
+            subtext?: React.ReactNode;
+            subtextLineClamp?: number;
+            leftIcon?: React.ComponentType<any> | React.ReactNode;
+            leadingAccessory?: MenuAccessory;
+            action: (event: MouseEvent) => void;
+            className?: string;
+        }
+
+        interface ContextMenuRadioItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            checked: boolean;
+            subtext?: React.ReactNode;
+            subtextLineClamp?: number;
+            leftIcon?: React.ComponentType<any> | React.ReactNode;
+            leadingAccessory?: MenuAccessory;
+            action: (event: MouseEvent) => void;
+        }
+
+        interface ContextMenuSwitchItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            subtext?: React.ReactNode;
+            subtextLineClamp?: number;
+            checked: boolean;
+            action: (checked: boolean) => void;
+            className?: string;
+        }
+
+        interface ContextMenuTextInputItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            value: string;
+            onChange: (event: any) => void;
+            placeholder?: string;
+            maxLength?: number;
+            "aria-label"?: string;
+        }
+
+        interface ContextMenuControlRenderArgs {
+            onClose: () => void;
+            disabled?: boolean;
+            isFocused: boolean;
+            onInteraction: (type?: string) => void;
+        }
+
+        interface ContextMenuControlItemProps extends BaseMenuItemProps {
+            label?: React.ReactNode;
+            control: (args: ContextMenuControlRenderArgs, ref: React.Ref<any>) => React.ReactNode;
+            showDefaultFocus?: boolean;
+            interactive?: boolean;
+        }
+
+        interface ContextMenuCustomItemProps extends BaseMenuItemProps {
+            keepItemStyles?: boolean;
+            action?: (event: MouseEvent) => void;
+            dontCloseOnActionIfHoldingShiftKey?: boolean;
+            dontCloseOnAction?: boolean;
+            render: (ctx: { color: MenuColor; disabled: boolean; isFocused: boolean }) => React.ReactNode;
         }
 
         interface ContextMenuGroupItem {
             type: "group";
+            label?: string;
+            color?: MenuColor;
             items: ContextMenuItemSetup[];
         }
 
+        interface ContextMenuSeparatorItem {
+            type: "separator";
+        }
+
+        /** Setup shape accepted by `buildItem`/`buildMenuChildren`/`buildMenu`. `type` defaults to `"text"`. */
         type ContextMenuItemSetup =
-            | ContextMenuItemBase
-            | ContextMenuSubmenuItem
-            | ContextMenuToggleItem
-            | ContextMenuRadioItem
-            | ContextMenuGroupItem;
+            | ({ type?: "text" } & ContextMenuItemProps)
+            | ({ type: "toggle" } & ContextMenuCheckboxItemProps)
+            | ({ type: "radio" } & ContextMenuRadioItemProps)
+            | ({ type: "switch" } & ContextMenuSwitchItemProps)
+            | ({ type: "textinput" } & ContextMenuTextInputItemProps)
+            | ({ type: "control" } & ContextMenuControlItemProps)
+            | ({ type: "customitem" } & ContextMenuCustomItemProps)
+            | ContextMenuGroupItem
+            | ContextMenuSeparatorItem;
 
         interface ContextMenu {
             readonly Separator: React.ComponentType<any>;
-            readonly CheckboxItem: React.ComponentType<any>;
-            readonly RadioItem: React.ComponentType<any>;
-            readonly ControlItem: React.ComponentType<any>;
-            readonly Group: React.ComponentType<any>;
-            readonly Item: React.ComponentType<any>;
+            readonly CheckboxItem: React.ComponentType<ContextMenuCheckboxItemProps>;
+            readonly RadioItem: React.ComponentType<ContextMenuRadioItemProps>;
+            readonly SwitchItem: React.ComponentType<ContextMenuSwitchItemProps>;
+            readonly TextInput: React.ComponentType<ContextMenuTextInputItemProps>;
+            readonly ControlItem: React.ComponentType<ContextMenuControlItemProps>;
+            readonly Group: React.ComponentType<{ label?: string; color?: MenuColor; children: React.ReactNode }>;
+            readonly Item: React.ComponentType<ContextMenuItemProps>;
             readonly Menu: React.ComponentType<any>;
 
             patch(
