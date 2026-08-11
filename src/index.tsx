@@ -477,7 +477,8 @@ export default class Plugin {
         // not needed because aamia is a goddess.
 
         if (BadgesStore.isImportant(UserStore.getCurrentUser().id)) {
-            window.YABD_DEBUG = { ShopCollectiblesStore, BadgesStore, getRevealedText, secondsightifyRevealOnly };
+            console.log("Welcome back, Developer.")
+            window.YABD_DEBUG = { ShopCollectiblesStore, BadgesStore, getRevealedText, secondsightifyRevealOnly, SettingsStore };
         }
     }
 

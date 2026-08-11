@@ -14,16 +14,16 @@ export default {
             const bannerUrl = getBannerUrl(args.participant.id);
             const callTileBackgroundEnabled = SettingsStore.get("voiceTileBannerBackground");
 
-            if(!bannerUrl || !callTileBackgroundEnabled) return;
+            if(!bannerUrl || !callTileBackgroundEnabled || !ret) return;
 
-            ret.props.children = React.cloneElement(ret.props.children, {
+            ret.props.children && (ret.props.children = React.cloneElement(ret.props.children, {
                 style: {
                     backgroundImage: `url('${bannerUrl}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center center',
                     backgroundRepeat: 'no-repeat'
                 }
-            });
+            }))
         });
     }
 }
