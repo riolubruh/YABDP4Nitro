@@ -25,7 +25,10 @@ export default {
 
                 const Menu = <BetterDiscord.ContextMenu.Menu>
                     <BetterDiscord.ContextMenu.Item
-                        icon={<Icon width={"22"} icon={"mdi:content-copy"}/>}
+                        leadingAccessory={{
+                            type: "icon",
+                            icon: () => <Icon width={"22"} icon={"mdi:content-copy"}/>
+                        }}
                         label={
                             <ContextMenuWrapper>
                                 <ContextMenuLabel/>
@@ -36,7 +39,10 @@ export default {
                         action={copyUrl}
                     />
                     <BetterDiscord.ContextMenu.Item
-                        icon={<Icon width={"22"} icon={"mdi:open-in-browser"}/>}
+                        leadingAccessory={{
+                            type: "icon",
+                            icon: () => <Icon width={"22"} icon={"mdi:open-in-browser"}/>
+                        }}
                         label={
                             <ContextMenuWrapper>
                                 <ContextMenuLabel/>
