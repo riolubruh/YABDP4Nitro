@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.6
+ * @version 6.10.7
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -267,19 +267,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.10.6",
+        "version": "6.10.7",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.6",
+            title: "6.10.7",
             items: [
-                "Improved badge code and made it no longer rely on Imgur for the big yoshi badge.",
-                "Fixed fake banners not working.",
-                "Fixed users not being added to list of users to show with a YABD4Nitro User Badge when using Display Name Styles or Nameplates.",
-                "Fixed stickers not being unlocked when they're supposed to be."
+                "Fixed custom PFP code not working properly after a Discord update."
             ]
         }
     ],
@@ -681,7 +678,6 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        DOM.removeStyle("YABDP4NitroBadges");
         try {
             this.honorBadge();
         } catch(err){
@@ -3497,8 +3493,7 @@ module.exports = class YABDP4Nitro {
 
     // #region Custom PFP Decode
     customProfilePictureDecoding(){
-        Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
-
+        Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [guildId, size, shouldAnimate], originalFunction) => {
             //userpfp closer integration
             //if we haven't fetched userPFP database yet and it's enabled
             if((!fetchedUserPfp || this.userPfps == undefined) && settings.userPfpIntegration){
@@ -3527,7 +3522,7 @@ module.exports = class YABDP4Nitro {
             //get revealed text                               includes P{ encoded
             let revealedText = this.getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function.
-            if(revealedText == undefined) return originalFunction(userId,size,shouldAnimate);
+            if(revealedText == undefined) return originalFunction.apply(user, [guildId,size,shouldAnimate]);
 
             //This regex matches P{*} . (Do not fuck with this)
             let regex = /P\{[^}]*?\}/;
@@ -3535,7 +3530,7 @@ module.exports = class YABDP4Nitro {
             //Check if there are any matches in the custom status.
             let matches = revealedText.toString().match(regex);
             //if not, return orig function
-            if(matches == undefined || matches == "") return originalFunction(userId,size,shouldAnimate);
+            if(matches == undefined || matches == "") return originalFunction.apply(user, [guildId,size,shouldAnimate]);
 
             //if there is a match, take the first match and remove the starting "P{ and ending "}"
             let matchedText = matches[0].replace("P{","").replace("}","");
