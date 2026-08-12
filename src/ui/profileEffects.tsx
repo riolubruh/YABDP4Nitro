@@ -52,15 +52,7 @@ function ProfileEffect({product}) {
 
 function Category({skuId, query}) {
     const category = ShopCollectiblesStore.getCategory(skuId);
-    const products = [
-        ...new Map(
-            [
-                ...(ShopCollectiblesStore.getProfileEffects(skuId) ?? []),
-                ...ShopCollectiblesStore.getQuestProfileEffects()
-            ].map(item => [item.sku_id, item])
-        ).values()
-    ];
-
+    const products = ShopCollectiblesStore.getProfileEffects(skuId)
 
     const filteredProducts = products?.filter?.(product => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
 

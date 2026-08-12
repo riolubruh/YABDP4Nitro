@@ -22,11 +22,6 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     private collections: ShopCollection[] = [];
     private quests: Quest[] = [];
 
-    private allShopItemsCache: ShopItem[] | null = null;
-    private shopItemsBySkuIdCache: Map<string, ShopItem> | null = null;
-    private categoryItemCache = new Map<ShopItemType, Map<string, ShopItem[]>>();
-    private questItemCache = new Map<ShopItemType, ShopItem[]>();
-
     constructor() {
         super();
 
@@ -45,21 +40,12 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
 
         this.collections = collections;
         this.quests = quests;
-        this.invalidateCaches();
         this.emitChange();
     }
 
     set(data: ShopCollectiblesDispatchData) {
         this.collections = data.categories.categories;
-        this.invalidateCaches();
         this.emitChange();
-    }
-
-    private invalidateCaches() {
-        this.allShopItemsCache = null;
-        this.shopItemsBySkuIdCache = null;
-        this.categoryItemCache.clear();
-        this.questItemCache.clear();
     }
 
     getCategories(): string[] {
@@ -84,21 +70,11 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         const category = this.getCategory(categorySkuId);
         if (!category) return null;
 
-        let byCategory = this.categoryItemCache.get(type);
-        if (!byCategory) {
-            byCategory = new Map();
-            this.categoryItemCache.set(type, byCategory);
-        }
+        const items = category.products.flatMap(product =>
+            product.items.filter(item => item.type === type)
+        );
 
-        let cached = byCategory.get(categorySkuId);
-        if (!cached) {
-            cached = category.products.flatMap(product =>
-                product.items.filter(item => item.type === type)
-            );
-            byCategory.set(categorySkuId, cached);
-        }
-
-        return cached as T[];
+        return [...new Map(items.map(item => [item.sku_id, item])).values()] as T[];
     }
 
     getAvatarDecorations(categorySkuId: string): AvatarDecorationItem[] | null {
@@ -127,25 +103,13 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     }
 
     private getAllShopItems(): ShopItem[] {
-        if (!this.allShopItemsCache) {
-            this.allShopItemsCache = this.collections.flatMap(category =>
-                category.products.flatMap(product => product.items)
-            );
-        }
-        return this.allShopItemsCache;
-    }
-
-    private getShopItemsBySkuIdMap(): Map<string, ShopItem> {
-        if (!this.shopItemsBySkuIdCache) {
-            this.shopItemsBySkuIdCache = new Map(
-                this.getAllShopItems().map(item => [item.sku_id, item])
-            );
-        }
-        return this.shopItemsBySkuIdCache;
+        return this.collections.flatMap(category =>
+            category.products.flatMap(product => product.items)
+        );
     }
 
     getShopItemBySkuId(skuId: string): ShopItem | undefined {
-        return this.getShopItemsBySkuIdMap().get(skuId);
+        return this.getAllShopItems().find(item => item.sku_id === skuId);
     }
 
     getQuests(): Quest[] {
@@ -164,35 +128,12 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         return undefined;
     }
 
-    private getAllResolvedQuestItems(): ShopItem[] {
+    private getAllResolvedQuestItems(): QuestReward[] {
         return this.quests
             .flatMap(quest => quest?.config?.rewards_config?.rewards ?? [])
-            .map(reward => this.getShopItemBySkuId(reward?.sku_id))
-            .filter((item): item is ShopItem => item !== undefined);
     }
 
-    private getQuestItemsByType<T extends ShopItem>(type: ShopItemType): T[] {
-        let cached = this.questItemCache.get(type);
-        if (!cached) {
-            cached = this.getAllResolvedQuestItems().filter(item => item.type === type);
-            this.questItemCache.set(type, cached);
-        }
-        return cached as T[];
-    }
-
-    getQuestAvatarDecorations(): AvatarDecorationItem[] {
-        return this.getQuestItemsByType<AvatarDecorationItem>(ShopItemType.AvatarDecoration);
-    }
-
-    getQuestNameplates(): NameplateItem[] {
-        return this.getQuestItemsByType<NameplateItem>(ShopItemType.Nameplate);
-    }
-
-    getQuestProfileEffects(): ProfileEffectItem[] {
-        return this.getQuestItemsByType<ProfileEffectItem>(ShopItemType.ProfileEffect);
-    }
-
-    getQuestProfileFrames(): ProfileFrameItem[] {
-        return this.getQuestItemsByType<ProfileFrameItem>(ShopItemType.ProfileFrame);
+    getQuestAvatarDecorations(): QuestReward[] {
+        return this.getAllResolvedQuestItems().filter(x => x.type == 3);
     }
 }
