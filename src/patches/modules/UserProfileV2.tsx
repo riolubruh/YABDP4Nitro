@@ -1,5 +1,13 @@
 import {BetterDiscord} from "@shared/*";
-import {AccentColors, AvatarDecorations, CustomBanner, CustomPFP, DisplayNameStyle, ProfileEffects} from "../../ui";
+import {
+    AccentColors,
+    AvatarDecorations,
+    CustomBanner,
+    CustomPFP,
+    DisplayNameStyle,
+    Nameplates,
+    ProfileEffects
+} from "../../ui";
 import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
@@ -48,6 +56,8 @@ function CustomSettingsTab() {
         <ProfileEffects/>
         <SepWithText>Avatar Decoration</SepWithText>
         <AvatarDecorations/>
+        <SepWithText>Nameplates</SepWithText>
+        <Nameplates/>
         {isDeveloper ? <div>
             <SepWithText>Developer</SepWithText>
             <Components.TextInput value={text} onChange={e => setText(e)}/>
