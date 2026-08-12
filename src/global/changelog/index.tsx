@@ -11,9 +11,9 @@ function normalizeVersion(v: string): string {
     return parts.join(".");
 }
 
-export function startChangelog() {
-    const lastSeen = normalizeVersion(SettingsStore.get("lastChangelogVersion"));
-    const currentVersion = normalizeVersion(Meta.version);
+export function startChangelog(sourceVersion) {
+    const lastSeen = normalizeVersion(SettingsStore.get("lastChangelogVersion") ?? "0.0.0");
+    const currentVersion = sourceVersion ?? normalizeVersion(Meta.version);
 
     if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0) return;
 

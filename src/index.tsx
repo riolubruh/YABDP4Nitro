@@ -7,6 +7,7 @@ import {GlobalModules} from "@global/*";
 import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "./global/stores/BadgesStore.tsx";
 import {getRevealedText, secondsightifyRevealOnly} from "@utils/*";
+import {Icon} from "@iconify/react";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -461,28 +462,80 @@ function normalizeVersion(v: string): string {
     return parts.join(".");
 }
 
+const Electron = () => eval("require(\"electron\")");
+const _path = () => require("path");
+const fs = () => require("fs");
+
 export default class Plugin {
     private unpatch = loadContextMenus();
+    private source: string = "";
 
     async start() {
-        startChangelog();
+
+        await this.checkUpdate();
+
+        GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
+
+        if (BadgesStore.isImportant(UserStore.getCurrentUser().id)) {
+            BetterDiscord.Logger.log("Welcome back, Developer.")
+            window.YABD_DEBUG = {
+                ShopCollectiblesStore,
+                BadgesStore,
+                getRevealedText,
+                secondsightifyRevealOnly,
+                SettingsStore
+            };
+        }
+
         await UserBackgroundStore.fetch();
         await loadPatches();
 
-        GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
-        // GlobalModules.Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", (data) => {
-        //     ShopCollectiblesStore.set(data)
-        //     console.log(data)
-        // })
-        // not needed because aamia is a goddess.
-
-        if (BadgesStore.isImportant(UserStore.getCurrentUser().id)) {
-            console.log("Welcome back, Developer.")
-            window.YABD_DEBUG = { ShopCollectiblesStore, BadgesStore, getRevealedText, secondsightifyRevealOnly, SettingsStore };
-        }
     }
 
-    checkUpdate() {
+    async checkUpdate() {
+        const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js")
+        this.source = await res.text();
+
+        const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
+        const installedVersion = SettingsStore.get("installedVersion") ?? Meta.version ?? "0.0.0";
+
+        if (!sourceVersion) return;
+
+        if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
+            BetterDiscord.Logger.log("New update version found!");
+
+            this.notification = BetterDiscord.UI.showNotification({
+                title: "YABDP4Nitro Update Available",
+                icon: () => <Icon icon={"mdi:update"} width={"20"}/>,
+                content: `Update ${sourceVersion} is now downloadable, Would you like to update?`,
+                duration: Infinity,
+                actions: [
+                    {
+                        label: "Update",
+                        onClick: () => {
+                            const bd_path = Electron().ipcRenderer.sendSync("bd-get-path", "appData");
+                            const path = _path().join(bd_path, "BetterDiscord", "plugins", "YABDP4Nitro.plugin.js");
+                            fs().writeFile(path, this.source, (err) => {
+                                if (err) {
+                                    BetterDiscord.UI.showToast("Failed to update, Please update manually.");
+                                } else {
+                                    BetterDiscord.UI.showToast("Update was successful!");
+                                    SettingsStore.set("installedVersion", sourceVersion);
+                                    startChangelog(sourceVersion);
+                                }
+                            });
+                        }
+                    },
+                    {
+                        label: "Hell Nah",
+                        onClick: () => {
+                            this.notification.close();
+                        }
+                    }
+                ]
+            });
+        }
+
         return;
     }
 
