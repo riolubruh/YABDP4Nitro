@@ -31,6 +31,7 @@ export default function OpenAvatarDecorationModalButton() {
 function AvatarDecoration({product}) {
     const [hovered, setHovered] = React.useState<boolean>(false)
     const skuId = product.sku_id;
+    const decorationItem = {...product, skuId: product.sku_id};
 
     function copyProfileEffect3y3(skuId) {
         copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
@@ -41,9 +42,8 @@ function AvatarDecoration({product}) {
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
         title={product.productName}
-        style={{cursor: "pointer"}}
     >
-        <ProductDisplayer isHighlighted={hovered} item={product} user={UserStore.getCurrentUser()}
+        <ProductDisplayer isHighlighted={hovered} item={decorationItem} user={UserStore.getCurrentUser()}
                           avatarSize={"SIZE_72"}/>
     </div>
 }
