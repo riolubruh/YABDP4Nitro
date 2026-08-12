@@ -12545,7 +12545,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
     const category = this.getCategory(categorySkuId);
     if (!category)
       return null;
-    const items = category.products.flatMap((product) => product.items.filter((item) => item.type === type));
+    const items = category.products.flatMap((product) => product.items.filter((item) => item.type === type).map((item) => ({ ...item, productName: product.name })));
     return [...new Map(items.map((item) => [item.sku_id, item])).values()];
   }
   getAvatarDecorations(categorySkuId) {
@@ -12561,7 +12561,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
     return this.getCategoryItemsByType(categorySkuId, 3 /* ProfileFrame */);
   }
   getAllShopItems() {
-    return this.collections.flatMap((category) => category.products.flatMap((product) => product.items));
+    return this.collections.flatMap((category) => category.products.flatMap((product) => product.items.map((item) => ({ ...item, productName: product.name }))));
   }
   getShopItemBySkuId(skuId) {
     return this.getAllShopItems().find((item) => item.sku_id === skuId);
@@ -12571,6 +12571,9 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
   }
   getQuest(questId) {
     return this.quests.find((q) => q.id === questId);
+  }
+  getProduct(skuId) {
+    return this.quests.flatMap((quest) => quest?.config?.rewards_config?.rewards ?? []).map((quest) => quest.sku_id == skuId);
   }
   getQuestCollectible(skuId) {
     for (const quest of this.quests) {
@@ -12584,7 +12587,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
     return this.quests.flatMap((quest) => quest?.config?.rewards_config?.rewards ?? []);
   }
   getQuestAvatarDecorations() {
-    return this.getAllResolvedQuestItems().filter((x) => x.type == 3);
+    return this.getAllResolvedQuestItems().filter((x) => x.type === 3);
   }
 };
 
@@ -12660,9 +12663,10 @@ function ProfileEffects() {
   }));
 }
 // src/ui/AvatarDecorations.tsx
-var { Components: Components7, React: React11 } = BetterDiscord;
+var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
+var { UserStore: UserStore5 } = Webpack2.Stores;
 var ModalModule5 = wpGetByKeys(["Modal"]);
-var ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"));
+var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
 function OpenAvatarDecorationModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -12679,53 +12683,77 @@ function OpenAvatarDecorationModalButton() {
 function AvatarDecoration({ product }) {
   const [hovered, setHovered] = React11.useState(false);
   const skuId = product.sku_id;
-  const src = "https://cdn.discordapp.com/avatar-decoration-presets/" + product.asset + ".webp?size=128";
-  const title = product.label;
   function copyProfileEffect3y3(skuId2) {
     copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId2), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React11.createElement("div", {
-    style: { display: "flex", width: "32px", height: "32px" },
     onMouseOver: () => setHovered(true),
-    onMouseLeave: () => setHovered(false)
-  }, /* @__PURE__ */ React11.createElement(ProductDisplayer.A, {
-    key: `based-da-${product.sku_id}`,
-    skuId: product.sku_id,
-    isCardHovered: hovered
+    onMouseLeave: () => setHovered(false),
+    onClick: () => copyProfileEffect3y3(skuId),
+    title: product.productName,
+    style: { cursor: "pointer" }
+  }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
+    isHighlighted: hovered,
+    item: product,
+    user: UserStore5.getCurrentUser(),
+    avatarSize: "SIZE_72"
   }));
 }
 function Category2({ skuId, query }) {
   const category = ShopCollectiblesStore_default.getCategory(skuId);
   const products = ShopCollectiblesStore_default.getAvatarDecorations(skuId);
-  const filteredProducts = products?.filter?.((product) => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  const filteredProducts = products?.filter?.((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  if (!filteredProducts?.length)
+    return null;
   return /* @__PURE__ */ React11.createElement("div", {
     style: {
       display: "flex",
+      flexDirection: "column",
       backgroundColor: "var(--background-base-lower)",
       borderRadius: "10px",
       margin: "5px 0px",
-      width: "100%"
+      padding: "8px",
+      width: "auto"
     }
-  }, filteredProducts?.length ? /* @__PURE__ */ React11.createElement(Components7.Text, {
-    style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" }
-  }, category?.name) : null, filteredProducts?.map((x) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+  }, /* @__PURE__ */ React11.createElement(Components7.Text, {
+    style: { fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0" }
+  }, category?.name), /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+    key: x.sku_id,
     product: x
-  })));
+  }))));
 }
 function QuestCategory({ questDecorations, query }) {
-  const filteredProducts = questDecorations?.filter?.((product) => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  console.log(questDecorations);
+  const filteredProducts = questDecorations?.filter?.((product) => product?.messages?.name?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  if (!filteredProducts?.length)
+    return null;
   return /* @__PURE__ */ React11.createElement("div", {
     style: {
-      display: "inline-block",
+      display: "flex",
+      flexDirection: "column",
       backgroundColor: "var(--background-base-lower)",
       borderRadius: "10px",
-      margin: "5px 0px"
+      margin: "5px 0px",
+      padding: "8px"
     }
-  }, filteredProducts?.length ? /* @__PURE__ */ React11.createElement(Components7.Text, {
-    style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" }
-  }, "Quests") : null, filteredProducts?.map((x) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+  }, /* @__PURE__ */ React11.createElement(Components7.Text, {
+    style: { fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0" }
+  }, "Quests"), /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+    key: x.sku_id,
     product: x
-  })));
+  }))));
 }
 function AvatarDecorations() {
   const [query, setQuery] = useState("");
@@ -12738,12 +12766,11 @@ function AvatarDecorations() {
     style: {
       backgroundColor: `var(--control-secondary-background-default)`
     }
-  }), Collections.map((id) => {
-    return /* @__PURE__ */ React11.createElement(Category2, {
-      skuId: id,
-      query
-    });
-  }), /* @__PURE__ */ React11.createElement(QuestCategory, {
+  }), Collections.map((id) => /* @__PURE__ */ React11.createElement(Category2, {
+    key: id,
+    skuId: id,
+    query
+  })), /* @__PURE__ */ React11.createElement(QuestCategory, {
     query,
     questDecorations
   }));
@@ -12781,7 +12808,7 @@ function SepWithText({ children }) {
 
 // src/patches/modules/UserProfileV2.tsx
 var { React: React12, Components: Components8 } = BetterDiscord;
-var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Margin = styled.div({
   marginBottom: "-50px"
@@ -12791,7 +12818,7 @@ var Scroller = styled.div({
   scrollbarWidth: "none"
 });
 function CustomSettingsTab() {
-  const isDeveloper = BadgesStore_default.isImportant(UserStore5.getCurrentUser().id);
+  const isDeveloper = BadgesStore_default.isImportant(UserStore6.getCurrentUser().id);
   const [text, setText] = React12.useState("");
   return /* @__PURE__ */ React12.createElement(Scroller, null, /* @__PURE__ */ React12.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React12.createElement(AccentColors, null), /* @__PURE__ */ React12.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React12.createElement(CustomPFP, null), /* @__PURE__ */ React12.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React12.createElement(CustomBanner, null), /* @__PURE__ */ React12.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React12.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React12.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React12.createElement(OpenProfileEffectModalButton, null), /* @__PURE__ */ React12.createElement(SepWithText, null, "Avatar Decoration"), /* @__PURE__ */ React12.createElement(OpenAvatarDecorationModalButton, null), isDeveloper ? /* @__PURE__ */ React12.createElement("div", null, /* @__PURE__ */ React12.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React12.createElement(Components8.TextInput, {
     value: text,
@@ -12820,7 +12847,7 @@ var UserProfileV2_default = {
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      if (args?.displayProfile?.userId != UserStore5.getCurrentUser().id)
+      if (args?.displayProfile?.userId != UserStore6.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x) => x.text.includes("YABD")))
         return;
@@ -12992,13 +13019,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore6.getCurrentUser().id;
+    const currentUserId = UserStore7.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -13182,7 +13209,7 @@ function startChangelog(sourceVersion) {
 // src/index.tsx
 var { Components: Components9 } = BetterDiscord;
 var { React: React14 } = BetterDiscord;
-var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -13621,7 +13648,7 @@ class Plugin {
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore7.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore8.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,

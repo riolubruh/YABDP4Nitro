@@ -41,6 +41,7 @@ function AvatarDecoration({product}) {
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
         title={product.productName}
+        style={{cursor: "pointer"}}
     >
         <ProductDisplayer isHighlighted={hovered} item={product} user={UserStore.getCurrentUser()}
                           avatarSize={"SIZE_72"}/>
@@ -63,7 +64,7 @@ function Category({skuId, query}) {
             borderRadius: "10px",
             margin: "5px 0px",
             padding: "8px",
-            width: "auto",
+            width: "auto"
         }}
     >
         <Components.Text style={{fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0"}}>
@@ -72,7 +73,7 @@ function Category({skuId, query}) {
         <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-            gap: "8px",
+            gap: "8px"
         }}>
             {filteredProducts.map(x => <AvatarDecoration
                 key={x.sku_id}
@@ -83,7 +84,8 @@ function Category({skuId, query}) {
 }
 
 function QuestCategory({questDecorations, query}) {
-    const filteredProducts = questDecorations?.filter?.(product => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+    console.log(questDecorations);
+    const filteredProducts = questDecorations?.filter?.(product => product?.messages?.name?.toLowerCase?.()?.includes?.(query.toLowerCase()));
 
     if (!filteredProducts?.length) return null;
 
@@ -94,7 +96,7 @@ function QuestCategory({questDecorations, query}) {
             backgroundColor: "var(--background-base-lower)",
             borderRadius: "10px",
             margin: "5px 0px",
-            padding: "8px",
+            padding: "8px"
         }}
     >
         <Components.Text style={{fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0"}}>
@@ -103,7 +105,7 @@ function QuestCategory({questDecorations, query}) {
         <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-            gap: "8px",
+            gap: "8px"
         }}>
             {filteredProducts.map(x => <AvatarDecoration
                 key={x.sku_id}
