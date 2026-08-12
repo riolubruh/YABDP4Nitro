@@ -3,6 +3,7 @@ import {wpGetByKeys} from "../global/webpack";
 import {BetterDiscord} from "@shared/*";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
 import {useState} from "react";
+import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
 
 const {Components, React} = BetterDiscord;
 
@@ -24,14 +25,14 @@ export default function OpenProfileEffectModalButton() {
     </Components.Button>
 }
 
-function ProfileEffect({product, query}) {
+function ProfileEffect({product}) {
 
     const skuId = product.sku_id;
     const src = product.thumbnailPreviewSrc;
     const title = product.title;
 
     function copyProfileEffect3y3(skuId) {
-        console.log(skuId);
+        copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
     }
 
     return <img
@@ -50,7 +51,6 @@ function ProfileEffect({product, query}) {
 }
 
 function Category({skuId, query}) {
-    console.log(query);
     const category = ShopCollectiblesStore.getCategory(skuId);
     const products = [
         ...new Map(
@@ -61,16 +61,19 @@ function Category({skuId, query}) {
         ).values()
     ];
 
-    console.log("products", products);
+
     const filteredProducts = products?.filter?.(product => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-    console.log('filteredProducts', filteredProducts);
 
     return <div
         style={{
-            display: "inline-block"
+            display: "inline-block",
+            backgroundColor: "var(--background-base-lower)",
+            borderRadius: "10px",
+            margin: "5px 0px",
+
         }}
     >
-        {filteredProducts?.length ? <Components.Text>
+        {filteredProducts?.length ? <Components.Text style={{fontSize: "16px", fontWeight:"bold", margin: "10px 8px"}}>
             {category?.name}
         </Components.Text> : null}
         {filteredProducts?.map(x => <ProfileEffect
@@ -82,8 +85,6 @@ function Category({skuId, query}) {
 function ProfileEffects() {
     const [query, setQuery] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
-
-    console.log(Collections);
 
     return <div>
         <Components.SearchInput

@@ -12288,7 +12288,6 @@ var goLiveModal_default = {
       }
       return false;
     });
-    console.log(validatorMod);
     const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
     patcher.instead(mod?.module, mod?.key, () => true);
     patcher.after(finale.modules[0], "default", (_, [args], ret) => {
@@ -12512,23 +12511,35 @@ function DisplayNameStyle() {
 // src/global/stores/ShopCollectiblesStore.tsx
 var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends BetterDiscord.Utils.Store {
   collections = [];
-  questCollectibles = [];
+  quests = [];
+  allShopItemsCache = null;
+  shopItemsBySkuIdCache = null;
+  categoryItemCache = new Map;
+  questItemCache = new Map;
   constructor() {
     super();
     this.fetch();
   }
   async fetch() {
-    const aamiaCollections = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then((x) => x.json());
-    const aamiaQuests = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then((x) => x.json());
-    this.collections = aamiaCollections;
-    this.questCollectibles = aamiaQuests;
+    const [collections, quests] = await Promise.all([
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then((r) => r.json()),
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then((r) => r.json())
+    ]);
+    this.collections = collections;
+    this.quests = quests;
+    this.invalidateCaches();
+    this.emitChange();
   }
   set(data) {
     this.collections = data.categories.categories;
+    this.invalidateCaches();
     this.emitChange();
   }
-  getQuestCollectible(skuId) {
-    this.questCollectibles.find((q) => q.id === skuId);
+  invalidateCaches() {
+    this.allShopItemsCache = null;
+    this.shopItemsBySkuIdCache = null;
+    this.categoryItemCache.clear();
+    this.questItemCache.clear();
   }
   getCategories() {
     return this.collections.map((q) => q.sku_id);
@@ -12542,29 +12553,85 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
       return null;
     return category.products.filter((product) => product.type !== 1000);
   }
-  getAvatarDecorations(categorySkuId) {
+  getCategoryItemsByType(categorySkuId, type) {
     const category = this.getCategory(categorySkuId);
     if (!category)
       return null;
-    return category.products.flatMap((product) => product.items.filter((item) => item.type === 0 /* AvatarDecoration */));
+    let byCategory = this.categoryItemCache.get(type);
+    if (!byCategory) {
+      byCategory = new Map;
+      this.categoryItemCache.set(type, byCategory);
+    }
+    let cached = byCategory.get(categorySkuId);
+    if (!cached) {
+      cached = category.products.flatMap((product) => product.items.filter((item) => item.type === type));
+      byCategory.set(categorySkuId, cached);
+    }
+    return cached;
+  }
+  getAvatarDecorations(categorySkuId) {
+    return this.getCategoryItemsByType(categorySkuId, 0 /* AvatarDecoration */);
   }
   getNameplates(categorySkuId) {
-    const category = this.getCategory(categorySkuId);
-    if (!category)
-      return null;
-    return category.products.flatMap((product) => product.items.filter((item) => item.type === 2 /* Nameplate */));
+    return this.getCategoryItemsByType(categorySkuId, 2 /* Nameplate */);
   }
   getProfileEffects(categorySkuId) {
-    const category = this.getCategory(categorySkuId);
-    if (!category)
-      return null;
-    return category.products.flatMap((product) => product.items.filter((item) => item.type === 1 /* ProfileEffect */));
+    return this.getCategoryItemsByType(categorySkuId, 1 /* ProfileEffect */);
   }
   getProfileFrames(categorySkuId) {
-    const category = this.getCategory(categorySkuId);
-    if (!category)
-      return null;
-    return category.products.flatMap((product) => product.items.filter((item) => item.type === 3 /* ProfileFrame */));
+    return this.getCategoryItemsByType(categorySkuId, 3 /* ProfileFrame */);
+  }
+  getAllShopItems() {
+    if (!this.allShopItemsCache) {
+      this.allShopItemsCache = this.collections.flatMap((category) => category.products.flatMap((product) => product.items));
+    }
+    return this.allShopItemsCache;
+  }
+  getShopItemsBySkuIdMap() {
+    if (!this.shopItemsBySkuIdCache) {
+      this.shopItemsBySkuIdCache = new Map(this.getAllShopItems().map((item) => [item.sku_id, item]));
+    }
+    return this.shopItemsBySkuIdCache;
+  }
+  getShopItemBySkuId(skuId) {
+    return this.getShopItemsBySkuIdMap().get(skuId);
+  }
+  getQuests() {
+    return this.quests;
+  }
+  getQuest(questId) {
+    return this.quests.find((q) => q.id === questId);
+  }
+  getQuestCollectible(skuId) {
+    for (const quest of this.quests) {
+      const reward = quest?.config?.rewards_config?.rewards?.find((r) => r.sku_id === skuId);
+      if (reward)
+        return reward;
+    }
+    return;
+  }
+  getAllResolvedQuestItems() {
+    return this.quests.flatMap((quest) => quest?.config?.rewards_config?.rewards ?? []).map((reward) => this.getShopItemBySkuId(reward?.sku_id)).filter((item) => item !== undefined);
+  }
+  getQuestItemsByType(type) {
+    let cached = this.questItemCache.get(type);
+    if (!cached) {
+      cached = this.getAllResolvedQuestItems().filter((item) => item.type === type);
+      this.questItemCache.set(type, cached);
+    }
+    return cached;
+  }
+  getQuestAvatarDecorations() {
+    return this.getQuestItemsByType(0 /* AvatarDecoration */);
+  }
+  getQuestNameplates() {
+    return this.getQuestItemsByType(2 /* Nameplate */);
+  }
+  getQuestProfileEffects() {
+    return this.getQuestItemsByType(1 /* ProfileEffect */);
+  }
+  getQuestProfileFrames() {
+    return this.getQuestItemsByType(3 /* ProfileFrame */);
   }
 };
 
@@ -12584,12 +12651,12 @@ function OpenProfileEffectModalButton() {
     onClick: handleClick
   }, "Change Profile Effect");
 }
-function ProfileEffect({ product, query }) {
+function ProfileEffect({ product }) {
   const skuId = product.sku_id;
   const src = product.thumbnailPreviewSrc;
   const title = product.title;
   function copyProfileEffect3y3(skuId2) {
-    console.log(skuId2);
+    copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId2), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React10.createElement("img", {
     onClick: () => copyProfileEffect3y3(skuId),
@@ -12606,24 +12673,30 @@ function ProfileEffect({ product, query }) {
   });
 }
 function Category({ skuId, query }) {
-  console.log(query);
   const category = ShopCollectiblesStore_default.getCategory(skuId);
-  const products = ShopCollectiblesStore_default.getProfileEffects(skuId);
-  console.log("products", products);
+  const products = [
+    ...new Map([
+      ...ShopCollectiblesStore_default.getProfileEffects(skuId) ?? [],
+      ...ShopCollectiblesStore_default.getQuestProfileEffects()
+    ].map((item) => [item.sku_id, item])).values()
+  ];
   const filteredProducts = products?.filter?.((product) => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-  console.log("filteredProducts", filteredProducts);
   return /* @__PURE__ */ React10.createElement("div", {
     style: {
-      display: "inline-block"
+      display: "inline-block",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px"
     }
-  }, filteredProducts?.length ? /* @__PURE__ */ React10.createElement(Components6.Text, null, category?.name) : null, filteredProducts?.map((x) => /* @__PURE__ */ React10.createElement(ProfileEffect, {
+  }, filteredProducts?.length ? /* @__PURE__ */ React10.createElement(Components6.Text, {
+    style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" }
+  }, category?.name) : null, filteredProducts?.map((x) => /* @__PURE__ */ React10.createElement(ProfileEffect, {
     product: x
   })));
 }
 function ProfileEffects() {
   const [query, setQuery] = useState("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  console.log(Collections);
   return /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
     value: query,
     placeholder: "Search...",
@@ -12722,7 +12795,6 @@ var UserProfileV2_default = {
     });
     patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
       const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
-      console.log(upsellRemovalEnabled);
       if (upsellRemovalEnabled)
         return null;
       return originalFunction.apply(args);
