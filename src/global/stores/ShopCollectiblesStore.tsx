@@ -142,8 +142,8 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     private getAllResolvedQuestItems(): ShopItem[] {
         return this.quests
             .flatMap(quest => quest?.config?.rewards_config?.rewards ?? [])
-            .map(reward => this.getShopItemBySkuId(reward?.sku_id))
-            .filter((item): item is ShopItem => item !== undefined);
+            // .map(reward => this.getShopItemBySkuId(reward?.sku_id))
+            // .filter((item): item is ShopItem => item !== undefined);
     }
 
     getQuestAvatarDecorations(): AvatarDecorationItem[] {
