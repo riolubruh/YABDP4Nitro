@@ -21,6 +21,14 @@ const EFFECTS = [
     "Pop"
 ]
 
+const EFFECT_DEFAULT_COLORS = [
+    [15724529], //Solid
+    [2797222, 16762000], //Gradient
+    [6888941], //Neon
+    [15999128] //Toon
+    [1036166] //Toon
+]
+
 function FontButton({onClick, selected, fontFamily}){
     return <Components.Button
         style={{
@@ -35,7 +43,7 @@ function FontButton({onClick, selected, fontFamily}){
     >{fontFamily}</Components.Button>
 }
 
-function EffectButton({onClick, selected, children}){
+function EffectButton({onClick, selected, children, effectId, colors}){
     return <Components.Button
         style={{
             backgroundColor: "var(--control-secondary-background-default)",
@@ -45,8 +53,16 @@ function EffectButton({onClick, selected, children}){
             display: "inline-block",
         }}
         onClick={onClick}
-    >{...children}</Components.Button>
+    ><EffectText
+        displayNameStyles={{fontId: 0, effectId: effectId, colors: colors}}
+        effectDisplayType={effectId}
+        inProfile={true}
+        loop={true}
+        userName={EFFECTS[effectId]}
+    /></Components.Button>
 }
+
+const EffectText = BetterDiscord.Webpack.getAllBySource('UserNameWithEffects')?.[1];
 
 export default function DisplayNameStyle() {
     const [fontId, setFontId] = React.useState(0);
@@ -70,6 +86,8 @@ export default function DisplayNameStyle() {
         effectButtons.push(<EffectButton
             onClick={() => setEffectId(i)}
             selected={effectId===i}
+            effectId={effectId}
+            colors={EFFECT_DEFAULT_COLORS[i]}
         >{EFFECTS[i]}</EffectButton>)
     }
 
