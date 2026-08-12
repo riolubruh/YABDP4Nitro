@@ -8,8 +8,8 @@ const {Components, React} = BetterDiscord;
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
-export default function OpenProfileEffectModalButton(){
-    function handleClick(){
+export default function OpenProfileEffectModalButton() {
+    function handleClick() {
         GlobalModules.ModalModule.openModal(props => {
             return <ModalModule.Modal title={"Change Profile Effect"} {...props}>
                 <ProfileEffects/>
@@ -24,15 +24,16 @@ export default function OpenProfileEffectModalButton(){
     </Components.Button>
 }
 
-function ProfileEffect({product, query}){
+function ProfileEffect({product, query}) {
 
     const skuId = product.sku_id;
     const src = product.thumbnailPreviewSrc;
     const title = product.title;
 
-    function copyProfileEffect3y3(skuId){
+    function copyProfileEffect3y3(skuId) {
         console.log(skuId);
     }
+
     return <img
         onClick={() => copyProfileEffect3y3(skuId)}
         src={src}
@@ -48,13 +49,21 @@ function ProfileEffect({product, query}){
     />
 }
 
-function Category({skuId, query}){
+function Category({skuId, query}) {
     console.log(query);
     const category = ShopCollectiblesStore.getCategory(skuId);
-    const products = ShopCollectiblesStore.getProfileEffects(skuId)
-    console.log("products",products);
+    const products = [
+        ...new Map(
+            [
+                ...(ShopCollectiblesStore.getProfileEffects(skuId) ?? []),
+                ...ShopCollectiblesStore.getQuestProfileEffects()
+            ].map(item => [item.sku_id, item])
+        ).values()
+    ];
+
+    console.log("products", products);
     const filteredProducts = products?.filter?.(product => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-    console.log('filteredProducts',filteredProducts);
+    console.log('filteredProducts', filteredProducts);
 
     return <div
         style={{
@@ -70,7 +79,7 @@ function Category({skuId, query}){
     </div>
 }
 
-function ProfileEffects(){
+function ProfileEffects() {
     const [query, setQuery] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
 
