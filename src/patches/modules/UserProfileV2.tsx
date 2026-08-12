@@ -8,10 +8,9 @@ import {
     Nameplates,
     ProfileEffects
 } from "../../ui";
-import {getKey, wpGet, wpGetProxy, wpWait} from "../../global/webpack";
+import {getKey, wpGet, wpWait} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
-import ShopCollectiblesStore from "../../global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
@@ -71,14 +70,15 @@ function CustomSettingsTab() {
 export default {
     name: "User Profile V2",
     description: "skibidi toilet",
-    ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"),{raw:true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"),{raw:true}).then(x => x.id)],
+    ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {raw: true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {raw: true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), {raw: true}).then(x => x.id)],
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
+        console.log(finale, patcher);
         const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw: true}).declarations
         const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
-        const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", {raw:true});
+        const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", {raw: true});
         const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
 
         patcher.after(module.module, module.key, (a, [args], callback) => {
@@ -101,7 +101,7 @@ export default {
 
         patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
             const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
-            if(upsellRemovalEnabled) return null;
+            if (upsellRemovalEnabled) return null;
             return originalFunction.apply(args);
         });
         return;
