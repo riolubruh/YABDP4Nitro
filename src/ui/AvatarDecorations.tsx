@@ -40,6 +40,7 @@ function AvatarDecoration({product}) {
         onMouseOver={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
+        title={product.productName}
     >
         <ProductDisplayer isHighlighted={hovered} item={product} user={UserStore.getCurrentUser()}
                           avatarSize={"SIZE_72"}/>
@@ -50,9 +51,7 @@ function Category({skuId, query}) {
     const category = ShopCollectiblesStore.getCategory(skuId);
     const products = ShopCollectiblesStore.getAvatarDecorations(skuId);
 
-    console.log(products[0])
-
-    const filteredProducts = products?.filter?.(product => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+    const filteredProducts = products?.filter?.(product => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
 
     if (!filteredProducts?.length) return null;
 

@@ -66,15 +66,17 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     private getCategoryItemsByType<T extends ShopItem>(
         categorySkuId: string,
         type: ShopItemType
-    ): T[] | null {
+    ): (T & {productName: string})[] | null {
         const category = this.getCategory(categorySkuId);
         if (!category) return null;
 
         const items = category.products.flatMap(product =>
-            product.items.filter(item => item.type === type)
+            product.items
+                .filter(item => item.type === type)
+                .map(item => ({...item, productName: product.name}))
         );
 
-        return [...new Map(items.map(item => [item.sku_id, item])).values()] as T[];
+        return [...new Map(items.map(item => [item.sku_id, item])).values()] as unknown as (T & {productName: string})[];
     }
 
     getAvatarDecorations(categorySkuId: string): AvatarDecorationItem[] | null {
@@ -102,13 +104,15 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         );
     }
 
-    private getAllShopItems(): ShopItem[] {
+    private getAllShopItems(): (ShopItem & {productName: string})[] {
         return this.collections.flatMap(category =>
-            category.products.flatMap(product => product.items)
+            category.products.flatMap(product =>
+                product.items.map(item => ({...item, productName: product.name}))
+            )
         );
     }
 
-    getShopItemBySkuId(skuId: string): ShopItem | undefined {
+    getShopItemBySkuId(skuId: string): (ShopItem & {productName: string}) | undefined {
         return this.getAllShopItems().find(item => item.sku_id === skuId);
     }
 
@@ -120,6 +124,13 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         return this.quests.find(q => q.id === questId);
     }
 
+    getProduct(skuId: string)
+    {
+        return this.quests
+            .flatMap(quest => quest?.config?.rewards_config?.rewards ?? [])
+            .map(quest => quest.sku_id == skuId)
+    }
+
     getQuestCollectible(skuId: string): QuestReward | undefined {
         for (const quest of this.quests) {
             const reward = quest?.config?.rewards_config?.rewards?.find(r => r.sku_id === skuId);
@@ -128,12 +139,14 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         return undefined;
     }
 
-    private getAllResolvedQuestItems(): QuestReward[] {
+    private getAllResolvedQuestItems(): ShopItem[] {
         return this.quests
             .flatMap(quest => quest?.config?.rewards_config?.rewards ?? [])
+            .map(reward => this.getShopItemBySkuId(reward?.sku_id))
+            .filter((item): item is ShopItem => item !== undefined);
     }
 
-    getQuestAvatarDecorations(): QuestReward[] {
-        return this.getAllResolvedQuestItems().filter(x => x.type == 3);
+    getQuestAvatarDecorations(): AvatarDecorationItem[] {
+        return this.getAllResolvedQuestItems().filter(x => x.type === ShopItemType.AvatarDecoration) as AvatarDecorationItem[];
     }
 }
