@@ -71,7 +71,6 @@ export default {
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
         patcher.after(module.module, module.key, (a, [args], callback) => {
-            console.log(callback);
             if (args.section == "YABDP4Nitro") {
                 return <CustomSettingsTab/>
             }

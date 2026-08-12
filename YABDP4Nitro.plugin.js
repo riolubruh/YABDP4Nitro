@@ -9212,7 +9212,7 @@ var defaultSettings = {
   clientThemes: true,
   lastGradientSettingStore: -1,
   fakeProfileThemes: true,
-  removeProfileUpsell: false,
+  removeProfileUpsell: true,
   removeScreenshareUpsell: true,
   fakeProfileBanners: true,
   fakeAvatarDecorations: true,
@@ -9249,7 +9249,8 @@ var defaultSettings = {
   appIcon: "AppIcon",
   voiceTileBannerBackground: false,
   advancedProfileCustomization: false,
-  lastChangelogVersion: "1.0.0"
+  lastChangelogVersion: "1.0.0",
+  installedVersion: "1.0.0"
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
@@ -11621,7 +11622,6 @@ var bypassMap = {
   emojisEverywhere: "emojiBypass",
   animatedEmojis: "emojiBypass",
   appIcons: "unlockAppIcons",
-  profilePremiumFeatures: "removeProfileUpsell",
   clientThemes: "clientThemes",
   soundboardEverywhere: "soundmojiEnabled"
 };
@@ -12290,16 +12290,20 @@ var goLiveModal_default = {
     const validatorMod = BetterDiscord.Webpack.getById(327649, { raw: true });
     patcher.instead(validatorMod.declarations, "o", () => true);
     patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-      const footer = BetterDiscord.Utils.findInTree(ret, (x) => String(x?.className).startsWith("footerContent"));
+      const footer = BetterDiscord.Utils.findInTree(ret, (x) => String(x?.className).startsWith("footer"));
       if (!footer)
         return ret;
-      const doesExist = BetterDiscord.Utils.findInTree(footer, (x) => String(x?.key).includes("gay"));
+      const footerContent = BetterDiscord.Utils.findInTree(footer, (x) => String(x?.className).startsWith("footerContent"));
+      if (!footerContent)
+        return ret;
+      footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
+      const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) => String(x?.key).includes("gay"));
       if (!doesExist)
-        footer.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
+        footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
           key: "yabd-is-gay"
         }));
-      const originalChildren = footer.children;
-      footer.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
+      const originalChildren = footerContent.children;
+      footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
       return ret;
     });
   }
@@ -12392,6 +12396,7 @@ function CustomBanner() {
 }
 // src/ui/DisplayNameStyle.tsx
 var { React: React9, Components: Components5 } = BetterDiscord;
+var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 var FONTS = [
   "gg sans",
   "Tempo",
@@ -12402,19 +12407,13 @@ var FONTS = [
   "8Bit",
   "Vampyre"
 ];
-var EFFECTS = [
-  "Solid",
-  "Gradient",
-  "Neon",
-  "Toon",
-  "Pop"
-];
-var EFFECT_DEFAULT_COLORS = [
-  [15724529],
-  [2797222, 16762000],
-  [6888941],
-  [15999128][1036166]
-];
+var EFFECTS = {
+  Solid: [15724529],
+  Gradient: [2797222, 16762000],
+  Neon: [6888941],
+  Toon: [15999128],
+  Pop: [1036166]
+};
 function FontButton({ onClick, selected, fontFamily }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
     style: {
@@ -12428,7 +12427,7 @@ function FontButton({ onClick, selected, fontFamily }) {
     onClick
   }, fontFamily);
 }
-function EffectButton({ onClick, selected, children, effectId, colors }) {
+function EffectButton({ onClick, selected, children, data, colors }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
     style: {
       backgroundColor: "var(--control-secondary-background-default)",
@@ -12439,14 +12438,27 @@ function EffectButton({ onClick, selected, children, effectId, colors }) {
     },
     onClick
   }, /* @__PURE__ */ React9.createElement(EffectText, {
-    displayNameStyles: { fontId: 0, effectId, colors },
-    effectDisplayType: effectId,
+    displayNameStyles: { colors: data.effectColors, fontId: 1, effectId: data.effectId + 1 },
+    effectDisplayType: data.effectId + 1,
     inProfile: true,
     loop: true,
-    userName: EFFECTS[effectId]
+    userName: data.effectName
   }));
 }
-var EffectText = BetterDiscord.Webpack.getAllBySource("UserNameWithEffects")?.[1];
+var ModalModule3 = wpGetByKeys(["Modal"]);
+function OpenDisplayNameStyleModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React9.createElement(ModalModule3.Modal, {
+        title: "Change Display Name Style",
+        ...props
+      }, /* @__PURE__ */ React9.createElement(DisplayNameStyle, null));
+    });
+  }
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    onClick: handleClick
+  }, "Change Display Name Style");
+}
 function DisplayNameStyle() {
   const [fontId, setFontId] = React9.useState(0);
   const [effectId, setEffectId] = React9.useState(0);
@@ -12454,28 +12466,42 @@ function DisplayNameStyle() {
     primary: "#ffffff",
     accent: "#000000"
   });
-  let fontButtons = [];
-  for (let i = 0;i < FONTS.length; i++) {
-    fontButtons.push(/* @__PURE__ */ React9.createElement(FontButton, {
-      fontFamily: FONTS[i],
-      selected: fontId === i,
-      onClick: () => setFontId(i)
-    }));
-  }
-  let effectButtons = [];
-  for (let i = 0;i < EFFECTS.length; i++) {
-    effectButtons.push(/* @__PURE__ */ React9.createElement(EffectButton, {
+  return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((_fontId, index) => {
+    return /* @__PURE__ */ React9.createElement(FontButton, {
+      fontFamily: _fontId,
+      selected: fontId == index,
+      onClick: () => setFontId(index)
+    });
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i) => {
+    const data = {
+      effectName: effect[0],
+      effectColors: effect[1],
+      effectId: i
+    };
+    return /* @__PURE__ */ React9.createElement(EffectButton, {
       onClick: () => setEffectId(i),
       selected: effectId === i,
-      effectId,
-      colors: EFFECT_DEFAULT_COLORS[i]
-    }, EFFECTS[i]));
-  }
-  return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), ...fontButtons, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), ...effectButtons, /* @__PURE__ */ React9.createElement(Components5.Button, {
-    onClick: () => {
-      BetterDiscord.UI.showToast(`Font: ${fontId} Effect: ${effectId}`);
+      data,
+      colors: data.effectColors
+    }, data.effectName);
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Primary Color"), /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
+    value: colors.primary,
+    onChange: (e) => {
+      setColors({ primary: e, accent: colors.accent });
     }
-  }, "Show selection"));
+  }), effectId === 1 ? /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Secondary Color"), /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
+    value: colors.accent,
+    onChange: (e) => {
+      setColors({ primary: colors.primary, accent: e });
+    }
+  })) : null, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Button, {
+    onClick: () => {
+      const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ""), 16);
+      const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ""), 16);
+      const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
+      copyToClipboard(secondsightifyEncodeOnly(`S{${fontId + 1},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
+    }
+  }, "Copy 3y3"));
 }
 // src/ui/Sep.tsx
 var Separator = styled.div({
@@ -12579,7 +12605,7 @@ var Scroller = styled.div({
 function CustomSettingsTab() {
   const isDeveloper = BadgesStore_default.isImportant(UserStore5.getCurrentUser().id);
   const [text, setText] = React10.useState("");
-  return /* @__PURE__ */ React10.createElement(Scroller, null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React10.createElement(AccentColors, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React10.createElement(CustomPFP, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React10.createElement(CustomBanner, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React10.createElement(DisplayNameStyle, null), isDeveloper ? /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React10.createElement(Components6.TextInput, {
+  return /* @__PURE__ */ React10.createElement(Scroller, null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React10.createElement(AccentColors, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React10.createElement(CustomPFP, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React10.createElement(CustomBanner, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React10.createElement(OpenDisplayNameStyleModalButton, null), isDeveloper ? /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React10.createElement(Components6.TextInput, {
     value: text,
     onChange: (e) => setText(e)
   }), /* @__PURE__ */ React10.createElement(Components6.Button, {
@@ -12588,6 +12614,7 @@ function CustomSettingsTab() {
     }
   }, "Encode")) : null);
 }
+var GoLiveModalV2UpsellMod = BdApi.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
@@ -12612,6 +12639,13 @@ var UserProfileV2_default = {
         text: "YABDP4Nitro",
         section: "YABDP4Nitro"
       });
+    });
+    patcher.instead(GoLiveModalV2UpsellMod.declarations, "t6", (_, args, originalFunction) => {
+      const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
+      console.log(upsellRemovalEnabled);
+      if (upsellRemovalEnabled)
+        return null;
+      return originalFunction.apply(args);
     });
     return;
   }
@@ -12934,23 +12968,23 @@ var package_default = {
 };
 
 // src/global/changelog/index.tsx
-var Meta = package_default;
+var Meta2 = package_default;
 function normalizeVersion(v) {
   const parts = v.split(".");
   while (parts.length < 3)
     parts.push("0");
   return parts.join(".");
 }
-function startChangelog() {
-  const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion"));
-  const currentVersion = normalizeVersion(Meta.version);
+function startChangelog(sourceVersion) {
+  const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion") ?? "0.0.0");
+  const currentVersion = sourceVersion ?? normalizeVersion(Meta2.version);
   if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0)
     return;
   const entry = changelog_default?.[currentVersion]?.[0];
   if (!entry)
     return;
   BetterDiscord.UI.showChangelogModal({
-    title: Meta.name,
+    title: Meta2.name,
     subtitle: `v${currentVersion}`,
     ...entry
   });
@@ -13341,14 +13375,14 @@ var SettingsSchema = [
   {
     key: "removeProfileUpsell",
     label: "Remove Profile Customization Upsell",
-    note: 'Removes the "Try It Out" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.',
+    note: 'Removes the "Get Nitro" upsell in the profile editing modal.',
     category: "Miscellaneous",
     type: "boolean"
   },
   {
     key: "removeScreenshareUpsell",
     label: "Remove Screen Share Nitro Upsell",
-    note: "Removes the Nitro upsell in the Screen Share quality option menu.",
+    note: "Removes the Nitro upsell in the Go Live modal screen.",
     category: "Miscellaneous",
     type: "boolean"
   },
@@ -13382,19 +13416,79 @@ var SettingsSchema = [
     type: "boolean"
   }
 ];
+function normalizeVersion2(v) {
+  const parts = v.split(".");
+  while (parts.length < 3)
+    parts.push("0");
+  return parts.join(".");
+}
+var Electron = () => eval('require("electron")');
+var _path = () => require("path");
+var fs = () => require("fs");
+
 class Plugin {
   unpatch = loadContextMenus();
+  source = "";
   async start() {
-    startChangelog();
-    await UserBackgroundStore_default.fetch();
-    await loadPatches();
+    const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
+    checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (BadgesStore_default.isImportant(UserStore7.getCurrentUser().id)) {
-      console.log("Welcome back, Developer.");
-      window.YABD_DEBUG = { ShopCollectiblesStore: ShopCollectiblesStore_default, BadgesStore: BadgesStore_default, getRevealedText, secondsightifyRevealOnly, SettingsStore: SettingsStore_default };
+      BetterDiscord.Logger.log("Welcome back, Developer.");
+      window.YABD_DEBUG = {
+        ShopCollectiblesStore: ShopCollectiblesStore_default,
+        BadgesStore: BadgesStore_default,
+        getRevealedText,
+        secondsightifyRevealOnly,
+        SettingsStore: SettingsStore_default
+      };
     }
+    await UserBackgroundStore_default.fetch();
+    await loadPatches();
   }
-  checkUpdate() {
+  async checkUpdate() {
+    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
+    this.source = await res.text();
+    const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
+    const installedVersion = SettingsStore_default.get("installedVersion") ?? Meta.version ?? "0.0.0";
+    if (!sourceVersion)
+      return;
+    if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
+      BetterDiscord.Logger.log("New update version found!");
+      this.notification = BetterDiscord.UI.showNotification({
+        title: "YABDP4Nitro Update Available",
+        icon: () => /* @__PURE__ */ React12.createElement(Icon, {
+          icon: "mdi:update",
+          width: "20"
+        }),
+        content: `Update ${sourceVersion} is now downloadable, Would you like to update?`,
+        duration: Infinity,
+        actions: [
+          {
+            label: "Update",
+            onClick: () => {
+              const bd_path = Electron().ipcRenderer.sendSync("bd-get-path", "appData");
+              const path = _path().join(bd_path, "BetterDiscord", "plugins", "YABDP4Nitro.plugin.js");
+              fs().writeFile(path, this.source, (err) => {
+                if (err) {
+                  BetterDiscord.UI.showToast("Failed to update, Please update manually.");
+                } else {
+                  BetterDiscord.UI.showToast("Update was successful!");
+                  SettingsStore_default.set("installedVersion", sourceVersion);
+                  startChangelog(sourceVersion);
+                }
+              });
+            }
+          },
+          {
+            label: "Hell Nah",
+            onClick: () => {
+              this.notification.close();
+            }
+          }
+        ]
+      });
+    }
     return;
   }
   stop() {

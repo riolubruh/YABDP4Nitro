@@ -28,7 +28,7 @@ export const defaultSettings = {
     "clientThemes": true,
     "lastGradientSettingStore": -1,
     "fakeProfileThemes": true,
-    "removeProfileUpsell": false,
+    "removeProfileUpsell": true,
     "removeScreenshareUpsell": true,
     "fakeProfileBanners": true,
     "fakeAvatarDecorations": true,

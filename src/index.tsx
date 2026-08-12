@@ -389,7 +389,7 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean"
     },
 
-    // category lmao
+    // Miscellaneous
     {
         key: "changePremiumType2",
         label: "Change Premium Type",
@@ -414,14 +414,14 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "removeProfileUpsell",
         label: "Remove Profile Customization Upsell",
-        note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.",
+        note: "Removes the \"Get Nitro\" upsell in the profile editing modal.",
         category: "Miscellaneous",
         type: "boolean"
     },
     {
         key: "removeScreenshareUpsell",
         label: "Remove Screen Share Nitro Upsell",
-        note: "Removes the Nitro upsell in the Screen Share quality option menu.",
+        note: "Removes the Nitro upsell in the Go Live modal screen.",
         category: "Miscellaneous",
         type: "boolean"
     },
@@ -472,7 +472,8 @@ export default class Plugin {
 
     async start() {
 
-        await this.checkUpdate();
+        const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
+        (checkForUpdatesEnabled) && await this.checkUpdate();
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
 
