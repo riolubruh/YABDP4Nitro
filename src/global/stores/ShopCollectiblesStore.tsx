@@ -147,6 +147,6 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     }
 
     getQuestAvatarDecorations(): AvatarDecorationItem[] {
-        return this.getAllResolvedQuestItems().filter(x => x.type === ShopItemType.AvatarDecoration) as AvatarDecorationItem[];
+        return this.getAllResolvedQuestItems().filter(x => x.type === 3) as AvatarDecorationItem[];
     }
 }
