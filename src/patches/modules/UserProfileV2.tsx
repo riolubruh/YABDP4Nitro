@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {AccentColors, CustomBanner, CustomPFP, DisplayNameStyle} from "../../ui";
+import {AccentColors, CustomBanner, CustomPFP, DisplayNameStyle, ProfileEffects} from "../../ui";
 import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
@@ -46,8 +46,8 @@ function CustomSettingsTab() {
         <CustomBanner/>
         <SepWithText>Display Name Style</SepWithText>
         <DisplayNameStyle/>
-        {/*<SepWithText>Profile Effect</SepWithText>*/}
-        {/*<DisplayProducts/>*/}
+        <SepWithText>Profile Effect</SepWithText>
+        <ProfileEffects/>
         {isDeveloper ? <div>
             <SepWithText>Developer</SepWithText>
             <Components.TextInput value={text} onChange={e => setText(e)}/>

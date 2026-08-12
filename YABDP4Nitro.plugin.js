@@ -15,60 +15,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -8983,7 +8962,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -12524,37 +12503,6 @@ function DisplayNameStyle() {
     }
   }, "Copy 3y3"));
 }
-// src/ui/Sep.tsx
-var Separator = styled.div({
-  width: "100%",
-  height: "2px",
-  margin: "10px 0",
-  borderRadius: "100%",
-  background: "var(--border-subtle)"
-});
-var Wrapper = styled.div({
-  display: "flex",
-  alignItems: "center",
-  margin: "10px 0"
-});
-var Line = styled.div({
-  flex: 1,
-  height: "2px",
-  borderRadius: "100%",
-  background: "var(--border-subtle)"
-});
-var Label = styled.span({
-  margin: "0 10px",
-  color: "var(--text-muted)",
-  fontSize: "12px",
-  fontWeight: 600,
-  textTransform: "uppercase",
-  whiteSpace: "nowrap"
-});
-function SepWithText({ children }) {
-  return /* @__PURE__ */ React.createElement(Wrapper, null, /* @__PURE__ */ React.createElement(Line, null), /* @__PURE__ */ React.createElement(Label, null, children), /* @__PURE__ */ React.createElement(Line, null));
-}
-
 // src/global/stores/ShopCollectiblesStore.tsx
 var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends BetterDiscord.Utils.Store {
   collections = [];
@@ -12575,6 +12523,10 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
   }
   getQuestCollectible(skuId) {
     this.questCollectibles.find((q) => q.id === skuId);
+  }
+  getCategories() {
+    console.log(this);
+    return this.collections.flatMap((q) => q.sku_id);
   }
   getCategory(categorySkuId) {
     return this.collections.find((x) => x.sku_id === categorySkuId);
@@ -12611,8 +12563,60 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
   }
 };
 
+// src/ui/profileEffects.tsx
+var { Components: Components6, React: React10 } = BetterDiscord;
+var ModalModule4 = wpGetByKeys(["Modal"]);
+function OpenDisplayNameStyleModalButton2() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React10.createElement(ModalModule4.Modal, {
+        title: "Change Profile Effect",
+        ...props
+      }, /* @__PURE__ */ React10.createElement(ProfileEffects, null));
+    });
+  }
+  return /* @__PURE__ */ React10.createElement(Components6.Button, {
+    onClick: handleClick
+  }, "Change Profile Effect");
+}
+var categories = ShopCollectiblesStore_default.getCategories();
+function ProfileEffects() {
+  console.log(categories);
+  return /* @__PURE__ */ React10.createElement("div", null);
+}
+// src/ui/Sep.tsx
+var Separator = styled.div({
+  width: "100%",
+  height: "2px",
+  margin: "10px 0",
+  borderRadius: "100%",
+  background: "var(--border-subtle)"
+});
+var Wrapper = styled.div({
+  display: "flex",
+  alignItems: "center",
+  margin: "10px 0"
+});
+var Line = styled.div({
+  flex: 1,
+  height: "2px",
+  borderRadius: "100%",
+  background: "var(--border-subtle)"
+});
+var Label = styled.span({
+  margin: "0 10px",
+  color: "var(--text-muted)",
+  fontSize: "12px",
+  fontWeight: 600,
+  textTransform: "uppercase",
+  whiteSpace: "nowrap"
+});
+function SepWithText({ children }) {
+  return /* @__PURE__ */ React.createElement(Wrapper, null, /* @__PURE__ */ React.createElement(Line, null), /* @__PURE__ */ React.createElement(Label, null, children), /* @__PURE__ */ React.createElement(Line, null));
+}
+
 // src/patches/modules/UserProfileV2.tsx
-var { React: React10, Components: Components6 } = BetterDiscord;
+var { React: React11, Components: Components7 } = BetterDiscord;
 var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"));
@@ -12625,11 +12629,11 @@ var Scroller = styled.div({
 });
 function CustomSettingsTab() {
   const isDeveloper = BadgesStore_default.isImportant(UserStore5.getCurrentUser().id);
-  const [text, setText] = React10.useState("");
-  return /* @__PURE__ */ React10.createElement(Scroller, null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React10.createElement(AccentColors, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React10.createElement(CustomPFP, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React10.createElement(CustomBanner, null), /* @__PURE__ */ React10.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React10.createElement(OpenDisplayNameStyleModalButton, null), isDeveloper ? /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React10.createElement(Components6.TextInput, {
+  const [text, setText] = React11.useState("");
+  return /* @__PURE__ */ React11.createElement(Scroller, null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React11.createElement(AccentColors, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React11.createElement(CustomPFP, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React11.createElement(CustomBanner, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React11.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React11.createElement(OpenDisplayNameStyleModalButton2, null), isDeveloper ? /* @__PURE__ */ React11.createElement("div", null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React11.createElement(Components7.TextInput, {
     value: text,
     onChange: (e) => setText(e)
-  }), /* @__PURE__ */ React10.createElement(Components6.Button, {
+  }), /* @__PURE__ */ React11.createElement(Components7.Button, {
     onClick: () => {
       copyToClipboard(secondsightifyEncodeOnly(text), "[DEV] Copied uwu!");
     }
@@ -12645,9 +12649,10 @@ var UserProfileV2_default = {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
+    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
-        return /* @__PURE__ */ React10.createElement(CustomSettingsTab, null);
+        return /* @__PURE__ */ React11.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
@@ -12661,7 +12666,7 @@ var UserProfileV2_default = {
         section: "YABDP4Nitro"
       });
     });
-    patcher.instead(GoLiveModalV2UpsellMod.declarations, "t6", (_, args, originalFunction) => {
+    patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
       const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
       console.log(upsellRemovalEnabled);
       if (upsellRemovalEnabled)
@@ -12742,7 +12747,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React11 } = BetterDiscord;
+var { React: React12 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -12771,20 +12776,20 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React11.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React12.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
       action: startDownload,
       leadingAccessory: {
         type: "icon",
-        icon: () => /* @__PURE__ */ React11.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React12.createElement(Icon, {
           width: "22",
           icon: "mdi:download"
         })
       },
-      label: /* @__PURE__ */ React11.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React11.createElement(ContextMenuLabel, null), /* @__PURE__ */ React11.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React12.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React12.createElement(ContextMenuLabel, null), /* @__PURE__ */ React12.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React11.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React12.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -13013,8 +13018,8 @@ function startChangelog(sourceVersion) {
 }
 
 // src/index.tsx
-var { Components: Components7 } = BetterDiscord;
-var { React: React12 } = BetterDiscord;
+var { Components: Components8 } = BetterDiscord;
+var { React: React13 } = BetterDiscord;
 var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
@@ -13506,7 +13511,7 @@ class Plugin {
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React12.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React13.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -13548,22 +13553,22 @@ class Plugin {
     const onChange = (v) => SettingsStore_default.set(def.key, v);
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React12.createElement(Components7.SwitchInput, {
+        return /* @__PURE__ */ React13.createElement(Components8.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React12.createElement(Components7.NumberInput, {
+        return /* @__PURE__ */ React13.createElement(Components8.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React12.createElement(Components7.TextInput, {
+        return /* @__PURE__ */ React13.createElement(Components8.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React12.createElement(Components7.DropdownInput, {
+        return /* @__PURE__ */ React13.createElement(Components8.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -13583,11 +13588,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React12.createElement(React12.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React12.createElement(Components7.SettingGroup, {
+      return /* @__PURE__ */ React13.createElement(React13.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React13.createElement(Components8.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React12.createElement(Components7.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React13.createElement(Components8.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note

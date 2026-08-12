@@ -43,6 +43,11 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
         this.questCollectibles.find(q => q.id === skuId);
     }
 
+    getCategories(){
+        console.log(this);
+        return this.collections.flatMap(q => q.sku_id);
+    }
+
     getCategory(categorySkuId: string): ShopCollection | undefined {
         return this.collections.find(x => x.sku_id === categorySkuId);
     }
