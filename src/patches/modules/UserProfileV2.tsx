@@ -8,7 +8,7 @@ import {
     Nameplates,
     ProfileEffects
 } from "../../ui";
-import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
+import {getKey, wpGet, wpGetProxy, wpWait} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
 import ShopCollectiblesStore from "../../global/stores/ShopCollectiblesStore.tsx";
@@ -68,18 +68,17 @@ function CustomSettingsTab() {
     </Scroller>
 }
 
-const GoLiveModalV2UpsellMod = BdApi.Webpack.getBySource("profile-editing-nameplate-error", {raw:true});
-
 export default {
     name: "User Profile V2",
     description: "skibidi toilet",
-    ids: undefined,
+    ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"),{raw:true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"),{raw:true}).then(x => x.id)],
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
         const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw: true}).declarations
         const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
+        const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", {raw:true});
         const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
 
         patcher.after(module.module, module.key, (a, [args], callback) => {
