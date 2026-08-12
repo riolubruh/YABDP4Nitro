@@ -8,7 +8,7 @@
  *
  * Usage:
  *   /// <reference path="./bdapi.d.ts" />
- * or add this file to your `include`/`typeRoots` in tsconfig.json.
+ * or add this file to your `include`/`typeRoots` in index.ts.
  */
 import type {FluxStore} from "discord-types/stores";
 

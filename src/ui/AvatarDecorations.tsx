@@ -115,10 +115,39 @@ function QuestCategory({questDecorations, query}) {
     </div>
 }
 
+function Invalid({key, skuId, query}) {
+    const categories = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getInvalids().map(x => ShopCollectiblesStore.getInvalid(x)))
+
+    return categories?.map(x => <div style={{
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px"
+    }}>
+        {x.name}
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+            gap: "8px"
+        }}>
+            {x.products.map(x => {
+                const decorationItem = {...x, skuId: x.sku_id};
+
+                return <ProductDisplayer avatarSize={"SIZE_72"} isHighlighted={true} item={decorationItem}
+                                         user={UserStore.getCurrentUser()}
+                                         key={x.sku_id}/>
+            })}
+        </div>
+    </div>)
+}
+
 function AvatarDecorations() {
     const [query, setQuery] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
     const questDecorations = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getQuestAvatarDecorations());
+    const invalids = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getInvalids());
 
     return <div>
         <Components.SearchInput
@@ -133,5 +162,8 @@ function AvatarDecorations() {
             <Category key={id} skuId={id} query={query}/>
         ))}
         <QuestCategory query={query} questDecorations={questDecorations}/>
+        {invalids.map(id => (
+            <Invalid key={id} skuId={id} query={query}/>
+        ))}
     </div>
 }
