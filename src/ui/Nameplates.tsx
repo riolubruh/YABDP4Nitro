@@ -1,5 +1,5 @@
 import {GlobalModules} from "@global/*";
-import {getKey, wpGetByKeys, wpGetByStrings, wpGetProxy} from "../global/webpack";
+import {getKey, wpGetByKeys, wpGetByStrings, wpGetProxy, wpWait} from "../global/webpack";
 import {BetterDiscord} from "@shared/*";
 import {useMemo, useState} from "react";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
@@ -8,7 +8,7 @@ const {React, Components} = BetterDiscord;
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
-const Nameplate = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {raw:true});//getKey(BetterDiscord.Webpack.getBySource(".x5CoXR),className:", {raw:true}).declarations, BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"));
+const Nameplate = React.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource('.x5CoXR),className:'), {declaration: x => String(x).includes('.x5CoXR),className:')})}))
 
 export default function OpenNameplateModalButton(){
     function handleClick() {
@@ -33,12 +33,13 @@ function copyNameplate3y3({skuId, palette}){
 
 function Nameplate3y3(product){
     const [hovered, setHovered] = React.useState(false);
+
     return <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyNameplate3y3({skuId: product.sku_id, palette: product.palette})}
     >
-        <Nameplate.declarations.Y section={"purchased"} nameplate={product} canUsePremiumCollectibles={true} isSelected={hovered}></Nameplate.declarations.Y>
+        <Nameplate section={"purchased"} nameplate={product} canUsePremiumCollectibles={true} isSelected={hovered}></Nameplate>
     </div>
 }
 
