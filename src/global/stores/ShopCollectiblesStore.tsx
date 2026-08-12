@@ -44,8 +44,7 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     }
 
     getCategories(){
-        console.log(this);
-        return this.collections.flatMap(q => q.sku_id);
+        return this.collections.map(q => q.sku_id);
     }
 
     getCategory(categorySkuId: string): ShopCollection | undefined {

@@ -23,14 +23,13 @@ export default function OpenDisplayNameStyleModalButton(){
     </Components.Button>
 }
 
-const categories = ShopCollectiblesStore.getCategories();
-
 function ProfileEffect({}){
 
 }
 
 function ProfileEffects(){
-    console.log(categories);
+    const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories())
+    console.log(Collections)
 
     return <div>
 
