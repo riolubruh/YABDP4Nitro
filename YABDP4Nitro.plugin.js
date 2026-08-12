@@ -12525,8 +12525,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
     this.questCollectibles.find((q) => q.id === skuId);
   }
   getCategories() {
-    console.log(this);
-    return this.collections.flatMap((q) => q.sku_id);
+    return this.collections.map((q) => q.sku_id);
   }
   getCategory(categorySkuId) {
     return this.collections.find((x) => x.sku_id === categorySkuId);
@@ -12566,7 +12565,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
 // src/ui/profileEffects.tsx
 var { Components: Components6, React: React10 } = BetterDiscord;
 var ModalModule4 = wpGetByKeys(["Modal"]);
-function OpenDisplayNameStyleModalButton2() {
+function OpenProfileEffectModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
       return /* @__PURE__ */ React10.createElement(ModalModule4.Modal, {
@@ -12579,10 +12578,59 @@ function OpenDisplayNameStyleModalButton2() {
     onClick: handleClick
   }, "Change Profile Effect");
 }
-var categories = ShopCollectiblesStore_default.getCategories();
+function ProfileEffect({ product, query }) {
+  const skuId = product.sku_id;
+  const src = product.thumbnailPreviewSrc;
+  const title = product.title;
+  function copyProfileEffect3y3(skuId2) {
+    console.log(skuId2);
+  }
+  return /* @__PURE__ */ React10.createElement("img", {
+    onClick: () => copyProfileEffect3y3(skuId),
+    src,
+    title,
+    style: {
+      width: "22.5%",
+      cursor: "pointer",
+      marginBottom: "0.5em",
+      marginLeft: "0.5em",
+      backgroundColor: "var(--background-base-lower)",
+      display: "inline-block"
+    }
+  });
+}
+function Category({ skuId, query }) {
+  console.log(query);
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  const products = ShopCollectiblesStore_default.getProfileEffects(skuId);
+  console.log("products", products);
+  const filteredProducts = products?.filter?.((product) => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  console.log("filteredProducts", filteredProducts);
+  return /* @__PURE__ */ React10.createElement("div", {
+    style: {
+      display: "inline-block"
+    }
+  }, filteredProducts?.length ? /* @__PURE__ */ React10.createElement(Components6.Text, null, category?.name) : null, filteredProducts?.map((x) => /* @__PURE__ */ React10.createElement(ProfileEffect, {
+    product: x
+  })));
+}
 function ProfileEffects() {
-  console.log(categories);
-  return /* @__PURE__ */ React10.createElement("div", null);
+  const [query, setQuery] = useState("");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  console.log(Collections);
+  return /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
+    value: query,
+    placeholder: "Search...",
+    onChange: (e) => setQuery(e.target.value),
+    style: {
+      backgroundColor: `var(--control-secondary-background-default)`
+    }
+  }), Collections.map((id) => {
+    return /* @__PURE__ */ React10.createElement(Category, {
+      skuId: id,
+      query
+    });
+  }));
 }
 // src/ui/Sep.tsx
 var Separator = styled.div({
@@ -12630,7 +12678,7 @@ var Scroller = styled.div({
 function CustomSettingsTab() {
   const isDeveloper = BadgesStore_default.isImportant(UserStore5.getCurrentUser().id);
   const [text, setText] = React11.useState("");
-  return /* @__PURE__ */ React11.createElement(Scroller, null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React11.createElement(AccentColors, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React11.createElement(CustomPFP, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React11.createElement(CustomBanner, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React11.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React11.createElement(OpenDisplayNameStyleModalButton2, null), isDeveloper ? /* @__PURE__ */ React11.createElement("div", null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React11.createElement(Components7.TextInput, {
+  return /* @__PURE__ */ React11.createElement(Scroller, null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React11.createElement(AccentColors, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React11.createElement(CustomPFP, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React11.createElement(CustomBanner, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React11.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React11.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React11.createElement(OpenProfileEffectModalButton, null), isDeveloper ? /* @__PURE__ */ React11.createElement("div", null, /* @__PURE__ */ React11.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React11.createElement(Components7.TextInput, {
     value: text,
     onChange: (e) => setText(e)
   }), /* @__PURE__ */ React11.createElement(Components7.Button, {
