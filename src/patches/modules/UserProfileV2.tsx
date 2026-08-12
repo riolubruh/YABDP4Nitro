@@ -12,8 +12,6 @@ const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
-
-
 const Margin = styled.div({
     marginBottom: "-50px"
 })

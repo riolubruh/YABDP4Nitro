@@ -5,11 +5,12 @@ import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
 import {useState} from "react";
 import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
 
-const {Components, React} = BetterDiscord;
+const {Components, React, Webpack} = BetterDiscord;
+const {UserStore} = Webpack.Stores
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
-const ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"))
+const ProductDisplayer = wpGetProxy(Webpack.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), {searchExports: true})
 
 export default function OpenAvatarDecorationModalButton() {
     function handleClick() {
@@ -30,77 +31,86 @@ export default function OpenAvatarDecorationModalButton() {
 function AvatarDecoration({product}) {
     const [hovered, setHovered] = React.useState<boolean>(false)
     const skuId = product.sku_id;
-    const src = "https://cdn.discordapp.com/avatar-decoration-presets/" + product.asset + ".webp?size=128"
-    const title = product.label;
 
     function copyProfileEffect3y3(skuId) {
         copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
     }
 
-    return <div style={{display: "flex", width: "32px", height: "32px"}}
+    return <div
         onMouseOver={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-    >
-            <ProductDisplayer.A key={`based-da-${product.sku_id}`} skuId={product.sku_id} isCardHovered={hovered}/>
-    </div>
-
-    /*<img
         onClick={() => copyProfileEffect3y3(skuId)}
-        src={src}
-        title={title}
-        style={{
-            width: "22.5%",
-            cursor: "pointer",
-            marginBottom: "0.5em",
-            marginLeft: "0.5em",
-            backgroundColor: "var(--background-base-lower)",
-            display: "inline-block",
-        }}
-    />*/
+    >
+        <ProductDisplayer isHighlighted={hovered} item={product} user={UserStore.getCurrentUser()}
+                          avatarSize={"SIZE_72"}/>
+    </div>
 }
 
 function Category({skuId, query}) {
     const category = ShopCollectiblesStore.getCategory(skuId);
-    const products = ShopCollectiblesStore.getAvatarDecorations(skuId)
+    const products = ShopCollectiblesStore.getAvatarDecorations(skuId);
+
+    console.log(products[0])
 
     const filteredProducts = products?.filter?.(product => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+
+    if (!filteredProducts?.length) return null;
 
     return <div
         style={{
             display: "flex",
+            flexDirection: "column",
             backgroundColor: "var(--background-base-lower)",
             borderRadius: "10px",
             margin: "5px 0px",
-            width: "100%",
+            padding: "8px",
+            width: "auto",
         }}
     >
-        {filteredProducts?.length ? <Components.Text style={{fontSize: "16px", fontWeight:"bold", margin: "10px 8px"}}>
+        <Components.Text style={{fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0"}}>
             {category?.name}
-        </Components.Text> : null}
-        {filteredProducts?.map(x => <AvatarDecoration
-            product={x}
-        />)}
+        </Components.Text>
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+            gap: "8px",
+        }}>
+            {filteredProducts.map(x => <AvatarDecoration
+                key={x.sku_id}
+                product={x}
+            />)}
+        </div>
     </div>
 }
 
 function QuestCategory({questDecorations, query}) {
-
     const filteredProducts = questDecorations?.filter?.(product => product?.label?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+
+    if (!filteredProducts?.length) return null;
 
     return <div
         style={{
-            display: "inline-block",
+            display: "flex",
+            flexDirection: "column",
             backgroundColor: "var(--background-base-lower)",
             borderRadius: "10px",
             margin: "5px 0px",
+            padding: "8px",
         }}
     >
-        {filteredProducts?.length ? <Components.Text style={{fontSize: "16px", fontWeight:"bold", margin: "10px 8px"}}>
+        <Components.Text style={{fontSize: "16px", fontWeight: "bold", margin: "0 0 8px 0"}}>
             Quests
-        </Components.Text> : null}
-        {filteredProducts?.map(x => <AvatarDecoration
-            product={x}
-        />)}
+        </Components.Text>
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+            gap: "8px",
+        }}>
+            {filteredProducts.map(x => <AvatarDecoration
+                key={x.sku_id}
+                product={x}
+            />)}
+        </div>
     </div>
 }
 
@@ -118,10 +128,9 @@ function AvatarDecorations() {
                 backgroundColor: `var(--control-secondary-background-default)`
             }}
         />
-        {Collections.map(id => {
-            return <Category skuId={id} query={query}/>
-        })}
+        {Collections.map(id => (
+            <Category key={id} skuId={id} query={query}/>
+        ))}
         <QuestCategory query={query} questDecorations={questDecorations}/>
-
     </div>
 }
