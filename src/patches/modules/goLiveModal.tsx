@@ -1,7 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import GoLiveStore from "../../global/stores/GoLiveStore.ts";
 import {GlobalModules} from "@global/*";
-import {wpFilter, wpGetByKeys, wpGetProxy} from "../../global/webpack";
+import {getKey, wpFilter, wpGetByKeys, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
@@ -204,6 +204,9 @@ function CustomFooter() {
 }
 
 const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality')
+
+const validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", {raw: true});
+
 export default {
     name: "goLiveModal",
     description: "Streaming modal customization.",
@@ -226,16 +229,20 @@ export default {
             return false;
         });
 
-        const validatorMod = BetterDiscord.Webpack.getById(327649, {raw: true});
-        patcher.instead(validatorMod.declarations, "o", () => true);
+        const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
+        patcher.instead(mod?.module, mod?.key, () => true);
 
         patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+            const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
             const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footer"));
             if (!footer) return ret;
             const footerContent = BetterDiscord.Utils.findInTree(footer, x => String(x?.className).startsWith("footerContent"));
             if (!footerContent) return ret;
 
-            footer.children = footer.children.filter(x=> !x?.props?.className.startsWith("upsell"));
+            if(removeScreenshareUpsell){
+                footer.children = footer.children.filter(x=> !x?.props?.className.startsWith("upsell"));
+                footerContent.children[1].props.children = footerContent.children[1].props.children.filter(x=> !x?.type?.toString?.()?.includes("pill"));
+            }
 
             const doesExist = BetterDiscord.Utils.findInTree(footerContent, x => String(x?.key).includes("gay"));
             if (!doesExist)

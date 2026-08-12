@@ -12269,6 +12269,7 @@ function CustomFooter() {
   }));
 }
 var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GO_LIVE_MODAL_V2", "getUseSystemScreensharePicker", "canStreamQuality");
+var validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 var goLiveModal_default = {
   name: "goLiveModal",
   description: "Streaming modal customization.",
@@ -12287,16 +12288,21 @@ var goLiveModal_default = {
       }
       return false;
     });
-    const validatorMod = BetterDiscord.Webpack.getById(327649, { raw: true });
-    patcher.instead(validatorMod.declarations, "o", () => true);
+    console.log(validatorMod);
+    const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
+    patcher.instead(mod?.module, mod?.key, () => true);
     patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
       const footer = BetterDiscord.Utils.findInTree(ret, (x) => String(x?.className).startsWith("footer"));
       if (!footer)
         return ret;
       const footerContent = BetterDiscord.Utils.findInTree(footer, (x) => String(x?.className).startsWith("footerContent"));
       if (!footerContent)
         return ret;
-      footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
+      if (removeScreenshareUpsell) {
+        footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
+        footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x) => !x?.type?.toString?.()?.includes("pill"));
+      }
       const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) => String(x?.key).includes("gay"));
       if (!doesExist)
         footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {

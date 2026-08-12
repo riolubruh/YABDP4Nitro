@@ -92,7 +92,6 @@ export default {
 
         patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
             const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
-            console.log(upsellRemovalEnabled);
             if(upsellRemovalEnabled) return null;
             return originalFunction.apply(args);
         });
