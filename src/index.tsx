@@ -491,6 +491,43 @@ export default class Plugin {
         await UserBackgroundStore.fetch();
         await loadPatches();
 
+        try {
+            SettingsStore.get("experiments") && webpackChunkdiscord_app.push([{some: () => true}, {}, r => {
+                if ("b" in r && "c" in r && "m" in r) {
+                    const module = r.c[Object.entries(r.m).find(x => String(x[1]).includes("DeveloperExperimentStore"))[0]];
+
+                    if (!module) return;
+
+                    const {id, exports} = module;
+
+                    delete r.c[id];
+
+                    const [defaultKey, DeveloperExperimentStore] = Object.entries(exports).find(x => x[1] && "isDeveloper" in x[1]);
+
+                    const descriptors = Object.getOwnPropertyDescriptors(exports);
+
+                    let store = {
+                        isDeveloper: true,
+                        __proto__: DeveloperExperimentStore
+                    };
+
+                    descriptors[defaultKey] = {
+                        ...descriptors[defaultKey],
+                        get: () => store
+                    }
+
+                    r.c[id] = {
+                        ...module,
+                        exports: Object.defineProperties({}, descriptors)
+                    }
+
+                    DeveloperExperimentStore.emitChange();
+                }
+            }]);
+        } catch (error) {
+            BetterDiscord.Logger.error(error.message);
+        }
+
     }
 
     async checkUpdate() {
