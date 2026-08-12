@@ -119,7 +119,7 @@ function DisplayNameStyle() {
             <Components.Text>Secondary Color</Components.Text>
             <Components.ColorInput
                 value={colors.accent}
-                onChange={(e)=>{console.log(e); setColors({primary: colors.primary, accent: e})}}
+                onChange={(e)=>{setColors({primary: colors.primary, accent: e})}}
             />
         </div> : null}
         <br/>

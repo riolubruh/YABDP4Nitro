@@ -230,16 +230,21 @@ export default {
         patcher.instead(validatorMod.declarations, "o", () => true);
 
         patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-            const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footerContent"));
+            const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footer"));
             if (!footer) return ret;
+            const footerContent = BetterDiscord.Utils.findInTree(footer, x => String(x?.className).startsWith("footerContent"));
+            if (!footerContent) return ret;
 
-            const doesExist = BetterDiscord.Utils.findInTree(footer, x => String(x?.key).includes("gay"));
+            footer.children = footer.children.filter(x=> !x?.props?.className.startsWith("upsell"));
+
+            const doesExist = BetterDiscord.Utils.findInTree(footerContent, x => String(x?.key).includes("gay"));
             if (!doesExist)
-                footer.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
+                footerContent.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
 
-            const originalChildren = footer.children;
+            const originalChildren = footerContent.children;
 
-            footer.children = (
+
+            footerContent.children = (
                 <FooterColumn>
                     <FooterRow>
                         {originalChildren}

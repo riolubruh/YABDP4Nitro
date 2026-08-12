@@ -5,6 +5,7 @@ import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
 import ShopCollectiblesStore from "../../global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React, Components} = BetterDiscord;
 const {UserStore} = BetterDiscord.Webpack.Stores
@@ -57,6 +58,8 @@ function CustomSettingsTab() {
     </Scroller>
 }
 
+const GoLiveModalV2UpsellMod = BdApi.Webpack.getBySource("profile-editing-nameplate-error", {raw:true});
+
 export default {
     name: "User Profile V2",
     description: "skibidi toilet",
@@ -68,6 +71,7 @@ export default {
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
         patcher.after(module.module, module.key, (a, [args], callback) => {
+            console.log(callback);
             if (args.section == "YABDP4Nitro") {
                 return <CustomSettingsTab/>
             }
@@ -84,6 +88,13 @@ export default {
                 section: "YABDP4Nitro",
             })
         })
+
+        patcher.instead(GoLiveModalV2UpsellMod.declarations, "t6", (_, args, originalFunction) => {
+            const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
+            console.log(upsellRemovalEnabled);
+            if(upsellRemovalEnabled) return null;
+            return originalFunction.apply(args);
+        });
         return;
     }
 }

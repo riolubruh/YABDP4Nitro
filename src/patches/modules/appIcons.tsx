@@ -9,7 +9,6 @@ const bypassMap: Record<string, string> = {
     emojisEverywhere: "emojiBypass",
     animatedEmojis: "emojiBypass",
     appIcons: "unlockAppIcons",
-    profilePremiumFeatures: "removeProfileUpsell",
     clientThemes: "clientThemes",
     soundboardEverywhere: "soundmojiEnabled"
 };
