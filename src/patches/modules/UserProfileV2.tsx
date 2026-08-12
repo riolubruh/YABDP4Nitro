@@ -70,6 +70,8 @@ export default {
         const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
 
+        const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
+
         patcher.after(module.module, module.key, (a, [args], callback) => {
             if (args.section == "YABDP4Nitro") {
                 return <CustomSettingsTab/>
@@ -88,7 +90,7 @@ export default {
             })
         })
 
-        patcher.instead(GoLiveModalV2UpsellMod.declarations, "t6", (_, args, originalFunction) => {
+        patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
             const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
             console.log(upsellRemovalEnabled);
             if(upsellRemovalEnabled) return null;
