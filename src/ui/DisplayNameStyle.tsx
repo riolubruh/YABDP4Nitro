@@ -1,4 +1,7 @@
 import {BetterDiscord} from "@shared/";
+import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
+import {GlobalModules} from "@global/*";
+import {wpGetByKeys} from "../global/webpack";
 
 const {React, Components} = BetterDiscord;
 const EffectText = BetterDiscord.Webpack.getBySource('UserNameWithEffects').A
@@ -36,8 +39,7 @@ function FontButton({onClick, selected, fontFamily}) {
     >{fontFamily}</Components.Button>
 }
 
-function EffectButton({onClick, selected, children, effectId, colors}) {
-    const data = {fontId: 0, effectId: effectId, colors: colors}
+function EffectButton({onClick, selected, children, data, colors}) {
     return <Components.Button
         style={{
             backgroundColor: "var(--control-secondary-background-default)",
@@ -48,15 +50,33 @@ function EffectButton({onClick, selected, children, effectId, colors}) {
         }}
         onClick={onClick}
     ><EffectText
-        displayNameStyles={data}
-        effectDisplayType={effectId}
+        displayNameStyles={{colors:data.effectColors, fontId:1, effectId:data.effectId+1}}
+        effectDisplayType={data.effectId+1}
         inProfile={true}
         loop={true}
-        userName={effectId}
+        userName={data.effectName}
     /></Components.Button>
 }
 
-export default function DisplayNameStyle() {
+const ModalModule = wpGetByKeys(["Modal"]);
+
+export default function OpenDisplayNameStyleModalButton(){
+    function handleClick(){
+        GlobalModules.ModalModule.openModal(props => {
+            return <ModalModule.Modal title={"Change Display Name Style"} {...props}>
+                <DisplayNameStyle/>
+            </ModalModule.Modal>
+        })
+    }
+
+    return <Components.Button
+        onClick={handleClick}
+    >
+        Change Display Name Style
+    </Components.Button>
+}
+
+function DisplayNameStyle() {
     const [fontId, setFontId] = React.useState(0);
     const [effectId, setEffectId] = React.useState(0);
     const [colors, setColors] = React.useState({
@@ -66,10 +86,10 @@ export default function DisplayNameStyle() {
 
     return <div>
         <Components.Text>Font</Components.Text>
-        {Object.values(FONTS).map((fontId, index) => {
+        {Object.values(FONTS).map((_fontId, index) => {
             return <FontButton
-                fontFamily={fontId}
-                selected={fontId === FONTS[index]}
+                fontFamily={_fontId}
+                selected={fontId == index}
                 onClick={() => setFontId(index)}
             ></FontButton>
         })}
@@ -79,21 +99,39 @@ export default function DisplayNameStyle() {
             const data = {
                 effectName: effect[0],
                 effectColors: effect[1],
+                effectId: i
             }
 
             return <EffectButton
                 onClick={() => setEffectId(i)}
                 selected={effectId === i}
-                effectId={data.effectName}
+                data={data}
                 colors={data.effectColors}
             >{data.effectName}</EffectButton>;
         })}
+        <br/>
+        <Components.Text>Primary Color</Components.Text>
+        <Components.ColorInput
+            value={colors.primary}
+            onChange={(e)=>{setColors({primary: e, accent: colors.accent})}}
+        />
+        {effectId === 1 ? <div><br/>
+            <Components.Text>Secondary Color</Components.Text>
+            <Components.ColorInput
+                value={colors.accent}
+                onChange={(e)=>{console.log(e); setColors({primary: colors.primary, accent: e})}}
+            />
+        </div> : null}
+        <br/>
         <Components.Button
             onClick={() => {
-                BetterDiscord.UI.showToast(`Font: ${fontId} Effect: ${effectId}`);
+                const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#",''),16);
+                const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#",''),16);
+                const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
+                copyToClipboard(secondsightifyEncodeOnly(`S{${fontId+1},${effectId+1},${colorString}}`), "3y3 copied to clipboard!");
             }}
         >
-            Show selection
+            Copy 3y3
         </Components.Button>
     </div>
 
