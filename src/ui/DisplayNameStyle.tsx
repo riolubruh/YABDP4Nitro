@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/";
-import {copyToClipboard, getDirectImgurHash, secondsightifyEncodeOnly, styled} from "@utils/*";
+
 const {React, Components} = BetterDiscord;
+const EffectText = BetterDiscord.Webpack.getBySource('UserNameWithEffects').A
 
 const FONTS = [
     "gg sans",
@@ -13,23 +14,15 @@ const FONTS = [
     "Vampyre"
 ];
 
-const EFFECTS = [
-    "Solid",
-    "Gradient",
-    "Neon",
-    "Toon",
-    "Pop"
-]
+const EFFECTS = {
+    "Solid": [15724529],
+    "Gradient": [2797222, 16762000],
+    "Neon": [6888941],
+    "Toon": [15999128],
+    "Pop": [1036166]
+}
 
-const EFFECT_DEFAULT_COLORS = [
-    [15724529], //Solid
-    [2797222, 16762000], //Gradient
-    [6888941], //Neon
-    [15999128] //Toon
-    [1036166] //Toon
-]
-
-function FontButton({onClick, selected, fontFamily}){
+function FontButton({onClick, selected, fontFamily}) {
     return <Components.Button
         style={{
             fontFamily: fontFamily,
@@ -43,7 +36,8 @@ function FontButton({onClick, selected, fontFamily}){
     >{fontFamily}</Components.Button>
 }
 
-function EffectButton({onClick, selected, children, effectId, colors}){
+function EffectButton({onClick, selected, children, effectId, colors}) {
+    const data = {fontId: 0, effectId: effectId, colors: colors}
     return <Components.Button
         style={{
             backgroundColor: "var(--control-secondary-background-default)",
@@ -54,15 +48,13 @@ function EffectButton({onClick, selected, children, effectId, colors}){
         }}
         onClick={onClick}
     ><EffectText
-        displayNameStyles={{fontId: 0, effectId: effectId, colors: colors}}
+        displayNameStyles={data}
         effectDisplayType={effectId}
         inProfile={true}
         loop={true}
-        userName={EFFECTS[effectId]}
+        userName={effectId}
     /></Components.Button>
 }
-
-const EffectText = BetterDiscord.Webpack.getAllBySource('UserNameWithEffects')?.[1];
 
 export default function DisplayNameStyle() {
     const [fontId, setFontId] = React.useState(0);
@@ -72,37 +64,36 @@ export default function DisplayNameStyle() {
         accent: "#000000"
     });
 
-    let fontButtons = [];
-    for(let i = 0; i < FONTS.length; i++){
-        fontButtons.push(<FontButton
-            fontFamily={FONTS[i]}
-            selected={fontId === i}
-            onClick={() => setFontId(i)}
-        ></FontButton>);
-    }
-
-    let effectButtons = [];
-    for(let i = 0; i < EFFECTS.length; i++){
-        effectButtons.push(<EffectButton
-            onClick={() => setEffectId(i)}
-            selected={effectId===i}
-            effectId={effectId}
-            colors={EFFECT_DEFAULT_COLORS[i]}
-        >{EFFECTS[i]}</EffectButton>)
-    }
-
     return <div>
         <Components.Text>Font</Components.Text>
-        {...fontButtons}
+        {Object.values(FONTS).map((fontId, index) => {
+            return <FontButton
+                fontFamily={fontId}
+                selected={fontId === FONTS[index]}
+                onClick={() => setFontId(index)}
+            ></FontButton>
+        })}
         <br/><br/>
         <Components.Text>Effect</Components.Text>
-        {...effectButtons}
+        {Object.entries(EFFECTS).map((effect, i) => {
+            const data = {
+                effectName: effect[0],
+                effectColors: effect[1],
+            }
+
+            return <EffectButton
+                onClick={() => setEffectId(i)}
+                selected={effectId === i}
+                effectId={data.effectName}
+                colors={data.effectColors}
+            >{data.effectName}</EffectButton>;
+        })}
         <Components.Button
-            onClick={()=>{
+            onClick={() => {
                 BetterDiscord.UI.showToast(`Font: ${fontId} Effect: ${effectId}`);
             }}
         >
-        Show selection
+            Show selection
         </Components.Button>
     </div>
 
