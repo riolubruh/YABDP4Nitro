@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {AccentColors, CustomBanner, CustomPFP, DisplayNameStyle, ProfileEffects} from "../../ui";
+import {AccentColors, AvatarDecorations, CustomBanner, CustomPFP, DisplayNameStyle, ProfileEffects} from "../../ui";
 import {getKey, wpGet, wpGetProxy} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import {SepWithText} from "../../ui/Sep.tsx";
@@ -12,7 +12,7 @@ const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
-const ProductDisplayer = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".A.colors.INTERACTIVE_TEXT_ACTIVE,width:40"))
+
 
 const Margin = styled.div({
     marginBottom: "-50px"
@@ -23,7 +23,7 @@ const Scroller = styled.div({
     scrollbarWidth: "none"
 })
 
-function DisplayProducts() {
+/*function DisplayProducts() {
     const decorations = ShopCollectiblesStore.getAvatarDecorations("1212565175790473246")
 
     return <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -31,7 +31,7 @@ function DisplayProducts() {
             <ProductDisplayer.A key={`based-da-${decoration.sku_id}`} skuId={decoration.sku_id} isCardHovered={true}/>
         </div>)}
     </div>
-}
+}*/
 
 function CustomSettingsTab() {
     const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id)
@@ -48,6 +48,8 @@ function CustomSettingsTab() {
         <DisplayNameStyle/>
         <SepWithText>Profile Effect</SepWithText>
         <ProfileEffects/>
+        <SepWithText>Avatar Decoration</SepWithText>
+        <AvatarDecorations/>
         {isDeveloper ? <div>
             <SepWithText>Developer</SepWithText>
             <Components.TextInput value={text} onChange={e => setText(e)}/>
