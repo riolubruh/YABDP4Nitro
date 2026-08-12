@@ -28,20 +28,23 @@ export default function OpenAvatarDecorationModalButton() {
     </Components.Button>
 }
 
+function copyProfileEffect3y3(skuId) {
+    copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
+}
+
 function AvatarDecoration({product}) {
     const [hovered, setHovered] = React.useState<boolean>(false)
     const skuId = product.sku_id;
     const decorationItem = {...product, skuId: product.sku_id};
 
-    function copyProfileEffect3y3(skuId) {
-        copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
-    }
+
 
     return <div
         onMouseOver={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
-        title={product.productName}
+        title={product.productName ? product.productName : product?.messages?.name}
+        style={{cursor: "pointer"}}
     >
         <ProductDisplayer isHighlighted={hovered} item={decorationItem} user={UserStore.getCurrentUser()}
                           avatarSize={"SIZE_72"}/>
@@ -76,7 +79,7 @@ function Category({skuId, query}) {
             gap: "8px"
         }}>
             {filteredProducts.map(x => <AvatarDecoration
-                key={x.sku_id}
+                key={x.sku_id + x.productName}
                 product={x}
             />)}
         </div>
@@ -84,9 +87,8 @@ function Category({skuId, query}) {
 }
 
 function QuestCategory({questDecorations, query}) {
-    console.log(questDecorations);
-    const filteredProducts = questDecorations?.filter?.(product => product?.messages?.name?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-
+    const filteredProducts = questDecorations?.filter?.(product => {console.log(product); return product?.messages?.name?.toLowerCase?.()?.includes?.(query.toLowerCase())});
+    console.log('filteredProducts',filteredProducts);
     if (!filteredProducts?.length) return null;
 
     return <div
@@ -108,15 +110,36 @@ function QuestCategory({questDecorations, query}) {
             gap: "8px"
         }}>
             {filteredProducts.map(x => <AvatarDecoration
-                key={x.sku_id}
+                key={x.sku_id + x.messages.name + String(Math.random() * 10000)}
                 product={x}
             />)}
         </div>
     </div>
 }
 
+function OffSaleProduct({x}){
+    const [hovered, setHovered] = React.useState<boolean>(false);
+    const decorationItem = {...x, skuId: x.sku_id};
+
+    return <div
+        onMouseOver={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={() => copyProfileEffect3y3(x.sku_id)}
+        style={{
+            cursor: "pointer"
+        }}
+    >
+        <ProductDisplayer avatarSize={"SIZE_72"} isHighlighted={hovered} item={decorationItem}
+                          user={UserStore.getCurrentUser()}
+                          key={x.sku_id}/>
+    </div>
+
+}
+
 function Invalid({key, skuId, query}) {
     const categories = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getInvalids().map(x => ShopCollectiblesStore.getInvalid(x)))
+    console.log(categories);
+    // const filteredProducts = categories.filter()
 
     return categories?.map(x => <div style={{
         display: "flex",
@@ -132,12 +155,8 @@ function Invalid({key, skuId, query}) {
             gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
             gap: "8px"
         }}>
-            {x.products.map(x => {
-                const decorationItem = {...x, skuId: x.sku_id};
-
-                return <ProductDisplayer avatarSize={"SIZE_72"} isHighlighted={true} item={decorationItem}
-                                         user={UserStore.getCurrentUser()}
-                                         key={x.sku_id}/>
+            {x.products.filter(x=>x?.name?.includes?.(query)).map(x => {
+                return <OffSaleProduct x={x}/>
             })}
         </div>
     </div>)
@@ -148,6 +167,10 @@ function AvatarDecorations() {
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
     const questDecorations = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getQuestAvatarDecorations());
     const invalids = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getInvalids());
+
+    console.log(Collections);
+    console.log(questDecorations);
+    console.log(invalids);
 
     return <div>
         <Components.SearchInput
