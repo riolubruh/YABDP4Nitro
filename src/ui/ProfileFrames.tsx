@@ -1,6 +1,6 @@
 import {GlobalModules} from "@global/*";
-import {getKey, wpGetByKeys, wpGetByStrings, wpGetProxy, wpWait} from "../global/webpack";
 import {BetterDiscord} from "@shared/*";
+import {wpGetByKeys, wpWait} from "../global/webpack";
 import {useMemo, useState} from "react";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
 import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
@@ -8,15 +8,13 @@ const {React, Components} = BetterDiscord;
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
-const Nameplate = React.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource('.x5CoXR),className:'), {declaration: x => String(x).includes('.x5CoXR),className:')})}))
+const ProfileFrameElem = React.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource('let{profileFrame:'), {declaration: x => String(x).includes('let{profileFrame:')})}))
 
-const {UserStore} = BetterDiscord.Webpack.Stores;
-
-export default function OpenNameplateModalButton(){
+export default function OpenProfileFramesModalButton(){
     function handleClick() {
         GlobalModules.ModalModule.openModal(props => {
-            return <ModalModule.Modal title={"Change Nameplate"} {...props}>
-                <Nameplates/>
+            return <ModalModule.Modal title={"Change Profile Frame"} size={"lg"} {...props}>
+                <ProfileFrames/>
             </ModalModule.Modal>
         })
     }
@@ -24,35 +22,50 @@ export default function OpenNameplateModalButton(){
     return <Components.Button
         onClick={handleClick}
     >
-        Change Nameplate
+        Change Profile Frame
     </Components.Button>
 }
 
-function copyNameplate3y3({skuId, palette}){
-    copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
+
+function copyProfileFrame3y3({skuId}){
+    copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
 }
 
-function Nameplate3y3({product}){
+function ProfileFrame({product}){
     const [hovered, setHovered] = React.useState(false);
-
+    console.log(product);
     return <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onClick={() => copyNameplate3y3({skuId: product.sku_id, palette: product.palette})}
-        style={{
-            marginBottom: "10px"
-        }}
+        onMouseOver={() => setHovered(true)}
+        onMouseOut={() => setHovered(false)}
+        onClick={() => copyProfileFrame3y3({skuId: product.sku_id})}
         title={product.productName}
     >
-        <Nameplate section={"purchase"} currentUser={UserStore.getCurrentUser()} nameplate={{skuId: product.sku_id, asset: product.asset, label: product.label, palette: product.palette}} canUsePremiumCollectibles={true} isSelected={hovered} ></Nameplate>
+        <ProfileFrameElem
+            profileFrame={{
+                ...product,
+                overflowBottom: product.overflow_bottom,
+                overflowTop: product.overflow_top,
+                overflowHorizontal: product.overflow_horizontal,
+                innerWidth: product.inner_width,
+                skuId: product.sku_id
+            }}
+            section={"purchase"}
+            isSelected={hovered}
+            canUsePremiumCollectibles={true}
+            style={{
+                height: "175px",
+                width: "175px",
+                cursor: "pointer",
+            }}
+        />
+
     </div>
 }
 
-function NameplateCategory({skuId, query}){
+function ProfileFrameCategory({skuId, query}){
     const category = ShopCollectiblesStore.getCategory(skuId);
     if(!category) return null;
-    const products = ShopCollectiblesStore.getNameplates(skuId);
-
+    const products = ShopCollectiblesStore.getProfileFrames(skuId);
     const filteredProducts = useMemo(() => {
         if (!products?.length) return [];
         if (!query.trim()) return products;
@@ -61,6 +74,7 @@ function NameplateCategory({skuId, query}){
             product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase())
         );
     }, [products, query]);
+
 
     return filteredProducts.length ? <div
         style={{
@@ -73,11 +87,17 @@ function NameplateCategory({skuId, query}){
         }}
     >
         {filteredProducts.length ? <Components.Text>{category.name}</Components.Text> : null}
-        {filteredProducts.map(x => <Nameplate3y3 product={x}/>)}
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
+            gap: "8px"
+        }}>
+            {filteredProducts.map(x => <ProfileFrame product={x}/>)}
+        </div>
     </div> : null;
 }
 
-function Nameplates(){
+function ProfileFrames(){
     const [query, setQuery] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
 
@@ -88,6 +108,6 @@ function Nameplates(){
             onChange={(e) => setQuery(e.target.value)}
         />
 
-        {Collections.map(x=><NameplateCategory skuId={x} query={query}/>)}
+        {Collections.map(x=><ProfileFrameCategory skuId={x} query={query}/>)}
     </div>
 }

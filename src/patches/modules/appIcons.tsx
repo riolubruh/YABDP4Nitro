@@ -5,13 +5,6 @@ import {GlobalModules} from "@global/*";
 
 const {AppIconPersistedStoreState, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 
-const bypassMap: Record<string, string> = {
-    emojisEverywhere: "emojiBypass",
-    animatedEmojis: "emojiBypass",
-    appIcons: "unlockAppIcons",
-    clientThemes: "clientThemes",
-    soundboardEverywhere: "soundmojiEnabled"
-};
 
 export default {
     name: "appIcons",
@@ -28,9 +21,6 @@ export default {
             render: x => x
         })
         const CustomAppIcon = BetterDiscord.Webpack.getByStrings('.iconSource,width:')
-        const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
-            canUserUse: x => typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
-        }, {mapDeclarations: true})
 
         patcher.instead(AppIcon, "render", (_, [args], callback) => {
             const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
@@ -42,10 +32,6 @@ export default {
             }
         })
 
-        patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
-            const settingKey = bypassMap[feature.name];
-            if (settingKey && SettingsStore.get(settingKey)) return true;
-            return originalFunction(feature, user);
-        });
+
     }
 } as Patch

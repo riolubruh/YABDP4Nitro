@@ -6,7 +6,7 @@ import {
     CustomPFP,
     DisplayNameStyle,
     Nameplates,
-    ProfileEffects
+    ProfileEffects, ProfileFrames
 } from "../../ui";
 import {getKey, wpGet, wpWait} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
@@ -57,6 +57,8 @@ function CustomSettingsTab() {
         <AvatarDecorations/>
         <SepWithText>Nameplates</SepWithText>
         <Nameplates/>
+        <SepWithText>Profile Frames</SepWithText>
+        <ProfileFrames/>
         {isDeveloper ? <div>
             <SepWithText>Developer</SepWithText>
             <Components.TextInput value={text} onChange={e => setText(e)}/>

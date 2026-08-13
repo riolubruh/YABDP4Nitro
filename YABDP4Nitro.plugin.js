@@ -9168,6 +9168,7 @@ __export(exports_modules, {
   EditMessage: () => editMessage_default,
   DEV: () => dev_default,
   ClientThemes: () => clientThemes_default,
+  CanUserUse: () => canUserUse_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
   AllowClips: () => allowClips_default
@@ -11222,6 +11223,15 @@ function resolveModule(filter, options) {
     return null;
   return opts.key ? mod[opts.key] : mod;
 }
+async function resolveModuleAsync(filter, options) {
+  const opts = options ?? {};
+  if (opts.declaration) {
+    const { declaration, raw, ...rest } = opts;
+    await Webpack.waitForModule(filter, rest);
+    return resolveModule(filter, opts);
+  }
+  return await Webpack.waitForModule(filter, opts) ?? null;
+}
 function resolveQuery(query) {
   if ("map" in query) {
     const q = query;
@@ -11264,6 +11274,9 @@ function wpGetByKeys(keys, options) {
 }
 function wpGetBulkKeyed(queries) {
   return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
+}
+async function wpWait(filter, options) {
+  return resolveModuleAsync(filter, options);
 }
 var PASSTHROUGH_PROPS = new Set([
   "then",
@@ -11618,13 +11631,6 @@ var getUserBannerURL_default = {
 };
 // src/patches/modules/appIcons.tsx
 var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } = BetterDiscord.Webpack.Stores;
-var bypassMap = {
-  emojisEverywhere: "emojiBypass",
-  animatedEmojis: "emojiBypass",
-  appIcons: "unlockAppIcons",
-  clientThemes: "clientThemes",
-  soundboardEverywhere: "soundmojiEnabled"
-};
 var appIcons_default = {
   name: "appIcons",
   description: "Lets user select app icon",
@@ -11637,9 +11643,6 @@ var appIcons_default = {
       render: (x) => x
     });
     const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
-    const canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
-      canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
-    }, { mapDeclarations: true });
     patcher.instead(AppIcon, "render", (_, [args], callback) => {
       const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
       if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
@@ -11650,12 +11653,6 @@ var appIcons_default = {
           id: SettingsStore_default.get("appIcon")
         });
       }
-    });
-    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
-      const settingKey = bypassMap[feature.name];
-      if (settingKey && SettingsStore_default.get(settingKey))
-        return true;
-      return originalFunction(feature, user);
     });
   }
 };
@@ -12872,7 +12869,8 @@ function AvatarDecorations() {
 // src/ui/Nameplates.tsx
 var { React: React12, Components: Components8 } = BetterDiscord;
 var ModalModule6 = wpGetByKeys(["Modal"]);
-var Nameplate = wpGetProxy(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { raw: true });
+var Nameplate = React12.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { declaration: (x) => String(x).includes(".x5CoXR),className:") }) }));
+var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -12887,18 +12885,22 @@ function OpenNameplateModalButton() {
   }, "Change Nameplate");
 }
 function copyNameplate3y3({ skuId, palette }) {
-  console.log(skuId, palette);
   copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
 }
-function Nameplate3y3(product) {
+function Nameplate3y3({ product }) {
   const [hovered, setHovered] = React12.useState(false);
   return /* @__PURE__ */ React12.createElement("div", {
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
-    onClick: () => copyNameplate3y3({ skuId: product.sku_id, palette: product.palette })
-  }, /* @__PURE__ */ React12.createElement(Nameplate.declarations.Y, {
-    section: "purchased",
-    nameplate: product,
+    onClick: () => copyNameplate3y3({ skuId: product.sku_id, palette: product.palette }),
+    style: {
+      marginBottom: "10px"
+    },
+    title: product.productName
+  }, /* @__PURE__ */ React12.createElement(Nameplate, {
+    section: "purchase",
+    currentUser: UserStore6.getCurrentUser(),
+    nameplate: { skuId: product.sku_id, asset: product.asset, label: product.label, palette: product.palette },
     canUsePremiumCollectibles: true,
     isSelected: hovered
   }));
@@ -12915,19 +12917,118 @@ function NameplateCategory({ skuId, query }) {
       return products;
     return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
   }, [products, query]);
-  return /* @__PURE__ */ React12.createElement("div", null, filteredProducts.length ? /* @__PURE__ */ React12.createElement(Components8.Text, null, category.name) : null, filteredProducts.map((x) => /* @__PURE__ */ React12.createElement(Nameplate3y3, {
+  return filteredProducts.length ? /* @__PURE__ */ React12.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, filteredProducts.length ? /* @__PURE__ */ React12.createElement(Components8.Text, null, category.name) : null, filteredProducts.map((x) => /* @__PURE__ */ React12.createElement(Nameplate3y3, {
     product: x
-  })));
+  }))) : null;
 }
 function Nameplates() {
   const [query, setQuery] = useState("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  console.log(Nameplate);
   return /* @__PURE__ */ React12.createElement("div", null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
     placeholder: "Search nameplates...",
     value: query,
     onChange: (e) => setQuery(e.target.value)
   }), Collections.map((x) => /* @__PURE__ */ React12.createElement(NameplateCategory, {
+    skuId: x,
+    query
+  })));
+}
+// src/ui/ProfileFrames.tsx
+var { React: React13, Components: Components9 } = BetterDiscord;
+var ModalModule7 = wpGetByKeys(["Modal"]);
+var ProfileFrameElem = React13.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), { declaration: (x) => String(x).includes("let{profileFrame:") }) }));
+function OpenProfileFramesModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React13.createElement(ModalModule7.Modal, {
+        title: "Change Profile Frame",
+        size: "lg",
+        ...props
+      }, /* @__PURE__ */ React13.createElement(ProfileFrames, null));
+    });
+  }
+  return /* @__PURE__ */ React13.createElement(Components9.Button, {
+    onClick: handleClick
+  }, "Change Profile Frame");
+}
+function copyProfileFrame3y3({ skuId }) {
+  copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
+}
+function ProfileFrame({ product }) {
+  const [hovered, setHovered] = React13.useState(false);
+  console.log(product);
+  return /* @__PURE__ */ React13.createElement("div", {
+    onMouseOver: () => setHovered(true),
+    onMouseOut: () => setHovered(false),
+    onClick: () => copyProfileFrame3y3({ skuId: product.sku_id }),
+    title: product.productName
+  }, /* @__PURE__ */ React13.createElement(ProfileFrameElem, {
+    profileFrame: {
+      ...product,
+      overflowBottom: product.overflow_bottom,
+      overflowTop: product.overflow_top,
+      overflowHorizontal: product.overflow_horizontal,
+      innerWidth: product.inner_width,
+      skuId: product.sku_id
+    },
+    section: "purchase",
+    isSelected: hovered,
+    canUsePremiumCollectibles: true,
+    style: {
+      height: "175px",
+      width: "175px",
+      cursor: "pointer"
+    }
+  }));
+}
+function ProfileFrameCategory({ skuId, query }) {
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  if (!category)
+    return null;
+  const products = ShopCollectiblesStore_default.getProfileFrames(skuId);
+  const filteredProducts = useMemo(() => {
+    if (!products?.length)
+      return [];
+    if (!query.trim())
+      return products;
+    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [products, query]);
+  return filteredProducts.length ? /* @__PURE__ */ React13.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, filteredProducts.length ? /* @__PURE__ */ React13.createElement(Components9.Text, null, category.name) : null, /* @__PURE__ */ React13.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x) => /* @__PURE__ */ React13.createElement(ProfileFrame, {
+    product: x
+  })))) : null;
+}
+function ProfileFrames() {
+  const [query, setQuery] = useState("");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  return /* @__PURE__ */ React13.createElement("div", null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
+    placeholder: "Search nameplates...",
+    value: query,
+    onChange: (e) => setQuery(e.target.value)
+  }), Collections.map((x) => /* @__PURE__ */ React13.createElement(ProfileFrameCategory, {
     skuId: x,
     query
   })));
@@ -12964,8 +13065,8 @@ function SepWithText({ children }) {
 }
 
 // src/patches/modules/UserProfileV2.tsx
-var { React: React13, Components: Components9 } = BetterDiscord;
-var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
+var { React: React14, Components: Components10 } = BetterDiscord;
+var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Margin = styled.div({
   marginBottom: "-50px"
@@ -12975,36 +13076,42 @@ var Scroller = styled.div({
   scrollbarWidth: "none"
 });
 function CustomSettingsTab() {
-  const isDeveloper = BadgesStore_default.isImportant(UserStore6.getCurrentUser().id);
-  const [text, setText] = React13.useState("");
-  return /* @__PURE__ */ React13.createElement(Scroller, null, /* @__PURE__ */ React13.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React13.createElement(AccentColors, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React13.createElement(CustomPFP, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React13.createElement(CustomBanner, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React13.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React13.createElement(OpenProfileEffectModalButton, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Avatar Decoration"), /* @__PURE__ */ React13.createElement(OpenAvatarDecorationModalButton, null), /* @__PURE__ */ React13.createElement(SepWithText, null, "Nameplates"), /* @__PURE__ */ React13.createElement(OpenNameplateModalButton, null), isDeveloper ? /* @__PURE__ */ React13.createElement("div", null, /* @__PURE__ */ React13.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React13.createElement(Components9.TextInput, {
+  const isDeveloper = BadgesStore_default.isImportant(UserStore7.getCurrentUser().id);
+  const [text, setText] = React14.useState("");
+  return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Nameplates"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Profile Frames"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null), isDeveloper ? /* @__PURE__ */ React14.createElement("div", null, /* @__PURE__ */ React14.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React14.createElement(Components10.TextInput, {
     value: text,
     onChange: (e) => setText(e)
-  }), /* @__PURE__ */ React13.createElement(Components9.Button, {
+  }), /* @__PURE__ */ React14.createElement(Components10.Button, {
     onClick: () => {
       copyToClipboard(secondsightifyEncodeOnly(text), "[DEV] Copied uwu!");
     }
   }, "Encode")) : null);
 }
-var GoLiveModalV2UpsellMod = BdApi.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
-  ids: undefined,
+  ids: [
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), { raw: true }).then((x) => x.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), { raw: true }).then((x) => x.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x) => x.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), { raw: true }).then((x) => x.id)
+  ],
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
+    console.log(finale, patcher);
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
+    const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
     const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
-        return /* @__PURE__ */ React13.createElement(CustomSettingsTab, null);
+        return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      if (args?.displayProfile?.userId != UserStore6.getCurrentUser().id)
+      if (args?.displayProfile?.userId != UserStore7.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x) => x.text.includes("YABD")))
         return;
@@ -13064,6 +13171,29 @@ var getAvatarURL_default = {
     });
   }
 };
+// src/patches/modules/canUserUse.ts
+var bypassMap = {
+  emojisEverywhere: "emojiBypass",
+  animatedEmojis: "emojiBypass",
+  appIcons: "unlockAppIcons",
+  clientThemes: "clientThemes",
+  soundboardEverywhere: "soundmojiEnabled"
+};
+var canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+  canUserUse: (x) => typeof x === "function" && x.toString?.().includes?.(".getFeatureValue(")
+}, { mapDeclarations: true });
+var canUserUse_default = {
+  name: "canUserUse",
+  description: "Unlocks nitro-locked features based on settings.",
+  apply(finale, patcher) {
+    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
+      const settingKey = bypassMap[feature.name];
+      if (settingKey && SettingsStore_default.get(settingKey))
+        return true;
+      return originalFunction(feature, user);
+    });
+  }
+};
 // src/patches/modules/dev.tsx
 var dev_default = {
   name: "dev",
@@ -13093,7 +13223,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React14 } = BetterDiscord;
+var { React: React15 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -13122,20 +13252,20 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React14.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React15.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
       action: startDownload,
       leadingAccessory: {
         type: "icon",
-        icon: () => /* @__PURE__ */ React14.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React15.createElement(Icon, {
           width: "22",
           icon: "mdi:download"
         })
       },
-      label: /* @__PURE__ */ React14.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React14.createElement(ContextMenuLabel, null), /* @__PURE__ */ React14.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React15.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React15.createElement(ContextMenuLabel, null), /* @__PURE__ */ React15.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React14.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React15.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -13176,13 +13306,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore7.getCurrentUser().id;
+    const currentUserId = UserStore8.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -13364,9 +13494,9 @@ function startChangelog(sourceVersion) {
 }
 
 // src/index.tsx
-var { Components: Components10 } = BetterDiscord;
-var { React: React15 } = BetterDiscord;
-var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
+var { Components: Components11 } = BetterDiscord;
+var { React: React16 } = BetterDiscord;
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -13805,7 +13935,7 @@ class Plugin {
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore8.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore9.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
@@ -13857,7 +13987,7 @@ class Plugin {
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React15.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React16.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -13899,22 +14029,22 @@ class Plugin {
     const onChange = (v) => SettingsStore_default.set(def.key, v);
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React15.createElement(Components10.SwitchInput, {
+        return /* @__PURE__ */ React16.createElement(Components11.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React15.createElement(Components10.NumberInput, {
+        return /* @__PURE__ */ React16.createElement(Components11.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React15.createElement(Components10.TextInput, {
+        return /* @__PURE__ */ React16.createElement(Components11.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React15.createElement(Components10.DropdownInput, {
+        return /* @__PURE__ */ React16.createElement(Components11.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -13934,11 +14064,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React15.createElement(React15.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React15.createElement(Components10.SettingGroup, {
+      return /* @__PURE__ */ React16.createElement(React16.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React16.createElement(Components11.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React15.createElement(Components10.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React16.createElement(Components11.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note

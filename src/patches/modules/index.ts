@@ -20,6 +20,7 @@ export { default as UserBgCallTile } from "./userCallTileBg.ts"
 export { default as GoLiveModal } from "./goLiveModal.tsx"
 export { default as UserProfileV2 } from "./UserProfileV2.tsx"
 export { default as GetAvatarURL } from "./getAvatarURL.ts"
+export { default as CanUserUse } from "./canUserUse.ts"
 
 // dev owo
 export { default as DEV } from "./dev.tsx"
