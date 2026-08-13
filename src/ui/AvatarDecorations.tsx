@@ -40,6 +40,7 @@ function AvatarDecoration({product}: { product: any }) {
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
         title={product.productName}
+        style={{cursor: 'pointer'}}
     >
         <ProductDisplayer
             isHighlighted={hovered}
@@ -60,6 +61,7 @@ function InvalidProductDisplay({product}: { product: any }) {
         onMouseLeave={() => setHovered(false)}
         onClick={() => copyProfileEffect3y3(skuId)}
         title={product.name}
+        style={{cursor: 'pointer'}}
     >
         <ProductDisplayer
             avatarSize={"SIZE_72"}

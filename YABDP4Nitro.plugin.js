@@ -9167,6 +9167,7 @@ __export(exports_modules, {
   FakeBanners: () => banners_default,
   EditMessage: () => editMessage_default,
   DEV: () => dev_default,
+  CustomThemeApply: () => customClientThemes_default,
   ClientThemes: () => clientThemes_default,
   CanUserUse: () => canUserUse_default,
   AppIcons: () => appIcons_default,
@@ -12700,7 +12701,8 @@ function AvatarDecoration({ product }) {
     onMouseOver: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
     onClick: () => copyProfileEffect3y3(skuId),
-    title: product.productName
+    title: product.productName,
+    style: { cursor: "pointer" }
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
     isHighlighted: hovered,
     item: decorationItem,
@@ -12716,7 +12718,8 @@ function InvalidProductDisplay({ product }) {
     onMouseOver: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
     onClick: () => copyProfileEffect3y3(skuId),
-    title: product.name
+    title: product.name,
+    style: { cursor: "pointer" }
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
     avatarSize: "SIZE_72",
     isHighlighted: hovered,
@@ -13194,6 +13197,52 @@ var canUserUse_default = {
     });
   }
 };
+// src/patches/modules/customClientThemes.tsx
+var { React: React15, Components: Components11 } = BetterDiscord;
+var CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("CLIENT_THEMES_EDITOR", "activePanel", "SHARE_MESSAGE"), {
+  state: (x) => x?.setState
+});
+var customClientThemes_default = {
+  name: "customClientThemes",
+  description: "Adds an apply button to the custom client theme panel.",
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK"), BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
+  apply(finale, patcher) {
+    const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
+    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+      console.log("CustomClientThemePanelState", CustomClientThemePanelState);
+      ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
+        style: {
+          display: "flex",
+          gap: "10px",
+          padding: "16px 15px",
+          borderTop: "1px solid var(--border-subtle)"
+        }
+      }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
+        onClick: (e) => {
+          CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
+          finale.modules[1].openUserSettings("appearance_panel");
+        },
+        style: {
+          backgroundColor: "var(--control-secondary-background-default)"
+        }
+      }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+        style: {
+          fontSize: "16px",
+          fontWeight: "500"
+        }
+      }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
+        onClick: (e) => onSaveTheme(e)
+      }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+        style: {
+          fontSize: "16px",
+          fontWeight: "500"
+        }
+      }, "Apply")));
+    });
+    console.log("ShareThemeButton", ShareThemeButton);
+  }
+};
 // src/patches/modules/dev.tsx
 var dev_default = {
   name: "dev",
@@ -13223,7 +13272,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React15 } = BetterDiscord;
+var { React: React16 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -13252,20 +13301,20 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React15.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React16.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
       action: startDownload,
       leadingAccessory: {
         type: "icon",
-        icon: () => /* @__PURE__ */ React15.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React16.createElement(Icon, {
           width: "22",
           icon: "mdi:download"
         })
       },
-      label: /* @__PURE__ */ React15.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React15.createElement(ContextMenuLabel, null), /* @__PURE__ */ React15.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React16.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React16.createElement(ContextMenuLabel, null), /* @__PURE__ */ React16.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React15.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React16.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -13494,8 +13543,8 @@ function startChangelog(sourceVersion) {
 }
 
 // src/index.tsx
-var { Components: Components11 } = BetterDiscord;
-var { React: React16 } = BetterDiscord;
+var { Components: Components12 } = BetterDiscord;
+var { React: React17 } = BetterDiscord;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
@@ -13987,7 +14036,7 @@ class Plugin {
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React16.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React17.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -14029,22 +14078,22 @@ class Plugin {
     const onChange = (v) => SettingsStore_default.set(def.key, v);
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React16.createElement(Components11.SwitchInput, {
+        return /* @__PURE__ */ React17.createElement(Components12.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React16.createElement(Components11.NumberInput, {
+        return /* @__PURE__ */ React17.createElement(Components12.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React16.createElement(Components11.TextInput, {
+        return /* @__PURE__ */ React17.createElement(Components12.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React16.createElement(Components11.DropdownInput, {
+        return /* @__PURE__ */ React17.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -14064,11 +14113,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React16.createElement(React16.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React16.createElement(Components11.SettingGroup, {
+      return /* @__PURE__ */ React17.createElement(React17.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React17.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React16.createElement(Components11.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React17.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note
