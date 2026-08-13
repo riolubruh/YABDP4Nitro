@@ -9,6 +9,7 @@ import BadgesStore from "./global/stores/BadgesStore.tsx";
 import {getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
+import Meta from "../package.json"
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -472,6 +473,8 @@ export default class Plugin {
     private source: string = "";
 
     async start() {
+        this.checkChangelog();
+
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
         console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
         (checkForUpdatesEnabled) && await this.checkUpdate();
@@ -581,6 +584,18 @@ export default class Plugin {
         }
 
         return;
+    }
+
+    checkChangelog() {
+        const currentVersion = Meta.version;
+        const lastSeenVersion = SettingsStore.get("installedVersion");
+
+        if (lastSeenVersion && lastSeenVersion !== currentVersion) {
+            startChangelog(currentVersion);
+        }
+        if (lastSeenVersion !== currentVersion) {
+            SettingsStore.set("installedVersion", currentVersion);
+        }
     }
 
     stop() {

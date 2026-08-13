@@ -13706,7 +13706,7 @@ var package_default = {
 };
 
 // src/global/changelog/index.tsx
-var Meta2 = package_default;
+var Meta = package_default;
 function normalizeVersion(v) {
   const parts = v.split(".");
   while (parts.length < 3)
@@ -13715,14 +13715,14 @@ function normalizeVersion(v) {
 }
 function startChangelog(sourceVersion) {
   const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion") ?? "0.0.0");
-  const currentVersion = sourceVersion ?? normalizeVersion(Meta2.version);
+  const currentVersion = sourceVersion ?? normalizeVersion(Meta.version);
   if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0)
     return;
   const entry = changelog_default?.[currentVersion]?.[0];
   if (!entry)
     return;
   BetterDiscord.UI.showChangelogModal({
-    title: Meta2.name,
+    title: Meta.name,
     subtitle: `v${currentVersion}`,
     ...entry
   });
@@ -14168,6 +14168,7 @@ class Plugin {
   unpatch = loadContextMenus();
   source = "";
   async start() {
+    this.checkChangelog();
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
@@ -14220,7 +14221,7 @@ class Plugin {
     const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
-    const installedVersion = SettingsStore_default.get("installedVersion") ?? Meta.version ?? "0.0.0";
+    const installedVersion = SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";
     console.log(sourceVersion, installedVersion);
     if (!sourceVersion)
       return;
@@ -14261,6 +14262,16 @@ class Plugin {
       });
     }
     return;
+  }
+  checkChangelog() {
+    const currentVersion = package_default.version;
+    const lastSeenVersion = SettingsStore_default.get("installedVersion");
+    if (lastSeenVersion && lastSeenVersion !== currentVersion) {
+      startChangelog(currentVersion);
+    }
+    if (lastSeenVersion !== currentVersion) {
+      SettingsStore_default.set("installedVersion", currentVersion);
+    }
   }
   stop() {
     this.unpatch();
