@@ -33,7 +33,6 @@ function copyProfileFrame3y3({skuId}){
 
 function ProfileFrame({product}){
     const [hovered, setHovered] = React.useState(false);
-    console.log(product);
     return <div
         onMouseOver={() => setHovered(true)}
         onMouseOut={() => setHovered(false)}

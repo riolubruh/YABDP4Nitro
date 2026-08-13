@@ -12003,10 +12003,12 @@ function applySavedClientTheme() {
   const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
   if (customUserThemeSettings.custom) {
     CustomUserThemeState.state.getState().setAll({
-      colors: customUserThemeSettings.custom.colors,
-      chassisMixAmount: customUserThemeSettings.custom.baseMix,
-      gradientAngle: customUserThemeSettings.custom.gradientAngle
+      colors: customUserThemeSettings.custom?.colors,
+      chassisMixAmount: customUserThemeSettings.custom?.baseMix,
+      gradientAngle: customUserThemeSettings.custom?.gradientAngle
     });
+  } else {
+    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
   }
   GlobalModules.Dispatcher.dispatch({
     type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
@@ -12968,7 +12970,6 @@ function copyProfileFrame3y3({ skuId }) {
 }
 function ProfileFrame({ product }) {
   const [hovered, setHovered] = React13.useState(false);
-  console.log(product);
   return /* @__PURE__ */ React13.createElement("div", {
     onMouseOver: () => setHovered(true),
     onMouseOut: () => setHovered(false),
@@ -13101,7 +13102,6 @@ var UserProfileV2_default = {
   ],
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
-    console.log(finale, patcher);
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
@@ -13205,42 +13205,45 @@ var CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord
 var customClientThemes_default = {
   name: "customClientThemes",
   description: "Adds an apply button to the custom client theme panel.",
-  waitFor: [BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK"), BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
   apply(finale, patcher) {
-    const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
-    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-      const onSaveTheme = ret.props.children[1].props.onSaveTheme;
-      console.log("CustomClientThemePanelState", CustomClientThemePanelState);
-      ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
-        style: {
-          display: "flex",
-          gap: "10px",
-          padding: "16px 15px",
-          borderTop: "1px solid var(--border-subtle)"
-        }
-      }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
-        onClick: (e) => {
-          CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
-          finale.modules[1].openUserSettings("appearance_panel");
-        },
-        style: {
-          backgroundColor: "var(--control-secondary-background-default)"
-        }
-      }, /* @__PURE__ */ React15.createElement(Components11.Text, {
-        style: {
-          fontSize: "16px",
-          fontWeight: "500"
-        }
-      }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
-        onClick: (e) => onSaveTheme(e)
-      }, /* @__PURE__ */ React15.createElement(Components11.Text, {
-        style: {
-          fontSize: "16px",
-          fontWeight: "500"
-        }
-      }, "Apply")));
+    wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
+      const clientThemesEnabled = SettingsStore_default.get("clientThemes");
+      if (!clientThemesEnabled)
+        return;
+      const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
+      patcher.after(mod, "default", (_, [args], ret) => {
+        const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+        ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
+          style: {
+            display: "flex",
+            gap: "10px",
+            padding: "16px 15px",
+            borderTop: "1px solid var(--border-subtle)"
+          }
+        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
+          onClick: (e) => {
+            CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
+            finale.modules[0].openUserSettings("appearance_panel");
+          },
+          style: {
+            backgroundColor: "var(--control-secondary-background-default)"
+          }
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+          style: {
+            fontSize: "16px",
+            fontWeight: "500"
+          }
+        }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
+          onClick: (e) => onSaveTheme(e)
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+          style: {
+            fontSize: "16px",
+            fontWeight: "500"
+          }
+        }, "Apply")));
+      });
     });
-    console.log("ShareThemeButton", ShareThemeButton);
   }
 };
 // src/patches/modules/dev.tsx

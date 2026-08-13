@@ -14,10 +14,12 @@ function applySavedClientTheme(){
 
     if(customUserThemeSettings.custom){
         CustomUserThemeState.state.getState().setAll({
-            colors: customUserThemeSettings.custom.colors,
-            chassisMixAmount: customUserThemeSettings.custom.baseMix,
-            gradientAngle: customUserThemeSettings.custom.gradientAngle
+            colors: customUserThemeSettings.custom?.colors,
+            chassisMixAmount: customUserThemeSettings.custom?.baseMix,
+            gradientAngle: customUserThemeSettings.custom?.gradientAngle
         });
+    }else{
+        CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
     }
 
     GlobalModules.Dispatcher.dispatch({

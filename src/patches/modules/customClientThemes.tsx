@@ -1,5 +1,6 @@
 import {BetterDiscord} from "@shared/*";
 import {wpGet, wpWait} from "../../global/webpack";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 const {React, Components} = BetterDiscord;
 
 const CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), {
@@ -13,12 +14,13 @@ export default {
     apply(finale: any, patcher: any) {
 
         wpWait(BetterDiscord.Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK')).then((mod) => {
+            const clientThemesEnabled = SettingsStore.get("clientThemes");
+            if(!clientThemesEnabled) return;
             const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),{declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw:true})
 
             patcher.after(mod, 'default', (_, [args], ret) => {
                 const onSaveTheme = ret.props.children[1].props.onSaveTheme;
 
-                console.log(onSaveTheme);
                 ret.props.children[1] = <div
                     style={{
                         display: "flex",
@@ -30,7 +32,7 @@ export default {
                     <ShareThemeButton/>
                     <Components.Button onClick={(e) => {
                         CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
-                        finale.modules[1].openUserSettings("appearance_panel");
+                        finale.modules[0].openUserSettings("appearance_panel");
                     }}
                                        style={{
                                            backgroundColor: "var(--control-secondary-background-default)"

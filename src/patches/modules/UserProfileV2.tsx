@@ -80,7 +80,6 @@ export default {
     ],
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
-        console.log(finale, patcher);
         const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw: true}).declarations
         const module = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
         const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
