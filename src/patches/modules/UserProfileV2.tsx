@@ -123,6 +123,7 @@ export default {
         async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), {raw: true}).then(x => x.id),
         async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), {raw: true}).then(x => x.id)
     ],
+    priority: 1,
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
         const TabBarInjectLocation = wpGet(GLOBAL_FILTER, {raw: true}).declarations

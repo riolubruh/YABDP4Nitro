@@ -471,7 +471,6 @@ export default class Plugin {
     private source: string = "";
 
     async start() {
-
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
         (checkForUpdatesEnabled) && await this.checkUpdate();
 

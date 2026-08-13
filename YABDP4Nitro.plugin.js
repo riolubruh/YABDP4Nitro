@@ -13150,6 +13150,7 @@ var UserProfileV2_default = {
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x) => x.id),
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), { raw: true }).then((x) => x.id)
   ],
+  priority: 1,
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
@@ -13443,13 +13444,21 @@ var streamContext_default = {
 };
 // src/patches/index.ts
 var PatcherAPI = new BdApi("Patcher");
+var moduleCache = new Map;
+var idCache = new Map;
 async function resolveIds(ids) {
   if (!ids)
     return [];
   const entries = typeof ids === "function" ? await ids() : ids;
   return Promise.all(entries.map(async (entry) => {
     const id = typeof entry === "function" ? await entry() : entry;
-    return BetterDiscord.Utils.forceLoad(id);
+    const cacheKey = id.toString();
+    if (idCache.has(cacheKey)) {
+      return idCache.get(cacheKey);
+    }
+    const resolvedId = await BetterDiscord.Utils.forceLoad(id);
+    idCache.set(cacheKey, resolvedId);
+    return resolvedId;
   }));
 }
 function withTimeout(p, ms, label) {
@@ -13458,49 +13467,87 @@ function withTimeout(p, ms, label) {
     new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout waiting for ${label}`)), ms))
   ]);
 }
+async function getCachedModule(filter, patchName) {
+  const cacheKey = typeof filter === "function" ? filter.toString() : JSON.stringify(filter);
+  if (moduleCache.has(cacheKey)) {
+    return moduleCache.get(cacheKey);
+  }
+  const module2 = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 1e4, patchName);
+  moduleCache.set(cacheKey, module2);
+  return module2;
+}
 async function loadPatch(patch) {
   const finale = {};
-  const [ids, waitModules] = await Promise.all([
-    resolveIds(patch.ids),
-    Array.isArray(patch.waitFor) ? Promise.all(patch.waitFor.map((x) => withTimeout(BetterDiscord.Webpack.waitForModule(x), 1e4, patch.name))) : undefined
-  ]);
-  if (ids.length)
-    finale.ids = ids;
-  if (waitModules)
-    finale.modules = waitModules;
-  if (patch.mangled) {
-    finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor[0], patch.mangled);
-  }
+  const operations = [
+    resolveIds(patch.ids).then((ids) => {
+      if (ids.length)
+        finale.ids = ids;
+    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
+    ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x, i) => {
+      try {
+        const module2 = await getCachedModule(x, patch.name);
+        if (!finale.modules)
+          finale.modules = [];
+        finale.modules[i] = module2;
+      } catch (e) {
+        BetterDiscord.Logger.warn(`[Patcher] Failed to load module ${i} for ${patch.name}`, e);
+      }
+    }) : [],
+    ...patch.mangled && patch.waitFor ? [getCachedModule(patch.waitFor[0], patch.name).then(() => {
+      finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor[0], patch.mangled);
+    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load mangled for ${patch.name}`, e))] : []
+  ];
+  await Promise.allSettled(operations);
   return finale;
 }
-async function loadPatches() {
+function loadPatches() {
   const patches = Object.values(exports_modules);
   const loaded = [];
-  await Promise.allSettled(patches.map(async (patch) => {
-    try {
-      const finale = await loadPatch(patch);
-      patch.apply(finale, PatcherAPI.Patcher);
-      loaded.push(patch);
-    } catch (e) {
-      console.error(`[Patcher] "${patch.name}" failed`, e);
-    }
-  }));
-  return () => {
+  let isCleanedUp = false;
+  const cleanup = () => {
+    if (isCleanedUp)
+      return;
+    isCleanedUp = true;
     for (const patch of loaded)
       patch.revert?.();
     PatcherAPI.Patcher.unpatchAll();
+    moduleCache.clear();
+    idCache.clear();
   };
+  const sortedPatches = patches.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  sortedPatches.forEach(async (patch) => {
+    if (isCleanedUp)
+      return;
+    try {
+      const finale = await loadPatch(patch);
+      if (isCleanedUp)
+        return;
+      patch.apply(finale, PatcherAPI.Patcher);
+      loaded.push(patch);
+    } catch (e) {
+      BetterDiscord.Logger.error(`[Patcher] "${patch.name}" failed`, e);
+    }
+  });
+  return cleanup;
 }
 function loadContextMenus() {
   const loaded = [];
+  let isCleanedUp = false;
+  const cleanup = () => {
+    if (isCleanedUp)
+      return;
+    isCleanedUp = true;
+    for (const patch of loaded)
+      patch?.();
+    loaded.length = 0;
+  };
   for (const module2 of Object.values(exports_contextMenus)) {
+    if (isCleanedUp)
+      break;
     const patch = BetterDiscord.ContextMenu.patch(module2.id, (res, props) => module2.callback(res, props));
     loaded.push(patch);
   }
-  return () => {
-    for (const patch of loaded)
-      patch?.();
-  };
+  return cleanup;
 }
 
 // src/global/changelog/changelog.json
