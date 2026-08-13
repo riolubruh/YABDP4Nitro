@@ -536,7 +536,7 @@ export default class Plugin {
     }
 
     async checkUpdate() {
-        const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/dev/YABDP4Nitro.plugin.js")
+        const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js")
         this.source = await res.text();
 
         const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];

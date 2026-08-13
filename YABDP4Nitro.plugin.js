@@ -9272,8 +9272,8 @@ var defaultSettings = {
   appIcon: "AppIcon",
   voiceTileBannerBackground: false,
   advancedProfileCustomization: false,
-  lastChangelogVersion: "1.0.0",
-  installedVersion: "1.0.0"
+  lastChangelogVersion: "6.10.7",
+  installedVersion: "6.10.7"
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
@@ -14217,7 +14217,7 @@ class Plugin {
     YABDNitroPanel: CustomSettingsTab
   };
   async checkUpdate() {
-    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/dev/YABDP4Nitro.plugin.js");
+    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion = SettingsStore_default.get("installedVersion") ?? Meta.version ?? "0.0.0";

@@ -65,8 +65,8 @@ export const defaultSettings = {
     "appIcon": "AppIcon",
     "voiceTileBannerBackground": false,
     "advancedProfileCustomization": false,
-    "lastChangelogVersion": "1.0.0",
-    "installedVersion": "1.0.0",
+    "lastChangelogVersion": "6.10.7",
+    "installedVersion": "6.10.7",
 } as const satisfies Record<string, unknown>;
 
 type SettingsResult = { [K in keyof typeof defaultSettings]: (typeof defaultSettings)[K] };
