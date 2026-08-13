@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/*";
-import {wpGet} from "../../global/webpack";
+import {wpGet, wpWait} from "../../global/webpack";
 const {React, Components} = BetterDiscord;
 
 const CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), {
@@ -9,41 +9,43 @@ const CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDisco
 export default {
     name: "customClientThemes",
     description: "Adds an apply button to the custom client theme panel.",
-    waitFor: [BetterDiscord.Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), BetterDiscord.Webpack.Filters.byKeys('openUserSettings')],
+    waitFor: [BetterDiscord.Webpack.Filters.byKeys('openUserSettings')],
     apply(finale: any, patcher: any) {
-        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),{declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw:true})
 
-        patcher.after(finale.modules[0], 'default', (_, [args], ret) => {
-            const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+        wpWait(BetterDiscord.Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK')).then((mod) => {
+            const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),{declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw:true})
 
-            ret.props.children[1] = <div
-                style={{
-                    display: "flex",
-                    gap: "10px",
-                    padding: "16px 15px",
-                    borderTop: "1px solid var(--border-subtle)"
-                }}
-            >
-                <ShareThemeButton/>
-                <Components.Button onClick={(e) => {
-                    CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
-                    finale.modules[1].openUserSettings("appearance_panel");
-                }}
-                style={{
-                    backgroundColor: "var(--control-secondary-background-default)"
-                }}
+            patcher.after(mod, 'default', (_, [args], ret) => {
+                const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+
+                console.log(onSaveTheme);
+                ret.props.children[1] = <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        padding: "16px 15px",
+                        borderTop: "1px solid var(--border-subtle)"
+                    }}
                 >
-                <Components.Text style={{
-                    fontSize: "16px",
-                    fontWeight: "500"
-                }}>Back</Components.Text></Components.Button>
-                <Components.Button onClick={(e) => onSaveTheme(e)}><Components.Text style={{
-                    fontSize: "16px",
-                    fontWeight: "500"
-                }}>Apply</Components.Text></Components.Button>
-            </div>
-        });
-
-        console.log('ShareThemeButton',ShareThemeButton);
+                    <ShareThemeButton/>
+                    <Components.Button onClick={(e) => {
+                        CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
+                        finale.modules[1].openUserSettings("appearance_panel");
+                    }}
+                                       style={{
+                                           backgroundColor: "var(--control-secondary-background-default)"
+                                       }}
+                    >
+                        <Components.Text style={{
+                            fontSize: "16px",
+                            fontWeight: "500"
+                        }}>Back</Components.Text></Components.Button>
+                    <Components.Button onClick={(e) => onSaveTheme(e)}><Components.Text style={{
+                        fontSize: "16px",
+                        fontWeight: "500"
+                    }}>Apply</Components.Text></Components.Button>
+                </div>
+            });
+        })
     }
 }
