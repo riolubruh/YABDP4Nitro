@@ -70,7 +70,12 @@ function CustomSettingsTab() {
 export default {
     name: "User Profile V2",
     description: "skibidi toilet",
-    ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {raw: true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {raw: true}).then(x => x.id), async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), {raw: true}).then(x => x.id)],
+    ids: [
+        async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {raw: true}).then(x => x.id),
+        async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {raw: true}).then(x => x.id),
+        async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), {raw: true}).then(x => x.id),
+        async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), {raw: true}).then(x => x.id)
+    ],
     waitFor: [GLOBAL_FILTER],
     apply(finale, patcher) {
         console.log(finale, patcher);
