@@ -7,29 +7,30 @@
           "title": "YABDP4Nitro Huge Revamp",
           "type": "improved",
           "items": [
-            "Fully rewritten internals from the ground up",
-            "Improved performance and stability",
-            "Cleaner, more maintainable codebase for future updates"
+            "Fully rewritten internals from the ground up.",
+            "Improved performance and stability.",
+            "Cleaner, more maintainable codebase for future updates.",
+            "Improved UI locations to be more convenient."
           ]
         },
         {
           "title": "Known Bugs/Issues",
           "type": "progress",
           "items": [
-            "Downloading large attachments can cause a memory leak due to `Buffer` handling",
-            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet)",
-            "Sharpness may not apply on the streaming context menu — switch channels and back to fix",
+            "Downloading large attachments can cause a memory leak due to `Buffer` handling.",
+            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet).",
+            "Sharpness may not apply on the streaming context menu — switch channels and back to fix.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
-            "\"Someones banner background is flickering\" — We know. Our code is silly sometimes.",
-            "\"Opening the `Nameplates` and `Avatar Decorations` lags!\", We know. That's because Discord:tm: loves money. Theres a lot of decorations..."
+            "**\"Someones banner background is flickering\"** — We know. Our code is silly sometimes.",
+            "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations..."
           ]
         },
         {
           "title": "Extra",
           "type": "added",
           "items": [
-            "New Profile Frames added to the 3y3 encode bypass list",
-            "<@917630027477159986> joins the team for future development of the plugin"
+            "New Profile Frames added to the 3y3 encode bypass list.",
+            "<@917630027477159986> joins the team for future development of the plugin!"
           ]
         }
       ]
