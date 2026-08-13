@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.5
+ * @version 7.0.0
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -15,39 +15,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 
@@ -8962,7 +8983,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        } else {}
+        }
       }
     },
     readEndOfCentral: function() {
@@ -12402,15 +12423,20 @@ function CustomBanner() {
 // src/ui/DisplayNameStyle.tsx
 var { React: React9, Components: Components5 } = BetterDiscord;
 var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
+var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
-  "gg sans",
+  "GG Sans",
   "Tempo",
   "Sakura",
   "Jellybean",
   "Modern",
   "Medieval",
   "8Bit",
-  "Vampyre"
+  "Vampyre",
+  "Monkey Bars",
+  "Mainframe",
+  "Headbang",
+  "Journal"
 ];
 var EFFECTS = {
   Solid: [15724529],
@@ -12455,6 +12481,10 @@ function OpenDisplayNameStyleModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
       return /* @__PURE__ */ React9.createElement(ModalModule3.Modal, {
+        notice: {
+          type: "warning",
+          message: GlobalModules.SimpleMarkdownWrapper.parse("`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies.")
+        },
         title: "Change Display Name Style",
         ...props
       }, /* @__PURE__ */ React9.createElement(DisplayNameStyle, null));
@@ -12462,16 +12492,30 @@ function OpenDisplayNameStyleModalButton() {
   }
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
     onClick: handleClick
-  }, "Change Display Name Style");
+  }, "Change");
 }
 function DisplayNameStyle() {
+  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource("UserNameWithEffects"), { declaration: (x) => String(x.type).includes("UserNameWithEffects") });
   const [fontId, setFontId] = React9.useState(0);
   const [effectId, setEffectId] = React9.useState(0);
   const [colors, setColors] = React9.useState({
     primary: "#ffffff",
     accent: "#000000"
   });
-  return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((_fontId, index) => {
+  return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
+    style: { fontSize: "25px" }
+  }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
+    userName: UserStore5.getCurrentUser().username,
+    loop: true,
+    shouldWrap: false,
+    inProfile: true,
+    effectDisplayType: 1,
+    displayNameStyles: {
+      colors: [colors.primary, colors.accent].filter(Boolean).map((x) => parseInt(x.replace("#", "0x"), 16)),
+      effectId,
+      fontId
+    }
+  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((_fontId, index) => {
     return /* @__PURE__ */ React9.createElement(FontButton, {
       fontFamily: _fontId,
       selected: fontId == index,
@@ -12617,7 +12661,7 @@ function OpenProfileEffectModalButton() {
   }
   return /* @__PURE__ */ React10.createElement(Components6.Button, {
     onClick: handleClick
-  }, "Change Profile Effect");
+  }, "Change");
 }
 function ProfileEffect({ product }) {
   const skuId = product.sku_id;
@@ -12676,7 +12720,7 @@ function ProfileEffects() {
 }
 // src/ui/AvatarDecorations.tsx
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
-var { UserStore: UserStore5 } = Webpack2.Stores;
+var { UserStore: UserStore6 } = Webpack2.Stores;
 var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
 function OpenAvatarDecorationModalButton() {
@@ -12690,7 +12734,7 @@ function OpenAvatarDecorationModalButton() {
   }
   return /* @__PURE__ */ React11.createElement(Components7.Button, {
     onClick: handleClick
-  }, "Change Avatar Decorations");
+  }, "Change");
 }
 function copyProfileEffect3y3(skuId) {
   copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
@@ -12708,7 +12752,7 @@ function AvatarDecoration({ product }) {
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore5.getCurrentUser(),
+    user: UserStore6.getCurrentUser(),
     avatarSize: "SIZE_72"
   }));
 }
@@ -12726,7 +12770,7 @@ function InvalidProductDisplay({ product }) {
     avatarSize: "SIZE_72",
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore5.getCurrentUser()
+    user: UserStore6.getCurrentUser()
   }));
 }
 function Category2({ skuId, query }) {
@@ -12875,7 +12919,7 @@ function AvatarDecorations() {
 var { React: React12, Components: Components8 } = BetterDiscord;
 var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { declaration: (x) => String(x).includes(".x5CoXR),className:") }) }));
-var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
 function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -12887,7 +12931,7 @@ function OpenNameplateModalButton() {
   }
   return /* @__PURE__ */ React12.createElement(Components8.Button, {
     onClick: handleClick
-  }, "Change Nameplate");
+  }, "Change");
 }
 function copyNameplate3y3({ skuId, palette }) {
   copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
@@ -12904,7 +12948,7 @@ function Nameplate3y3({ product }) {
     title: product.productName
   }, /* @__PURE__ */ React12.createElement(Nameplate, {
     section: "purchase",
-    currentUser: UserStore6.getCurrentUser(),
+    currentUser: UserStore7.getCurrentUser(),
     nameplate: { skuId: product.sku_id, asset: product.asset, label: product.label, palette: product.palette },
     canUsePremiumCollectibles: true,
     isSelected: hovered
@@ -12963,7 +13007,7 @@ function OpenProfileFramesModalButton() {
   }
   return /* @__PURE__ */ React13.createElement(Components9.Button, {
     onClick: handleClick
-  }, "Change Profile Frame");
+  }, "Change");
 }
 function copyProfileFrame3y3({ skuId }) {
   copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
@@ -13037,59 +13081,65 @@ function ProfileFrames() {
     query
   })));
 }
-// src/ui/Sep.tsx
-var Separator = styled.div({
-  width: "100%",
-  height: "2px",
-  margin: "10px 0",
-  borderRadius: "100%",
-  background: "var(--border-subtle)"
-});
-var Wrapper = styled.div({
-  display: "flex",
-  alignItems: "center",
-  margin: "10px 0"
-});
-var Line = styled.div({
-  flex: 1,
-  height: "2px",
-  borderRadius: "100%",
-  background: "var(--border-subtle)"
-});
-var Label = styled.span({
-  margin: "0 10px",
-  color: "var(--text-muted)",
-  fontSize: "12px",
-  fontWeight: 600,
-  textTransform: "uppercase",
-  whiteSpace: "nowrap"
-});
-function SepWithText({ children }) {
-  return /* @__PURE__ */ React.createElement(Wrapper, null, /* @__PURE__ */ React.createElement(Line, null), /* @__PURE__ */ React.createElement(Label, null, children), /* @__PURE__ */ React.createElement(Line, null));
-}
-
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
-var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
-var Margin = styled.div({
-  marginBottom: "-50px"
-});
 var Scroller = styled.div({
   overflowY: "scroll",
-  scrollbarWidth: "none"
+  scrollbarWidth: "none",
+  maxWidth: "400px"
+});
+var Grid = styled.div({
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: "8px"
+});
+var Card = styled.div({
+  borderRadius: "8px",
+  padding: "12px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "8px",
+  minWidth: 0,
+  overflow: "hidden"
+});
+var CardTop = styled.div({
+  borderRadius: "8px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  minWidth: 0,
+  overflow: "hidden"
+});
+var CardLabel = styled.div({
+  fontSize: "12px",
+  fontWeight: "var(--font-weight-bold)",
+  color: "var(--text-default)",
+  textTransform: "uppercase",
+  letterSpacing: "0.02em"
 });
 function CustomSettingsTab() {
-  const isDeveloper = BadgesStore_default.isImportant(UserStore7.getCurrentUser().id);
-  const [text, setText] = React14.useState("");
-  return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Nameplates"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null), /* @__PURE__ */ React14.createElement(SepWithText, null, "Profile Frames"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null), isDeveloper ? /* @__PURE__ */ React14.createElement("div", null, /* @__PURE__ */ React14.createElement(SepWithText, null, "Developer"), /* @__PURE__ */ React14.createElement(Components10.TextInput, {
-    value: text,
-    onChange: (e) => setText(e)
+  const isDeveloper = BadgesStore_default.isImportant(UserStore8.getCurrentUser().id);
+  const [devText, setDevText] = React14.useState("");
+  return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)), /* @__PURE__ */ React14.createElement(Card, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper ? /* @__PURE__ */ React14.createElement(Card, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"), /* @__PURE__ */ React14.createElement("div", {
+    style: { display: "flex", gap: "8px", width: "100%" }
+  }, /* @__PURE__ */ React14.createElement(Components10.TextInput, {
+    value: devText,
+    onChange: setDevText,
+    style: { flex: 1 }
   }), /* @__PURE__ */ React14.createElement(Components10.Button, {
     onClick: () => {
-      copyToClipboard(secondsightifyEncodeOnly(text), "[DEV] Copied uwu!");
+      copyToClipboard(secondsightifyEncodeOnly(devText), "[DEV] Copied uwu!");
     }
-  }, "Encode")) : null);
+  }, "Encode"))) : null));
 }
 var UserProfileV2_default = {
   name: "User Profile V2",
@@ -13114,7 +13164,7 @@ var UserProfileV2_default = {
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      if (args?.displayProfile?.userId != UserStore7.getCurrentUser().id)
+      if (args?.displayProfile?.userId != UserStore8.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x) => x.text.includes("YABD")))
         return;
@@ -13211,8 +13261,8 @@ var customClientThemes_default = {
       const clientThemesEnabled = SettingsStore_default.get("clientThemes");
       if (!clientThemesEnabled)
         return;
-      const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
       patcher.after(mod, "default", (_, [args], ret) => {
+        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
         const onSaveTheme = ret.props.children[1].props.onSaveTheme;
         ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
           style: {
@@ -13358,13 +13408,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore8.getCurrentUser().id;
+    const currentUserId = UserStore9.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -13463,28 +13513,30 @@ var changelog_default = {
           title: "YABDP4Nitro Huge Revamp",
           type: "improved",
           items: [
-            "Fully rewritten internals from the ground up",
-            "Improved performance and stability",
-            "Cleaner, more maintainable codebase for future updates"
+            "Fully rewritten internals from the ground up.",
+            "Improved performance and stability.",
+            "Cleaner, more maintainable codebase for future updates.",
+            "Improved UI locations to be more convenient."
           ]
         },
         {
           title: "Known Bugs/Issues",
           type: "progress",
           items: [
-            "Downloading large attachments can cause a memory leak due to `Buffer` handling",
-            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet)",
-            "Sharpness may not apply on the streaming context menu — switch channels and back to fix",
+            "Downloading large attachments can cause a memory leak due to `Buffer` handling.",
+            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet).",
+            "Sharpness may not apply on the streaming context menu — switch channels and back to fix.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
-            '"Someones banner background is flickering" — We know. Our code is silly sometimes.'
+            '**"Someones banner background is flickering"** — We know. Our code is silly sometimes.',
+            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...'
           ]
         },
         {
           title: "Extra",
           type: "added",
           items: [
-            "New Profile Frames added to the 3y3 encode bypass list",
-            "<@917630027477159986> joins the team for future development of the plugin"
+            "New Profile Frames added to the 3y3 encode bypass list.",
+            "<@917630027477159986> joins the team for future development of the plugin!"
           ]
         }
       ]
@@ -13548,7 +13600,7 @@ function startChangelog(sourceVersion) {
 // src/index.tsx
 var { Components: Components12 } = BetterDiscord;
 var { React: React17 } = BetterDiscord;
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -13987,7 +14039,7 @@ class Plugin {
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore9.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore10.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,

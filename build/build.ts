@@ -1,6 +1,7 @@
 import os from "os";
 import path from "path";
 import * as fs from "node:fs";
+import JSONMeta from "../package.json"
 
 import { reactPolyfillPlugin } from "./plugins/react-polyfill";
 
@@ -8,7 +9,7 @@ const BANNER = `/**
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.5
+ * @version ${JSONMeta.version}
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
