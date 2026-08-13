@@ -1,10 +1,16 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
-import {getRevealedText, getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
+import {getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.ts";
-import suggondeeznutz from "../../global/shared/regexReveals.ts"
+import {
+    extractProfileEffects,
+    extractProfileFrame,
+    containsProfileV2,
+    containsProfileEffects,
+    containsProfileFrame
+} from "../../global/shared/regexHelpers.ts";
 
 const {UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 
@@ -23,8 +29,8 @@ function decodeProfileColors(string: string) {
 export default {
     name: "User Profile",
     description: "Performs fake profile stuffs.",
-    ids: undefined, // array of entry ids
-    waitFor: [x => x.getUser], // filters to wait for.
+    ids: undefined,
+    waitFor: [x => x.getUser],
     apply(finale, patcher) {
         patcher.after(UserProfileStore, "getUserProfile", (_: any, [userId]: string, ret: UserProfile) => {
             const killProfileEffects = SettingsStore.get("killProfileEffects");
@@ -40,16 +46,16 @@ export default {
 
             const guildId = SelectedGuildStore.getGuildId();
 
-            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
+            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsProfileV2(revealedSurrogate)) && (ret.premiumType = 2);
 
             const userBio = ret?.bio
-            if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
+            if (containsProfileEffects(revealedSurrogate) && !killProfileEffects) {
                 let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
 
                 if (!parsed) return ret;
 
-                if (parsed.includes("fx")) {
-                    const skuId = (parsed.match(suggondeeznutz.PROFILE_EFFECTS)?.[0])?.slice(2);
+                if (containsProfileEffects(parsed)) {
+                    const skuId = extractProfileEffects(parsed);
                     if (!skuId) return ret;
 
                     ret.profileEffect = {
@@ -81,8 +87,8 @@ export default {
                 ret.themeColors = Object.values(colors).find(Boolean);
             }
 
-            if (revealedSurrogate && revealedSurrogate.includes("pf") && profileFramesEnabled) {
-                const match = revealedSurrogate.match(suggondeeznutz.PROFILE_FRAME)?.[0]?.substring(2);
+            if (containsProfileFrame(revealedSurrogate) && profileFramesEnabled) {
+                const match = extractProfileFrame(revealedSurrogate);
                 if (match) ret.profileFrame = { skuId: match, expiresAt: undefined };
             }
 

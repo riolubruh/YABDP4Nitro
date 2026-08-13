@@ -20,13 +20,17 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
     userGuildProfile && CustomUserProfileStore.cacheMember(userGuildProfile)
 
     if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
-        BadgesStore.add(userId)
-        return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+        const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+        if (revealed != "") BadgesStore.add(userId);
+
+        return revealed
     }
 
     if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
-        BadgesStore.add(userId)
-        return secondsightifyRevealOnly(String(userGuildProfile.bio));
+        const revealed = secondsightifyRevealOnly(String(userGuildProfile.bio));
+        if (revealed != "") BadgesStore.add(userId)
+
+        return revealed
     }
 
     //per-server pronoun field check
@@ -57,54 +61,48 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
 //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
 //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
 //if shouldInclude is blank, always return the revealed text if there is revealed text
-export function getRevealedText(userId: string, shouldInclude = "") {
-    let revealedText: string | undefined = ""; //init variable
+export function getRevealedText(userId: string, shouldInclude = ""): string | undefined {
+    const perServer = getRevealedTextPerServer(userId, shouldInclude);
+    if (perServer) return perServer;
 
-    let perServer = getRevealedTextPerServer(userId, shouldInclude);
-    if (perServer != undefined && perServer != "") return perServer;
-
-    //get the user's profile from the cached user profiles
-    let userProfile = UserProfileStore.getUserProfile(userId);
-    //if this user's profile has been downloaded
-    if (userProfile) {
-        //if their bio is empty, move on to the next check.
-        if (userProfile?.bio != undefined) {
-            if (userProfile.bio.includes(shouldInclude)) {
-                //reveal 3y3 encoded text
-                revealedText = secondsightifyRevealOnly(String(userProfile.bio));
-                //if there's no 3y3 text, move on to the next check.
-                if (revealedText != undefined && revealedText != "") {
-                    //return bio with the 3y3 decoded
-                    BadgesStore.add(userId)
-                    return revealedText;
-                }
-            }
-        }
+    const bioText = getRevealedTextFromBio(userId, shouldInclude);
+    if (bioText) {
+        BadgesStore.add(userId);
+        return bioText;
     }
 
+    const statusText = getRevealedTextFromCustomStatus(userId, shouldInclude);
+    if (statusText) {
+        BadgesStore.add(userId);
+        return statusText;
+    }
+
+    return undefined;
+}
+
+function getRevealedTextFromBio(userId: string, shouldInclude: string): string | undefined {
+    const userProfile = UserProfileStore.getUserProfile(userId);
+    if (!userProfile?.bio?.includes(shouldInclude)) return undefined;
+
+    const revealedText = secondsightifyRevealOnly(userProfile.bio);
+    return revealedText || undefined;
+}
+
+function getRevealedTextFromCustomStatus(userId: string, shouldInclude: string): string | undefined {
     let customStatusActivity;
+
     try {
-        //get Custom Status
-        //avoid using findActivity function due to conflict with ChatFilter (#290)
-        customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+        customStatusActivity = PresenceStore.getActivities(userId)
+            .find(activity => activity.name === "Custom Status" || activity.id === "custom");
     } catch (err) {
         BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+        return undefined;
     }
 
-    //if the user has a custom status
-    if (customStatusActivity) {
-        //grab the text from the custom status
-        let customStatus = customStatusActivity.state;
-        //if something has gone horribly wrong, stop processing.
-        if (customStatus == undefined) return;
-        //reveal 3y3 encoded text
-        if (customStatus.includes(shouldInclude)) {
-            revealedText = secondsightifyRevealOnly(String(customStatus));
-            //return custom status with the 3y3 decoded
-            BadgesStore.add(userId)
-            return revealedText;
-        }
-    }
+    if (!customStatusActivity?.state?.includes(shouldInclude)) return undefined;
+
+    const revealedText = secondsightifyRevealOnly(customStatusActivity.state);
+    return revealedText || undefined;
 }
 
 export function secondsightifyRevealOnly(t: string) {

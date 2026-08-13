@@ -9383,47 +9383,53 @@ function getRevealedTextPerServer(userId, shouldInclude = "") {
   userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
   userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
-    BadgesStore_default.add(userId);
-    return secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+    const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+    if (revealed != "")
+      BadgesStore_default.add(userId);
+    return revealed;
   }
   if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
-    BadgesStore_default.add(userId);
-    return secondsightifyRevealOnly(String(userGuildProfile.bio));
+    const revealed = secondsightifyRevealOnly(String(userGuildProfile.bio));
+    if (revealed != "")
+      BadgesStore_default.add(userId);
+    return revealed;
   }
 }
 function getRevealedText(userId, shouldInclude = "") {
-  let revealedText = "";
-  let perServer = getRevealedTextPerServer(userId, shouldInclude);
-  if (perServer != null && perServer != "")
+  const perServer = getRevealedTextPerServer(userId, shouldInclude);
+  if (perServer)
     return perServer;
-  let userProfile = UserProfileStore.getUserProfile(userId);
-  if (userProfile) {
-    if (userProfile?.bio != null) {
-      if (userProfile.bio.includes(shouldInclude)) {
-        revealedText = secondsightifyRevealOnly(String(userProfile.bio));
-        if (revealedText != null && revealedText != "") {
-          BadgesStore_default.add(userId);
-          return revealedText;
-        }
-      }
-    }
+  const bioText = getRevealedTextFromBio(userId, shouldInclude);
+  if (bioText) {
+    BadgesStore_default.add(userId);
+    return bioText;
   }
+  const statusText = getRevealedTextFromCustomStatus(userId, shouldInclude);
+  if (statusText) {
+    BadgesStore_default.add(userId);
+    return statusText;
+  }
+  return;
+}
+function getRevealedTextFromBio(userId, shouldInclude) {
+  const userProfile = UserProfileStore.getUserProfile(userId);
+  if (!userProfile?.bio?.includes(shouldInclude))
+    return;
+  const revealedText = secondsightifyRevealOnly(userProfile.bio);
+  return revealedText || undefined;
+}
+function getRevealedTextFromCustomStatus(userId, shouldInclude) {
   let customStatusActivity;
   try {
-    customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+    customStatusActivity = PresenceStore.getActivities(userId).find((activity) => activity.name === "Custom Status" || activity.id === "custom");
   } catch (err) {
     BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+    return;
   }
-  if (customStatusActivity) {
-    let customStatus = customStatusActivity.state;
-    if (customStatus == undefined)
-      return;
-    if (customStatus.includes(shouldInclude)) {
-      revealedText = secondsightifyRevealOnly(String(customStatus));
-      BadgesStore_default.add(userId);
-      return revealedText;
-    }
-  }
+  if (!customStatusActivity?.state?.includes(shouldInclude))
+    return;
+  const revealedText = secondsightifyRevealOnly(customStatusActivity.state);
+  return revealedText || undefined;
 }
 function secondsightifyRevealOnly(t) {
   if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
@@ -9529,6 +9535,53 @@ var regexReveals_default = {
   PROFILE_FRAME: /pf\d+/
 };
 
+// src/global/shared/regexHelpers.ts
+function extractDisplayNameStyles(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.DISPLAY_NAME_STYLES)?.[0]?.slice?.(2, -1)?.split?.(",");
+  return match || null;
+}
+function extractDecoration(revealedText) {
+  if (!revealedText)
+    return null;
+  const skuId = revealedText.match(regexReveals_default.DECORATION)?.[0]?.slice?.(2);
+  return skuId || null;
+}
+function extractNameplate(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(",");
+  return match || null;
+}
+function extractProfileEffects(parsedText) {
+  if (!parsedText)
+    return null;
+  const skuId = parsedText.match(regexReveals_default.PROFILE_EFFECTS)?.[0]?.slice(2);
+  return skuId || null;
+}
+function extractProfileFrame(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.PROFILE_FRAME)?.[0]?.substring(2);
+  return match || null;
+}
+function extractProfilePicture(revealedText) {
+  if (!revealedText)
+    return null;
+  const matches = revealedText.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
+  return matches || null;
+}
+function containsProfileV2(revealedSurrogate) {
+  return revealedSurrogate?.includes("B{") || false;
+}
+function containsProfileEffects(revealedSurrogate) {
+  return revealedSurrogate?.includes("fx") || false;
+}
+function containsProfileFrame(revealedSurrogate) {
+  return revealedSurrogate?.includes("pf") || false;
+}
+
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 function decodeProfileColors(string) {
@@ -9559,14 +9612,14 @@ var fakeUserProfile_default = {
       const perServer = getRevealedTextPerServer(userId, `\uDB40`);
       const revealedSurrogate = perServer ?? (ret?.bio ? secondsightifyRevealOnly(ret.bio) : undefined);
       const guildId = SelectedGuildStore2.getGuildId();
-      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || revealedSurrogate?.includes("B{")) && (ret.premiumType = 2);
+      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsProfileV2(revealedSurrogate)) && (ret.premiumType = 2);
       const userBio = ret?.bio;
-      if (revealedSurrogate && revealedSurrogate.includes("fx") && !killProfileEffects) {
+      if (containsProfileEffects(revealedSurrogate) && !killProfileEffects) {
         let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
         if (!parsed)
           return ret;
-        if (parsed.includes("fx")) {
-          const skuId = parsed.match(regexReveals_default.PROFILE_EFFECTS)?.[0]?.slice(2);
+        if (containsProfileEffects(parsed)) {
+          const skuId = extractProfileEffects(parsed);
           if (!skuId)
             return ret;
           ret.profileEffect = {
@@ -9591,8 +9644,8 @@ var fakeUserProfile_default = {
         };
         ret.themeColors = Object.values(colors).find(Boolean);
       }
-      if (revealedSurrogate && revealedSurrogate.includes("pf") && profileFramesEnabled) {
-        const match = revealedSurrogate.match(regexReveals_default.PROFILE_FRAME)?.[0]?.substring(2);
+      if (containsProfileFrame(revealedSurrogate) && profileFramesEnabled) {
+        const match = extractProfileFrame(revealedSurrogate);
         if (match)
           ret.profileFrame = { skuId: match, expiresAt: undefined };
       }
@@ -9630,7 +9683,7 @@ var fakeUser_default = {
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
-        const match = revealedText?.match(regexReveals_default.DISPLAY_NAME_STYLES)?.[0]?.slice?.(2, -1)?.split?.(",");
+        const match = extractDisplayNameStyles(revealedText);
         if (match) {
           const styleData = getStyleData(match);
           styleData && Object.defineProperty(ret, "displayNameStyles", {
@@ -9647,7 +9700,7 @@ var fakeUser_default = {
       }
       if (decorEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
-        const skuId = revealedText?.match(regexReveals_default.DECORATION)?.[0]?.slice?.(2);
+        const skuId = extractDecoration(revealedText);
         if (skuId) {
           ret.avatarDecorationData = {
             skuId
@@ -9656,7 +9709,7 @@ var fakeUser_default = {
       }
       if (nameplatesEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
-        const match = revealedText?.match(regexReveals_default.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(",");
+        const match = extractNameplate(revealedText);
         if (match) {
           const [skuId, palette] = match;
           !ret.collectibles && (ret.collectibles = {});
@@ -11457,22 +11510,54 @@ var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
 var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
 var ModalModule = wpGetByKeys(["Modal"]);
 function Debug({ user }) {
+  const revealedText = getRevealedText(user.id);
+  const decorationRevealed = getRevealedText(user.id, `\uDB40\uDC2F\uDB40\uDC61`);
+  const nameplateRevealed = getRevealedText(user.id, `\uDB40\uDC6E\uDB40\uDC7B`);
+  const pfpRevealed = getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
+  const dnsRevealed = getRevealedText(user.id, `\uDB40\uDC53\uDB40\uDC7B`);
   const data = {
     hasBanner: UserBackgroundStore_default.hasHash(user.id),
     url: UserBackgroundStore_default.get(user.id),
     isImportant: BadgesStore_default.isImportant(user.id),
-    dns3y3: getRevealedText(user.id, "\uDB40\uDC53\uDB40\uDC7B"),
-    decor3y3: getRevealedText(user.id, "\uDB40\uDC2F\uDB40\uDC61"),
-    nameplate3y3: getRevealedText(user.id, "\uDB40\uDC6E\uDB40\uDC7B"),
-    pfp3y3: getRevealedText(user.id, "\uDB40\uDC50\uDB40\uDC7B"),
+    revealedText,
+    regexMatches: {
+      displayNameStyles: extractDisplayNameStyles(dnsRevealed),
+      decoration: extractDecoration(decorationRevealed),
+      nameplate: extractNameplate(nameplateRevealed),
+      profilePicture: extractProfilePicture(pfpRevealed),
+      profileEffects: containsProfileEffects(revealedText) ? extractProfileEffects(revealedText) : null,
+      profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
+      profileV2: containsProfileV2(revealedText)
+    },
+    rawRevealedTexts: {
+      dns3y3: dnsRevealed,
+      decor3y3: decorationRevealed,
+      nameplate3y3: nameplateRevealed,
+      pfp3y3: pfpRevealed,
+      general3y3: revealedText
+    },
     badge: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadge(user.id).id : "not known user"
   };
   function OpenModal() {
     GlobalModules.ModalModule.openModal((props) => {
       return /* @__PURE__ */ React.createElement(ModalModule.Modal, {
+        size: "lg",
         title: "Debug",
         ...props
-      }, /* @__PURE__ */ React.createElement("code", null, JSON.stringify(data, null, 2)));
+      }, /* @__PURE__ */ React.createElement("pre", {
+        style: {
+          color: "#d4d4d4",
+          padding: "16px",
+          borderRadius: "8px",
+          overflow: "auto",
+          maxHeight: "70vh",
+          fontSize: "24px",
+          lineHeight: "1.5",
+          fontFamily: "monospace",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word"
+        }
+      }, JSON.stringify(data, null, 2)));
     });
   }
   return /* @__PURE__ */ React.createElement(TopLeft, null, /* @__PURE__ */ React.createElement(Icon, {
@@ -14084,6 +14169,7 @@ class Plugin {
   source = "";
   async start() {
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
+    console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (BadgesStore_default.isImportant(UserStore10.getCurrentUser().id)) {
@@ -14131,10 +14217,11 @@ class Plugin {
     YABDNitroPanel: CustomSettingsTab
   };
   async checkUpdate() {
-    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
+    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/dev/YABDP4Nitro.plugin.js");
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion = SettingsStore_default.get("installedVersion") ?? Meta.version ?? "0.0.0";
+    console.log(sourceVersion, installedVersion);
     if (!sourceVersion)
       return;
     if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {

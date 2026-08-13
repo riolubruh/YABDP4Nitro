@@ -473,6 +473,7 @@ export default class Plugin {
 
     async start() {
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
+        console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
         (checkForUpdatesEnabled) && await this.checkUpdate();
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
@@ -535,12 +536,13 @@ export default class Plugin {
     }
 
     async checkUpdate() {
-        const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js")
+        const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/dev/YABDP4Nitro.plugin.js")
         this.source = await res.text();
 
         const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
         const installedVersion = SettingsStore.get("installedVersion") ?? Meta.version ?? "0.0.0";
 
+        console.log(sourceVersion, installedVersion);
         if (!sourceVersion) return;
 
         if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {

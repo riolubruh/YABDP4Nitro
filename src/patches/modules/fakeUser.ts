@@ -2,7 +2,7 @@ import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {getRevealedText} from "@utils/*";
-import suggondeeznutz from "../../global/shared/regexReveals.ts"
+import {extractDisplayNameStyles, extractDecoration, extractNameplate} from "../../global/shared/regexHelpers.ts";
 
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
@@ -27,8 +27,8 @@ function getStyleData(surrogate: string[]) {
 export default {
     name: "User Profile",
     description: "Performs fake profile stuffs.",
-    ids: undefined, // array of entry ids
-    waitFor: [x => x.getUser], // filters to wait for.
+    ids: undefined,
+    waitFor: [x => x.getUser],
     apply(finale, patcher) {
         patcher.after(UserStore, "getUser", (_: any, [userId]: string, ret: User) => {
             const dnsEnabled = SettingsStore.get("displayNameStyles");
@@ -37,7 +37,7 @@ export default {
 
             if (dnsEnabled) {
                 const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
-                const match = revealedText?.match(suggondeeznutz.DISPLAY_NAME_STYLES)?.[0]?.slice?.(2, -1)?.split?.(",");
+                const match = extractDisplayNameStyles(revealedText);
                 if(match) {
                     const styleData = getStyleData(match);
 
@@ -55,7 +55,7 @@ export default {
             }
             if(decorEnabled){
                 const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
-                const skuId = revealedText?.match(suggondeeznutz.DECORATION)?.[0]?.slice?.(2);
+                const skuId = extractDecoration(revealedText);
                 if(skuId){
                     ret.avatarDecorationData = {
                         skuId: skuId
@@ -64,9 +64,9 @@ export default {
             }
             if(nameplatesEnabled){
                 const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
-                const match = revealedText?.match(suggondeeznutz.NAMEPLATE)?.[0]?.slice(2,-1)?.split?.(',');
+                const match = extractNameplate(revealedText);
                 if(match){
-                    const [skuId, palette] = match; //
+                    const [skuId, palette] = match;
                     !ret.collectibles && (ret.collectibles = {});
                     ret.collectibles.nameplate = {
                         skuId,
