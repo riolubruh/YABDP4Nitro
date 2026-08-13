@@ -21,7 +21,7 @@ export default function OpenProfileEffectModalButton() {
     return <Components.Button
         onClick={handleClick}
     >
-        Change Profile Effect
+        Change
     </Components.Button>
 }
 

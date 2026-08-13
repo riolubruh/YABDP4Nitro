@@ -10,7 +10,6 @@ import {
 } from "../../ui";
 import {getKey, wpGet, wpWait} from "../../global/webpack";
 import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
-import {SepWithText} from "../../ui/Sep.tsx";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
@@ -19,53 +18,99 @@ const {UserStore} = BetterDiscord.Webpack.Stores
 
 const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 
-const Margin = styled.div({
-    marginBottom: "-50px"
-})
-
 const Scroller = styled.div({
     overflowY: "scroll",
-    scrollbarWidth: "none"
+    scrollbarWidth: "none",
+    maxWidth: "400px"
 })
 
-/*function DisplayProducts() {
-    const decorations = ShopCollectiblesStore.getAvatarDecorations("1212565175790473246")
+const Grid = styled.div({
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "8px",
+})
 
-    return <div style={{display: "flex", justifyContent: "space-between"}}>
-        {decorations?.map(decoration => <div key={"nased"} style={{maxHeight: "200px", maxWidth: "200px"}}>
-            <ProductDisplayer.A key={`based-da-${decoration.sku_id}`} skuId={decoration.sku_id} isCardHovered={true}/>
-        </div>)}
-    </div>
-}*/
+const Card = styled.div({
+    borderRadius: "8px",
+    padding: "12px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: "8px",
+    minWidth: 0,
+    overflow: "hidden"
+})
+
+const CardTop = styled.div({
+    borderRadius: "8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    minWidth: 0,
+    overflow: "hidden"
+})
+
+const CardLabel = styled.div({
+    fontSize: "12px",
+    fontWeight: "var(--font-weight-bold)",
+    color: "var(--text-default)",
+    textTransform: "uppercase",
+    letterSpacing: "0.02em"
+})
 
 function CustomSettingsTab() {
     const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id)
-    const [text, setText] = React.useState<string>("")
+    const [devText, setDevText] = React.useState<string>("")
 
     return <Scroller>
-        <SepWithText>Custom Theme Colors</SepWithText>
-        <AccentColors/>
-        <SepWithText>Custom PFP</SepWithText>
-        <CustomPFP/>
-        <SepWithText>Custom Banner</SepWithText>
-        <CustomBanner/>
-        <SepWithText>Display Name Style</SepWithText>
-        <DisplayNameStyle/>
-        <SepWithText>Profile Effect</SepWithText>
-        <ProfileEffects/>
-        <SepWithText>Avatar Decoration</SepWithText>
-        <AvatarDecorations/>
-        <SepWithText>Nameplates</SepWithText>
-        <Nameplates/>
-        <SepWithText>Profile Frames</SepWithText>
-        <ProfileFrames/>
-        {isDeveloper ? <div>
-            <SepWithText>Developer</SepWithText>
-            <Components.TextInput value={text} onChange={e => setText(e)}/>
-            <Components.Button onClick={() => {
-                copyToClipboard(secondsightifyEncodeOnly(text), "[DEV] Copied uwu!")
-            }}>Encode</Components.Button>
-        </div> : null}
+        <Grid>
+            <CardTop style={{gridColumn: "span 2"}}>
+                <CardLabel>Theme Colors</CardLabel>
+                <AccentColors/>
+            </CardTop>
+
+            <Card>
+                <CardLabel>Custom PFP</CardLabel>
+                <CustomPFP/>
+            </Card>
+            <Card>
+                <CardLabel>Custom Banner</CardLabel>
+                <CustomBanner/>
+            </Card>
+
+            <Card>
+                <CardLabel>Display Name Style</CardLabel>
+                <DisplayNameStyle/>
+            </Card>
+            <Card>
+                <CardLabel>Profile Effect</CardLabel>
+                <ProfileEffects/>
+            </Card>
+
+            <Card>
+                <CardLabel>Avatar Decoration</CardLabel>
+                <AvatarDecorations/>
+            </Card>
+            <Card>
+                <CardLabel>Nameplate</CardLabel>
+                <Nameplates/>
+            </Card>
+
+            <Card style={{gridColumn: "span 2"}}>
+                <CardLabel>Profile Frame</CardLabel>
+                <ProfileFrames/>
+            </Card>
+
+            {isDeveloper ? <Card style={{gridColumn: "span 2"}}>
+                <CardLabel>Developer</CardLabel>
+                <div style={{display: "flex", gap: "8px", width: "100%"}}>
+                    <Components.TextInput value={devText} onChange={setDevText} style={{flex: 1}}/>
+                    <Components.Button onClick={() => {
+                        copyToClipboard(secondsightifyEncodeOnly(devText), "[DEV] Copied uwu!")
+                    }}>Encode</Components.Button>
+                </div>
+            </Card> : null}
+        </Grid>
     </Scroller>
 }
 

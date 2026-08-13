@@ -22,7 +22,7 @@ export default function OpenProfileFramesModalButton(){
     return <Components.Button
         onClick={handleClick}
     >
-        Change Profile Frame
+        Change
     </Components.Button>
 }
 

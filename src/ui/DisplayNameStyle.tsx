@@ -1,20 +1,26 @@
 import {BetterDiscord} from "@shared/";
 import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
 import {GlobalModules} from "@global/*";
-import {wpGetByKeys} from "../global/webpack";
+import {wpGet, wpGetByKeys} from "../global/webpack";
 
 const {React, Components} = BetterDiscord;
 const EffectText = BetterDiscord.Webpack.getBySource('UserNameWithEffects').A
 
+const {UserStore} = BetterDiscord.Webpack.Stores;
+
 const FONTS = [
-    "gg sans",
+    "GG Sans",
     "Tempo",
     "Sakura",
     "Jellybean",
     "Modern",
     "Medieval",
     "8Bit",
-    "Vampyre"
+    "Vampyre",
+    "Monkey Bars",
+    "Mainframe",
+    "Headbang",
+    "Journal"
 ];
 
 const EFFECTS = {
@@ -22,7 +28,13 @@ const EFFECTS = {
     "Gradient": [2797222, 16762000],
     "Neon": [6888941],
     "Toon": [15999128],
-    "Pop": [1036166]
+    "Pop": [1036166],
+    // "Gummy": [15724529, 2797222, 16762000, 15999128, 1036166] // for fuck sake...
+    // "Prism": [15724529, 2797222, 16762000, 15999128, 1036166] // for fuck sake...
+
+    // thank you, Discord:tm:
+    // Not affiliated with Discord Inc.
+    // "Discord" is a registered trademark of Discord Inc.
 }
 
 function FontButton({onClick, selected, fontFamily}) {
@@ -50,8 +62,8 @@ function EffectButton({onClick, selected, children, data, colors}) {
         }}
         onClick={onClick}
     ><EffectText
-        displayNameStyles={{colors:data.effectColors, fontId:1, effectId:data.effectId+1}}
-        effectDisplayType={data.effectId+1}
+        displayNameStyles={{colors: data.effectColors, fontId: 1, effectId: data.effectId + 1}}
+        effectDisplayType={data.effectId + 1}
         inProfile={true}
         loop={true}
         userName={data.effectName}
@@ -60,10 +72,13 @@ function EffectButton({onClick, selected, children, data, colors}) {
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
-export default function OpenDisplayNameStyleModalButton(){
-    function handleClick(){
+export default function OpenDisplayNameStyleModalButton() {
+    function handleClick() {
         GlobalModules.ModalModule.openModal(props => {
-            return <ModalModule.Modal title={"Change Display Name Style"} {...props}>
+            return <ModalModule.Modal notice={{
+                type: "warning",
+                message: GlobalModules.SimpleMarkdownWrapper.parse("`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies.")
+            }} title={"Change Display Name Style"} {...props}>
                 <DisplayNameStyle/>
             </ModalModule.Modal>
         })
@@ -72,11 +87,15 @@ export default function OpenDisplayNameStyleModalButton(){
     return <Components.Button
         onClick={handleClick}
     >
-        Change Display Name Style
+        Change
     </Components.Button>
 }
 
 function DisplayNameStyle() {
+    const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource('UserNameWithEffects'), {declaration: x => String(x.type).includes("UserNameWithEffects")});
+    // this looks like bad practice but cache exists.
+    // also its a BetterDiscord plugin, arent we known for bad practice?
+
     const [fontId, setFontId] = React.useState(0);
     const [effectId, setEffectId] = React.useState(0);
     const [colors, setColors] = React.useState({
@@ -85,6 +104,15 @@ function DisplayNameStyle() {
     });
 
     return <div>
+        <div style={{fontSize: "25px"}}>
+            <UserNameWithEffects userName={UserStore.getCurrentUser().username} loop={true} shouldWrap={false}
+                                 inProfile={true} effectDisplayType={1} /* 1 ??? */ displayNameStyles={{
+                colors: [colors.primary, colors.accent].filter(Boolean).map(x => parseInt(x.replace("#", "0x"), 16)),
+                effectId: effectId,
+                fontId: fontId,
+            }}/>
+        </div>
+
         <Components.Text>Font</Components.Text>
         {Object.values(FONTS).map((_fontId, index) => {
             return <FontButton
@@ -113,22 +141,26 @@ function DisplayNameStyle() {
         <Components.Text>Primary Color</Components.Text>
         <Components.ColorInput
             value={colors.primary}
-            onChange={(e)=>{setColors({primary: e, accent: colors.accent})}}
+            onChange={(e) => {
+                setColors({primary: e, accent: colors.accent})
+            }}
         />
         {effectId === 1 ? <div><br/>
             <Components.Text>Secondary Color</Components.Text>
             <Components.ColorInput
                 value={colors.accent}
-                onChange={(e)=>{setColors({primary: colors.primary, accent: e})}}
+                onChange={(e) => {
+                    setColors({primary: colors.primary, accent: e})
+                }}
             />
         </div> : null}
         <br/>
         <Components.Button
             onClick={() => {
-                const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#",''),16);
-                const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#",''),16);
+                const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ''), 16);
+                const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ''), 16);
                 const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
-                copyToClipboard(secondsightifyEncodeOnly(`S{${fontId+1},${effectId+1},${colorString}}`), "3y3 copied to clipboard!");
+                copyToClipboard(secondsightifyEncodeOnly(`S{${fontId + 1},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
             }}
         >
             Copy 3y3

@@ -22,7 +22,7 @@ export default function OpenAvatarDecorationModalButton() {
     }
 
     return <Components.Button onClick={handleClick}>
-        Change Avatar Decorations
+        Change
     </Components.Button>
 }
 

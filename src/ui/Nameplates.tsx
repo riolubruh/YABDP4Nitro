@@ -24,7 +24,7 @@ export default function OpenNameplateModalButton(){
     return <Components.Button
         onClick={handleClick}
     >
-        Change Nameplate
+        Change
     </Components.Button>
 }
 
