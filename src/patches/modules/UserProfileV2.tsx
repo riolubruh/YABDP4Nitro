@@ -58,7 +58,7 @@ const CardLabel = styled.div({
     letterSpacing: "0.02em"
 })
 
-function CustomSettingsTab() {
+export function CustomSettingsTab() {
     const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id)
     const [devText, setDevText] = React.useState<string>("")
 

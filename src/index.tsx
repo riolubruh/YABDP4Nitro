@@ -8,6 +8,7 @@ import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "./global/stores/BadgesStore.tsx";
 import {getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 import {Icon} from "@iconify/react";
+import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -527,6 +528,10 @@ export default class Plugin {
             BetterDiscord.Logger.error(error.message);
         }
 
+    }
+
+    exposed = {
+        YABDNitroPanel: CustomSettingsTab
     }
 
     async checkUpdate() {

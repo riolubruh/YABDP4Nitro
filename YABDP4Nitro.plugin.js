@@ -14127,6 +14127,9 @@ class Plugin {
       BetterDiscord.Logger.error(error.message);
     }
   }
+  exposed = {
+    YABDNitroPanel: CustomSettingsTab
+  };
   async checkUpdate() {
     const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
     this.source = await res.text();
