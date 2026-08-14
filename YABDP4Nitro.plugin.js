@@ -13383,11 +13383,14 @@ var customClientThemes_default = {
   }
 };
 // src/patches/modules/dev.tsx
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
+      if (!BadgesStore_default.isImportant(UserStore9.getCurrentUser().id))
+        return res;
       const user = args[0].message.author;
       if (!res.props.badges.find((x) => x.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
         res.props.badges.push(/* @__PURE__ */ React.createElement("img", {
@@ -13494,13 +13497,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore9.getCurrentUser().id;
+    const currentUserId = UserStore10.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -13732,7 +13735,7 @@ function startChangelog(sourceVersion) {
 // src/index.tsx
 var { Components: Components12 } = BetterDiscord;
 var { React: React17 } = BetterDiscord;
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -14173,7 +14176,7 @@ class Plugin {
     console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore10.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore11.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
