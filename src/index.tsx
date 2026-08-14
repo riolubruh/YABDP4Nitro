@@ -604,7 +604,11 @@ export default class Plugin {
     }
 
     private renderControl(def: SettingDef, value: any) {
-        const onChange = (v: any) => SettingsStore.set(def.key as any, v);
+        const onChange = (v: any) => {
+            SettingsStore.set(def.key as any, v)
+            // just hardcode this for now. the setting exists with dropdowns.
+            if (def.key == "changePremiumType2") UserStore.getCurrentUser().premiumType = v
+        };
 
         switch (def.type) {
             case "boolean":

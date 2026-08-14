@@ -14281,7 +14281,11 @@ class Plugin {
     new BdApi("Patcher").Patcher.unpatchAll();
   }
   renderControl(def, value) {
-    const onChange = (v) => SettingsStore_default.set(def.key, v);
+    const onChange = (v) => {
+      SettingsStore_default.set(def.key, v);
+      if (def.key == "changePremiumType2")
+        UserStore11.getCurrentUser().premiumType = v;
+    };
     switch (def.type) {
       case "boolean":
         return /* @__PURE__ */ React17.createElement(Components12.SwitchInput, {
