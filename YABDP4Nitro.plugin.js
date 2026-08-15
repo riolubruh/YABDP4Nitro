@@ -451,6 +451,11 @@ function copyToClipboard(string, successMessage, errorMessage = "Failed to copy 
     }
 }
 
+//Warns the user that they left an Imgur URL input empty. Used by the profile picture and banner inputs.
+function emptyWarn(){
+    UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
+}
+
 function ResizeFindingElement({id, onResize}){
     const ref = useRef(null);
 
@@ -1179,10 +1184,6 @@ module.exports = class YABDP4Nitro {
 
     //Custom PFP profile customization buttons and encoding code.
     customPfpUI(){
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
         let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
 
         let AvatarSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), "AvatarSection");
@@ -1796,10 +1797,6 @@ module.exports = class YABDP4Nitro {
         let BannerSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), "BannerSection");
         if(!BannerSectionFnName) return;
 
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
         Patcher.before(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args]) =>  {
             args.disabled = false;
         });
@@ -1922,7 +1919,7 @@ module.exports = class YABDP4Nitro {
     
                         if (!Object.prototype.hasOwnProperty.call(ret, "displayNameStyles")) {
                             Object.defineProperty(ret, "displayNameStyles", {
-                                value: cache,
+                                value: styleData,
                                 enumerable: true,
                                 configurable: true,
                                 writable: true,
@@ -2849,7 +2846,7 @@ module.exports = class YABDP4Nitro {
             for(let i = 0; i < args.files.length; i++){
                 const currentFile = args.files[i];
 
-               if(currentFile.file.name.endsWith(".dlfc")) return;
+               if(currentFile.file.name.endsWith(".dlfc")) continue;
 
                 const clipData = {
                     "id": 0,
@@ -3156,7 +3153,7 @@ module.exports = class YABDP4Nitro {
             //load FFmpeg.js as text
             let ffmpegSrc;
             try{
-                let file = tryFetchFromDisk("ffmpeg.js");
+                let file = tryFetchFromDisk("ffmpeg.js", "utf8");
                 if(file) ffmpegSrc = file;
                 else ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
             }catch(err){
@@ -4243,10 +4240,10 @@ module.exports = class YABDP4Nitro {
                         case 0: //upload
                         case 1: //ghost (removed)
                         case 3: //vencord
-                            msg.content = msg.content.replace(emojiString, `[${name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration})`);
+                            msg.content = msg.content.replace(emojiString, `[${name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${animatedBool}&${emojiInteration})`);
                             break;
                         case 2: //classic
-                            msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration} `);
+                            msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${animatedBool}&${emojiInteration} `);
                             break;
                         
                     }
