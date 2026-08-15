@@ -23,6 +23,7 @@ export { default as GetAvatarURL } from "./getAvatarURL.ts"
 export { default as CanUserUse } from "./canUserUse.ts"
 export { default as CustomThemeApply } from "./customClientThemes.tsx"
 export { default as PremiumType } from "./premiumType.ts"
+// export { default as ClipsBypass } from "./clipsBypass.ts"
 
 // dev owo
 export { default as DEV } from "./dev.tsx"
