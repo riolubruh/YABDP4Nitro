@@ -11,6 +11,7 @@ import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
 import Meta from "../package.json"
 import varForcer from "../src/global/shared/varforcer"
+import FFmpegStore from "./global/stores/FFmpegStore.ts";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -582,6 +583,7 @@ export default class Plugin {
     stop() {
         this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
+        FFmpegStore.unloadFFmpeg();
     }
 
     private renderControl(def: SettingDef, value: any) {

@@ -11,6 +11,10 @@ export async function ffmpegTransmux(arrayBuffer: ArrayBuffer,inFileName = "inpu
     (inFileName == outFileName) && (inFileName = "in_" + inFileName);
 
     await ffmpeg.writeFile(inFileName,new Uint8Array(arrayBuffer));
+
+    console.log("Approximately equivalent ffmpeg command:");
+    console.log("ffmpeg " + ffmpegArguments.join(" "));
+
     await ffmpeg.exec(ffmpegArguments);
     const data = await ffmpeg.readFile(outFileName);
 
@@ -31,16 +35,19 @@ function concatArrayBuffers(buf1, buf2){
     return newArray.buffer;
 }
 
-const udtaBuffer = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]).buffer;
+const udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
+
+const FREE_FILE_LIMIT = 20971520; //20MB
+const CLIPS_FILE_LIMIT = 104857600; //100MB
 
 export async function doClipsBypass(file){
-    // const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
-    // const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf', 'video/mpeg'];
     const {useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp} = SettingsStore.getAll();
 
     const skippedFileTypes = ['video/3gp',"video/asf",'video/ivf', 'video/mpeg', 'audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
     if(skippedFileTypes.includes(file.file.type)) return file;
 
+    //bit of explanation: for some reason, the API will not complain if the file is actually MOV but just has ".mp4" at the end,
+    //and since the MOV format has support for some more formats, we take advantage of that.
     const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov", 'audio/wav', 'audio/aiff', 'audio/x-ms-wma', 'audio/mpeg'];
     let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
 
@@ -60,30 +67,50 @@ export async function doClipsBypass(file){
         name: file.file.name.substring(0, file.file.name.lastIndexOf('.'))
     };
 
-    let modifiedFile;
+    let modifiedFile = false;
 
     let arrayBuffer = await file.file.arrayBuffer();
 
     //Video Clip
-    if((file.file.size > 20971518 || forceClip) && useClipBypass && file.file.type.startsWith("video/")
-        && !skippedFileTypes.includes(file.file.type) && file.file.size <= 209715180){
-
-        modifiedFile = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ["-i",file.file.name,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
+    if((file.file.size > FREE_FILE_LIMIT || forceClip) && useClipBypass && file.file.type.startsWith("video/")
+        && !skippedFileTypes.includes(file.file.type) && file.file.size <= CLIPS_FILE_LIMIT){
+        const ffmpegVideoClipArgs = ["-i",file.file.name,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
             "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
-        ], outFileName), udtaBuffer);
+        ];
+
+        file.file = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegVideoClipArgs, outFileName), udtaBuffer);
+        file.file = new File([new Uint8Array(file.file)], clipData.name + ".mp4", { type: "video/mp4" });
+        modifiedFile = true;
+    }
+    //Audio Clip
+    else if(useAudioClipBypass && (file.file.size > FREE_FILE_LIMIT || forceAudioClip) && (file.file.type.startsWith("audio/") && file.file.size <= CLIPS_FILE_LIMIT)){
+
+        const ffmpegAudioClipArgs = ["-i",file.file.name,"-f","lavfi","-i","color=c=black:s=300x100","-shortest","-fflags","+shortest",
+            "-map","0:v?","-map","1:v","-map","0:a","-disposition:v","default","-brand","isom/avc1","-movflags","+faststart",
+            "-map_metadata","-1","-dn","-map_chapters","-1","-preset","ultrafast","-c:v","libx264","-c:a","copy","-strict","-2",
+            "-tune","stillimage","-r","10","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2","-max_interleave_delta","1",outFileName];
+
+        file.file = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegAudioClipArgs, outFileName), udtaBuffer);
+        file.file = new File([new Uint8Array(file.file)], clipData.name + ".mp4", { type: "video/mp4" });
+        modifiedFile = true;
     }
 
-    if(modifiedFile){
-        file.file = modifiedFile;
+    console.log(file);
+    console.log(file.file);
 
-        //send as a clip
-        file.clip = clipData;
-    }
+    modifiedFile && (file.clip = clipData) //send as a clip
 
     return file;
-
 }
 
+function genericErrorHandler(err, currentFile=undefined) {
+    BetterDiscord.UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
+    BetterDiscord.Logger.error(err);
+    if(currentFile) {
+        BetterDiscord.Logger.info("Current file information for debugging:", currentFile);
+        BetterDiscord.Logger.info(`File Type: "${currentFile.file?.type}"`);
+    }
+}
 
 export default {
     name: "Clips Bypass",
@@ -91,21 +118,34 @@ export default {
     ids: undefined,
     waitFor: [x => x.addFiles],
     apply(finale, patcher) {
+        console.log(udtaBuffer);
         patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
-            const ffmpeg = FFmpegStore.getFFmpegInstance();
             const {useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp} = SettingsStore.getAll();
 
-            console.log(args);
+            console.log('preargs',{...args});
             if(!args?.files?.length || (!useClipBypass && !useAudioClipBypass && !zipClip)) return originalFunction.apply(_, [args]);
 
-            args.files = args.files.map(currentFile => {
+            args.files = await Promise.all(args.files.map(async currentFile => {
+                try{
+                    console.log('awaiting doClipsBypass');
+                    currentFile = await doClipsBypass(currentFile);
+                    console.log('received file: ', currentFile);
 
-                currentFile = doClipsBypass(currentFile);
+                    return currentFile;
+                }catch(err){
+                    genericErrorHandler(err, currentFile);
+                }
 
-                return currentFile;
-            });
+            }));
 
-            return originalFunction.apply(_, [args]);
+            console.log('after args',args);
+            console.log('args.files',args.files);
+
+            try{
+                return originalFunction.apply(_, [args]);
+            }catch(err){
+                genericErrorHandler(err);
+            }
         });
     }
 }

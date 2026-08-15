@@ -9276,6 +9276,7 @@ __export(exports_modules, {
   EditMessage: () => editMessage_default,
   DEV: () => dev_default,
   CustomThemeApply: () => customClientThemes_default,
+  ClipsBypass: () => clipsBypass_default,
   ClientThemes: () => clientThemes_default,
   CanUserUse: () => canUserUse_default,
   AppIcons: () => appIcons_default,
@@ -13481,15 +13482,328 @@ var premiumType_default = {
     });
   }
 };
+// src/global/stores/FFmpegStore.ts
+var { Logger, Net, UI, DOM } = BetterDiscord;
+var _path = () => require("path");
+var fs = () => require("fs");
+var BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/`;
+var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Store {
+  ffmpeg;
+  loaded = false;
+  constructor() {
+    super();
+  }
+  async loadFFmpeg() {
+    const defineTemp = window.global.define;
+    let ffmpegScript = document.getElementById("ffmpegScript");
+    if (ffmpegScript) {
+      ffmpegScript.remove();
+    }
+    delete window.FFmpegWASM;
+    function tryFetchFromDisk(filename, encoding) {
+      const basepath = _path().join(BdApi.Plugins.folder, "ffmpeg");
+      let filepath = _path().join(basepath, filename);
+      try {
+        if (fs().existsSync(filepath)) {
+          let file = fs().readFileSync(filepath, encoding);
+          Logger.info(`Fetch from disk for file ${filename} succeeded.`);
+          return file;
+        } else
+          return false;
+      } catch (err) {
+        Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
+        Logger.warn(err);
+      }
+    }
+    async function fetchFFmpeg(filename) {
+      const res = await Net.fetch(BASE_URL + filename, { timeout: 1e5 });
+      if (res.ok && res.status == 200) {
+        return res;
+      } else {
+        Logger.error(res);
+        throw new Error(filename + " failed to fetch.");
+      }
+    }
+    async function fetchBlobUrl(filename) {
+      try {
+        let blobUrl;
+        let file = tryFetchFromDisk(filename, "");
+        if (file)
+          blobUrl = URL.createObjectURL(new Blob([file]));
+        else
+          blobUrl = URL.createObjectURL(await (await fetchFFmpeg(filename)).blob());
+        return blobUrl;
+      } catch (err) {
+        Logger.error("An error occurred while fetching " + filename);
+        throw err;
+      }
+    }
+    let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
+    try {
+      ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
+      let ffmpegSrc;
+      try {
+        let file = tryFetchFromDisk("ffmpeg.js", "text/javascript");
+        if (file)
+          ffmpegSrc = file;
+        else
+          ffmpegSrc = await (await fetchFFmpeg("ffmpeg.js")).text();
+      } catch (err) {
+        Logger.error("An error occurred while fetching ffmpeg.js");
+        throw err;
+      }
+      ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
+      ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
+      window.global.define = undefined;
+      await new Promise((load, err) => {
+        const ffmpegScriptElem = document.createElement("script");
+        ffmpegScriptElem.id = "ffmpegScript";
+        ffmpegScriptElem.src = ffmpegURL;
+        ffmpegScriptElem.onload = load;
+        ffmpegScriptElem.onerror = err;
+        document.head.appendChild(ffmpegScriptElem);
+      });
+      window.global.define = defineTemp;
+      ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
+      ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
+      if (window.FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
+        this.ffmpeg = new window.FFmpegWASM.FFmpeg;
+        await this.ffmpeg.load({
+          coreURL: ffmpegCoreURL,
+          wasmURL: ffmpegCoreWasmURL
+        });
+        Logger.info("FFmpeg load success!");
+        this.loaded = true;
+        this.ffmpeg.on("log", ({ message }) => {
+          console.log(message);
+        });
+      } else {
+        Logger.info("FFmpegWASM", window.FFmpegWASM);
+        Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+        Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+        Logger.info("ffmpegWorkerURL", ffmpegWorkerURL);
+        throw new Error("One or more of the necessary components failed to load.");
+      }
+    } catch (err) {
+      UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
+      Logger.info("FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
+      Logger.error(err);
+    } finally {
+      window.global.define = defineTemp;
+      if (ffmpegURL)
+        URL.revokeObjectURL(ffmpegURL);
+      if (ffmpegCoreURL)
+        URL.revokeObjectURL(ffmpegCoreURL);
+      if (ffmpegCoreWasmURL)
+        URL.revokeObjectURL(ffmpegCoreWasmURL);
+      if (ffmpegWorkerURL)
+        URL.revokeObjectURL(ffmpegWorkerURL);
+    }
+  }
+  unloadFFmpeg() {
+    if (this.loaded) {
+      this.ffmpeg.terminate();
+      this.ffmpeg = undefined;
+    }
+    const ffmpegScript = document.getElementById("ffmpegScript");
+    ffmpegScript && ffmpegScript.remove();
+    if (window.FFmpegWASM)
+      delete window.FFmpegWASM;
+    this.loaded = false;
+  }
+  getFFmpegInstance() {
+    return this.ffmpeg;
+  }
+};
+
+// src/patches/modules/clipsBypass.ts
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4") {
+  await FFmpegStore_default.loadFFmpeg();
+  const ffmpeg = FFmpegStore_default.getFFmpegInstance();
+  if (!ffmpeg)
+    throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
+  inFileName == outFileName && (inFileName = "in_" + inFileName);
+  await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+  console.log("Approximately equivalent ffmpeg command:");
+  console.log("ffmpeg " + ffmpegArguments.join(" "));
+  await ffmpeg.exec(ffmpegArguments);
+  const data = await ffmpeg.readFile(outFileName);
+  ffmpeg.deleteFile(inFileName);
+  ffmpeg.deleteFile(outFileName);
+  if (data.length == 0)
+    throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + "likely due to an FFmpeg error. Please check the FFmpeg logs above. " + "If you need assistance, please use the support channel in the Discord server.");
+  return data.buffer;
+}
+function concatArrayBuffers(buf1, buf2) {
+  let newArray = new Uint8Array(buf1.byteLength + buf2.byteLength);
+  newArray.set(new Uint8Array(buf1), 0);
+  newArray.set(new Uint8Array(buf2), buf1.byteLength);
+  return newArray.buffer;
+}
+var udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
+var FREE_FILE_LIMIT = 20971520;
+var CLIPS_FILE_LIMIT = 104857600;
+async function doClipsBypass(file) {
+  const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } = SettingsStore_default.getAll();
+  const skippedFileTypes = ["video/3gp", "video/asf", "video/ivf", "video/mpeg", "audio/mid", "audio/basic", "audio/mpegurl", "audio/3gp"];
+  if (skippedFileTypes.includes(file.file.type))
+    return file;
+  const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov", "audio/wav", "audio/aiff", "audio/x-ms-wma", "audio/mpeg"];
+  let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
+  const clipData = {
+    id: 0,
+    createdAt: 1420070400000,
+    version: 3,
+    applicationName: "",
+    applicationId: "1301689862256066560",
+    users: [
+      UserStore9.getCurrentUser().id
+    ],
+    clipMethod: "manual",
+    length: file.file.size,
+    thumbnail: "",
+    filepath: "",
+    name: file.file.name.substring(0, file.file.name.lastIndexOf("."))
+  };
+  let modifiedFile = false;
+  let arrayBuffer = await file.file.arrayBuffer();
+  if ((file.file.size > FREE_FILE_LIMIT || forceClip) && useClipBypass && file.file.type.startsWith("video/") && !skippedFileTypes.includes(file.file.type) && file.file.size <= CLIPS_FILE_LIMIT) {
+    const ffmpegVideoClipArgs = [
+      "-i",
+      file.file.name,
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-c:s",
+      "mov_text",
+      "-dn",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map",
+      "0",
+      "-map_metadata",
+      "-1",
+      "-map_chapters",
+      "-1",
+      "-map",
+      "-0:t",
+      "-strict",
+      "-2",
+      outFileName
+    ];
+    file.file = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegVideoClipArgs, outFileName), udtaBuffer);
+    file.file = new File([new Uint8Array(file.file)], clipData.name + ".mp4", { type: "video/mp4" });
+    modifiedFile = true;
+  } else if (useAudioClipBypass && (file.file.size > FREE_FILE_LIMIT || forceAudioClip) && (file.file.type.startsWith("audio/") && file.file.size <= CLIPS_FILE_LIMIT)) {
+    const ffmpegAudioClipArgs = [
+      "-i",
+      file.file.name,
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=300x100",
+      "-shortest",
+      "-fflags",
+      "+shortest",
+      "-map",
+      "0:v?",
+      "-map",
+      "1:v",
+      "-map",
+      "0:a",
+      "-disposition:v",
+      "default",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      "-dn",
+      "-map_chapters",
+      "-1",
+      "-preset",
+      "ultrafast",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "-strict",
+      "-2",
+      "-tune",
+      "stillimage",
+      "-r",
+      "10",
+      "-pix_fmt",
+      "yuv420p",
+      "-vf",
+      "crop=trunc(iw/2)*2:trunc(ih/2)*2",
+      "-max_interleave_delta",
+      "1",
+      outFileName
+    ];
+    file.file = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegAudioClipArgs, outFileName), udtaBuffer);
+    file.file = new File([new Uint8Array(file.file)], clipData.name + ".mp4", { type: "video/mp4" });
+    modifiedFile = true;
+  }
+  console.log(file);
+  console.log(file.file);
+  modifiedFile && (file.clip = clipData);
+  return file;
+}
+function genericErrorHandler(err, currentFile = undefined) {
+  BetterDiscord.UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
+  BetterDiscord.Logger.error(err);
+  if (currentFile) {
+    BetterDiscord.Logger.info("Current file information for debugging:", currentFile);
+    BetterDiscord.Logger.info(`File Type: "${currentFile.file?.type}"`);
+  }
+}
+var clipsBypass_default = {
+  name: "Clips Bypass",
+  description: "Modify files to be sendable as a clip, changing the file upload limit to 100MB.",
+  ids: undefined,
+  waitFor: [(x) => x.addFiles],
+  apply(finale, patcher) {
+    console.log(udtaBuffer);
+    patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
+      const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } = SettingsStore_default.getAll();
+      console.log("preargs", { ...args });
+      if (!args?.files?.length || !useClipBypass && !useAudioClipBypass && !zipClip)
+        return originalFunction.apply(_, [args]);
+      args.files = await Promise.all(args.files.map(async (currentFile) => {
+        try {
+          console.log("awaiting doClipsBypass");
+          currentFile = await doClipsBypass(currentFile);
+          console.log("received file: ", currentFile);
+          return currentFile;
+        } catch (err) {
+          genericErrorHandler(err, currentFile);
+        }
+      }));
+      console.log("after args", args);
+      console.log("args.files", args.files);
+      try {
+        return originalFunction.apply(_, [args]);
+      } catch (err) {
+        genericErrorHandler(err);
+      }
+    });
+  }
+};
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
-      if (!BadgesStore_default.isImportant(UserStore9.getCurrentUser().id))
+      if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;
       const user = args[0].message.author;
       if (!res.props.badges.find((x) => x.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
@@ -13597,13 +13911,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore10.getCurrentUser().id;
+    const currentUserId = UserStore11.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
@@ -13836,7 +14150,7 @@ function startChangelog(sourceVersion) {
 var import_varforcer = __toESM(require_varforcer(), 1);
 var { Components: Components12 } = BetterDiscord;
 var { React: React18 } = BetterDiscord;
-var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore12 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -14265,8 +14579,8 @@ function normalizeVersion2(v) {
   return parts.join(".");
 }
 var Electron = () => eval('require("electron")');
-var _path = () => require("path");
-var fs = () => require("fs");
+var _path2 = () => require("path");
+var fs2 = () => require("fs");
 var unpatchDevMode = null;
 function startSet() {
   const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", { raw: true });
@@ -14289,7 +14603,7 @@ class Plugin {
     console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore11.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
@@ -14329,8 +14643,8 @@ class Plugin {
             label: "Update",
             onClick: () => {
               const bd_path = Electron().ipcRenderer.sendSync("bd-get-path", "appData");
-              const path = _path().join(bd_path, "BetterDiscord", "plugins", "YABDP4Nitro.plugin.js");
-              fs().writeFile(path, this.source, (err) => {
+              const path = _path2().join(bd_path, "BetterDiscord", "plugins", "YABDP4Nitro.plugin.js");
+              fs2().writeFile(path, this.source, (err) => {
                 if (err) {
                   BetterDiscord.UI.showToast("Failed to update, Please update manually.");
                 } else {
@@ -14365,12 +14679,13 @@ class Plugin {
   stop() {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
+    FFmpegStore_default.unloadFFmpeg();
   }
   renderControl(def, value) {
     const onChange = (v) => {
       SettingsStore_default.set(def.key, v);
       if (def.key == "changePremiumType2")
-        UserStore11.getCurrentUser().premiumType = v;
+        UserStore12.getCurrentUser().premiumType = v;
       if (def.key == "experiments")
         startSet();
     };
