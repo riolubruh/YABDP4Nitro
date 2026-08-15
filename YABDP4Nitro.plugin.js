@@ -9179,6 +9179,7 @@ __export(exports_modules, {
   SendMessage: () => _sendMessage_default,
   RenderMessageEmbeds: () => renderMessageEmbeds_default,
   RenderMessage: () => renderMessage_default,
+  PremiumType: () => premiumType_default,
   MaxFileSize: () => maxFileSize_default,
   GoLiveModal: () => goLiveModal_default,
   GifPickerContext: () => gifPickerContext_default,
@@ -13379,6 +13380,18 @@ var customClientThemes_default = {
           }
         }, "Apply")));
       });
+    });
+  }
+};
+// src/patches/modules/premiumType.ts
+var premiumType_default = {
+  name: "premiumType",
+  description: "Makes sure the premium type is always what you want",
+  apply(finale, patcher) {
+    const randomAssStore = BetterDiscord.Webpack.getStore("OverridePremiumTypeStore");
+    patcher.instead(randomAssStore, "getPremiumTypeActual", () => {
+      const info = SettingsStore_default.get("changePremiumType2");
+      return info;
     });
   }
 };

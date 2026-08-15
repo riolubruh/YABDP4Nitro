@@ -22,6 +22,7 @@ export { default as UserProfileV2 } from "./UserProfileV2.tsx"
 export { default as GetAvatarURL } from "./getAvatarURL.ts"
 export { default as CanUserUse } from "./canUserUse.ts"
 export { default as CustomThemeApply } from "./customClientThemes.tsx"
+export { default as PremiumType } from "./premiumType.ts"
 
 // dev owo
 export { default as DEV } from "./dev.tsx"
