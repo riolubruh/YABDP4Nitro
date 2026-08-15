@@ -149,7 +149,7 @@ export function getEmojiUrl(emoji: any, emojiSize: number = SettingsStore.get("e
 }
 
 export function getEmojiString(emoji: any) {
-    return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
+    return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
 }
 
 export const styled = new Proxy(styledBase, {

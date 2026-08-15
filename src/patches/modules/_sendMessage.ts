@@ -121,7 +121,7 @@ export default {
                     // custom emoji
                     if(sound?.emojiId){
                         let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
-                        msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX+sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
+                        msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ?? "someCustomEmoji"}](${EMOJI_PREFIX+sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
                     }
                     //no emoji
                     (!sound.emojiId && !sound.emojiName) && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));

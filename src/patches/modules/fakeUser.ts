@@ -45,7 +45,7 @@ export default {
                         value: {
                             fontId: styleData.fontId,
                             effectId: styleData.effectId,
-                            colors: [styleData.color1, (styleData?.color2 ? styleData.color2 : null)].filter(Boolean),
+                            colors: [styleData.color1, styleData?.color2].filter(Boolean),
                         },
                         enumerable: true,
                         writable: true,

@@ -15,7 +15,7 @@ export default {
         const currentUserId = UserStore.getCurrentUser().id;
         const streamingUserId = props?.stream?.ownerId;
         const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.get('userSharpenPreferences'));
-        const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ? userSharpnessPreferences?.[streamingUserId] : 0;
+        const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
 
         if(!sharpenStreamsEnabled || !props?.stream?.ownerId || props?.stream?.ownerId == currentUserId) return;
 
