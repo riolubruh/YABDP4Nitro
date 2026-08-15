@@ -10,6 +10,7 @@ import {getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
 import Meta from "../package.json"
+import varForcer from "../src/global/shared/varforcer"
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -468,12 +469,29 @@ const Electron = () => eval("require(\"electron\")");
 const _path = () => require("path");
 const fs = () => require("fs");
 
+let unpatchDevMode: (() => void) | null = null;
+
+function startSet() {
+    const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", { raw: true });
+    const [, key] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"), { target: decls });
+
+    decls.c = SettingsStore.get("experiments");
+
+    if (unpatchDevMode) return;
+
+    unpatchDevMode = BetterDiscord.Patcher.instead(decls, key, () => {
+        decls.c = SettingsStore.get("experiments");
+    });
+}
+
+
 export default class Plugin {
     private unpatch = loadContextMenus();
     private source: string = "";
 
     async start() {
         this.checkChangelog();
+        startSet();
 
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
         console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
@@ -488,50 +506,13 @@ export default class Plugin {
                 BadgesStore,
                 getRevealedText,
                 secondsightifyRevealOnly,
-                SettingsStore
+                SettingsStore,
+                varForcer
             };
         }
 
         await UserBackgroundStore.fetch();
         await loadPatches();
-
-        try {
-            SettingsStore.get("experiments") && webpackChunkdiscord_app.push([{some: () => true}, {}, r => {
-                if ("b" in r && "c" in r && "m" in r) {
-                    const module = r.c[Object.entries(r.m).find(x => String(x[1]).includes("DeveloperExperimentStore"))[0]];
-
-                    if (!module) return;
-
-                    const {id, exports} = module;
-
-                    delete r.c[id];
-
-                    const [defaultKey, DeveloperExperimentStore] = Object.entries(exports).find(x => x[1] && "isDeveloper" in x[1]);
-
-                    const descriptors = Object.getOwnPropertyDescriptors(exports);
-
-                    let store = {
-                        isDeveloper: true,
-                        __proto__: DeveloperExperimentStore
-                    };
-
-                    descriptors[defaultKey] = {
-                        ...descriptors[defaultKey],
-                        get: () => store
-                    }
-
-                    r.c[id] = {
-                        ...module,
-                        exports: Object.defineProperties({}, descriptors)
-                    }
-
-                    DeveloperExperimentStore.emitChange();
-                }
-            }]);
-        } catch (error) {
-            BetterDiscord.Logger.error(error.message);
-        }
-
     }
 
     exposed = {
@@ -608,6 +589,7 @@ export default class Plugin {
             SettingsStore.set(def.key as any, v)
             // just hardcode this for now. the setting exists with dropdowns.
             if (def.key == "changePremiumType2") UserStore.getCurrentUser().premiumType = v
+            if (def.key == "experiments") startSet();
         };
 
         switch (def.type) {

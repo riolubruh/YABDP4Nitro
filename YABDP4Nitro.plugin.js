@@ -9,6 +9,8 @@
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
+ 
+const React = window.BdApi.React
 var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
@@ -9156,6 +9158,111 @@ var require_lib3 = __commonJS((exports2, module2) => {
   module2.exports = JSZip;
 });
 
+// src/global/shared/varforcer/index.ts
+var require_varforcer = __commonJS((exports2, module2) => {
+  function normalizeFunctionSource(str) {
+    const trimmed = str.trimStart();
+    if (/^function\b/.test(trimmed))
+      return str;
+    const arrowIdx = str.indexOf("=>");
+    const braceIdx = str.indexOf("{");
+    if (arrowIdx !== -1 && (braceIdx === -1 || arrowIdx < braceIdx))
+      return str;
+    let rest = trimmed;
+    let isAsync = false;
+    let isGenerator = false;
+    if (rest.startsWith("async")) {
+      isAsync = true;
+      rest = rest.slice(5).trimStart();
+    }
+    if (rest.startsWith("*")) {
+      isGenerator = true;
+      rest = rest.slice(1).trimStart();
+    }
+    const parenIdx = rest.indexOf("(");
+    if (parenIdx === -1)
+      throw new Error("[varForcer] Could not normalize function source (no `(` found).");
+    rest = rest.slice(parenIdx);
+    return `${isAsync ? "async " : ""}function${isGenerator ? "*" : ""} ${rest}`;
+  }
+  function parseDestructuredVars(fnStr) {
+    const letIndex = fnStr.indexOf("let{");
+    if (letIndex === -1) {
+      throw new Error("[varForcer] Could not find a `let{...}` destructure in the given function.");
+    }
+    const openBrace = letIndex + 4;
+    const closeBrace = fnStr.indexOf("}", openBrace);
+    if (closeBrace === -1) {
+      throw new Error("[varForcer] Found `let{` but no matching closing `}`.");
+    }
+    const body = fnStr.slice(openBrace, closeBrace);
+    const entries = body.split(",").map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
+      const [remote, local] = chunk.split(":").map((s) => s.trim());
+      return [remote, local || remote];
+    });
+    return Object.fromEntries(entries);
+  }
+  function serializeValue(value) {
+    if (typeof value === "string")
+      return JSON.stringify(value);
+    if (value === undefined)
+      return "undefined";
+    if (typeof value === "object" && value !== null)
+      return JSON.stringify(value);
+    return String(value);
+  }
+  function forceFunctionVars(fn, declarations, options) {
+    const { after, offset = 0, sets, throwIfMissingAnchor = true } = options;
+    if (!after)
+      throw new Error("[varForcer] `options.after` (anchor string) is required.");
+    if (!sets || Object.keys(sets).length === 0)
+      throw new Error("[varForcer] `options.sets` must have at least one entry.");
+    const str = normalizeFunctionSource(fn.toString());
+    const vars = parseDestructuredVars(str);
+    const missing = Object.keys(sets).filter((name) => !vars[name]);
+    if (missing.length) {
+      throw new Error(`[varForcer] Could not resolve destructured var(s): ${missing.join(", ")}. Found: ${Object.keys(vars).join(", ")}`);
+    }
+    const anchorIndex = str.indexOf(after);
+    if (anchorIndex === -1) {
+      if (throwIfMissingAnchor)
+        throw new Error(`[varForcer] Could not find anchor string: "${after}"`);
+      return null;
+    }
+    const insertAt = anchorIndex + after.length + offset;
+    const before = str.slice(0, insertAt);
+    const rest = str.slice(insertAt);
+    const assignments = Object.entries(sets).map(([name, value]) => `${vars[name]}=${serializeValue(value)};`).join("");
+    const source = `with (__DECLARATIONS__) return (${before}${assignments}${rest});`;
+    try {
+      return new Function("__DECLARATIONS__", source)(declarations);
+    } catch (err) {
+      throw new Error(`[varForcer] Failed to compile patched function: ${err.message}
+
+Generated source:
+${source}`);
+    }
+  }
+  function replaceFunctionLiteral(fn, declarations, options) {
+    const { find, replace, throwIfMissing = true } = options;
+    const str = normalizeFunctionSource(fn.toString());
+    const found = typeof find === "string" ? str.includes(find) : find.test(str);
+    if (!found && throwIfMissing)
+      throw new Error(`[varForcer] Pattern not found: ${find}`);
+    const patched = str.replace(find, replace);
+    const source = `with (__DECLARATIONS__) return (${patched});`;
+    try {
+      return new Function("__DECLARATIONS__", source)(declarations);
+    } catch (err) {
+      throw new Error(`[varForcer] Failed to compile patched function: ${err.message}
+
+Generated source:
+${source}`);
+    }
+  }
+  module2.exports = { forceFunctionVars, replaceFunctionLiteral, parseDestructuredVars, serializeValue, normalizeFunctionSource };
+});
+
 // src/index.tsx
 var exports_src = {};
 __export(exports_src, {
@@ -13396,6 +13503,7 @@ var premiumType_default = {
   }
 };
 // src/patches/modules/dev.tsx
+var React16 = BetterDiscord.React;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
   name: "dev",
@@ -13406,7 +13514,7 @@ var dev_default = {
         return res;
       const user = args[0].message.author;
       if (!res.props.badges.find((x) => x.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
-        res.props.badges.push(/* @__PURE__ */ React.createElement("img", {
+        res.props.badges.push(/* @__PURE__ */ React16.createElement("img", {
           key: "yabd-badge",
           height: "16px",
           width: "16px",
@@ -13427,7 +13535,7 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var import_jszip = __toESM(require_lib3(), 1);
-var { React: React16 } = BetterDiscord;
+var { React: React17 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
@@ -13456,20 +13564,20 @@ var message_default = {
       URL.revokeObjectURL(url);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    const Menu = /* @__PURE__ */ React16.createElement(BetterDiscord.ContextMenu.Item, {
+    const Menu = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
       action: startDownload,
       leadingAccessory: {
         type: "icon",
-        icon: () => /* @__PURE__ */ React16.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React17.createElement(Icon, {
           width: "22",
           icon: "mdi:download"
         })
       },
-      label: /* @__PURE__ */ React16.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React16.createElement(ContextMenuLabel, null), /* @__PURE__ */ React16.createElement("span", null, "Download Attachment(s)")),
+      label: /* @__PURE__ */ React17.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React17.createElement(ContextMenuLabel, null), /* @__PURE__ */ React17.createElement("span", null, "Download Attachment(s)")),
       id: "yabdp4nitro-download-attachments"
     });
-    const Sep = /* @__PURE__ */ React16.createElement(BetterDiscord.ContextMenu.Separator, null);
+    const Sep = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Separator, null);
     props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -13746,8 +13854,9 @@ function startChangelog(sourceVersion) {
 }
 
 // src/index.tsx
+var import_varforcer = __toESM(require_varforcer(), 1);
 var { Components: Components12 } = BetterDiscord;
-var { React: React17 } = BetterDiscord;
+var { React: React18 } = BetterDiscord;
 var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
@@ -14179,12 +14288,24 @@ function normalizeVersion2(v) {
 var Electron = () => eval('require("electron")');
 var _path = () => require("path");
 var fs = () => require("fs");
+var unpatchDevMode = null;
+function startSet() {
+  const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", { raw: true });
+  const [, key] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"), { target: decls });
+  decls.c = SettingsStore_default.get("experiments");
+  if (unpatchDevMode)
+    return;
+  unpatchDevMode = BetterDiscord.Patcher.instead(decls, key, () => {
+    decls.c = SettingsStore_default.get("experiments");
+  });
+}
 
 class Plugin {
   unpatch = loadContextMenus();
   source = "";
   async start() {
     this.checkChangelog();
+    startSet();
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
@@ -14196,39 +14317,12 @@ class Plugin {
         BadgesStore: BadgesStore_default,
         getRevealedText,
         secondsightifyRevealOnly,
-        SettingsStore: SettingsStore_default
+        SettingsStore: SettingsStore_default,
+        varForcer: import_varforcer.default
       };
     }
     await UserBackgroundStore_default.fetch();
     await loadPatches();
-    try {
-      SettingsStore_default.get("experiments") && webpackChunkdiscord_app.push([{ some: () => true }, {}, (r) => {
-        if ("b" in r && "c" in r && "m" in r) {
-          const module2 = r.c[Object.entries(r.m).find((x) => String(x[1]).includes("DeveloperExperimentStore"))[0]];
-          if (!module2)
-            return;
-          const { id, exports: exports2 } = module2;
-          delete r.c[id];
-          const [defaultKey, DeveloperExperimentStore] = Object.entries(exports2).find((x) => x[1] && ("isDeveloper" in x[1]));
-          const descriptors = Object.getOwnPropertyDescriptors(exports2);
-          let store = {
-            isDeveloper: true,
-            __proto__: DeveloperExperimentStore
-          };
-          descriptors[defaultKey] = {
-            ...descriptors[defaultKey],
-            get: () => store
-          };
-          r.c[id] = {
-            ...module2,
-            exports: Object.defineProperties({}, descriptors)
-          };
-          DeveloperExperimentStore.emitChange();
-        }
-      }]);
-    } catch (error) {
-      BetterDiscord.Logger.error(error.message);
-    }
   }
   exposed = {
     YABDNitroPanel: CustomSettingsTab
@@ -14245,7 +14339,7 @@ class Plugin {
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React17.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React18.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -14298,25 +14392,27 @@ class Plugin {
       SettingsStore_default.set(def.key, v);
       if (def.key == "changePremiumType2")
         UserStore11.getCurrentUser().premiumType = v;
+      if (def.key == "experiments")
+        startSet();
     };
     switch (def.type) {
       case "boolean":
-        return /* @__PURE__ */ React17.createElement(Components12.SwitchInput, {
+        return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React17.createElement(Components12.NumberInput, {
+        return /* @__PURE__ */ React18.createElement(Components12.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React17.createElement(Components12.TextInput, {
+        return /* @__PURE__ */ React18.createElement(Components12.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React17.createElement(Components12.DropdownInput, {
+        return /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -14336,11 +14432,11 @@ class Plugin {
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React17.createElement(React17.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React17.createElement(Components12.SettingGroup, {
+      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React18.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
         collapsible: true
-      }, defs.map((def) => /* @__PURE__ */ React17.createElement(Components12.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React18.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note

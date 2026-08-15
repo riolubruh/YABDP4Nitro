@@ -1,6 +1,7 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
+const React = BetterDiscord.React
 
 const {UserStore} = BetterDiscord.Webpack.Stores
 

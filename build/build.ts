@@ -16,6 +16,8 @@ const BANNER = `/**
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
+ 
+const React = window.BdApi.React
 `
 
 const GLOBAL_NAME = 'YABDP4Nitro.plugin.js'
