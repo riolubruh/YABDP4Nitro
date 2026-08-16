@@ -58,7 +58,8 @@ const CardLabel = styled.div({
 })
 
 export function CustomSettingsTab() {
-    const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id)
+    const isDeveloper = BadgesStore.isImportant(UserStore.getCurrentUser().id);
+    const advancedProfileCustomization = SettingsStore.get("advancedProfileCustomization");
     const [devText, setDevText] = React.useState<string>("")
 
     return <Scroller>
@@ -100,7 +101,7 @@ export function CustomSettingsTab() {
                 <ProfileFrames/>
             </Card>
 
-            {isDeveloper ? <Card style={{gridColumn: "span 2"}}>
+            {isDeveloper || advancedProfileCustomization ? <Card style={{gridColumn: "span 2"}}>
                 <CardLabel>Developer</CardLabel>
                 <div style={{display: "flex", gap: "8px", width: "100%"}}>
                     <Components.TextInput value={devText} onChange={setDevText} style={{flex: 1}}/>

@@ -12,6 +12,6 @@ export default new class CustomUserProfileStore {
     }
 
     unload(){
-        this.profiles = null;
+        this.profiles = [];
     }
 }

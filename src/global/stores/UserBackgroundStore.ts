@@ -33,7 +33,7 @@ export default new class UserBackgroundStore extends BetterDiscord.Utils.Store {
 
 
     unload(){
-        this.users = null;
-        this.meta = null;
+        this.users = {};
+        this.meta = {};
     }
 }

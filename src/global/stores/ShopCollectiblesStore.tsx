@@ -141,8 +141,8 @@ export default new class ShopCollectiblesStore extends BetterDiscord.Utils.Store
     }
 
     unload(){
-        this.collections = null;
-        this.quests =  null;
-        this._invalid = null;
+        this.collections = [];
+        this.quests =  [];
+        this._invalid = [];
     }
 }

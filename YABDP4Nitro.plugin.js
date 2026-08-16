@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -9012,7 +8991,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9343,7 +9322,7 @@ var CustomUserProfileStore_default = new class CustomUserProfileStore {
     this.profiles.push(user);
   }
   unload() {
-    this.profiles = null;
+    this.profiles = [];
   }
 };
 
@@ -9477,8 +9456,8 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
     this.users = response.users;
   }
   unload() {
-    this.users = null;
-    this.meta = null;
+    this.users = {};
+    this.meta = {};
   }
 };
 
@@ -13240,11 +13219,11 @@ function DisplayNameStyle() {
     loop: true,
     shouldWrap: false,
     inProfile: true,
-    effectDisplayType: 1,
+    effectDisplayType: effectId + 1,
     displayNameStyles: {
       colors: [colors.primary, colors.accent].filter(Boolean).map((x) => parseInt(x.replace("#", "0x"), 16)),
-      effectId,
-      fontId
+      effectId: effectId + 1,
+      fontId: fontId + 1
     }
   })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((_fontId, index) => {
     return /* @__PURE__ */ React9.createElement(FontButton, {
@@ -13377,9 +13356,9 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
     return this.getAllResolvedQuestItems().filter((i) => i.type === 3);
   }
   unload() {
-    this.collections = null;
-    this.quests = null;
-    this._invalid = null;
+    this.collections = [];
+    this.quests = [];
+    this._invalid = [];
   }
 };
 
@@ -13857,12 +13836,13 @@ var CardLabel = styled.div({
 });
 function CustomSettingsTab() {
   const isDeveloper = BadgesStore_default.isImportant(UserStore8.getCurrentUser().id);
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const [devText, setDevText] = React14.useState("");
   return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
     style: { gridColumn: "span 2" }
   }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)), /* @__PURE__ */ React14.createElement(Card, {
     style: { gridColumn: "span 2" }
-  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper ? /* @__PURE__ */ React14.createElement(Card, {
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
     style: { gridColumn: "span 2" }
   }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"), /* @__PURE__ */ React14.createElement("div", {
     style: { display: "flex", gap: "8px", width: "100%" }
@@ -14036,18 +14016,16 @@ var customClientThemes_default = {
   }
 };
 // src/patches/modules/premiumType.ts
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { OverridePremiumTypeStore } = BetterDiscord.Webpack.Stores;
 var premiumType_default = {
   name: "premiumType",
   description: "Makes sure the premium type is always what you want",
   apply(finale, patcher) {
-    const randomAssStore = BetterDiscord.Webpack.getStore("OverridePremiumTypeStore");
-    patcher.instead(randomAssStore, "getPremiumTypeActual", (_, __, callback) => {
+    patcher.instead(OverridePremiumTypeStore, "getPremiumTypeActual", (_, __, callback) => {
       const info = SettingsStore_default.get("changePremiumType2");
-      if (info != -1)
-        return info;
-      else
+      if (info == -1)
         return callback();
+      return info;
     });
   }
 };
@@ -14102,6 +14080,9 @@ var cameraPreviewBypass_default = {
   name: "cameraPreviewBypass",
   apply(finale, patcher) {
     patcher.after(PresetModule, "A", (thisObj, args, result) => {
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
+      if (!enabled)
+        return;
       const filter = SettingsStore_default.get("customVideoFilter");
       if (filter?.link) {
         result[CUSTOM_ID] = {
@@ -14117,6 +14098,9 @@ var cameraPreviewBypass_default = {
     const { declarations } = mod;
     const [, pKey] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("BACKGROUND_REPLACEMENT"), { target: declarations });
     patcher.instead(declarations, pKey, (thisObj, args, original) => {
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
+      if (!enabled)
+        return original.apply(thisObj, args);
       const [type, target, option] = args;
       if (option !== CUSTOM_ID)
         return original.apply(thisObj, args);
@@ -14140,13 +14124,13 @@ var cameraPreviewBypass_default = {
 };
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
-      if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
+      if (!BadgesStore_default.isImportant(UserStore9.getCurrentUser().id))
         return res;
       const user = args[0].message.author;
       if (!res.props.badges.find((x) => x.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
@@ -14263,13 +14247,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore11.getCurrentUser().id;
+    const currentUserId = UserStore10.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
@@ -14420,6 +14404,7 @@ var changelog_default = {
             "Fully rewritten internals from the ground up.",
             "Improved performance and stability.",
             "Cleaner, more maintainable codebase for future updates.",
+            "Improved UI.",
             "Improved UI locations to be more convenient."
           ]
         },
@@ -14429,9 +14414,10 @@ var changelog_default = {
           items: [
             "Downloading large attachments can cause a memory leak due to `Buffer` handling if DevTools is open.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
+            "Disabling and re-enabling the plugin too quickly will break the module loading.",
             '**"Someones banner background is flickering"** — We know. Our code is silly sometimes.',
             '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
-            `When streaming, right clicking and changing quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... 
+            `The stream context menu to change quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... 
 
 Its not easy.`
           ]
@@ -14440,7 +14426,7 @@ Its not easy.`
           title: "Extra",
           type: "added",
           items: [
-            "New Profile Frames added to the 3y3 encode bypass list.",
+            "Added 3y3 Profile Frames.",
             "You can now set a custom camera preview 🥳🎉🎉🎉!!",
             "<@917630027477159986> joins the team for future development of the plugin!"
           ]
@@ -14507,7 +14493,7 @@ function startChangelog(sourceVersion) {
 var import_varforcer = __toESM(require_varforcer(), 1);
 var { Components: Components12 } = BetterDiscord;
 var { React: React18 } = BetterDiscord;
-var { UserStore: UserStore12, ApexExperimentStore } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore11, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -14972,10 +14958,13 @@ class Plugin {
   async start() {
     this.checkChangelog();
     startSet();
+    const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
+    overrideVariant("2026-03-soundmoji-rendering", soundmojiEnabled ? 1 : 0);
+    overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore11.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
@@ -15056,12 +15045,13 @@ class Plugin {
     ShopCollectiblesStore_default.unload();
     CustomUserProfileStore_default.unload();
     BadgesStore_default.unload();
+    UserStore11.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
   }
   renderControl(def, value) {
     const onChange = (v) => {
       SettingsStore_default.set(def.key, v);
-      if (def.key == "changePremiumType2")
-        UserStore12.getCurrentUser().premiumType = v;
+      if (def.key == "changePremiumType2" && v != -1)
+        UserStore11.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
       if (def.key == "experiments")
         startSet();
       if (def.key == "enableClipsExperiment") {

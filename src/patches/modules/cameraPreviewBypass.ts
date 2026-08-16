@@ -39,6 +39,8 @@ export default {
     name: "cameraPreviewBypass",
     apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
         patcher.after(PresetModule, "A", (thisObj, args, result) => {
+            const enabled = SettingsStore.get("customVideoFilterEnabled");
+            if(!enabled) return;
             const filter = SettingsStore.get("customVideoFilter");
             if (filter?.link) {
                 result[CUSTOM_ID] = {
@@ -62,6 +64,9 @@ export default {
         );
 
         patcher.instead(declarations, pKey, (thisObj, args, original) => {
+            const enabled = SettingsStore.get("customVideoFilterEnabled");
+            if(!enabled) return original.apply(thisObj, args);
+
             const [type, target, option] = args;
             if (option !== CUSTOM_ID) return original.apply(thisObj, args);
 

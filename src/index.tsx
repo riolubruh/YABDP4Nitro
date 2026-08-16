@@ -17,7 +17,7 @@ import CustomUserProfileStore from "./global/stores/CustomUserProfileStore.ts";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
-const {UserStore, ApexExperimentStore} = BetterDiscord.Webpack.Stores;
+const {UserStore, ApexExperimentStore, OverridePremiumTypeStore} = BetterDiscord.Webpack.Stores;
 
 type ControlType = "boolean" | "number" | "string" | "select" | "custom";
 
@@ -520,6 +520,10 @@ export default class Plugin {
         this.checkChangelog();
         startSet();
 
+        const soundmojiEnabled = SettingsStore.get("soundmojiEnabled");
+        overrideVariant("2026-03-soundmoji-rendering", soundmojiEnabled ? 1 : 0);
+        overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
+
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
         (checkForUpdatesEnabled) && await this.checkUpdate();
 
@@ -613,13 +617,14 @@ export default class Plugin {
         ShopCollectiblesStore.unload();
         CustomUserProfileStore.unload();
         BadgesStore.unload();
+        UserStore.getCurrentUser().premiumType = OverridePremiumTypeStore.getPremiumTypeActual();
     }
 
     private renderControl(def: SettingDef, value: any) {
         const onChange = (v: any) => {
             SettingsStore.set(def.key as any, v)
             // just hardcode this for now. the setting exists with dropdowns.
-            if (def.key == "changePremiumType2") UserStore.getCurrentUser().premiumType = v
+            if (def.key == "changePremiumType2" && v != -1) UserStore.getCurrentUser().premiumType = OverridePremiumTypeStore.getPremiumTypeActual();
             if (def.key == "experiments") startSet();
             if (def.key == "enableClipsExperiment") {
                 SettingsStore.set("enableClipsExperiment", v)
