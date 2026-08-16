@@ -17,9 +17,7 @@
           "title": "Known Bugs/Issues",
           "type": "progress",
           "items": [
-            "Downloading large attachments can cause a memory leak due to `Buffer` handling.",
-            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet).",
-            "Sharpness may not apply on the streaming context menu — switch channels and back to fix.",
+            "Downloading large attachments can cause a memory leak due to `Buffer` handling if DevTools is open.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             "**\"Someones banner background is flickering\"** — We know. Our code is silly sometimes.",
             "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations...",

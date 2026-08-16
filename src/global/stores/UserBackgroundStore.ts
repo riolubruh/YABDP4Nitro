@@ -30,4 +30,10 @@ export default new class UserBackgroundStore extends BetterDiscord.Utils.Store {
         this.meta = {...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix};
         this.users = response.users;
     }
+
+
+    unload(){
+        this.users = null;
+        this.meta = null;
+    }
 }

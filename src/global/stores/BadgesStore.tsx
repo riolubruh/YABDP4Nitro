@@ -54,4 +54,8 @@ export default new class BadgesStore {
             link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
         }
     }
+
+    unload(){
+        this.foundUsers = [];
+    }
 }

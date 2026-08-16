@@ -12,6 +12,8 @@ import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
 import Meta from "../package.json"
 import varForcer from "../src/global/shared/varforcer"
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
+import UserProfilePictureStore from "./global/stores/UserProfilePictureStore.ts";
+import CustomUserProfileStore from "./global/stores/CustomUserProfileStore.ts";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -522,7 +524,6 @@ export default class Plugin {
         startSet();
 
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
-        console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
         (checkForUpdatesEnabled) && await this.checkUpdate();
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) => SettingsStore.set("appIcon", id));
@@ -554,7 +555,6 @@ export default class Plugin {
         const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
         const installedVersion = SettingsStore.get("installedVersion") ?? Meta.version ?? "0.0.0";
 
-        console.log(sourceVersion, installedVersion);
         if (!sourceVersion) return;
 
         if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
@@ -610,7 +610,12 @@ export default class Plugin {
     stop() {
         this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
-        FFmpegStore.unloadFFmpeg();
+        FFmpegStore.unload();
+        UserBackgroundStore.unload();
+        UserProfilePictureStore.unload();
+        ShopCollectiblesStore.unload();
+        CustomUserProfileStore.unload();
+        BadgesStore.unload();
     }
 
     private renderControl(def: SettingDef, value: any) {

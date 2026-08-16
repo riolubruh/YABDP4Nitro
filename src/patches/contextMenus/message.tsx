@@ -9,6 +9,8 @@ const {React} = BetterDiscord;
 
 const yourFlyIsShowing = new JSZip();
 
+const DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
+
 export default {
     id: "message",
     callback(res, props) {
@@ -33,9 +35,11 @@ export default {
 
             for (const file of files) {
                 yourFlyIsShowing.file(file.fileName, file.blob);
+                DiscordNativeModule.purgeMemory();
             }
 
             const zipBlob = await yourFlyIsShowing.generateAsync({type: "blob"});
+
             files = [];
             const url = URL.createObjectURL(zipBlob);
             const a = window.document.createElement("a");
@@ -44,7 +48,10 @@ export default {
             a.click();
             URL.revokeObjectURL(url);
 
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                DiscordNativeModule.purgeMemory();
+            }, 1000);
         }
 
         const Menu = <BetterDiscord.ContextMenu.Item onClose={CloseAllContextMenus}
@@ -64,7 +71,6 @@ export default {
 
         const Sep = <BetterDiscord.ContextMenu.Separator/>
 
-        console.log(attachmentsLmao)
         attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu)
     }
 }

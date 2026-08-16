@@ -12,8 +12,8 @@ export async function ffmpegTransmux(arrayBuffer: ArrayBuffer,inFileName = "inpu
 
     (arrayBuffer) && await ffmpeg.writeFile(inFileName,new Uint8Array(arrayBuffer));
 
-    console.log("Approximately equivalent ffmpeg command:");
-    console.log("ffmpeg " + ffmpegArguments.join(" "));
+    BetterDiscord.Logger.log("Approximately equivalent ffmpeg command:");
+    BetterDiscord.Logger.log("ffmpeg " + ffmpegArguments.join(" "));
 
     await ffmpeg.exec(ffmpegArguments);
     const data = await ffmpeg.readFile(outFileName);
@@ -212,9 +212,6 @@ export async function doClipsBypass(file){
         modifiedFile = true;
     }
 
-    console.log(file);
-    console.log(file.file);
-
     modifiedFile && (file.clip = clipData) //send as a clip
 
     return file;
@@ -238,22 +235,16 @@ export default {
         patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
             const {useClipBypass, useAudioClipBypass, zipClip} = SettingsStore.getAll();
 
-            console.log('preargs',{...args});
             if(!args?.files?.length || (!useClipBypass && !useAudioClipBypass && !zipClip)) return originalFunction.apply(_, [args]);
 
             args.files = await Promise.all(args.files.map(async currentFile => {
                 try{
-                    console.log('awaiting doClipsBypass');
                     currentFile = await doClipsBypass(currentFile) ?? currentFile;
-                    console.log('received file: ', currentFile);
                 }catch(err){
                     genericErrorHandler(err, currentFile);
                 }
                 return currentFile;
             }));
-
-            console.log('after args',args);
-            console.log('args.files',args.files);
 
             return originalFunction.apply(_, [args]);
         });

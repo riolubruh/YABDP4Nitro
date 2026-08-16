@@ -29,4 +29,8 @@ export default new class UserProfilePictureStore extends BetterDiscord.Utils.Sto
 
         this.users = response.avatars;
     }
+
+    unload(){
+        this.users = {};
+    }
 }

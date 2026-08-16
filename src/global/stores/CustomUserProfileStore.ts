@@ -10,4 +10,8 @@ export default new class CustomUserProfileStore {
     {
         this.profiles.push(user);
     }
+
+    unload(){
+        this.profiles = null;
+    }
 }

@@ -142,8 +142,6 @@ function ConfigModal({props, onClose, forceQuality}) {
         {key: "voiceBitrate", label: "Voice Bitrate"},
     ];
 
-    console.log(data)
-
     return (
         <ModalModule.Modal notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>

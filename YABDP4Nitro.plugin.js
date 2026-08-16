@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -9012,7 +8991,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9342,6 +9321,9 @@ var CustomUserProfileStore_default = new class CustomUserProfileStore {
   cacheMember(user) {
     this.profiles.push(user);
   }
+  unload() {
+    this.profiles = null;
+  }
 };
 
 // src/global/stores/SettingsStore.ts
@@ -9473,6 +9455,10 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
     this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
     this.users = response.users;
   }
+  unload() {
+    this.users = null;
+    this.meta = null;
+  }
 };
 
 // src/global/stores/BadgesStore.tsx
@@ -9523,6 +9509,9 @@ var BadgesStore_default = new class BadgesStore {
       description: "A fellow YABDP4Nitro user!",
       link: "https://github.com/riolubruh/YABDP4Nitro"
     };
+  }
+  unload() {
+    this.foundUsers = [];
   }
 };
 
@@ -11888,13 +11877,14 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
       this.calculateCrcTable();
     return this.crcTable;
   }
-  unloadFFmpeg() {
+  unload() {
     if (this.loaded) {
       this.ffmpeg.terminate();
       this.ffmpeg = undefined;
     }
     const ffmpegScript = document.getElementById("ffmpegScript");
     ffmpegScript && ffmpegScript.remove();
+    this.crcTable = null;
     if (window.FFmpegWASM)
       delete window.FFmpegWASM;
     this.loaded = false;
@@ -11913,8 +11903,8 @@ async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArgum
     throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
   inFileName == outFileName && (inFileName = "in_" + inFileName);
   arrayBuffer && await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
-  console.log("Approximately equivalent ffmpeg command:");
-  console.log("ffmpeg " + ffmpegArguments.join(" "));
+  BetterDiscord.Logger.log("Approximately equivalent ffmpeg command:");
+  BetterDiscord.Logger.log("ffmpeg " + ffmpegArguments.join(" "));
   await ffmpeg.exec(ffmpegArguments);
   const data = await ffmpeg.readFile(outFileName);
   inFileName && ffmpeg.deleteFile(inFileName);
@@ -12143,8 +12133,6 @@ async function doClipsBypass(file) {
     }
     modifiedFile = true;
   }
-  console.log(file);
-  console.log(file.file);
   modifiedFile && (file.clip = clipData);
   return file;
 }
@@ -12164,21 +12152,16 @@ var clipsBypass_default = {
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
       const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
-      console.log("preargs", { ...args });
       if (!args?.files?.length || !useClipBypass && !useAudioClipBypass && !zipClip)
         return originalFunction.apply(_, [args]);
       args.files = await Promise.all(args.files.map(async (currentFile) => {
         try {
-          console.log("awaiting doClipsBypass");
           currentFile = await doClipsBypass(currentFile) ?? currentFile;
-          console.log("received file: ", currentFile);
         } catch (err) {
           genericErrorHandler(err, currentFile);
         }
         return currentFile;
       }));
-      console.log("after args", args);
-      console.log("args.files", args.files);
       return originalFunction.apply(_, [args]);
     });
   }
@@ -12952,7 +12935,6 @@ function ConfigModal({ props, onClose, forceQuality }) {
     { key: "targetBitrate", label: "Target Bitrate" },
     { key: "voiceBitrate", label: "Voice Bitrate" }
   ];
-  console.log(data);
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
     notice: { type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**") },
     ...props,
@@ -13360,6 +13342,11 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
   }
   getQuestAvatarDecorations() {
     return this.getAllResolvedQuestItems().filter((i) => i.type === 3);
+  }
+  unload() {
+    this.collections = null;
+    this.quests = null;
+    this._invalid = null;
   }
 };
 
@@ -13917,6 +13904,9 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
     const response = await data.json();
     this.users = response.avatars;
   }
+  unload() {
+    this.users = {};
+  }
 };
 
 // src/patches/modules/getAvatarURL.ts
@@ -14150,6 +14140,7 @@ __export(exports_contextMenus, {
 var import_jszip = __toESM(require_lib3(), 1);
 var { React: React17 } = BetterDiscord;
 var yourFlyIsShowing = new import_jszip.default;
+var DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 var message_default = {
   id: "message",
   callback(res, props) {
@@ -14170,6 +14161,7 @@ var message_default = {
       })));
       for (const file of files) {
         yourFlyIsShowing.file(file.fileName, file.blob);
+        DiscordNativeModule.purgeMemory();
       }
       const zipBlob = await yourFlyIsShowing.generateAsync({ type: "blob" });
       files = [];
@@ -14179,7 +14171,10 @@ var message_default = {
       a.download = `${props.message.id}.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        DiscordNativeModule.purgeMemory();
+      }, 1000);
     }
     const Menu = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
@@ -14195,7 +14190,6 @@ var message_default = {
       id: "yabdp4nitro-download-attachments"
     });
     const Sep = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Separator, null);
-    console.log(attachmentsLmao);
     attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
@@ -14401,8 +14395,6 @@ var changelog_default = {
           type: "progress",
           items: [
             "Downloading large attachments can cause a memory leak due to `Buffer` handling.",
-            "Context menu items are missing icons on either side, due to Discord's new Mana Context Menu design experiment (not rolled out to everyone yet).",
-            "Sharpness may not apply on the streaming context menu — switch channels and back to fix.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             '**"Someones banner background is flickering"** — We know. Our code is silly sometimes.',
             '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
@@ -14951,7 +14943,6 @@ class Plugin {
     this.checkChangelog();
     startSet();
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
-    console.log("checkForUpdatesEnabled", checkForUpdatesEnabled);
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
@@ -14976,7 +14967,6 @@ class Plugin {
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion = SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";
-    console.log(sourceVersion, installedVersion);
     if (!sourceVersion)
       return;
     if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
@@ -15030,7 +15020,12 @@ class Plugin {
   stop() {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
-    FFmpegStore_default.unloadFFmpeg();
+    FFmpegStore_default.unload();
+    UserBackgroundStore_default.unload();
+    UserProfilePictureStore_default.unload();
+    ShopCollectiblesStore_default.unload();
+    CustomUserProfileStore_default.unload();
+    BadgesStore_default.unload();
   }
   renderControl(def, value) {
     const onChange = (v) => {

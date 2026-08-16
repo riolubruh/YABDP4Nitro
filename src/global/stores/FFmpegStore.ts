@@ -151,13 +151,14 @@ export default new class FFmpegStore extends BetterDiscord.Utils.Store {
         return this.crcTable;
     }
 
-    unloadFFmpeg(){
+    unload(){
         if(this.loaded){
             this.ffmpeg.terminate();
             this.ffmpeg = undefined;
         }
         const ffmpegScript = document.getElementById("ffmpegScript");
         (ffmpegScript) && (ffmpegScript.remove());
+        this.crcTable = null;
         if(window.FFmpegWASM) delete window.FFmpegWASM;
         this.loaded = false;
     }
