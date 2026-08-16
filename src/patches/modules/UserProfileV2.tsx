@@ -31,7 +31,7 @@ const Grid = styled.div({
 })
 
 const Card = styled.div({
-    padding: "12px",
+    padding: "12px 12px 12px 0px",
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",

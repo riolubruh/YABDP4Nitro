@@ -16,9 +16,14 @@ export default function CustomPFP(){
     }
 
     return <div>
-        <Components.TextInput
+        <input
+            className={'bd-text-input'}
             placeholder={"PFP Imgur URL"}
-            onChange={e=> setUrl(e)}
+            onChange={e=> setUrl(e.target.value)}
+            style={{
+                width: "180px !important",
+                maxWidth: "180px !important"
+            }}
         />
         <Components.Button
             onClick={handleClick}
