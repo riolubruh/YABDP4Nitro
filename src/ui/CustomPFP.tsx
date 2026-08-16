@@ -12,7 +12,7 @@ export default function CustomPFP(){
         }
         let hash = getDirectImgurHash(url);
 
-        copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`));
+        copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
     }
 
     return <div>

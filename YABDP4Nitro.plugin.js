@@ -9276,6 +9276,7 @@ __export(exports_modules, {
   EditMessage: () => editMessage_default,
   DEV: () => dev_default,
   CustomThemeApply: () => customClientThemes_default,
+  CustomCameraPreview: () => cameraPreviewBypass_default,
   ClipsBypass: () => clipsBypass_default,
   ClientThemes: () => clientThemes_default,
   CanUserUse: () => canUserUse_default,
@@ -9305,9 +9306,7 @@ var defaultSettings = {
   emojiBypassForValidEmoji: true,
   PNGemote: true,
   uploadStickers: false,
-  CustomFPSEnabled: false,
   CustomFPS: 60,
-  ResolutionEnabled: false,
   CustomResolution: 1440,
   CustomBitrateEnabled: false,
   minBitrate: -1,
@@ -9361,13 +9360,19 @@ var defaultSettings = {
   voiceTileBannerBackground: false,
   advancedProfileCustomization: false,
   lastChangelogVersion: "6.10.7",
-  installedVersion: "6.10.7"
+  installedVersion: "6.10.7",
+  customVideoFilter: {
+    link: "https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&",
+    type: "mp4"
+  },
+  customVideoFilterEnabled: false
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
     ...defaultSettings,
     ...Data.load("settings") ?? {}
   };
+  listeners = new Map;
   get(id) {
     return this.settings[id];
   }
@@ -9375,14 +9380,28 @@ var SettingsStore_default = new class SettingsStore extends Utils.Store {
     this.settings = { ...this.settings, [id]: value };
     Data.save("settings", this.settings);
     this.emitChange();
+    this.notify(id, value);
   }
   del(id) {
     this.settings = { ...this.settings, [id]: defaultSettings[id] };
     Data.save("settings", this.settings);
     this.emitChange();
+    this.notify(id, this.settings[id]);
   }
   getAll() {
     return this.settings;
+  }
+  subscribe(id, callback) {
+    if (!this.listeners.has(id)) {
+      this.listeners.set(id, new Set);
+    }
+    this.listeners.get(id).add(callback);
+    return () => {
+      this.listeners.get(id)?.delete(callback);
+    };
+  }
+  notify(id, value) {
+    this.listeners.get(id)?.forEach((cb) => cb(value));
   }
 };
 
@@ -9822,9 +9841,21 @@ var allowClips_default = {
   },
   apply(finale, patcher) {
     Object.entries(finale.mangled).map(([key, value]) => {
-      patcher.instead(finale.mangled, key, () => true);
+      patcher.instead(finale.mangled, key, (_, __, originalFunction) => {
+        const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+        if (useClipBypass || useAudioClipBypass || zipClip)
+          return true;
+        else
+          return originalFunction();
+      });
     });
-    ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, () => true));
+    ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map((x) => patcher.instead(ClipsStore, x, (_, __, originalFunction) => {
+      const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+      if (useClipBypass || useAudioClipBypass || zipClip)
+        return true;
+      else
+        return originalFunction();
+    }));
   }
 };
 // bdapi-react-shim:react
@@ -11850,7 +11881,7 @@ function concatArrayBuffers(buf1, buf2) {
   return newArray.buffer;
 }
 var udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
-var FREE_FILE_LIMIT = 104857600;
+var FREE_FILE_LIMIT = 20971520;
 var CLIPS_FILE_LIMIT = 104857600;
 function createZip(name, data) {
   const nameBytes = new TextEncoder().encode(name);
@@ -12105,7 +12136,7 @@ var clipsBypass_default = {
 };
 
 // src/patches/modules/_sendMessage.ts
-var { StickersStore, SoundboardStore, EmojiStore, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
+var { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
 var StickerTypeToExtension;
 ((StickerTypeToExtension2) => {
   StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
@@ -12234,12 +12265,19 @@ var unlockEmojis_default = {
   description: "Fully unlocks emojis.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
   apply(finale, patcher) {
-    const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
-    if (!emojiBypassEnabled)
-      return;
-    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, () => false));
-    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {
-      return;
+    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map((x) => patcher.instead(finale.modules[0], x, (_, args, callback) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (emojiBypassEnabled)
+        return false;
+      else
+        return callback.apply(_, args);
+    }));
+    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", (_, args, callback) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (emojiBypassEnabled)
+        return;
+      else
+        return callback.apply(_, args);
     });
   }
 };
@@ -12251,6 +12289,8 @@ var getUserBannerURL_default = {
   apply(finale, patcher) {
     const AvatarDefaults = finale.modules[0];
     patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+      if (!SettingsStore_default.get("fakeProfileBanners"))
+        return;
       args[0].canAnimate = true;
     });
   }
@@ -12261,7 +12301,10 @@ var appIcons_default = {
   name: "appIcons",
   description: "Lets user select app icon",
   apply(finale, patcher) {
-    GlobalModules.Dispatcher.dispatch({
+    const appIconsEnabled = SettingsStore_default.get("unlockAppIcons");
+    if (!appIconsEnabled)
+      return;
+    appIconsEnabled && GlobalModules.Dispatcher.dispatch({
       type: "APP_ICON_UPDATED",
       id: SettingsStore_default.get("appIcon")
     });
@@ -12270,6 +12313,9 @@ var appIcons_default = {
     });
     const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
     patcher.instead(AppIcon, "render", (_, [args], callback) => {
+      const appIconsEnabled2 = SettingsStore_default.get("unlockAppIcons");
+      if (!appIconsEnabled2)
+        return callback(args);
       const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
       if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
         return callback(args);
@@ -12330,6 +12376,8 @@ var gifPickerContext_default = {
   waitFor: [],
   apply(finale, patcher) {
     patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+      if (!SettingsStore_default.get("extraContextMenus"))
+        return;
       ret.props.onContextMenu = (event) => {
         let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
         url.startsWith("//") && (url = "https:" + url);
@@ -12472,13 +12520,16 @@ var sharpenStreams_default = {
   apply(finale, patcher) {
     const mod = Object.values(finale.modules[0]).find((x) => x.type);
     patcher.after(mod, "type", (_, [args], ret) => {
-      console.log(ret);
+      if (!SettingsStore_default.get("sharpenStreams"))
+        return;
       ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
         userId: args.userId
       }));
       ret?.props?.children?.[0] && (ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` });
     });
     patcher.after(finale.modules[1], findMangledName(finale.modules[1], (x) => x?.toString?.()?.includes?.("backgroundKey")), (_, [args], ret) => {
+      if (!SettingsStore_default.get("sharpenStreams"))
+        return;
       const userId = args?.backgroundKey?.split?.(":")?.[3];
       if (!userId)
         return;
@@ -12498,13 +12549,16 @@ var unlockStickers_default = {
   name: "Unlock Stickers",
   description: "Fully unlocks stickers.",
   apply(finale, patcher) {
-    const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
-    if (!stickerBypass && !forceStickersUnlocked)
-      return;
-    patcher.instead(stickerSendability, "getStickerSendability", () => {
+    patcher.instead(stickerSendability, "getStickerSendability", (_, args, callback) => {
+      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
+      if (!stickerBypass && !forceStickersUnlocked)
+        return callback.apply(_, args);
       return 0;
     });
-    patcher.instead(stickerSendability, "isSendableSticker", () => {
+    patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
+      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
+      if (!stickerBypass && !forceStickersUnlocked)
+        return callback.apply(_, args);
       return true;
     });
   }
@@ -12518,11 +12572,10 @@ var renderMessage_default = {
   ids: undefined,
   waitFor: [BetterDiscord.Webpack.Filters.bySource(".SEND_FAILED,")],
   apply(finale, patcher) {
-    const inlineFakemojiEnabled = SettingsStore_default.get("fakeInlineVencordEmotes");
-    if (!inlineFakemojiEnabled)
-      return;
     const mod = Object.values(finale.modules[0]).find((o) => typeof o === "object");
     patcher.before(mod, "type", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes"))
+        return;
       for (let i = 0;i < args.content.length; i++) {
         let contentItem = args.content[i];
         if (!contentItem?.props?.title || !contentItem?.props?.href?.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title)
@@ -12557,10 +12610,9 @@ var renderMessageEmbeds_default = {
     renderEmbeds: (x) => x?.toString?.().includes?.("renderSuppressEmbeds")
   },
   apply(finale, patcher) {
-    const inlineFakemojiEnabled = SettingsStore_default.get("fakeInlineVencordEmotes");
-    if (!inlineFakemojiEnabled)
-      return;
     patcher.before(finale.mangled, "renderEmbeds", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes"))
+        return;
       const message = args?.message;
       let embeds = message?.embeds;
       for (let i = 0;i < embeds?.length; i++) {
@@ -12582,6 +12634,9 @@ var editMessage_default = {
   waitFor: [(x) => x._sendMessage],
   apply(finale, patcher) {
     patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (!emojiBypassEnabled)
+        return;
       const emojiBypassType = SettingsStore_default.get("emojiBypassType");
       const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
       if (!editMessageWithEmoji)
@@ -12664,10 +12719,11 @@ var clientThemes_default = {
     saveClientTheme: (x) => x?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE")
   },
   apply(finale, patcher) {
-    if (!SettingsStore_default.get("clientThemes"))
-      return;
-    applySavedClientTheme();
-    patcher.instead(finale.mangled, "saveClientTheme", (_, [args]) => {
+    if (SettingsStore_default.get("clientThemes"))
+      applySavedClientTheme();
+    patcher.instead(finale.mangled, "saveClientTheme", (_, [args], originalFunction) => {
+      if (!SettingsStore_default.get("clientThemes"))
+        return originalFunction.apply(_, [args]);
       SettingsStore_default.set("customUserThemeSettings", {
         custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
         theme: args.theme
@@ -12928,22 +12984,24 @@ var goLiveModal_default = {
         footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
         footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x) => !x?.type?.toString?.()?.includes("pill"));
       }
-      const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) => String(x?.key).includes("gay"));
-      if (!doesExist)
-        footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
-          key: "yabd-is-gay"
-        }));
-      const originalChildren = footerContent.children;
-      footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
+      if (SettingsStore_default.get("screenSharing")) {
+        const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) => String(x?.key).includes("gay"));
+        if (!doesExist)
+          footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
+            key: "yabd-is-gay"
+          }));
+        const originalChildren = footerContent.children;
+        footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
+      }
       return ret;
     });
   }
 };
 // src/ui/AccentColors.tsx
-var { UserProfileStore: UserProfileStore3, UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
+var { UserProfileStore: UserProfileStore3, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
 var { React: React6, Components: Components2 } = BetterDiscord;
 function AccentColors() {
-  const CurrentUser = UserStore5.getCurrentUser();
+  const CurrentUser = UserStore4.getCurrentUser();
   const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
   const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
   const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8");
@@ -13028,7 +13086,7 @@ function CustomBanner() {
 // src/ui/DisplayNameStyle.tsx
 var { React: React9, Components: Components5 } = BetterDiscord;
 var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
-var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
   "GG Sans",
   "Tempo",
@@ -13110,7 +13168,7 @@ function DisplayNameStyle() {
   return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
     style: { fontSize: "25px" }
   }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
-    userName: UserStore6.getCurrentUser().username,
+    userName: UserStore5.getCurrentUser().username,
     loop: true,
     shouldWrap: false,
     inProfile: true,
@@ -13325,7 +13383,7 @@ function ProfileEffects() {
 }
 // src/ui/AvatarDecorations.tsx
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
-var { UserStore: UserStore7 } = Webpack2.Stores;
+var { UserStore: UserStore6 } = Webpack2.Stores;
 var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
 function OpenAvatarDecorationModalButton() {
@@ -13357,7 +13415,7 @@ function AvatarDecoration({ product }) {
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore7.getCurrentUser(),
+    user: UserStore6.getCurrentUser(),
     avatarSize: "SIZE_72"
   }));
 }
@@ -13375,7 +13433,7 @@ function InvalidProductDisplay({ product }) {
     avatarSize: "SIZE_72",
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore7.getCurrentUser()
+    user: UserStore6.getCurrentUser()
   }));
 }
 function Category2({ skuId, query }) {
@@ -13524,7 +13582,7 @@ function AvatarDecorations() {
 var { React: React12, Components: Components8 } = BetterDiscord;
 var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { declaration: (x) => String(x).includes(".x5CoXR),className:") }) }));
-var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
 function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -13553,7 +13611,7 @@ function Nameplate3y3({ product }) {
     title: product.productName
   }, /* @__PURE__ */ React12.createElement(Nameplate, {
     section: "purchase",
-    currentUser: UserStore8.getCurrentUser(),
+    currentUser: UserStore7.getCurrentUser(),
     nameplate: { skuId: product.sku_id, asset: product.asset, label: product.label, palette: product.palette },
     canUsePremiumCollectibles: true,
     isSelected: hovered
@@ -13688,7 +13746,7 @@ function ProfileFrames() {
 }
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Scroller = styled.div({
   overflowY: "scroll",
@@ -13725,7 +13783,7 @@ var CardLabel = styled.div({
   letterSpacing: "0.02em"
 });
 function CustomSettingsTab() {
-  const isDeveloper = BadgesStore_default.isImportant(UserStore9.getCurrentUser().id);
+  const isDeveloper = BadgesStore_default.isImportant(UserStore8.getCurrentUser().id);
   const [devText, setDevText] = React14.useState("");
   return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
     style: { gridColumn: "span 2" }
@@ -13769,7 +13827,7 @@ var UserProfileV2_default = {
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      if (args?.displayProfile?.userId != UserStore9.getCurrentUser().id)
+      if (args?.displayProfile?.userId != UserStore8.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x) => x.text.includes("YABD")))
         return;
@@ -13863,12 +13921,12 @@ var customClientThemes_default = {
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
   apply(finale, patcher) {
     wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
-      const clientThemesEnabled = SettingsStore_default.get("clientThemes");
-      if (!clientThemesEnabled)
-        return;
       patcher.after(mod, "default", (_, [args], ret) => {
+        const clientThemesEnabled = SettingsStore_default.get("clientThemes");
+        if (!clientThemesEnabled)
+          return;
         const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), { declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw: true });
-        const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+        const onSaveTheme = BetterDiscord.Utils.findInTree(ret, (x) => x?.onSaveTheme).onSaveTheme;
         ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
           style: {
             display: "flex",
@@ -13902,14 +13960,105 @@ var customClientThemes_default = {
   }
 };
 // src/patches/modules/premiumType.ts
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var premiumType_default = {
   name: "premiumType",
   description: "Makes sure the premium type is always what you want",
   apply(finale, patcher) {
     const randomAssStore = BetterDiscord.Webpack.getStore("OverridePremiumTypeStore");
-    patcher.instead(randomAssStore, "getPremiumTypeActual", () => {
+    patcher.instead(randomAssStore, "getPremiumTypeActual", (_, __, callback) => {
       const info = SettingsStore_default.get("changePremiumType2");
-      return info;
+      if (info != -1)
+        return info;
+      else
+        return callback();
+    });
+  }
+};
+// src/global/shared/steamExploit.ts
+var MediaFilterModule = BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function")?.wq ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function") : null;
+var BackgroundEnums = BetterDiscord.Webpack.getModule((m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE);
+var PresetModule = BetterDiscord.Webpack.getBySource("52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661");
+var Enums = {
+  filterType: {
+    LIVE: BackgroundEnums.Tr.CAMERA_BACKGROUND_LIVE,
+    PREVIEW: BackgroundEnums.Tr.CAMERA_BACKGROUND_PREVIEW
+  },
+  graph: {
+    NONE: BackgroundEnums.gO.NONE,
+    BLUR: BackgroundEnums.gO.BACKGROUND_BLUR,
+    REPLACEMENT: BackgroundEnums.gO.BACKGROUND_REPLACEMENT
+  },
+  targetType: {
+    INPUT_DEVICE: BackgroundEnums.Qo.INPUT_DEVICE,
+    STREAM: BackgroundEnums.Qo.STREAM
+  }
+};
+
+// src/patches/modules/cameraPreviewBypass.ts
+var CUSTOM_ID = "custom-user-filter";
+var TARGET_WIDTH = 1280;
+var TARGET_HEIGHT = 720;
+async function fetchAsBytes(link) {
+  const res = await BetterDiscord.Net.fetch(link);
+  const buf = await res.arrayBuffer();
+  return new Uint8ClampedArray(buf);
+}
+async function fetchAsImageData(link) {
+  const bytes = await fetchAsBytes(link);
+  const blobUrl = URL.createObjectURL(new Blob([bytes]));
+  const img = new Image;
+  await new Promise((res, rej) => {
+    img.onload = () => res();
+    img.onerror = rej;
+    img.src = blobUrl;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = TARGET_WIDTH;
+  canvas.height = TARGET_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+  const { data } = ctx.getImageData(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+  URL.revokeObjectURL(blobUrl);
+  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: "rgba" };
+}
+var cameraPreviewBypass_default = {
+  name: "cameraPreviewBypass",
+  apply(finale, patcher) {
+    patcher.after(PresetModule, "A", (thisObj, args, result) => {
+      const filter = SettingsStore_default.get("customVideoFilter");
+      if (filter?.link) {
+        result[CUSTOM_ID] = {
+          id: CUSTOM_ID,
+          name: "My Custom Background",
+          source: filter.link,
+          isVideo: filter.type === "mp4"
+        };
+      }
+      return result;
+    });
+    const mod = BetterDiscord.Webpack.getBySource(".gO.BACKGROUND_BLUR);if", { raw: true });
+    const { declarations } = mod;
+    const [, pKey] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("BACKGROUND_REPLACEMENT"), { target: declarations });
+    patcher.instead(declarations, pKey, (thisObj, args, original) => {
+      const [type, target, option] = args;
+      if (option !== CUSTOM_ID)
+        return original.apply(thisObj, args);
+      const filter = SettingsStore_default.get("customVideoFilter");
+      if (!filter?.link)
+        return original.apply(thisObj, args);
+      const isVideo = filter.type === "mp4";
+      const apply = async () => {
+        const payload = isVideo ? { blob: await fetchAsBytes(filter.link) } : { image: await fetchAsImageData(filter.link) };
+        MediaFilterModule.wq({
+          [type]: {
+            graph: Enums.graph.REPLACEMENT,
+            target,
+            ...payload
+          }
+        });
+      };
+      return apply();
     });
   }
 };
@@ -14203,7 +14352,10 @@ var changelog_default = {
             "Sharpness may not apply on the streaming context menu — switch channels and back to fix.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             '**"Someones banner background is flickering"** — We know. Our code is silly sometimes.',
-            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...'
+            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
+            `When streaming, right clicking and changing quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... 
+
+Its not easy.`
           ]
         },
         {
@@ -14211,6 +14363,7 @@ var changelog_default = {
           type: "added",
           items: [
             "New Profile Frames added to the 3y3 encode bypass list.",
+            "You can now set a custom camera preview 🥳🎉🎉🎉!!",
             "<@917630027477159986> joins the team for future development of the plugin!"
           ]
         }
@@ -14286,25 +14439,11 @@ var SettingsSchema = [
     type: "boolean"
   },
   {
-    key: "ResolutionEnabled",
-    label: "Custom Screenshare Resolution",
-    note: "Choose your own screen share resolution!",
-    category: "Screen Share Features",
-    type: "boolean"
-  },
-  {
     key: "CustomResolution",
     label: "Resolution",
     note: "The custom resolution you want (in pixels)",
     category: "Screen Share Features",
     type: "number"
-  },
-  {
-    key: "CustomFPSEnabled",
-    label: "Custom Screenshare FPS",
-    note: "Choose your own screen share FPS!",
-    category: "Screen Share Features",
-    type: "boolean"
   },
   {
     key: "CustomFPS",
@@ -14449,7 +14588,7 @@ var SettingsSchema = [
   {
     key: "stickerBypass",
     label: "Sticker Bypass",
-    note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.",
+    note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.",
     category: "Emojis",
     type: "boolean"
   },
@@ -14477,7 +14616,7 @@ var SettingsSchema = [
   {
     key: "soundmojiEnabled",
     label: "Soundmoji Bypass",
-    note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.',
+    note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with an OGG upload and some text representing the soundmoji. Please note that this will enable Experiments.',
     category: "Emojis",
     type: "boolean"
   },
@@ -14696,6 +14835,39 @@ var SettingsSchema = [
     note: "Should the plugin check for updates on startup?",
     category: "Miscellaneous",
     type: "boolean"
+  },
+  {
+    key: "customVideoFilterEnabled",
+    label: "Video Filter",
+    note: "Allows you to use a Custom Video preset background.",
+    type: "boolean",
+    category: "Miscellaneous"
+  },
+  {
+    key: "customVideoFilter",
+    label: "Custom Background Source",
+    note: "Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.",
+    type: "custom",
+    category: "Miscellaneous",
+    Custom: ({ value, onChange }) => {
+      const link = value?.link ?? "";
+      const type = value?.type ?? "png";
+      const update = (patch) => {
+        onChange({ link, type, ...patch });
+      };
+      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+        value: link,
+        placeholder: "https://cdn.discordapp.com/attachments/...",
+        onChange: (v) => update({ link: v })
+      }), /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+        value: type,
+        options: [
+          { label: "Image", value: "png" },
+          { label: "Video (MP4)", value: "mp4" }
+        ],
+        onChange: (v) => update({ type: v })
+      }));
+    }
   }
 ];
 function normalizeVersion2(v) {
@@ -14804,7 +14976,6 @@ class Plugin {
   }
   stop() {
     this.unpatch();
-    console.log(this);
     new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore_default.unloadFFmpeg();
   }
@@ -14817,6 +14988,12 @@ class Plugin {
         startSet();
     };
     switch (def.type) {
+      case "custom":
+        return /* @__PURE__ */ React18.createElement(def.Custom, {
+          value,
+          options: def.options,
+          onChange
+        });
       case "boolean":
         return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
           value,
@@ -14856,7 +15033,8 @@ class Plugin {
       return /* @__PURE__ */ React18.createElement(React18.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React18.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
-        collapsible: true
+        collapsible: true,
+        shown: false
       }, defs.map((def) => /* @__PURE__ */ React18.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,

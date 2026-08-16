@@ -37,8 +37,7 @@ function concatArrayBuffers(buf1, buf2){
 
 const udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 
-// const FREE_FILE_LIMIT = 20971520; //20MB
-const FREE_FILE_LIMIT = 104857600; //20MB
+const FREE_FILE_LIMIT = 20971520; //20MB
 const CLIPS_FILE_LIMIT = 104857600; //100MB
 
 //this shit needs to be replaced at some point
@@ -111,6 +110,7 @@ function createZip(name, data) {
 export async function doClipsBypass(file){
 
     const {useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp} = SettingsStore.getAll();
+
 
     const skippedFileTypes = ['video/3gp',"video/asf",'video/ivf', 'video/mpeg', 'audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
     if(skippedFileTypes.includes(file.file.type)) return file;

@@ -244,20 +244,23 @@ export default {
                 footerContent.children[1].props.children = footerContent.children[1].props.children.filter(x=> !x?.type?.toString?.()?.includes("pill"));
             }
 
-            const doesExist = BetterDiscord.Utils.findInTree(footerContent, x => String(x?.key).includes("gay"));
-            if (!doesExist)
-                footerContent.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
+            if(SettingsStore.get("screenSharing")){
+                const doesExist = BetterDiscord.Utils.findInTree(footerContent, x => String(x?.key).includes("gay"));
+                if (!doesExist)
+                    footerContent.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);
 
-            const originalChildren = footerContent.children;
+                const originalChildren = footerContent.children;
 
 
-            footerContent.children = (
-                <FooterColumn>
-                    <FooterRow>
-                        {originalChildren}
-                    </FooterRow>
-                </FooterColumn>
-            );
+                footerContent.children = (
+                    <FooterColumn>
+                        <FooterRow>
+                            {originalChildren}
+                        </FooterRow>
+                    </FooterColumn>
+                );
+            }
+
             return ret;
         });
     }

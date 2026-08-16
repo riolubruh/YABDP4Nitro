@@ -61,13 +61,16 @@ export default {
         const mod = Object.values(finale.modules[0]).find(x=>x.type);
         //video call tile
         patcher.after(mod, "type", (_, [args], ret) => {
-            console.log(ret);
+            if(!SettingsStore.get("sharpenStreams")) return;
+
             ret.props.children.push(<Sharpener userId={args.userId}/>)
             ret?.props?.children?.[0] && (ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`});
         });
 
         //pip player
         patcher.after(finale.modules[1], findMangledName(finale.modules[1], x=>x?.toString?.()?.includes?.('backgroundKey')), (_,[args],ret) => {
+            if(!SettingsStore.get("sharpenStreams")) return;
+
             const userId = args?.backgroundKey?.split?.(":")?.[3];
             if(!userId) return;
 

@@ -2,7 +2,7 @@ import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {EMOJI_PREFIX, getEmojiExtension, getEmojiString, getEmojiUrl, shouldSkipEmojiBypass} from "@utils/*";
 import {BetterDiscord} from "@shared/";
 import { doClipsBypass } from "./clipsBypass.ts";
-const {StickersStore, SoundboardStore, EmojiStore, UserStore} = BetterDiscord.Webpack.Stores;
+const {StickersStore, SoundboardStore, EmojiStore} = BetterDiscord.Webpack.Stores;
 enum StickerTypeToExtension { // @ts-ignore
     ".png" = 1, ".png", ".json", ".gif"
 }

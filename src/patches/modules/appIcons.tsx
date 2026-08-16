@@ -14,8 +14,7 @@ export default {
         const appIconsEnabled = SettingsStore.get("unlockAppIcons");
         if(!appIconsEnabled) return;
 
-        //restore app icon on start
-        GlobalModules.Dispatcher.dispatch({
+        appIconsEnabled && GlobalModules.Dispatcher.dispatch({ //restore app icon on start
             type: "APP_ICON_UPDATED",
             id: SettingsStore.get("appIcon")
         });
@@ -26,6 +25,9 @@ export default {
         const CustomAppIcon = BetterDiscord.Webpack.getByStrings('.iconSource,width:')
 
         patcher.instead(AppIcon, "render", (_, [args], callback) => {
+            const appIconsEnabled = SettingsStore.get("unlockAppIcons");
+            if(!appIconsEnabled) return callback(args);
+
             const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if (desktopIcon == "AppIcon" || SelectedGuildStore.getGuildId() == undefined) {
                 // funny bug with dms

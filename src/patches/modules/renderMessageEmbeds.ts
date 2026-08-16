@@ -13,9 +13,8 @@ export default {
         renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
     },
     apply(finale, patcher)  {
-        const inlineFakemojiEnabled = SettingsStore.get("fakeInlineVencordEmotes");
-        if(!inlineFakemojiEnabled) return;
         patcher.before(finale.mangled, "renderEmbeds", (_: any, [args]: any) => {
+            if(!SettingsStore.get("fakeInlineVencordEmotes")) return;
             const message = args?.message;
             let embeds = message?.embeds;
             for(let i = 0; i < embeds?.length; i++) {

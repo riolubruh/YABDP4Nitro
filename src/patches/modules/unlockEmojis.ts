@@ -7,9 +7,16 @@ export default {
     description: "Fully unlocks emojis.",
     waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
     apply(finale, patcher) {
-        const emojiBypassEnabled = SettingsStore.get("emojiBypass");
-        if(!emojiBypassEnabled) return;
-        ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map(x => patcher.instead(finale.modules[0], x, () => false))
-        patcher.instead(finale.modules[0], "getEmojiUnavailableReason", () => {return});
+        ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map(x => patcher.instead(finale.modules[0], x, (_,args,callback) => {
+
+            const emojiBypassEnabled = SettingsStore.get("emojiBypass");
+            if(emojiBypassEnabled) return false
+            else return callback.apply(_,args);
+        }))
+        patcher.instead(finale.modules[0], "getEmojiUnavailableReason", (_,args,callback) => {
+            const emojiBypassEnabled = SettingsStore.get("emojiBypass");
+            if(emojiBypassEnabled) return;
+            else return callback.apply(_,args);
+        });
     }
 } as Patch;

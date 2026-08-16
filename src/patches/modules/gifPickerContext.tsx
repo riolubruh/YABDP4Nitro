@@ -2,6 +2,7 @@ import {BetterDiscord} from "@shared/*";
 import {Icon} from "@iconify/react";
 import {ContextMenuLabel, ContextMenuWrapper, copyToClipboard} from "@utils/*";
 import {CloseAllContextMenus} from "@global/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys('renderGIF', {searchExports:true})
 
@@ -12,6 +13,9 @@ export default {
     waitFor: [], // filters to wait for.
     apply(finale, patcher) {
         patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+
+            if(!SettingsStore.get("extraContextMenus")) return;
+
             ret.props.onContextMenu = (event: any) => {
                 let url: string = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
                 url.startsWith('//') && (url = "https:" + url);

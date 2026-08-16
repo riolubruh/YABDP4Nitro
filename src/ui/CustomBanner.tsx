@@ -12,7 +12,7 @@ export default function CustomBanner(){
         }
         let hash = getDirectImgurHash(url);
 
-        copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`));
+        copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`), "3y3 copied to clipboard!");
     }
 
     return <div>

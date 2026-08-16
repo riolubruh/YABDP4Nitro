@@ -11,12 +11,11 @@ export default {
     ids: undefined, // array of entry ids
     waitFor: [BetterDiscord.Webpack.Filters.bySource(".SEND_FAILED,")], // filters to wait for.
     apply(finale, patcher) {
-        const inlineFakemojiEnabled = SettingsStore.get("fakeInlineVencordEmotes");
-        if(!inlineFakemojiEnabled) return;
-
         const mod = Object.values(finale.modules[0]).find(o => typeof o === "object");
 
         patcher.before(mod, "type", (_: any, [args]: any) => {
+            if(!SettingsStore.get("fakeInlineVencordEmotes")) return;
+
             for(let i = 0; i < args.content.length; i++) {
                 let contentItem = args.content[i];
                 if(!contentItem?.props?.title || !contentItem?.props?.href?.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title) continue;

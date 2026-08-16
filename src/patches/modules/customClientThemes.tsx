@@ -14,13 +14,14 @@ export default {
     apply(finale: any, patcher: any) {
 
         wpWait(BetterDiscord.Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK')).then((mod) => {
-            const clientThemesEnabled = SettingsStore.get("clientThemes");
-            if(!clientThemesEnabled) return;
 
             patcher.after(mod, 'default', (_, [args], ret) => {
+                const clientThemesEnabled = SettingsStore.get("clientThemes");
+                if(!clientThemesEnabled) return;
+
                 const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),{declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"), raw:true})
 
-                const onSaveTheme = ret.props.children[1].props.onSaveTheme;
+                const onSaveTheme = BetterDiscord.Utils.findInTree(ret, x=>x?.onSaveTheme).onSaveTheme;
 
                 ret.props.children[1] = <div
                     style={{

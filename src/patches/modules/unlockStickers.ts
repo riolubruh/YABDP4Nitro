@@ -11,10 +11,20 @@ export default {
     name: "Unlock Stickers",
     description: "Fully unlocks stickers.",
     apply(finale, patcher) {
-        const {stickerBypass, forceStickersUnlocked} = SettingsStore.getAll();
-        if(!stickerBypass && !forceStickersUnlocked) return;
 
-        patcher.instead(stickerSendability, "getStickerSendability", () => {return 0});
-        patcher.instead(stickerSendability, "isSendableSticker", () => {return true});
+        patcher.instead(stickerSendability, "getStickerSendability", (_,args,callback) => {
+
+            const {stickerBypass, forceStickersUnlocked} = SettingsStore.getAll();
+            if(!stickerBypass && !forceStickersUnlocked) return callback.apply(_,args);
+
+            return 0;
+        });
+        patcher.instead(stickerSendability, "isSendableSticker", (_,args,callback) => {
+
+            const {stickerBypass, forceStickersUnlocked} = SettingsStore.getAll();
+            if(!stickerBypass && !forceStickersUnlocked) return callback.apply(_,args);
+
+            return true;
+        });
     }
 } as Patch;

@@ -1,5 +1,5 @@
 import {GlobalModules} from "@global/*";
-import {getKey, wpGetByKeys, wpGetByStrings, wpGetProxy, wpWait} from "../global/webpack";
+import {wpGetByKeys, wpWait} from "../global/webpack";
 import {BetterDiscord} from "@shared/*";
 import {useMemo, useState} from "react";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";

@@ -1,4 +1,5 @@
 import type {Patch} from "../../types/patches";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 export default {
     name: "getUserBannerURL",
@@ -8,6 +9,8 @@ export default {
         const AvatarDefaults = finale.modules[0]
 
         patcher.before(AvatarDefaults,"getUserBannerURL", (_, args) => {
+            if(!SettingsStore.get("fakeProfileBanners")) return;
+
             args[0].canAnimate = true;
         })
     }

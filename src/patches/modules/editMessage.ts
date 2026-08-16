@@ -18,6 +18,8 @@ export default {
     waitFor: [x => x._sendMessage],
     apply(finale, patcher) {
         patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]: any) => {
+            const emojiBypassEnabled = SettingsStore.get("emojiBypass");
+            if(!emojiBypassEnabled) return;
 
             const emojiBypassType: number = SettingsStore.get("emojiBypassType");
             const editMessageWithEmoji: boolean = SettingsStore.get("editMessageWithEmoji");

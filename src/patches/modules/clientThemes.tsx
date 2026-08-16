@@ -52,10 +52,11 @@ export default {
         saveClientTheme: x=>x?.toString?.()?.includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE')
     },
     apply(finale: any, patcher: any) {
-        if(!SettingsStore.get("clientThemes")) return;
-        applySavedClientTheme();
+        if(SettingsStore.get("clientThemes")) applySavedClientTheme();
 
-        patcher.instead(finale.mangled, 'saveClientTheme', (_: any, [args]: any) => {
+        patcher.instead(finale.mangled, 'saveClientTheme', (_: any, [args]: any, originalFunction) => {
+            if(!SettingsStore.get("clientThemes")) return originalFunction.apply(_, [args]);
+
             SettingsStore.set("customUserThemeSettings", {
                 custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
                 theme: args.theme

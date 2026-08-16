@@ -44,25 +44,11 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean"
     },
     {
-        key: "ResolutionEnabled",
-        label: "Custom Screenshare Resolution",
-        note: "Choose your own screen share resolution!",
-        category: "Screen Share Features",
-        type: "boolean"
-    },
-    {
         key: "CustomResolution",
         label: "Resolution",
         note: "The custom resolution you want (in pixels)",
         category: "Screen Share Features",
         type: "number"
-    },
-    {
-        key: "CustomFPSEnabled",
-        label: "Custom Screenshare FPS",
-        note: "Choose your own screen share FPS!",
-        category: "Screen Share Features",
-        type: "boolean"
     },
     {
         key: "CustomFPS",
@@ -205,7 +191,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "stickerBypass",
         label: "Sticker Bypass",
-        note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.",
+        note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.",
         category: "Emojis",
         type: "boolean"
     },
@@ -233,7 +219,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "soundmojiEnabled",
         label: "Soundmoji Bypass",
-        note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.",
+        note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with an OGG upload and some text representing the soundmoji. Please note that this will enable Experiments.",
         category: "Emojis",
         type: "boolean"
     },
@@ -431,13 +417,6 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean"
     },
     {key: "unlockAppIcons", label: "App Icons", note: "Unlocks app icons.", category: "Miscellaneous", type: "boolean"},
-    {
-        key: "removeNotStaffWarning",
-        label: "Remove Not Staff Warning",
-        note: "Removes the \"NOT STAFF\" warning on DMs when Experiments are enabled.",
-        category: "Miscellaneous",
-        type: "boolean"
-    },
     {
         key: "extraContextMenus",
         label: "Extra Context Menus and Options",
@@ -666,7 +645,7 @@ export default class Plugin {
 
             return <>
                 {Object.entries(grouped).map(([category, defs]) => (
-                    <Components.SettingGroup key={category} name={category} collapsible={true}>
+                    <Components.SettingGroup key={category} name={category} collapsible={true} shown={false}>
                         {defs.map(def => (
                             <Components.SettingItem key={def.key} name={def.label} note={def.note}>
                                 {this.renderControl(def, values[def.key])}

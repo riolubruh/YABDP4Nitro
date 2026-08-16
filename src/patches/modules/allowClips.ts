@@ -16,13 +16,18 @@ export default {
         areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
     },
     apply(finale, patcher) {
-        const {useClipBypass, useAudioClipBypass, zipClip} = SettingsStore.getAll();
-        if(!useClipBypass && !useAudioClipBypass && !zipClip) return;
-
         Object.entries(finale.mangled).map(([key, value]) => {
-            patcher.instead(finale.mangled, key, () => true)
+            patcher.instead(finale.mangled, key, (_, __, originalFunction) => {
+                const {useClipBypass, useAudioClipBypass, zipClip} = SettingsStore.getAll();
+                if(useClipBypass || useAudioClipBypass || zipClip) return true;
+                else return originalFunction();
+            })
         });
 
-        ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map(x => patcher.instead(ClipsStore, x, () => true))
+        ["isViewerClippingAllowedForUser", "isClipsEnabledForUser", "isVoiceRecordingAllowedForUse"].map(x => patcher.instead(ClipsStore, x, (_, __, originalFunction) => {
+            const {useClipBypass, useAudioClipBypass, zipClip} = SettingsStore.getAll();
+            if(useClipBypass || useAudioClipBypass || zipClip) return true;
+            else return originalFunction();
+        }))
     }
 } as Patch;
