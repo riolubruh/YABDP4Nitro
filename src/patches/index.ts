@@ -14,7 +14,7 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
     if (!ids) return [];
     const entries = typeof ids === "function" ? await ids() : ids;
 
-    return Promise.all(entries.map(async entry => {
+    const results = await Promise.allSettled(entries.map(async entry => {
         const id = typeof entry === "function" ? await entry() : entry;
         const cacheKey = id.toString();
 
@@ -26,6 +26,17 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
         idCache.set(cacheKey, resolvedId);
         return resolvedId;
     }));
+
+    const resolved: number[] = [];
+    results.forEach((r, i) => {
+        if (r.status === "fulfilled") {
+            resolved.push(r.value); // fixed race condition with loading modules ?
+        } else {
+            BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i}`, r.reason);
+        }
+    });
+
+    return resolved;
 }
 
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
