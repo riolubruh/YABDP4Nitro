@@ -11622,50 +11622,6 @@ function getKey(module2, fn) {
       return { key, module: module2 };
   }
 }
-var webpackRequire;
-var ChunkIdRegex = /.{1}\.e\("(\d+)"\)/g;
-var FinalModuleIdRegex = /.{1}\.bind\(.{1},\s*(\d+)\s*\)/g;
-var CreatePromiseId = /createPromise:\s*\(\)\s*=>\s*([^}]+)\.then\(.{1}\.bind\(.{1},\s*(\d+)\)\)/g;
-webpackChunkdiscord_app.push([
-  [Symbol("Arven")],
-  {},
-  (e) => {
-    webpackRequire = e;
-  }
-]);
-async function forceLoad(id2) {
-  if (typeof webpackRequire.m[id2] === "undefined") {
-    return [];
-  }
-  const text = String(webpackRequire.m[id2]);
-  const loadedModules = [];
-  let match;
-  while ((match = CreatePromiseId.exec(text)) !== null) {
-    const promiseBody = match[1];
-    const bindId = match[2];
-    const chunkIds2 = [];
-    const chunkMatches = promiseBody.matchAll(ChunkIdRegex);
-    for (const chunkMatch2 of chunkMatches) {
-      chunkIds2.push(chunkMatch2[1]);
-    }
-    const finalId = parseInt(bindId, 10);
-    await Promise.all(chunkIds2.map((cid) => webpackRequire.e(cid)));
-    const loadedModule = webpackRequire(finalId);
-    loadedModules.push(loadedModule);
-  }
-  const chunkIds = [];
-  let chunkMatch;
-  while ((chunkMatch = ChunkIdRegex.exec(text)) !== null) {
-    chunkIds.push(chunkMatch[1]);
-  }
-  const bindMatches = text.matchAll(FinalModuleIdRegex);
-  for (const bindMatch of bindMatches) {
-    await Promise.all(chunkIds.map((cid) => webpackRequire.e(cid)));
-    const loadedModule = webpackRequire(bindMatch[1]);
-    loadedModules.push(loadedModule);
-  }
-  return loadedModules;
-}
 
 // src/global/index.ts
 var DefaultOptions = {
@@ -14363,7 +14319,7 @@ async function resolveIds(ids) {
     if (idCache.has(cacheKey)) {
       return idCache.get(cacheKey);
     }
-    const resolvedId = await forceLoad(id);
+    const resolvedId = await BdApi.Utils.forceLoad(id);
     idCache.set(cacheKey, resolvedId);
     return resolvedId;
   }));

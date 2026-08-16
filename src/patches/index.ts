@@ -23,7 +23,7 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
             return idCache.get(cacheKey)!;
         }
 
-        const resolvedId = await forceLoad(id);
+        const resolvedId = await BdApi.Utils.forceLoad(id);
 
         idCache.set(cacheKey, resolvedId);
         return resolvedId;
