@@ -14,15 +14,15 @@ export default function CustomPFP(){
 
         copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
     }
-
     return <div>
         <input
             className={'bd-text-input'}
             placeholder={"PFP Imgur URL"}
             onChange={e=> setUrl(e.target.value)}
             style={{
-                width: "180px !important",
-                maxWidth: "180px !important"
+                minWidth: "180px",
+                width: "180px",
+                maxWidth: "180px"
             }}
         />
         <Components.Button

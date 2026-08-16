@@ -16,9 +16,15 @@ export default function CustomBanner(){
     }
 
     return <div>
-        <Components.TextInput
+        <input
+            className={'bd-text-input'}
             placeholder={"Banner Imgur URL"}
-            onChange={e=> setUrl(e)}
+            onChange={e=> setUrl(e.target.value)}
+            style={{
+                minWidth: "180px",
+                width: "180px",
+                maxWidth: "180px"
+            }}
         />
         <Components.Button
             onClick={handleClick}
