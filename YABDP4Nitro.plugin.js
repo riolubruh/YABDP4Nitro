@@ -9346,7 +9346,6 @@ var defaultSettings = {
   disableUserBadge: false,
   nameplatesEnabled: true,
   clipTimestamp: 2,
-  removeNotStaffWarning: true,
   editMessageWithEmoji: true,
   extraContextMenus: true,
   userSharpenPreferences: {},
@@ -9628,6 +9627,8 @@ function getBannerUrl(userId) {
   return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(userId);
 }
 async function getDirectImgurHash(url) {
+  if (url.match(IMGUR_URL_REGEX)?.[1])
+    return url.match(IMGUR_URL_REGEX)?.[1];
   const res = await (await BetterDiscord.Net.fetch(url)).text();
   return res.match(IMGUR_URL_REGEX)?.[1];
 }
@@ -13041,13 +13042,13 @@ function AccentColors() {
 var { React: React7, Components: Components3 } = BetterDiscord;
 function CustomPFP() {
   const [url, setUrl] = React7.useState("");
-  function handleClick() {
+  async function handleClick() {
     if (!url.includes("imgur.com")) {
       BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
       return;
     }
-    let hash = getDirectImgurHash(url);
-    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`));
+    let hash = await getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React7.createElement("div", null, /* @__PURE__ */ React7.createElement(Components3.TextInput, {
     placeholder: "PFP Imgur URL",
@@ -13064,13 +13065,13 @@ function CustomPFP() {
 var { React: React8, Components: Components4 } = BetterDiscord;
 function CustomBanner() {
   const [url, setUrl] = React8.useState("");
-  function handleClick() {
+  async function handleClick() {
     if (!url.includes("imgur.com")) {
       BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
       return;
     }
-    let hash = getDirectImgurHash(url);
-    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`));
+    let hash = await getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React8.createElement("div", null, /* @__PURE__ */ React8.createElement(Components4.TextInput, {
     placeholder: "Banner Imgur URL",
@@ -14808,13 +14809,6 @@ var SettingsSchema = [
     type: "boolean"
   },
   { key: "unlockAppIcons", label: "App Icons", note: "Unlocks app icons.", category: "Miscellaneous", type: "boolean" },
-  {
-    key: "removeNotStaffWarning",
-    label: "Remove Not Staff Warning",
-    note: 'Removes the "NOT STAFF" warning on DMs when Experiments are enabled.',
-    category: "Miscellaneous",
-    type: "boolean"
-  },
   {
     key: "extraContextMenus",
     label: "Extra Context Menus and Options",

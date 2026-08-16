@@ -5,12 +5,12 @@ const {React, Components} = BetterDiscord;
 export default function CustomPFP(){
     const [url, setUrl] = React.useState("");
 
-    function handleClick(){
+    async function handleClick(){
         if(!url.includes("imgur.com")){
             BetterDiscord.UI.showToast("Please use Imgur!",{type: "warning"});
             return;
         }
-        let hash = getDirectImgurHash(url);
+        let hash = await getDirectImgurHash(url);
 
         copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
     }

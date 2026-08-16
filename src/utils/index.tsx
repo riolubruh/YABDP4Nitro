@@ -233,6 +233,8 @@ export function getBannerUrl(userId: string) {
 }
 
 export async function getDirectImgurHash(url: string){
+    if(url.match(IMGUR_URL_REGEX)?.[1]) return url.match(IMGUR_URL_REGEX)?.[1];
+
     const res = await (await BetterDiscord.Net.fetch(url)).text();
     return res.match(IMGUR_URL_REGEX)?.[1];
 }
