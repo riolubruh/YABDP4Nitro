@@ -17,7 +17,7 @@ import CustomUserProfileStore from "./global/stores/CustomUserProfileStore.ts";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
-const {UserStore} = BetterDiscord.Webpack.Stores;
+const {UserStore, ApexExperimentStore} = BetterDiscord.Webpack.Stores;
 
 type ControlType = "boolean" | "number" | "string" | "select" | "custom";
 
@@ -508,11 +508,8 @@ function startSet() {
 }
 
 function overrideVariant(experimentName: string, variantId: number) {
-    GlobalModules.Dispatcher.dispatch({
-        type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
-        experimentName,
-        variantId
-    });
+    ApexExperimentStore.createOverride(experimentName, variantId)
+    ApexExperimentStore.emitChange();
 }
 
 export default class Plugin {
