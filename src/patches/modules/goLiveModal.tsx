@@ -142,8 +142,10 @@ function ConfigModal({props, onClose, forceQuality}) {
         {key: "voiceBitrate", label: "Voice Bitrate"},
     ];
 
+    console.log(data)
+
     return (
-        <ModalModule.Modal {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
@@ -157,6 +159,7 @@ function ConfigModal({props, onClose, forceQuality}) {
                         <FieldLabel htmlFor={`yabd-${key}`}>{label}</FieldLabel>
                         <Components.NumberInput
                             id={`yabd-${key}`}
+                            initalValue={data[key]}
                             value={data[key]}
                             onChange={(val) => commit(key, val)}
                         />

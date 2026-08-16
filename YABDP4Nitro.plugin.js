@@ -12952,7 +12952,9 @@ function ConfigModal({ props, onClose, forceQuality }) {
     { key: "targetBitrate", label: "Target Bitrate" },
     { key: "voiceBitrate", label: "Voice Bitrate" }
   ];
+  console.log(data);
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
+    notice: { type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**") },
     ...props,
     onClose,
     title: "YABDP4Nitro Configuration"
@@ -12965,6 +12967,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
     htmlFor: `yabd-${key}`
   }, label), /* @__PURE__ */ React5.createElement(Components.NumberInput, {
     id: `yabd-${key}`,
+    initalValue: data[key],
     value: data[key],
     onChange: (val) => commit(key, val)
   })))));
@@ -14046,7 +14049,7 @@ var Enums = {
 };
 
 // src/patches/modules/cameraPreviewBypass.ts
-var CUSTOM_ID = "custom-user-filter";
+var CUSTOM_ID = 69;
 var TARGET_WIDTH = 1280;
 var TARGET_HEIGHT = 720;
 async function fetchAsBytes(link) {
@@ -15039,6 +15042,10 @@ class Plugin {
       if (def.key == "enableClipsExperiment") {
         SettingsStore_default.set("enableClipsExperiment", v);
         overrideVariant("2026-03-clips-experiment", v ? 2 : 0);
+      }
+      if (def.key == "soundmojiEnabled") {
+        overrideVariant("2026-03-soundmoji-rendering", v ? 1 : 0);
+        overrideVariant("2026-03-soundmoji-sending", v ? 2 : 0);
       }
     };
     switch (def.type) {

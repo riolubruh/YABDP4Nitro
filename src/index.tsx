@@ -493,8 +493,8 @@ const fs = () => require("fs");
 let unpatchDevMode: (() => void) | null = null;
 
 function startSet() {
-    const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", { raw: true });
-    const [, key] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"), { target: decls });
+    const {declarations: decls} = BetterDiscord.Webpack.getBySource("discord_dev_testing", {raw: true});
+    const [, key] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"), {target: decls});
 
     decls.c = SettingsStore.get("experiments");
 
@@ -505,7 +505,7 @@ function startSet() {
     });
 }
 
-function overrideVariant(experimentName: string, variantId: number){
+function overrideVariant(experimentName: string, variantId: number) {
     GlobalModules.Dispatcher.dispatch({
         type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
         experimentName,
@@ -622,6 +622,10 @@ export default class Plugin {
             if (def.key == "enableClipsExperiment") {
                 SettingsStore.set("enableClipsExperiment", v)
                 overrideVariant("2026-03-clips-experiment", v ? 2 : 0);
+            }
+            if (def.key == "soundmojiEnabled") {
+                overrideVariant("2026-03-soundmoji-rendering", v ? 1 : 0);
+                overrideVariant("2026-03-soundmoji-sending", v ? 2 : 0);
             }
         };
 

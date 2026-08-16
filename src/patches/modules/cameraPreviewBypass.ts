@@ -3,7 +3,7 @@ import {BetterDiscord} from "@shared/*";
 import {Enums, MediaFilterModule, PresetModule} from "../../global/shared/steamExploit.ts";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
-const CUSTOM_ID = "custom-user-filter";
+const CUSTOM_ID = 69;
 const TARGET_WIDTH = 1280;
 const TARGET_HEIGHT = 720;
 
