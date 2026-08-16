@@ -16,9 +16,38 @@ const BANNER = `/**
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
+ /*@cc_on
+@if(@_jscript)
+    WScript.Quit();
+@else@*/
+
+/*    ***** ATTRIBUTION NOTICE *****
+ *
+ * YABDP4Nitro is a free BetterDiscord plugin that bypasses and unlocks Nitro-locked features in the Discord client.
+ *
+ * Copyright (c) 2025 Riolubruh and contributors
+ *
+ * Licensed under the Open Software License version 3.0 (OSL-3.0).
+ * You may use, distribute, and modify this code under the terms of this license.
+ *
+ * Derivative works must be licensed under OSL-3.0.
+ *
+ * Removal or modification of this notice in the source code of any Derivative Work
+ * of this software violates the terms of the license.
+ *
+ * This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied,
+ * including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose.
+ * THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU.
+ *
+ * You should have received a copy of the license agreement alongside this file.
+ * If not, please visit https://opensource.org/license/osl-3-0-php
+ *
+*/
  
 const React = window.BdApi.React
 `
+
+const FOOTER = `/*@end@*/`;
 
 const GLOBAL_NAME = 'YABDP4Nitro.plugin.js'
 
@@ -41,6 +70,7 @@ await Bun.build({
     entrypoints: ['src/index.tsx'],
     outdir: './',
     banner: BANNER,
+    footer: FOOTER,
     naming: GLOBAL_NAME,
     loader: {".js": "jsx", ".jsx": "jsx", ".ts": "tsx", ".tsx": "tsx", ".css": "text"},
     resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
