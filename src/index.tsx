@@ -17,7 +17,7 @@ const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
-type ControlType = "boolean" | "number" | "string" | "select";
+type ControlType = "boolean" | "number" | "string" | "select" | "custom";
 
 interface SelectOption {
     label: string;
@@ -31,6 +31,7 @@ interface SettingDef {
     category: string;
     type: ControlType;
     options?: SelectOption[];
+    Custom?: React.FC
 }
 
 const SettingsSchema: SettingDef[] = [
@@ -458,6 +459,46 @@ const SettingsSchema: SettingDef[] = [
         category: "Miscellaneous",
         type: "boolean"
     },
+    {
+        key: "customVideoFilterEnabled",
+        label: "Video Filter",
+        note: "Allows you to use a Custom Video preset background.",
+        type: "boolean",
+        category: "Miscellaneous",
+    },
+    {
+        key: "customVideoFilter",
+        label: "Custom Background Source",
+        note: "Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.",
+        type: "custom",
+        category: "Miscellaneous",
+        Custom: ({value, onChange}) => {
+            const link = value?.link ?? "";
+            const type = value?.type ?? "png"; // "png" | "mp4" — matches filter.type check in the patch (=== "mp4")
+
+            const update = (patch: Partial<{ link: string; type: string }>) => {
+                onChange({link, type, ...patch});
+            };
+
+            return (
+                <>
+                    <Components.TextInput
+                        value={link}
+                        placeholder="https://cdn.discordapp.com/attachments/..."
+                        onChange={(v: string) => update({link: v})}
+                    />
+                    <Components.DropdownInput
+                        value={type}
+                        options={[
+                            {label: "Image", value: "png"},
+                            {label: "Video (MP4)", value: "mp4"},
+                        ]}
+                        onChange={(v: string) => update({type: v})}
+                    />
+                </>
+            );
+        }
+    }
 ];
 
 function normalizeVersion(v: string): string {
@@ -595,6 +636,8 @@ export default class Plugin {
         };
 
         switch (def.type) {
+            case "custom":
+                return <def.Custom value={value} options={def.options} onChange={onChange}/>
             case "boolean":
                 return <Components.SwitchInput value={value} onChange={onChange}/>;
             case "number":
