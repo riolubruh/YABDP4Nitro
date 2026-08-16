@@ -220,7 +220,10 @@ export function wpGetStore<T = any>(storeName: string, options?: GetOptions): T 
     return resolveModule<T>(Webpack.Filters.byStoreName(storeName) as any, options);
 }
 
-export function wpGetWithKey<T = any>(filter: ModuleFilter, options?: GetOptions): {mod: T, foundKey: string | unknown} | null {
+export function wpGetWithKey<T = any>(filter: ModuleFilter, options?: GetOptions): {
+    mod: T,
+    foundKey: string | unknown
+} | null {
     let foundKey: string | undefined;
     const mod = Webpack.getModule((exports: any) => {
         if (!exports || (typeof exports !== "object" && typeof exports !== "function")) return false;
@@ -465,7 +468,8 @@ function resolveLive(filter: ModuleFilter, options: GetOptions | undefined, path
 }
 
 function createLiveProxy(filter: ModuleFilter, options: GetOptions | undefined, path: PathSegment[]): any {
-    const target = function wpGetProxyTarget() {} as any; // constructible target
+    const target = function wpGetProxyTarget() {
+    } as any; // constructible target
 
     return new Proxy(target, {
         get(_t, prop) {
@@ -542,6 +546,54 @@ export function wpGetProxyQuery<T = any>(query: Query): T {
 
 export function getKey(module2, fn) {
     for (const key in module2) {
-        if (fn(module2[key])) return { key, module: module2 };
+        if (fn(module2[key])) return {key, module: module2};
     }
+}
+
+export let webpackRequire
+
+const ChunkIdRegex = /.{1}\.e\("(\d+)"\)/g;
+const FinalModuleIdRegex = /.{1}\.bind\(.{1},\s*(\d+)\s*\)/g;
+const CreatePromiseId = /createPromise:\s*\(\)\s*=>\s*([^}]+)\.then\(.{1}\.bind\(.{1},\s*(\d+)\)\)/g;
+
+webpackChunkdiscord_app.push([
+    [Symbol("Arven")],
+    {},
+    (e) => {
+        webpackRequire = e;
+    }
+])
+
+export async function forceLoad(id2) {
+    if (typeof webpackRequire.m[id2] === "undefined") {
+        return [];
+    }
+    const text = String(webpackRequire.m[id2]);
+    const loadedModules = [];
+    let match;
+    while ((match = CreatePromiseId.exec(text)) !== null) {
+        const promiseBody = match[1];
+        const bindId = match[2];
+        const chunkIds2 = [];
+        const chunkMatches = promiseBody.matchAll(ChunkIdRegex);
+        for (const chunkMatch2 of chunkMatches) {
+            chunkIds2.push(chunkMatch2[1]);
+        }
+        const finalId = parseInt(bindId, 10);
+        await Promise.all(chunkIds2.map((cid) => webpackRequire.e(cid)));
+        const loadedModule = webpackRequire(finalId);
+        loadedModules.push(loadedModule);
+    }
+    const chunkIds = [];
+    let chunkMatch;
+    while ((chunkMatch = ChunkIdRegex.exec(text)) !== null) {
+        chunkIds.push(chunkMatch[1]);
+    }
+    const bindMatches = text.matchAll(FinalModuleIdRegex);
+    for (const bindMatch of bindMatches) {
+        await Promise.all(chunkIds.map((cid) => webpackRequire.e(cid)));
+        const loadedModule = webpackRequire(bindMatch[1]);
+        loadedModules.push(loadedModule);
+    }
+    return loadedModules;
 }

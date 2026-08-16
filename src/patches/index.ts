@@ -4,6 +4,7 @@ import * as modules from "./modules";
 import * as contextMenus from "./contextMenus";
 
 import type {Ids, Patch} from "../types/patches";
+import {forceLoad} from "../global/webpack";
 
 const PatcherAPI = new BdApi("Patcher");
 
@@ -22,7 +23,8 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
             return idCache.get(cacheKey)!;
         }
 
-        const resolvedId = await BetterDiscord.Utils.forceLoad(id);
+        const resolvedId = await forceLoad(id);
+
         idCache.set(cacheKey, resolvedId);
         return resolvedId;
     }));
