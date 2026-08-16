@@ -505,6 +505,13 @@ function startSet() {
     });
 }
 
+function overrideVariant(experimentName: string, variantId: number){
+    GlobalModules.Dispatcher.dispatch({
+        type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
+        experimentName,
+        variantId
+    });
+}
 
 export default class Plugin {
     private unpatch = loadContextMenus();
@@ -612,6 +619,10 @@ export default class Plugin {
             // just hardcode this for now. the setting exists with dropdowns.
             if (def.key == "changePremiumType2") UserStore.getCurrentUser().premiumType = v
             if (def.key == "experiments") startSet();
+            if (def.key == "enableClipsExperiment") {
+                SettingsStore.set("enableClipsExperiment", v)
+                overrideVariant("2026-03-clips-experiment", v ? 2 : 0);
+            }
         };
 
         switch (def.type) {
