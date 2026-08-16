@@ -7,7 +7,7 @@ import type {Ids, Patch} from "../types/patches";
 
 const PatcherAPI = new BdApi("Patcher");
 
-const moduleCache = new Map<string, any>();
+const moduleCache = new Map<any, any>();
 const idCache = new Map<string, number>();
 
 async function resolveIds(ids?: Ids): Promise<number[]> {
@@ -46,8 +46,9 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
     ]);
 }
 
+
 async function getCachedModule(filter: any, patchName: string): Promise<any> {
-    const cacheKey = typeof filter === "function" ? filter.toString() : JSON.stringify(filter);
+    const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
 
     if (moduleCache.has(cacheKey)) {
         return moduleCache.get(cacheKey);
@@ -62,7 +63,6 @@ async function getCachedModule(filter: any, patchName: string): Promise<any> {
     moduleCache.set(cacheKey, module);
     return module;
 }
-
 async function loadPatch(patch: Patch) {
     const finale: Record<string, any> = {};
 
