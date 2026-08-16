@@ -1,6 +1,7 @@
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {EMOJI_PREFIX, getEmojiExtension, getEmojiString, getEmojiUrl, shouldSkipEmojiBypass} from "@utils/*";
 import {BetterDiscord} from "@shared/";
+import { doClipsBypass } from "./clipsBypass.ts";
 const {StickersStore, SoundboardStore, EmojiStore, UserStore} = BetterDiscord.Webpack.Stores;
 enum StickerTypeToExtension { // @ts-ignore
     ".png" = 1, ".png", ".json", ".gif"
@@ -44,16 +45,14 @@ export default {
         patcher.instead(finale.modules[0], "_sendMessage", async (_: any, [channelId, msg, extraData]: any, send: Function) => {
             if (extraData.poll || extraData.activityAction || msg.location === "forwarding") return send.apply(_, [channelId, msg, extraData]);
 
-            const emojiBypassEnabled = SettingsStore.get("emojiBypass");
             const emojiBypassType: number = SettingsStore.get("emojiBypassType");
-            const soundmojiEnabled = SettingsStore.get("soundmojiEnabled");
-            const stickersEnabled = SettingsStore.get("stickerBypass")
+            const {zipClip, useClipBypass, useAudioClipBypass, stickerBypass, soundmojiEnabled, emojiBypass} = SettingsStore.getAll();
 
             let urlsToUpload: any = [];
 
             for (let i = 0; i < msg.validNonShortcutEmojis.length; i++) {
                 const emoji = msg.validNonShortcutEmojis[i];
-                if (!emojiBypassEnabled) break;
+                if (!emojiBypass) break;
 
                 if (shouldSkipEmojiBypass(emoji, channelId)) continue;
                 const emojiString = getEmojiString(emoji);
@@ -85,7 +84,7 @@ export default {
             }
 
 
-            if (extraData.stickerIds && stickersEnabled) {
+            if (extraData.stickerIds && stickerBypass) {
                 for(const stickerId of extraData.stickerIds) {
 
                     const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
@@ -128,10 +127,18 @@ export default {
                 }
             }
 
+            if(extraData?.location === "instant_upload" && (zipClip || useClipBypass || useAudioClipBypass)){
+                await Promise.all(extraData.attachmentsToUpload.map(async attachment => {
+                    attachment.item = await doClipsBypass(attachment.item);
+                    attachment.filename = attachment.item.file.name;
+                    attachment.clip = attachment.item.clip;
+                    return attachment;
+                }));
+            }
+
             if (urlsToUpload?.length > 0) downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send, 1, false);
             if (soundmojiUrls?.length > 0) downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send, 10, true);
             if (!urlsToUpload.length && !soundmojiUrls.length) send(channelId, msg, extraData);
-
         })
     }
 }

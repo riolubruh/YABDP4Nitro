@@ -11,6 +11,9 @@ export default {
     description: "Lets user select app icon",
     apply(finale: any, patcher: any) {
 
+        const appIconsEnabled = SettingsStore.get("unlockAppIcons");
+        if(!appIconsEnabled) return;
+
         //restore app icon on start
         GlobalModules.Dispatcher.dispatch({
             type: "APP_ICON_UPDATED",

@@ -8,12 +8,14 @@ const BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/h
 export default new class FFmpegStore extends BetterDiscord.Utils.Store {
     private ffmpeg: any;
     private loaded: boolean = false;
+    private crcTable: any;
 
     constructor() {
         super();
     }
 
-    async loadFFmpeg(){
+    async ensureFFmpeg(){
+        if(this.loaded) return;
         const defineTemp = window.global.define;
 
         let ffmpegScript = document.getElementById("ffmpegScript");
@@ -137,6 +139,17 @@ export default new class FFmpegStore extends BetterDiscord.Utils.Store {
             if(ffmpegWorkerURL) URL.revokeObjectURL(ffmpegWorkerURL);
         }
     } //End of loadFFmpeg()
+
+    calculateCrcTable(){
+        this.crcTable = Array.from({ length: 256 }, (_, i) =>
+            Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
+                (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
+    }
+
+    getCrcTable(){
+        if(!this.crcTable) this.calculateCrcTable();
+        return this.crcTable;
+    }
 
     unloadFFmpeg(){
         if(this.loaded){

@@ -1,5 +1,6 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {ClipsStore} = BetterDiscord.Webpack.Stores
 
@@ -15,6 +16,9 @@ export default {
         areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
     },
     apply(finale, patcher) {
+        const {useClipBypass, useAudioClipBypass, zipClip} = SettingsStore.getAll();
+        if(!useClipBypass && !useAudioClipBypass && !zipClip) return;
+
         Object.entries(finale.mangled).map(([key, value]) => {
             patcher.instead(finale.mangled, key, () => true)
         });

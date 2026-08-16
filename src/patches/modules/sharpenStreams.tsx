@@ -61,8 +61,9 @@ export default {
         const mod = Object.values(finale.modules[0]).find(x=>x.type);
         //video call tile
         patcher.after(mod, "type", (_, [args], ret) => {
+            console.log(ret);
             ret.props.children.push(<Sharpener userId={args.userId}/>)
-            ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
+            ret?.props?.children?.[0] && (ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`});
         });
 
         //pip player

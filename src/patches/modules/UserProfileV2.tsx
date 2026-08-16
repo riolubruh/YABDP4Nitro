@@ -31,7 +31,6 @@ const Grid = styled.div({
 })
 
 const Card = styled.div({
-    borderRadius: "8px",
     padding: "12px",
     display: "flex",
     flexDirection: "column",
@@ -42,12 +41,12 @@ const Card = styled.div({
 })
 
 const CardTop = styled.div({
-    borderRadius: "8px",
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
     minWidth: 0,
-    overflow: "hidden"
+    overflow: "hidden",
+    marginTop: "8px",
 })
 
 const CardLabel = styled.div({
