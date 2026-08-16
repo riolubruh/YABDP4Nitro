@@ -12,11 +12,15 @@ const yourFlyIsShowing = new JSZip();
 export default {
     id: "message",
     callback(res, props) {
+        const attachmentsLmao = [
+            ...props.message.attachments,
+            ...(props?.message?.messageSnapshots?.[0]?.message?.attachments ?? [])
+        ]
 
         async function startDownload() {
             BetterDiscord.UI.showToast("Downloading attachments...");
 
-            const attachments = props.message.attachments;
+            const attachments = attachmentsLmao.filter(Boolean);
             if (!attachments.length) {
                 BetterDiscord.UI.showToast("No attachments found?");
                 return
@@ -60,6 +64,7 @@ export default {
 
         const Sep = <BetterDiscord.ContextMenu.Separator/>
 
-        props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu)
+        console.log(attachmentsLmao)
+        attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu)
     }
 }
