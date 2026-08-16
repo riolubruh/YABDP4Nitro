@@ -105,7 +105,8 @@ const FIELD_MAP = {
 const StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), {raw: true})
 
 function ConfigModal({props, onClose, forceQuality}) {
-    const [data, setData] = React.useState(() => SettingsStore.getAll());
+    const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
+    const [_, setData] = React.useState(() => SettingsStore.getAll());
 
     const commit = (key, value) => {
         SettingsStore.set(key, value);
