@@ -88,7 +88,7 @@ export async function doClipsBypass(file){
         const ffmpegAudioClipArgs = ["-i",file.file.name,"-f","lavfi","-i","color=c=black:s=300x100","-shortest","-fflags","+shortest",
             "-map","0:v?","-map","1:v","-map","0:a","-disposition:v","default","-brand","isom/avc1","-movflags","+faststart",
             "-map_metadata","-1","-dn","-map_chapters","-1","-preset","ultrafast","-c:v","libx264","-c:a","copy","-strict","-2",
-            "-tune","stillimage","-r","10","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2","-max_interleave_delta","1",outFileName];
+            "-tune","stillimage","-r","5","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2","-max_interleave_delta","1",outFileName];
 
         file.file = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegAudioClipArgs, outFileName), udtaBuffer);
         file.file = new File([new Uint8Array(file.file)], clipData.name + ".mp4", { type: "video/mp4" });

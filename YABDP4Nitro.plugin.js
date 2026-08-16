@@ -9546,7 +9546,7 @@ function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get("emojiSize")) 
   return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 function getEmojiString(emoji) {
-  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ? emoji.originalName : emoji.name}:${emoji.id}>`;
+  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
 }
 var styled = new Proxy(styledBase, {
   get(target, p) {
@@ -9778,7 +9778,7 @@ var fakeUser_default = {
             value: {
               fontId: styleData.fontId,
               effectId: styleData.effectId,
-              colors: [styleData.color1, styleData?.color2 ? styleData.color2 : null].filter(Boolean)
+              colors: [styleData.color1, styleData?.color2].filter(Boolean)
             },
             enumerable: true,
             writable: true,
@@ -11783,7 +11783,7 @@ var _sendMessage_default = {
           !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
           if (sound?.emojiId) {
             let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
-            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
+            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ?? "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
           }
           !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
         }
@@ -11982,7 +11982,7 @@ var maxFileSize_default = {
 var { React: React2 } = BetterDiscord;
 function Sharpener({ userId }) {
   let ref = BetterDiscord.React.useRef(null);
-  const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences")[userId] ? SettingsStore_default.get("userSharpenPreferences")[userId] : 0);
+  const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences")[userId] ?? 0);
   const sharpness = sharpnessSetting / 100;
   const [size, setSize] = BetterDiscord.React.useState({
     width: 1980,
@@ -13737,7 +13737,7 @@ async function doClipsBypass(file) {
       "-tune",
       "stillimage",
       "-r",
-      "10",
+      "5",
       "-pix_fmt",
       "yuv420p",
       "-vf",
@@ -13833,9 +13833,13 @@ var yourFlyIsShowing = new import_jszip.default;
 var message_default = {
   id: "message",
   callback(res, props) {
+    const attachmentsLmao = [
+      ...props.message.attachments,
+      ...props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []
+    ];
     async function startDownload() {
       BetterDiscord.UI.showToast("Downloading attachments...");
-      const attachments = props.message.attachments;
+      const attachments = attachmentsLmao.filter(Boolean);
       if (!attachments.length) {
         BetterDiscord.UI.showToast("No attachments found?");
         return;
@@ -13871,7 +13875,8 @@ var message_default = {
       id: "yabdp4nitro-download-attachments"
     });
     const Sep = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Separator, null);
-    props.message.attachments?.length > 0 && res.props.children.props.children.push(Sep, Menu);
+    console.log(attachmentsLmao);
+    attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
   }
 };
 // src/patches/contextMenus/expressionPicker.tsx
@@ -13879,7 +13884,7 @@ var { EmojiStore: EmojiStore3 } = BetterDiscord.Webpack.Stores;
 var expressionPicker_default = {
   id: "expression-picker",
   callback(res, props) {
-    let src = props?.target?.src ? props?.target?.src : props?.target?.firstChild?.src;
+    let src = props?.target?.src ?? props?.target?.firstChild?.src;
     if (!src)
       return;
     let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
@@ -13936,7 +13941,10 @@ var streamContext_default = {
             fontSize: "14px",
             fontWeight: "var(--font-weight-medium)"
           }
-        }, "Sharpness")),
+        }, "Sharpness", `                                     `)),
+        mini: true,
+        handleSize: 16,
+        keyboardStep: 1,
         onValueChange: handleChange,
         asValueChanges: handleChange
       })

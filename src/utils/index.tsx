@@ -177,7 +177,7 @@ export function styledBase<T extends keyof React.JSX.IntrinsicElements>(
 
 export const ContextMenuWrapper = styled.div({
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column"
 })
 
 export const ContextMenuLabel = () => <span style={{fontSize: "14px", opacity: 0.6}}>YABDP4Nitro</span>

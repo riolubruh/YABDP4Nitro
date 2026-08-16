@@ -36,8 +36,11 @@ export default {
                                     fontSize:'14px',
                                     fontWeight:"var(--font-weight-medium)"
                                 }}
-                            >Sharpness</BetterDiscord.Components.Text>
+                            >Sharpness{`\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`}</BetterDiscord.Components.Text>
                         </ContextMenuWrapper>}
+                        mini={true}
+                        handleSize={16}
+                        keyboardStep={1}
                         onValueChange={handleChange}
                         asValueChanges={handleChange}
                     />
