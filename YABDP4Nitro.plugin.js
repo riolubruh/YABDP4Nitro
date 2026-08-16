@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.7
+ * @version 6.10.8
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -267,16 +267,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.10.7",
+        "version": "6.10.8",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.7",
+            title: "6.10.8",
             items: [
-                "Fixed custom PFP code not working properly after a Discord update."
+                "Fixed 3y3 Copying Zone button not appearing."
             ]
         }
     ],
@@ -317,8 +317,7 @@ const config = {
                         { label: "AV1", value: 0 },
                         { label: "H265", value: 1 },
                         { label: "H264", value: 2 },
-                        { label: "VP8", value: 3 },
-                        { label: "VP9", value: 4 },
+                        { label: "VP8", value: 3 }
                     ]
                 },
             ]
@@ -898,50 +897,42 @@ module.exports = class YABDP4Nitro {
 
         this.overrideVariant("2026-06-wysiwyg-show-dns-to-non-nitro", 1);
 
-        Patcher.instead(this.UserProfileModalV2.declarations, this.findMangledName(this.UserProfileModalV2.declarations, Webpack.Filters.byStrings('originGuildId','initialTabSection','UserProfileModalV2','profileFrameOverride')), (_,[args],og) => {
-            let ret = og(args);
-            const editPanel = ret?.props?.children?.props?.children?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[0];
-            if(editPanel){
-                nodePatcher.patch(editPanel, (props,res) => {
-                    //what the fuck am i even doing gng
-                    const leftPanel = res?.props?.children?.props?.children?.[1];
-                    if(leftPanel){
-                        nodePatcher.patch(leftPanel, (props2,ret2) => {
-                            const leftPanelInner = ret2?.props?.children?.[1]?.props?.children;
-                            if(leftPanelInner){
-                                // please god let this be a temporary hackfix
-                                leftPanelInner?.props?.children?.push?.(createElement("button", {
-                                    children: "3y3 Copying Zone",
-                                    className: `yabd-secondary-button`,
-                                    style: {
-                                        height: "30px"
-                                    },
-                                    onClick: () => {
-                                        UI.showConfirmationModal("3y3 Copying Zone", createElement("div", {
-                                            children: [
-                                                createElement(this.newProfileThemesUI),
-                                                createElement("br"),
-                                                createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.CreateNameplateButton, {self: this}),
-                                                createElement("br"),
-                                                createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                                createElement("br"),
-                                                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                            ]
-                                        }), {cancelText: ""})
-                                    }
-                                }))
-                            }
-                        });
+        const name = this.findMangledName(this.UserProfileModalV2.declarations, Webpack.Filters.byStrings('handlePanelTransitionComplete'));
+
+        Patcher.after(this.UserProfileModalV2.declarations, name, (_,[args],ret) => {
+            const editPanel = Utils.findInTree(ret, x=> x?.props?.panelId == "user-profile-editing-panel", {walkable:["props","children"]});
+            if(!editPanel) return Logger.warn("editPanel is undefined!", ret);
+
+            nodePatcher.patch(editPanel,(props,res) => {
+                const leftPanel = Utils.findInTree(res,x => x?.floatingFooter,{walkable: ["props","children"]});
+
+                if(!leftPanel) return Logger.warn("leftPanel is undefined!", leftPanel);
+
+                leftPanel?.children?.props?.children?.push?.(createElement("button",{
+                    children: "3y3 Copying Zone",
+                    className: `yabd-secondary-button`,
+                    style: {
+                        height: "30px"
+                    },
+                    onClick: () => {
+                        UI.showConfirmationModal("3y3 Copying Zone", createElement("div", {
+                            children: [
+                                createElement(this.newProfileThemesUI),
+                                createElement("br"),
+                                createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
+                                createElement("br"),
+                                createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
+                                createElement("br"),
+                                createElement(this.CreateNameplateButton, {self: this}),
+                                createElement("br"),
+                                createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
+                                createElement("br"),
+                                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
+                            ]
+                        }), {cancelText: ""})
                     }
-                })
-            }else{
-                Logger.warn("editPanel is undefined!", ret);
-            }
-            return ret;
+                }))
+            })
         })
     }
     //#endregion
