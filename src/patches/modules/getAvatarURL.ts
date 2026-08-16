@@ -11,16 +11,18 @@ const UserClass = wpGet(x => x.prototype?.getAvatarURL, {searchExports: true})
 export default {
     name: 'getAvatarURL',
     apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
-        patcher.instead(UserClass.prototype, "getAvatarURL", (_, [args], callback) => {
-            if (!SettingsStore.get("customPFPs") || !SettingsStore.get("userPfpIntegration")) return callback(args);
+        patcher.instead(UserClass.prototype, "getAvatarURL", (thisContext, args, originalFunction) => {
+            if (!SettingsStore.get("customPFPs") || !SettingsStore.get("userPfpIntegration")) {
+                return originalFunction.apply(thisContext, args);
+            }
 
-            const userPicture = UserProfilePictureStore.get(_.id);
-            if (!userPicture) return callback(args);
+            const userPicture = UserProfilePictureStore.get(thisContext.id);
+            if (!userPicture) return originalFunction.apply(thisContext, args);
 
-            const foundPFP = getRevealedText(_.id, `\uDB40\uDC50\uDB40\uDC7B`);
+            const foundPFP = getRevealedText(thisContext.id, `\uDB40\uDC50\uDB40\uDC7B`);
             if (!foundPFP) return userPicture;
 
-            const matches = foundPFP.match(suggondeeznutz.PROFILE_PICTURE)?.[0].replace("P{","").replace("}","");
+            const matches = foundPFP.match(suggondeeznutz.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
             if (!matches) return userPicture;
 
             return `https://i.imgur.com/${matches}`;

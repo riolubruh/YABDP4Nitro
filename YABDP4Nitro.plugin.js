@@ -13886,7 +13886,7 @@ var UserProfileV2_default = {
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x) => x.id),
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), { raw: true }).then((x) => x.id)
   ],
-  priority: 1,
+  priority: 10,
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
@@ -13948,13 +13948,14 @@ var UserClass = wpGet((x) => x.prototype?.getAvatarURL, { searchExports: true })
 var getAvatarURL_default = {
   name: "getAvatarURL",
   apply(finale, patcher) {
-    patcher.instead(UserClass.prototype, "getAvatarURL", (_, [args], callback) => {
-      if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration"))
-        return callback(args);
-      const userPicture = UserProfilePictureStore_default.get(_.id);
+    patcher.instead(UserClass.prototype, "getAvatarURL", (thisContext, args, originalFunction) => {
+      if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration")) {
+        return originalFunction.apply(thisContext, args);
+      }
+      const userPicture = UserProfilePictureStore_default.get(thisContext.id);
       if (!userPicture)
-        return callback(args);
-      const foundPFP = getRevealedText(_.id, `\uDB40\uDC50\uDB40\uDC7B`);
+        return originalFunction.apply(thisContext, args);
+      const foundPFP = getRevealedText(thisContext.id, `\uDB40\uDC50\uDB40\uDC7B`);
       if (!foundPFP)
         return userPicture;
       const matches = foundPFP.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
@@ -14339,7 +14340,7 @@ function withTimeout(p, ms, label) {
   ]);
 }
 async function getCachedModule(filter, patchName) {
-  const cacheKey = typeof filter === "function" ? filter.toString() : JSON.stringify(filter);
+  const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
   if (moduleCache.has(cacheKey)) {
     return moduleCache.get(cacheKey);
   }
