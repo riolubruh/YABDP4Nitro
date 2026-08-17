@@ -16,16 +16,18 @@ export default {
                 return originalFunction.apply(thisContext, args);
             }
 
-            const userPicture = UserProfilePictureStore.get(thisContext.id);
-            if (!userPicture) return originalFunction.apply(thisContext, args);
+            const userPfp = UserProfilePictureStore.get(thisContext.id);
+            if (userPfp) return userPfp;
 
             const foundPFP = getRevealedText(thisContext.id, `\uDB40\uDC50\uDB40\uDC7B`);
-            if (!foundPFP) return userPicture;
+            if (!foundPFP) return originalFunction.apply(thisContext, args);
 
             const matches = foundPFP.match(suggondeeznutz.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
-            if (!matches) return userPicture;
+            if (!matches) return originalFunction.apply(thisContext, args);
 
-            return `https://i.imgur.com/${matches}`;
+            console.log('matches',matches);
+
+            return `https://i.imgur.com/${matches}.gif`;
         });
     }
 } as Patch

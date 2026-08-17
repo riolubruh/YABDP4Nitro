@@ -94,9 +94,8 @@ export default {
 
             const unpatch = patcher.after(ret, 'type', (a, b, c) => {
 
-                if (UserBackgroundStore.hasHash(props.user.id)) {
-                    c.props.bannerSrc = getBannerUrl(props.user.id);
-                }
+                const bannerUrl = getBannerUrl(props.user.id);
+                bannerUrl && (c.props.bannerSrc = bannerUrl);
 
                 unpatch();
             });

@@ -9641,7 +9641,7 @@ function getBannerUrl(userId) {
   const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
   const match = parsed?.match(BANNER_REGEX)?.[0];
   const matched = match?.slice(2, -1);
-  return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore_default.format(userId);
+  return matched ? `https://i.imgur.com/${matched}.gif` : UserBackgroundStore_default.format(userId);
 }
 async function getDirectImgurHash(url) {
   if (url.match(IMGUR_URL_REGEX)?.[1])
@@ -11717,9 +11717,8 @@ var banners_default = {
       if (!SettingsStore_default.get("fakeProfileBanners"))
         return ret;
       const unpatch = patcher.after(ret, "type", (a, b, c) => {
-        if (UserBackgroundStore_default.hasHash(props.user.id)) {
-          c.props.bannerSrc = getBannerUrl(props.user.id);
-        }
+        const bannerUrl = getBannerUrl(props.user.id);
+        bannerUrl && (c.props.bannerSrc = bannerUrl);
         unpatch();
       });
       return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
@@ -13050,7 +13049,7 @@ function AccentColors() {
       marginTop: "10px"
     },
     onClick: () => {
-      copyToClipboard(secondsightifyEncodeOnly(`[${primary},${accent}]`), "3y3 copied to clipboard!");
+      copyToClipboard(" " + secondsightifyEncodeOnly(`[${primary},${accent}]`), "3y3 copied to clipboard!");
     }
   }, "Copy Colors 3y3"));
 }
@@ -13195,9 +13194,9 @@ function DisplayNameStyle() {
     accent: "#000000"
   });
   return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
-    style: { fontSize: "25px" }
+    style: { fontSize: "25px", marginBottom: "10px" }
   }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
-    userName: UserStore5.getCurrentUser().username,
+    userName: UserStore5.getCurrentUser().globalName,
     loop: true,
     shouldWrap: false,
     inProfile: true,
@@ -13883,7 +13882,7 @@ var UserProfileV2_default = {
   }
 };
 // src/global/stores/UserProfilePictureStore.ts
-var USER_BG2 = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+var USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
 var UserProfilePictureStore_default = new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
   users = {};
   constructor() {
@@ -13897,7 +13896,7 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
     return Boolean(this.users[id]);
   }
   async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_BG2);
+    const data = await BetterDiscord.Net.fetch(USER_PFP);
     const response = await data.json();
     this.users = response.avatars;
   }
@@ -13915,16 +13914,17 @@ var getAvatarURL_default = {
       if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration")) {
         return originalFunction.apply(thisContext, args);
       }
-      const userPicture = UserProfilePictureStore_default.get(thisContext.id);
-      if (!userPicture)
-        return originalFunction.apply(thisContext, args);
+      const userPfp = UserProfilePictureStore_default.get(thisContext.id);
+      if (userPfp)
+        return userPfp;
       const foundPFP = getRevealedText(thisContext.id, `\uDB40\uDC50\uDB40\uDC7B`);
       if (!foundPFP)
-        return userPicture;
+        return originalFunction.apply(thisContext, args);
       const matches = foundPFP.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
       if (!matches)
-        return userPicture;
-      return `https://i.imgur.com/${matches}`;
+        return originalFunction.apply(thisContext, args);
+      console.log("matches", matches);
+      return `https://i.imgur.com/${matches}.gif`;
     });
   }
 };
@@ -14123,11 +14123,11 @@ var blockedUserContext_default = {
     console.log(openUserContextMenu);
     patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
       const pfp = BetterDiscord.Utils.findInTree(ret, (x) => x?.size, { walkable: ["props", "children"] });
-      if (!pfp || !pfp?.user)
-        return;
       const channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore2.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore2.getSortedPrivateChannels()?.[0];
+      if (!pfp || !pfp?.user || !channel)
+        return;
       pfp.onContextMenu = (e) => {
-        openUserContextMenu(e, pfp.user, undefined);
+        openUserContextMenu(e, pfp.user, channel);
       };
     });
   }
@@ -14902,7 +14902,7 @@ var SettingsSchema = [
   {
     key: "extraContextMenus",
     label: "Extra Context Menus and Options",
-    note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list), and a context menu on messages with attachments that lets you download all attachments.",
+    note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars in the blocked/ignored list, and a context menu on messages with attachments that lets you download all attachments.",
     category: "Miscellaneous",
     type: "boolean"
   },

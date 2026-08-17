@@ -205,7 +205,7 @@ export function getBannerUrl(userId: string) {
     const match = parsed?.match(BANNER_REGEX)?.[0];
     const matched = match?.slice(2, -1);
 
-    return matched ? `https://i.imgur.com/${matched}` : UserBackgroundStore.format(userId);
+    return matched ? `https://i.imgur.com/${matched}.gif` : UserBackgroundStore.format(userId);
 }
 
 export async function getDirectImgurHash(url: string){
