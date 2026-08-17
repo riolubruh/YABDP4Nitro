@@ -14929,7 +14929,7 @@ var SettingsSchema = [
   },
   {
     key: "customVideoFilter",
-    label: "Custom Background Source",
+    label: "Custom Camera Background Source",
     note: "Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.",
     type: "custom",
     category: "Miscellaneous",

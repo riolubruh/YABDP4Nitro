@@ -7,7 +7,7 @@ import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.t
 import {
     extractProfileEffects,
     extractProfileFrame,
-    containsProfileV2,
+    containsBanner,
     containsProfileEffects,
     containsProfileFrame
 } from "../../global/shared/regexHelpers.ts";
@@ -46,7 +46,7 @@ export default {
 
             const guildId = SelectedGuildStore.getGuildId();
 
-            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsProfileV2(revealedSurrogate)) && (ret.premiumType = 2);
+            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsBanner(revealedSurrogate)) && (ret.premiumType = 2);
 
             const userBio = ret?.bio
             if (containsProfileEffects(revealedSurrogate) && !killProfileEffects) {

@@ -15,7 +15,7 @@ import {
     extractProfileEffects,
     extractProfileFrame,
     extractProfilePicture,
-    containsProfileV2,
+    containsBanner,
     containsProfileEffects,
     containsProfileFrame
 } from "../../global/shared/regexHelpers.ts";
@@ -42,7 +42,7 @@ function Debug({user}: {user: User}) {
             profilePicture: extractProfilePicture(pfpRevealed),
             profileEffects: containsProfileEffects(revealedText) ? extractProfileEffects(revealedText) : null,
             profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
-            profileV2: containsProfileV2(revealedText)
+            profileV2: containsBanner(revealedText)
         },
         rawRevealedTexts: {
             dns3y3: dnsRevealed,

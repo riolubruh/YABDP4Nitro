@@ -36,7 +36,7 @@ export function extractProfilePicture(revealedText: string | undefined | null) {
     return matches || null;
 }
 
-export function containsProfileV2(revealedSurrogate: string | undefined | null) {
+export function containsBanner(revealedSurrogate: string | undefined | null) {
     return revealedSurrogate?.includes("B{") || false;
 }
 
