@@ -1,6 +1,6 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/*";
-import {Enums, MediaFilterModule, PresetModule} from "../../global/shared/steamExploit.ts";
+import {Enums, MediaFilterModule, PresetModule} from "../../global/shared/cameraBackground.ts";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const CUSTOM_ID = 69;

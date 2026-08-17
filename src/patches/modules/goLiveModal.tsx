@@ -219,13 +219,13 @@ export default {
             const config = GoLiveStore.getConfig();
 
             if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null) {
-                action.settings.qualityOptions.resolution = config.resolution;
-                action.settings.qualityOptions.frameRate = config.fps;
+                action.settings.qualityOptions.resolution = parseInt(config.resolution);
+                action.settings.qualityOptions.frameRate = parseInt(config.fps);
             }
 
             if (action?.type === "STREAM_UPDATE_SETTINGS") {
-                action.resolution = config.resolution;
-                action.frameRate = config.fps;
+                action.resolution = parseInt(config.resolution);
+                action.frameRate = parseInt(config.fps);
             }
 
             return false;

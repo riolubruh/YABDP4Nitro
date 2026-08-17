@@ -20,7 +20,7 @@
           "items": [
             "Downloading large attachments can cause a memory leak due to `Buffer` handling if DevTools is open.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
-            "Disabling and re-enabling the plugin too quickly will break the module loading.",
+            "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
             "**\"Someones banner background is flickering\"** — We know. Our code is silly sometimes.",
             "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations...",
             "The stream context menu to change quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... \n\nIts not easy."
@@ -31,7 +31,7 @@
           "type": "added",
           "items": [
             "Added 3y3 Profile Frames.",
-            "You can now set a custom camera preview \uD83E\uDD73\uD83C\uDF89\uD83C\uDF89\uD83C\uDF89!!",
+            "You can now set a custom camera background \uD83E\uDD73\uD83C\uDF89\uD83C\uDF89\uD83C\uDF89!!",
             "<@917630027477159986> joins the team for future development of the plugin!"
           ]
         }

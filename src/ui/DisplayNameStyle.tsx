@@ -106,7 +106,7 @@ function DisplayNameStyle() {
     return <div>
         <div style={{fontSize: "25px"}}>
             <UserNameWithEffects userName={UserStore.getCurrentUser().username} loop={true} shouldWrap={false}
-                                 inProfile={true} effectDisplayType={effectId+1} displayNameStyles={{
+                                 inProfile={true} effectDisplayType={2} displayNameStyles={{
                 colors: [colors.primary, colors.accent].filter(Boolean).map(x => parseInt(x.replace("#", "0x"), 16)),
                 effectId: effectId+1,
                 fontId: fontId+1,

@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -9012,7 +8991,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9324,7 +9303,7 @@ __export(exports_modules, {
   EditMessage: () => editMessage_default,
   DEV: () => dev_default,
   CustomThemeApply: () => customClientThemes_default,
-  CustomCameraPreview: () => cameraPreviewBypass_default,
+  CustomCameraPreview: () => customCameraBackground_default,
   ClipsBypass: () => clipsBypass_default,
   ClientThemes: () => clientThemes_default,
   CanUserUse: () => canUserUse_default,
@@ -13017,12 +12996,12 @@ var goLiveModal_default = {
     this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
       const config = GoLiveStore_default.getConfig();
       if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null) {
-        action.settings.qualityOptions.resolution = config.resolution;
-        action.settings.qualityOptions.frameRate = config.fps;
+        action.settings.qualityOptions.resolution = parseInt(config.resolution);
+        action.settings.qualityOptions.frameRate = parseInt(config.fps);
       }
       if (action?.type === "STREAM_UPDATE_SETTINGS") {
-        action.resolution = config.resolution;
-        action.frameRate = config.fps;
+        action.resolution = parseInt(config.resolution);
+        action.frameRate = parseInt(config.fps);
       }
       return false;
     });
@@ -13240,7 +13219,7 @@ function DisplayNameStyle() {
     loop: true,
     shouldWrap: false,
     inProfile: true,
-    effectDisplayType: effectId + 1,
+    effectDisplayType: 2,
     displayNameStyles: {
       colors: [colors.primary, colors.accent].filter(Boolean).map((x) => parseInt(x.replace("#", "0x"), 16)),
       effectId: effectId + 1,
@@ -14051,7 +14030,7 @@ var premiumType_default = {
     });
   }
 };
-// src/global/shared/steamExploit.ts
+// src/global/shared/cameraBackground.ts
 var MediaFilterModule = BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function")?.wq ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function") : null;
 var BackgroundEnums = BetterDiscord.Webpack.getModule((m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE);
 var PresetModule = BetterDiscord.Webpack.getBySource("52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661");
@@ -14071,7 +14050,7 @@ var Enums = {
   }
 };
 
-// src/patches/modules/cameraPreviewBypass.ts
+// src/patches/modules/customCameraBackground.ts
 var CUSTOM_ID = 69;
 var TARGET_WIDTH = 1280;
 var TARGET_HEIGHT = 720;
@@ -14098,7 +14077,7 @@ async function fetchAsImageData(link) {
   URL.revokeObjectURL(blobUrl);
   return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: "rgba" };
 }
-var cameraPreviewBypass_default = {
+var customCameraBackground_default = {
   name: "cameraPreviewBypass",
   apply(finale, patcher) {
     patcher.after(PresetModule, "A", (thisObj, args, result) => {
@@ -14445,7 +14424,7 @@ var changelog_default = {
           items: [
             "Downloading large attachments can cause a memory leak due to `Buffer` handling if DevTools is open.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
-            "Disabling and re-enabling the plugin too quickly will break the module loading.",
+            "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
             '**"Someones banner background is flickering"** — We know. Our code is silly sometimes.',
             '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
             `The stream context menu to change quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... 
@@ -14458,7 +14437,7 @@ Its not easy.`
           type: "added",
           items: [
             "Added 3y3 Profile Frames.",
-            "You can now set a custom camera preview 🥳🎉🎉🎉!!",
+            "You can now set a custom camera background 🥳🎉🎉🎉!!",
             "<@917630027477159986> joins the team for future development of the plugin!"
           ]
         }

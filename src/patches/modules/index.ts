@@ -24,7 +24,7 @@ export { default as CanUserUse } from "./canUserUse.ts"
 export { default as CustomThemeApply } from "./customClientThemes.tsx"
 export { default as PremiumType } from "./premiumType.ts"
 export { default as ClipsBypass } from "./clipsBypass.ts"
-export { default as CustomCameraPreview } from "./cameraPreviewBypass.ts"
+export { default as CustomCameraPreview } from "./customCameraBackground.ts"
 
 // dev owo
 export { default as DEV } from "./dev.tsx"
