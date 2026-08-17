@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -9012,7 +8991,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9328,6 +9307,7 @@ __export(exports_modules, {
   ClipsBypass: () => clipsBypass_default,
   ClientThemes: () => clientThemes_default,
   CanUserUse: () => canUserUse_default,
+  BlockedUserContext: () => blockedUserContext_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
   AllowClips: () => allowClips_default
@@ -9650,27 +9630,6 @@ function copyToClipboard(string, successMessage = undefined, errorMessage = "Fai
   } catch (err) {
     BetterDiscord.UI.showToast(errorMessage, { type: "error", forceShow: true });
     BetterDiscord.Logger.error(err);
-  }
-}
-function findMangledName(module2, filter, debugInfo) {
-  if (module2) {
-    if (typeof filter === "string") {
-      filter = (x) => x.toString?.().includes?.(filter);
-    }
-    let keys = Object.keys(module2);
-    let values = Object.values(module2);
-    let index = values.findIndex(filter);
-    if (index >= 0)
-      return keys[index];
-    else {
-      BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.
-Filter: `, filter, `
-`, module2);
-      return null;
-    }
-  } else {
-    BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
-    return null;
   }
 }
 var EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/g;
@@ -12580,7 +12539,8 @@ var sharpenStreams_default = {
       }));
       ret?.props?.children?.[0] && (ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` });
     });
-    patcher.after(finale.modules[1], findMangledName(finale.modules[1], (x) => x?.toString?.()?.includes?.("backgroundKey")), (_, [args], ret) => {
+    const pipPlayerMod = getKey(finale.modules[1], (x) => x?.toString?.()?.includes?.("backgroundKey"));
+    patcher.after(pipPlayerMod?.module, pipPlayerMod?.key, (_, [args], ret) => {
       if (!SettingsStore_default.get("sharpenStreams"))
         return;
       const userId = args?.backgroundKey?.split?.(":")?.[3];
@@ -12794,7 +12754,8 @@ var userCallTileBg_default = {
   ids: undefined,
   waitFor: [BetterDiscord.Webpack.Filters.bySource("getSelectedParticipant", "CHANNEL_CALL_POPOUT", "avatarDecoration", "backgroundSrc", "getAvatarURL")],
   apply(finale, patcher) {
-    patcher.after(finale.modules[0], findMangledName(finale.modules[0], (x) => x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_, [args], ret) => {
+    const mod = getKey(finale.modules[0], (x) => x.toString?.().includes?.("getSelectedParticipant"));
+    patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
       const bannerUrl = getBannerUrl(args.participant.id);
       const callTileBackgroundEnabled = SettingsStore_default.get("voiceTileBannerBackground");
       if (!bannerUrl || !callTileBackgroundEnabled || !ret)
@@ -14146,6 +14107,31 @@ var customCameraBackground_default = {
     });
   }
 };
+// src/patches/modules/blockedUserContext.tsx
+var { SelectedChannelStore, ChannelStore: ChannelStore2 } = BetterDiscord.Webpack.Stores;
+var USER_SETTINGS_FILTER = BetterDiscord.Webpack.Filters.bySource("unblockUser", "USER_SETTINGS");
+var blockedUserContext_default = {
+  name: "Blocked/Ignored User Context Menu",
+  description: "Allows opening a user context menu in the blocked/ignored user list.",
+  ids: undefined,
+  waitFor: [USER_SETTINGS_FILTER, BetterDiscord.Webpack.Filters.bySource("isGroupDM", "targetIsUser")],
+  apply(finale, patcher) {
+    const SettingsModule = BetterDiscord.Webpack.getModule(USER_SETTINGS_FILTER, { raw: true });
+    const mod = getKey(SettingsModule.declarations, BdApi.Webpack.Filters.byStrings("unblockUser", "USER_SETTINGS"));
+    const mod2 = getKey(finale.modules[1], (x) => x?.toString?.().includes?.("targetIsUser", "showMute"));
+    const openUserContextMenu = mod2?.module[mod2?.key];
+    console.log(openUserContextMenu);
+    patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
+      const pfp = BetterDiscord.Utils.findInTree(ret, (x) => x?.size, { walkable: ["props", "children"] });
+      if (!pfp || !pfp?.user)
+        return;
+      const channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore2.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore2.getSortedPrivateChannels()?.[0];
+      pfp.onContextMenu = (e) => {
+        openUserContextMenu(e, pfp.user, undefined);
+      };
+    });
+  }
+};
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
@@ -14187,6 +14173,9 @@ var DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 var message_default = {
   id: "message",
   callback(res, props) {
+    const enabled = SettingsStore_default.get("extraContextMenus");
+    if (!enabled)
+      return;
     const attachmentsLmao = [
       ...props.message.attachments,
       ...props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []
@@ -14241,6 +14230,9 @@ var { EmojiStore: EmojiStore3 } = BetterDiscord.Webpack.Stores;
 var expressionPicker_default = {
   id: "expression-picker",
   callback(res, props) {
+    const enabled = SettingsStore_default.get("extraContextMenus");
+    if (!enabled)
+      return;
     let src = props?.target?.src ?? props?.target?.firstChild?.src;
     if (!src)
       return;

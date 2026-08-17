@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/*";
-import {findMangledName, getBannerUrl} from "@utils/*";
+import {getBannerUrl} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
+import {getKey} from "../../global/webpack";
 const {React} = BetterDiscord;
 
 
@@ -10,7 +11,8 @@ export default {
     ids: undefined,
     waitFor: [BetterDiscord.Webpack.Filters.bySource("getSelectedParticipant","CHANNEL_CALL_POPOUT",'avatarDecoration','backgroundSrc','getAvatarURL')],
     apply(finale, patcher){
-        patcher.after(finale.modules[0], findMangledName(finale.modules[0], x=>x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_,[args], ret) => {
+        const mod = getKey(finale.modules[0], x=>x.toString?.().includes?.("getSelectedParticipant"));
+        patcher.after(mod?.module, mod?.key, (_,[args], ret) => {
             const bannerUrl = getBannerUrl(args.participant.id);
             const callTileBackgroundEnabled = SettingsStore.get("voiceTileBannerBackground");
 

@@ -25,6 +25,7 @@ export { default as CustomThemeApply } from "./customClientThemes.tsx"
 export { default as PremiumType } from "./premiumType.ts"
 export { default as ClipsBypass } from "./clipsBypass.ts"
 export { default as CustomCameraPreview } from "./customCameraBackground.ts"
+export { default as BlockedUserContext } from "./blockedUserContext.tsx"
 
 // dev owo
 export { default as DEV } from "./dev.tsx"

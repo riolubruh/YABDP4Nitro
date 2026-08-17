@@ -2,6 +2,7 @@ import {BetterDiscord} from "@shared/*";
 import {ContextMenuLabel, ContextMenuWrapper, EMOJI_ID_FROM_URL_REGEX, getEmojiUrl} from "@utils/*";
 import {Icon} from "@iconify/react";
 import {CloseAllContextMenus} from "@global/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {EmojiStore} = BetterDiscord.Webpack.Stores;
 
@@ -10,6 +11,9 @@ const {EmojiStore} = BetterDiscord.Webpack.Stores;
 export default {
     id: "expression-picker",
     callback(res, props) {
+        const enabled = SettingsStore.get("extraContextMenus");
+        if(!enabled) return;
+
         let src = props?.target?.src ?? props?.target?.firstChild?.src;
         if(!src) return;
         let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);

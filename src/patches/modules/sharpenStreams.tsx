@@ -1,6 +1,6 @@
 import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
-import {findMangledName} from "@utils/*";
+import {getKey} from "../../global/webpack";
 const {React} = BetterDiscord;
 
 export function Sharpener ({userId}){
@@ -68,7 +68,8 @@ export default {
         });
 
         //pip player
-        patcher.after(finale.modules[1], findMangledName(finale.modules[1], x=>x?.toString?.()?.includes?.('backgroundKey')), (_,[args],ret) => {
+        const pipPlayerMod = getKey(finale.modules[1], x=>x?.toString?.()?.includes?.('backgroundKey'));
+        patcher.after(pipPlayerMod?.module, pipPlayerMod?.key, (_,[args],ret) => {
             if(!SettingsStore.get("sharpenStreams")) return;
 
             const userId = args?.backgroundKey?.split?.(":")?.[3];

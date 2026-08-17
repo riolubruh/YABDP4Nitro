@@ -422,7 +422,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "extraContextMenus",
         label: "Extra Context Menus and Options",
-        note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list), and a context menu on messages with attachments that lets you download all attachments.",
+        note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars in the blocked/ignored list, and a context menu on messages with attachments that lets you download all attachments.",
         category: "Miscellaneous",
         type: "boolean"
     },

@@ -193,30 +193,6 @@ export function copyToClipboard(string: string, successMessage = undefined, erro
     }
 }
 
-// Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
-// If filter variable is a string, it uses an includes string filter.
-export function findMangledName(module, filter, debugInfo) {
-    if (module) {
-        if (typeof filter === "string") {
-            filter = (x) => x.toString?.().includes?.(filter);
-        }
-        let keys = Object.keys(module);
-        let values = Object.values(module);
-
-        let index = values.findIndex(filter);
-
-        if (index >= 0) return keys[index];
-        else {
-            BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
-            return null;
-        }
-        ;
-    } else {
-        BetterDiscord.Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
-        return null;
-    }
-}
-
 export const EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/g;
 export const EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
 export const EMOJI_URL_REGEX = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?(?=$| )/gi;

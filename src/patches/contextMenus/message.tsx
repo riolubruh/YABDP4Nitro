@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { Icon } from "@iconify/react";
 import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
 import {CloseAllContextMenus} from "@global/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React} = BetterDiscord;
 
@@ -14,6 +15,9 @@ const DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 export default {
     id: "message",
     callback(res, props) {
+        const enabled = SettingsStore.get("extraContextMenus");
+        if(!enabled) return;
+
         const attachmentsLmao = [
             ...props.message.attachments,
             ...(props?.message?.messageSnapshots?.[0]?.message?.attachments ?? [])
