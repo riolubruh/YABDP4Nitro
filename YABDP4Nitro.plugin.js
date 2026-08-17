@@ -13039,7 +13039,7 @@ var goLiveModal_default = {
       return ret;
     });
   },
-  unload() {
+  revert() {
     this._removeInterceptor();
   }
 };

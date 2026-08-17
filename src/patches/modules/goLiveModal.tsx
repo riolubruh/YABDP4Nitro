@@ -270,7 +270,7 @@ export default {
             return ret;
         });
     },
-    unload()
+    revert()
     {
         this._removeInterceptor();
     }
