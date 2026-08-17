@@ -1,7 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import GoLiveStore from "../../global/stores/GoLiveStore.ts";
 import {GlobalModules} from "@global/*";
-import {getKey, wpFilter, wpGetByKeys, wpGetProxy} from "../../global/webpack";
+import {getKey, wpFilter, wpGet, wpGetByKeys, wpGetProxy} from "../../global/webpack";
 import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
@@ -102,8 +102,6 @@ const FIELD_MAP = {
     voiceBitrate: "voiceBitrate",
 };
 
-const StreamingModule = wpGetProxy(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), {raw: true})
-
 function ConfigModal({props, onClose, forceQuality}) {
     const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
     const [_, setData] = React.useState(() => SettingsStore.getAll());
@@ -175,7 +173,9 @@ function openConfigModal(forceQuality) {
 }
 
 function CustomFooter() {
-    const [start, dispatch] = StreamingModule.declarations.eG();
+    const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), {raw: true})
+    const module = getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext"))
+    const [start, dispatch] = module.module[module.key]()
 
     const forceQuality = (type, value) => {
         dispatch({type: type, ...value});
@@ -216,6 +216,8 @@ export default {
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
         this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
+            if (!SettingsStore.get("ResolutionSwapper")) return true;
+
             const config = GoLiveStore.getConfig();
 
             if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null) {
@@ -235,6 +237,8 @@ export default {
         patcher.instead(mod?.module, mod?.key, () => true);
 
         patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+            if (!SettingsStore.get("ResolutionSwapper")) return ret;
+
             const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
             const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footer"));
             if (!footer) return ret;
@@ -265,5 +269,9 @@ export default {
 
             return ret;
         });
+    },
+    unload()
+    {
+        this._removeInterceptor();
     }
 }
