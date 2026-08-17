@@ -1,6 +1,7 @@
 import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
+import {getKey} from "../../global/webpack";
 
 const React = BetterDiscord.React
 
@@ -24,7 +25,7 @@ export default {
             return res
         })
 
-        const title = BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", {raw: true})
-        patcher.instead(title.declarations, "J", () => null)
+        const title = getKey(BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", {raw: true}).declarations, x => String(x).includes(".NOT_STAFF_WARNING})"))
+        patcher.instead(title.module, title.key, () => null)
     }
 } as Patch

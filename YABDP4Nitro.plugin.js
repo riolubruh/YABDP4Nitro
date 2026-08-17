@@ -14167,8 +14167,8 @@ var dev_default = {
       }
       return res;
     });
-    const title = BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true });
-    patcher.instead(title.declarations, "J", () => null);
+    const title = getKey(BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations, (x) => String(x).includes(".NOT_STAFF_WARNING})"));
+    patcher.instead(title.module, title.key, () => null);
   }
 };
 // src/patches/contextMenus/index.ts
