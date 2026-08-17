@@ -21,7 +21,7 @@ export default new class GoLiveStore extends BetterDiscord.Utils.Store {
         const d = SettingsStore.getAll();
 
         return {
-            isResolutionEnabled: d.ResolutionEnabled,
+            isResolutionEnabled: d.screenSharing,
             isBitrateEnabled: d.CustomBitrateEnabled
         }
     }

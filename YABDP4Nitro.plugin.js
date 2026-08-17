@@ -12806,7 +12806,7 @@ var GoLiveStore_default = new class GoLiveStore extends BetterDiscord.Utils.Stor
   isEnabled() {
     const d = SettingsStore_default.getAll();
     return {
-      isResolutionEnabled: d.ResolutionEnabled,
+      isResolutionEnabled: d.screenSharing,
       isBitrateEnabled: d.CustomBitrateEnabled
     };
   }
@@ -13135,18 +13135,18 @@ var { React: React9, Components: Components5 } = BetterDiscord;
 var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
-  "GG Sans",
-  "Tempo",
-  "Sakura",
-  "Jellybean",
-  "Modern",
-  "Medieval",
-  "8Bit",
-  "Vampyre",
-  "Monkey Bars",
-  "Mainframe",
-  "Headbang",
-  "Journal"
+  { name: "GG Sans", id: 11 },
+  { name: "Tempo", id: 12 },
+  { name: "Sakura", id: 3 },
+  { name: "Jellybean", id: 4 },
+  { name: "Modern", id: 6 },
+  { name: "Medieval", id: 7 },
+  { name: "8Bit", id: 8 },
+  { name: "Vampyre", id: 10 },
+  { name: "Monkey Bars", id: 13 },
+  { name: "Mainframe", id: 14 },
+  { name: "Headbang", id: 15 },
+  { name: "Journal", id: 16 }
 ];
 var EFFECTS = {
   Solid: [15724529],
@@ -13155,10 +13155,10 @@ var EFFECTS = {
   Toon: [15999128],
   Pop: [1036166]
 };
-function FontButton({ onClick, selected, fontFamily }) {
+function FontButton({ onClick, selected, fontFamily: font }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
     style: {
-      fontFamily,
+      fontFamily: font.name,
       color: "var(--text-default)",
       backgroundColor: "var(--control-secondary-background-default)",
       border: selected ? "1px solid white" : "none",
@@ -13166,7 +13166,7 @@ function FontButton({ onClick, selected, fontFamily }) {
       display: "inline-block"
     },
     onClick
-  }, fontFamily);
+  }, font.name);
 }
 function EffectButton({ onClick, selected, children, data, colors }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
@@ -13206,7 +13206,7 @@ function OpenDisplayNameStyleModalButton() {
 }
 function DisplayNameStyle() {
   const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource("UserNameWithEffects"), { declaration: (x) => String(x.type).includes("UserNameWithEffects") });
-  const [fontId, setFontId] = React9.useState(0);
+  const [fontId, setFontId] = React9.useState(11);
   const [effectId, setEffectId] = React9.useState(0);
   const [colors, setColors] = React9.useState({
     primary: "#ffffff",
@@ -13223,15 +13223,17 @@ function DisplayNameStyle() {
     displayNameStyles: {
       colors: [colors.primary, colors.accent].filter(Boolean).map((x) => parseInt(x.replace("#", "0x"), 16)),
       effectId: effectId + 1,
-      fontId: fontId + 1
+      fontId
     }
-  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((_fontId, index) => {
+  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((font) => {
+    console.log(font);
     return /* @__PURE__ */ React9.createElement(FontButton, {
-      fontFamily: _fontId,
-      selected: fontId == index,
-      onClick: () => setFontId(index)
+      fontFamily: font,
+      selected: fontId == font.id,
+      onClick: () => setFontId(font.id)
     });
   }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i) => {
+    console.log(effect);
     const data = {
       effectName: effect[0],
       effectColors: effect[1],
