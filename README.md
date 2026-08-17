@@ -32,6 +32,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Fake Profile Pictures](#fake-profile-pictures)
      + [Fake Nameplates](#fake-nameplates)
      + [Fake Display Name Styles](#fake-display-name-styles)
+     + [Fake Profile Frames](#fake-profile-frames)
    * [Clips 100MB Limit Bypasses](#clips)
      + [Video Files](#videos)
      + [Audio Files](#audio)
@@ -42,6 +43,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
      + [In-App Icons](#in-app-icons)
      + [Extra Context Menus and Options](#extra-context-menus-and-options)
+     + [Custom Camera Background](#custom-camera-background)
 - [FAQ & Installation (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -288,7 +290,7 @@ Clicking one of these profile effects will copy the invisible 3y3-encoded data i
 
 **For Nitro users only:** You can also set this per-server using the per-server bio.
 
-Any other user of YABDP4Nitro with Fake Profile Effects enabled will now be able to see your profile effect!
+Any **other user of YABDP4Nitro** with Fake Profile Effects enabled will now be able to see your profile effect!
 
 _________________________________________________________________________________________________________________
 
@@ -306,15 +308,13 @@ You should see a PFP Imgur URL textarea and a Copy PFP 3y3 button.
 
 Now paste an Imgur URL (ex: `https://i.imgur.com/bYGGXnq.gif`) into the box and click the "Copy PFP 3y3" button!
 
-![fakepfp demo](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/a7aba7b6-f947-4b2a-b2c2-696692ce7abc)
-
 Assuming nothing goes wrong, you should see "3y3 copied to clipboard!" appear at the bottom of the window.
 
 Now, go and paste your clipboard into your Custom Status:
 
 󠁐󠁻󠁢󠁙󠁇󠁇󠁘󠁮󠁱󠁽<img width="1202" height="761" alt="pfp demo" src="https://github.com/user-attachments/assets/c7f3d4b2-c97d-4216-a035-53ea36af0d06" />
 
-Note that only other others of the plugin will be able to see your fake profile picture.
+**Note that only other others of the plugin will be able to see your fake profile picture.**
 
 **Note: Because this uses Custom Status, you must be appearing Online, Idle, or Do Not Disturb for this to work!**
 
@@ -349,6 +349,8 @@ For the best effect, pasting it in both is recommended.
 Demonstration:<br>
 <img width="1201" height="761" alt="Fake Nameplates Demo" src="https://github.com/user-attachments/assets/31e86c1b-8aa2-4b29-aa32-b156101a644f" />
 
+**Please note that only other users with the plugin will be able to see it.**
+
 _________________________________________________________________________________________________________________
 
 ## Fake Display Name Styles
@@ -367,8 +369,30 @@ Next, go to your custom status, and paste the invisible characters into it.
 Demonstration:<br>
 <img width="1202" height="762" alt="Fake Display Name Styles Demo" src="https://github.com/user-attachments/assets/75b8172c-f6e6-4002-8a9d-5ea7fd818c85" />
 
+**Please note that only other users with the plugin will be able to see it.**
 
 _________________________________________________________________________________________________________________
+
+## Fake Profile Frames
+
+Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio.
+
+To use Fake Profile Frames, enable it and go to profile settings, open the YABDP4Nitro tab, then click the Change button under Profile Frames:
+
+<img width="420" height="97" alt="image" src="https://github.com/user-attachments/assets/08bb9960-23e2-43cc-93c7-26c720649a47" />
+
+This will open a modal with a list of all available profile frames. Click the profile frame that you want, and you should see a "3y3 copied to clipboard!" message.
+
+Then, paste your clipboard into your profile bio and save.
+
+Demonstration:<br>
+<img width="1202" height="735" alt="Discord_d0xJ5N93Fj" src="https://github.com/user-attachments/assets/bab89f7f-5fd8-45b9-82f9-f1b7d6ecdf71" />
+
+
+**Please note that only other users with the plugin will be able to see it.**
+
+_________________________________________________________________________________________________________________
+
 
 ## Clips
 
@@ -478,8 +502,6 @@ Nitro In-App icons are unlocked.
 
 _________________________________________________________________________________________________________________
 
-_________________________________________________________________________________________________________________
-
 ### Extra Context Menus and Options
 
 Adds random extra right-click (context) menus and options in context menus.
@@ -497,6 +519,23 @@ You also now right-click a user in the blocked/ignored user list and open the us
 
 _________________________________________________________________________________________________________________
 
+### Custom Camera Background
+
+Lets you use a custom background when using Discord's forgotten camera feature!
+
+First, you have to provide a URL in the YABDP4Nitro plugin settings under Miscellaneous:
+
+<img width="589" height="176" alt="image" src="https://github.com/user-attachments/assets/871d8078-48c9-4fba-ab5f-656ef5309b9c" />
+
+Then, simply choose the video background:
+
+<img width="725" height="817" alt="image" src="https://github.com/user-attachments/assets/e570d832-a41c-4203-a237-d576231cf8cf" />
+
+and turn on your camera!
+
+<img width="869" height="656" alt="Discord_THkqpnShlh" src="https://github.com/user-attachments/assets/ce445eb1-78d1-4811-9924-5fcc43f9536c" />
+
+_________________________________________________________________________________________________________________
 
 # Frequently Asked Questions
 [Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
