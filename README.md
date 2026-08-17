@@ -41,6 +41,7 @@ See full trademark notice [here.](#trademark-notice)*
      + [Nitro Client Themes](#nitro-client-themes)
      + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
      + [In-App Icons](#in-app-icons)
+     + [Extra Context Menus and Options](#extra-context-menus-and-options)
 - [FAQ & Installation (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -84,11 +85,10 @@ ________________________________________________________________________________
 
 Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 
-![Choosing Quality and FPS Options](https://github.com/user-attachments/assets/db173a32-0eb9-4744-96e6-f0ab122b0d03)
+![Choosing Quality and FPS Options](https://github.com/user-attachments/assets/05a7775b-e123-403f-85c5-1bc8c296f028)
 
-![Another Image](https://user-images.githubusercontent.com/54255074/183275106-cbee28e6-d550-4637-ab06-0cb065c81283.png)
-
-![Bitrate Options](https://github.com/user-attachments/assets/b04b7685-0e55-4b40-ad0d-cad043dab229)
+<img width="579" height="443" alt="Discord_eMdf2Xnk9e" src="https://github.com/user-attachments/assets/20f6f672-0b46-445d-a3cd-e68abbe900b1" />
+<img width="583" height="219" alt="Discord_5D8zQNXDxw" src="https://github.com/user-attachments/assets/ddd88edf-1745-4a4b-b094-e794c71d85bc" />
 
 _________________________________________________________________________________________________________________
 
@@ -96,7 +96,7 @@ ________________________________________________________________________________
 
 A fully customizable, per-user stream sharpness slider!
 
-<img width="211" height="84" alt="Sharpness Slider Image" src="https://github.com/user-attachments/assets/62f9c117-e4ce-486a-b85f-77cb015ab049" />
+<img width="205" height="74" alt="image" src="https://github.com/user-attachments/assets/58628770-7cfc-44c0-852c-8103752686d8" />
 
 This lets you combat the somewhat blurry look of streams by applying a sharpness filter.
 
@@ -119,7 +119,7 @@ ________________________________________________________________________________
 
 Automatically uploads the emojis used in your message as an attachment!
 
-![Uploading Demonstration](https://user-images.githubusercontent.com/54255074/191621033-da0db3f6-c5f6-4ba7-9c99-0c8ccf7ed864.gif)
+<img width="745" height="576" alt="Uploading Demonstration" src="https://github.com/user-attachments/assets/2c161ca1-ba02-4a5d-8967-c21ba1e824b3" />
 
 _________________________________________________________________________________________________________________
 
@@ -145,13 +145,9 @@ ________________________________________________________________________________
 
 ### Classic Mode
 
-Simply replaces the emoji in the message with its' URL. This is "classic mode".
+Simply replaces the emoji in the message with its' URL.
 
-_________________________________________________________________________________________________________________
-
-#### Usage of the Emoji Bypass
-
-![Emoji Demonstration](https://user-images.githubusercontent.com/54255074/166121643-58b06bc5-c0a5-4e45-a7e9-c135337b7ed0.gif)
+<img width="744" height="274" alt="Discord_je1QmEkqUh" src="https://github.com/user-attachments/assets/9c31443f-dc30-460b-97e6-525aacfc2209" />
 
 _________________________________________________________________________________________________________________
 
@@ -159,7 +155,7 @@ ________________________________________________________________________________
 
 ### Profile Accents for All Users
 
-<img src="https://user-images.githubusercontent.com/54255074/199860419-7e3275e0-fdf5-49cf-a7c3-89f3105d1867.png" alt="visual difference with it on" width="25%"></img><--[New Look] [Original Look]--><img src="https://user-images.githubusercontent.com/54255074/199860495-19312500-3f37-4c3d-a54a-1c04af68e826.png" alt="visual difference with it off" width="25%"></img>
+<img src="https://github.com/user-attachments/assets/39b13606-7341-42e0-9f36-37aeaa99072b" alt="visual difference with it on" width="25%"></img><--[New Look] [Original Look]--><img src="https://github.com/user-attachments/assets/5aab0b47-d271-4bcc-9ce7-3a67721c147c" alt="visual difference with it off" width="25%"></img>
 
 To clarify: What this does is make **all profiles** render with the gradient accent on the **client-side**.
 
@@ -171,7 +167,7 @@ ________________________________________________________________________________
 Allows profile theming by hiding color information in your bio using invisible 3y3 encoding!<br>
 Works effectively exactly the same as FakeProfileThemes on Vencord, but on BetterDiscord!
 
-![Fake Profile Themes Demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/dcb7b2fb-fdad-4d2d-8d87-b79fcabd8e9a)
+<img width="1049" height="726" alt="Fake Profile Themes Demonstration" src="https://github.com/user-attachments/assets/e86cbe19-b042-4d52-918c-d08cf86ad48f" />
 
 **For per-server profile themes**: you can put the 3y3 code in the per-server pronouns field.
 <br>Please note you may only have one 3y3 code in the pronouns field at a time.
@@ -189,10 +185,10 @@ Only supports Imgur URLs for security reasons.
 
 ![Fake Profile Banners Big Yosher](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/f7edda1f-531b-45b8-bc8b-ee50d5c5cfdb)
 
-To use Fake Profile Banners, go to Settings>Profiles. You should see a new text input and 
+To use Fake Profile Banners, go to Settings>Edit Profiles. In the YABDP4Nitro tab, find the Banner Imgur URL text area and 
 "Copy Banner 3y3" button under the Profile Banners section:
 
-![Banner Tutorial Sceenshot](https://github.com/user-attachments/assets/c0f5620b-af4a-48e9-b196-1e41f8d09f33)
+<img width="201" height="123" alt="Banner Tutorial Sceenshot" src="https://github.com/user-attachments/assets/b5991426-c743-40e8-b8db-2af8543cf6c8" />
 
 Simply type/paste in an Imgur URL into the input area
 
@@ -214,14 +210,13 @@ Uses invisible 3y3 encoding to allow setting avatar decorations by hiding IDs in
 
 ![avatar decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/005379d8-5d6f-43e9-8735-b44788560831)
 
-To use Fake Avatar Decorations, go to Settings>Profiles you should see a new button under Avatar Decoration.
+To use Fake Avatar Decorations, go to Settings>Edit Profiles. In the YABDP4Nitro tab, click the button under Avatar Decoration.
 
-![deco-button](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/0b5547e0-2947-4628-a3da-a91f9ee1c933)
+<img width="215" height="88" alt="decoration button" src="https://github.com/user-attachments/assets/a6670fc3-a916-4e63-a08c-9de4c7e95cd2" />
 
 Clicking this button will reveal a menu with each of the avatar decorations in a grid.
 
-![avatar decorations](https://github.com/user-attachments/assets/eff51466-6d05-4ab3-99f5-1308c04a9876)
-
+<img width="480" height="800" alt="avatar decorations" src="https://github.com/user-attachments/assets/ee593f3e-4d31-453b-bcec-cbf472df862a" />
 
 Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
 <br>Now follow one or both **(for the best effect, do both!)** of the following methods to apply the avatar decoration to your profile:
@@ -231,15 +226,17 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
  <summary>
  Custom Status 
 </summary>
- Now that you have the 3y3 encoded data in your clipboard:
- 
- Close settings by pressing Escape or hitting the button labeled ESC in the top right.
+ Now that you have the 3y3 encoded data in your clipboard,
 
- Click on your profile in the bottom left to open this menu:
- 
- ![profile](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/2e48a60a-b235-48fd-a93f-b14c6a2ba695)
+ click the button to add
+ <br>
+ <img width="407" height="338" alt="add custom status" src="https://github.com/user-attachments/assets/afca57c5-9a1c-4d54-aa24-5d12a65b8d43" />
+ <br>
+ or edit
+ <br>
+ <img width="386" height="322" alt="image" src="https://github.com/user-attachments/assets/23494137-b948-42e9-b417-a6b9f91fde99" />
 
- Click the button to add/edit your custom status and paste your clipboard into your status.
+ your custom status, then paste (Ctrl+V) your clipboard into it and save.
 
  **Note that if you are using the Custom Status method only, it will only appear for other YABDP4Nitro users when you are online.**
 
@@ -255,7 +252,7 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
 
  Demonstration:
  
- ![decoration demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/b91fcd6e-389f-4adf-aa92-054d3e18d524)
+ <img width="1203" height="913" alt="decoration demonstration" src="https://github.com/user-attachments/assets/6b01761f-cebf-4674-807d-0bbf0824381c" />
 
  **Note: If your Avatar Decoration is in the About Me section of your profile, it will only appear for other users *after* they have opened your profile at least once.**
 
@@ -274,20 +271,20 @@ Uses invisible 3y3 encoding to allow setting profile effects by hiding IDs in yo
 
 ![profile effect example](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/d9a2b6a4-dcdb-4fef-9310-5af30dffbfe6)
 
-To use Fake Profile Effects, first go to Settings>Profiles; you should see a Profile Effect section:
+To use Fake Profile Effects, first go to Settings>Edit Profile and open the YABDP4Nitro tab.
 
-![Profile Effect section](https://github.com/user-attachments/assets/22b7473b-b1ad-4c7a-9cf4-922a8fd133a8)
+![Profile Effect section](https://github.com/user-attachments/assets/124312d1-870b-4030-9845-033ec6fc934a)
 
-Clicking the new "Change Effect \[YABDP4Nitro\]" button should reveal a menu with all of the available profile effects: 
+Clicking the "Change" button under Profile Effect should reveal a menu with all of the available profile effects: 
 
-![profile effect section opened](https://github.com/user-attachments/assets/101ff527-6811-457b-ae80-dc55cd9e88b3)
+![profile effect section opened](https://github.com/user-attachments/assets/0dd56af5-fe8a-4e26-80a0-2d6dfb0631df)
 
 <br>(The menu will automatically populate with any new profile effects that Discord may add in the future.)
 
 Clicking one of these profile effects will copy the invisible 3y3-encoded data into your clipboard.
 <br>Now all you have to do is paste your clipboard into the "About Me" section of your profile and click Save Changes!
 
-![profile effects settings demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/7b2f8340-be41-4155-a0b5-77d37220d278)
+<img width="1202" height="810" alt="profile effects settings demonstration" src="https://github.com/user-attachments/assets/840770ec-eebc-4b4f-892d-d2a8f9383f9f" />
 
 **For Nitro users only:** You can also set this per-server using the per-server bio.
 
@@ -302,25 +299,20 @@ Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding a
 
 ![fake-pfp demonstration](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/07745802-005a-40b1-9655-b1cb8e0ecfa6)
 
-To use Fake Profile Pictures, first go to Settings>Profiles; you should see a new input & button:
+To use Fake Profile Pictures, first go to Settings>Editor Profiles and open the YABDP4Nitro tab.<br>
+You should see a PFP Imgur URL textarea and a Copy PFP 3y3 button.
 
-![fake pfp setting section](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/99adab5d-5d69-4e1d-ae84-f094b2cb782e)
+<img width="202" height="121" alt="fake pfp setting section" src="https://github.com/user-attachments/assets/2eb63d7c-d271-418b-9ddc-c57fb0522f24" />
 
-Now paste an Imgur URL (ex: `https://i.imgur.com/bYGGXnq.gif`) into the box and click the "Copy 3y3" to the right!
+Now paste an Imgur URL (ex: `https://i.imgur.com/bYGGXnq.gif`) into the box and click the "Copy PFP 3y3" button!
 
 ![fakepfp demo](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/a7aba7b6-f947-4b2a-b2c2-696692ce7abc)
 
 Assuming nothing goes wrong, you should see "3y3 copied to clipboard!" appear at the bottom of the window.
 
-Now, close Settings and click your profile in the bottom left of the window.
-<br>You should see the following:
+Now, go and paste your clipboard into your Custom Status:
 
-![profile](https://github.com/user-attachments/assets/ecb441fe-a5af-4bfb-a08e-e0fe4be42065)
-
-
-Choose the option to set your custom status, and paste your clipboard anywhere into your custom status.
-
-You should now see your profile picture change to the desired image!
+󠁐󠁻󠁢󠁙󠁇󠁇󠁘󠁮󠁱󠁽<img width="1202" height="761" alt="pfp demo" src="https://github.com/user-attachments/assets/c7f3d4b2-c97d-4216-a035-53ea36af0d06" />
 
 Note that only other others of the plugin will be able to see your fake profile picture.
 
@@ -335,13 +327,13 @@ ________________________________________________________________________________
 
 Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio.
 
-To use Fake Nameplates, enable it and go into Profile Settings. A button should appear in the Nameplates section:
+To use Fake Nameplates, enable it and go into Profile Settings. Open the YABDP4Nitro tab and find the Nameplate button:
 
-![nameplates button](https://github.com/user-attachments/assets/78c5b88a-d04e-49e6-86e3-b13e769c03a0)
+<img width="207" height="72" alt="nameplates button" src="https://github.com/user-attachments/assets/31ba7746-d7a0-48a0-a590-a3f1527ee8fc" />
 
 Clicking the button will reveal a modal like this:
 
-![nameplates modal](https://github.com/user-attachments/assets/cd952a04-3c76-4cb0-9d3a-2b58af6e5254)
+<img width="480" height="746" alt="nameplates modal" src="https://github.com/user-attachments/assets/c3bf28de-9d2a-47a9-a0ce-56232d1821e4" />
 
 Click on your desired nameplate. You will see a message that says "3y3 copied to clipboard!"
 
@@ -355,7 +347,7 @@ For the best effect, pasting it in both is recommended.
 **For Nitro users only:** You can also set this per-server using the per-server bio.
 
 Demonstration:<br>
-![Fake Nameplates Demo](https://github.com/user-attachments/assets/5c64dbb0-1241-4a13-a454-9fb4cc634aad)
+<img width="1201" height="761" alt="Fake Nameplates Demo" src="https://github.com/user-attachments/assets/31e86c1b-8aa2-4b29-aa32-b156101a644f" />
 
 _________________________________________________________________________________________________________________
 
@@ -363,17 +355,18 @@ ________________________________________________________________________________
 
 Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your custom status and/or bio.
 
-To use Fake Display Name Styles, enable it and go to profile settings, then click Change Style under Display Name Styles:<br>
-<img width="747" height="185" alt="Display Name Styles section" src="https://github.com/user-attachments/assets/0da9d80a-c5c2-4b56-900c-3f2a4953da47" />
+To use Fake Display Name Styles, enable it and go to profile settings, open the YABDP4Nitro tab, then find the Change button under Display Name Style:<br>
+<img alt="Display Name Styles section" src="https://github.com/user-attachments/assets/347a1e43-a8c8-4f18-b5c1-6264a30a43b9" />
 
-You should get the standard Display Name Styles modal, except with one button labeled "Copy 3y3" added.<br>
-<img width="802" height="695" alt="Discord_3AUxtnyf0t" src="https://github.com/user-attachments/assets/ee86da69-ba58-48b5-8de8-5b2b7637112c" /><br>
+You should get this modal:<br>
+<img width="481" height="535" alt="Discord_10IZYYB9lZ" src="https://github.com/user-attachments/assets/71ca6783-bab3-44ea-997c-d67bd58e114c" /><br>
 Once you have chosen your desired style, click Copy 3y3. This will copy invisible characters to your clipboard.
 
 Next, go to your custom status, and paste the invisible characters into it.
 
 Demonstration:<br>
-![Fake Display Name Styles Demo](https://github.com/user-attachments/assets/6339ea71-f52b-40a9-ac1a-c4740c683d69)
+<img width="1202" height="762" alt="Fake Display Name Styles Demo" src="https://github.com/user-attachments/assets/75b8172c-f6e6-4002-8a9d-5ea7fd818c85" />
+
 
 _________________________________________________________________________________________________________________
 
@@ -402,6 +395,10 @@ Using FFmpeg.WASM, the audio is muxed into a new video file with a new video tra
 and then a special tag that the Discord API specifically checks for is appended to the file in order for it to be considered "valid".
 
 The plugin does everything automatically, just like as for videos!
+
+If your audio file has an embedded cover image, it will use the cover image for the video!
+
+![Audio Clips Example](https://github.com/user-attachments/assets/95874e2d-1a7e-4fbb-a8a3-a66e1b24a77a)
 
 _________________________________________________________________________________________________________________
 
@@ -459,9 +456,9 @@ ________________________________________________________________________________
 
 Allows you to use the Nitro-exclusive gradient client themes by Discord.
 
-![Crimson Moon Nitro Client Theme](https://user-images.githubusercontent.com/54255074/233230492-dbfe7005-e207-41ef-a313-e4e70867a49d.png)
+<img width="1352" height="857" alt="Crimson Moon Nitro Client Theme" src="https://github.com/user-attachments/assets/f29582be-669f-4787-b724-974b2d41371b" />
 
-![Nitro Client Theme Options](https://user-images.githubusercontent.com/54255074/233231021-16c06b12-530a-4878-8ee9-60a5a254dd1b.png)
+<img width="681" height="181" alt="Nitro Client Theme Options" src="https://github.com/user-attachments/assets/44538ebe-d79b-453f-a438-c47a78cc4b91" />
 
 _________________________________________________________________________________________________________________
 
@@ -469,8 +466,7 @@ ________________________________________________________________________________
 
 Removes the annoying Nitro upsell in the screen share quality menu.
 
-![Discord_voeTC4w6lE](https://github.com/user-attachments/assets/57c5a6cf-8c29-49eb-8171-857e91f9d163)
-![Discord_2s1O1PplCu](https://github.com/user-attachments/assets/ce84f0f5-776a-4f61-b184-05925fef25a0)
+<img width="952" height="150" alt="upsell" src="https://github.com/user-attachments/assets/dde41faa-4bdd-4b36-9d08-914cb08a14cf" />
 
 _________________________________________________________________________________________________________________
 
@@ -478,7 +474,26 @@ ________________________________________________________________________________
 
 Nitro In-App icons are unlocked.
 
-![App Icons](https://github.com/user-attachments/assets/810dfa79-3b73-420d-a795-1fe9e6780bc2)
+<img width="712" height="223" alt="App Icons" src="https://github.com/user-attachments/assets/ed0aca6c-a122-476e-b4b0-39513c04cee4" />
+
+_________________________________________________________________________________________________________________
+
+_________________________________________________________________________________________________________________
+
+### Extra Context Menus and Options
+
+Adds random extra right-click (context) menus and options in context menus.
+
+When enabled:
+
+GIFs in the GIF picker will have a context menu allowing you to copy and open the GIF's url: <br>
+<img width="257" height="190" alt="gif copy url open url image" src="https://github.com/user-attachments/assets/012a2b90-ea3f-4b6b-af66-2b16841d90e2" />
+
+You can also now download all attachments in a message by right-clicking it:<br>
+<img width="231" height="618" alt="download all attachments image" src="https://github.com/user-attachments/assets/761044f6-35bb-4273-b47a-2d7fb02fe62d" />
+
+You also now right-click a user in the blocked/ignored user list and open the user context menu from there:<br>
+<img width="698" height="374" alt="image" src="https://github.com/user-attachments/assets/3b0a5945-9cb6-428a-a682-578be2603a04" />
 
 _________________________________________________________________________________________________________________
 
