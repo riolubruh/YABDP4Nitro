@@ -9697,7 +9697,7 @@ function extractProfilePicture(revealedText) {
   const matches = revealedText.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
   return matches || null;
 }
-function containsProfileV2(revealedSurrogate) {
+function containsBanner(revealedSurrogate) {
   return revealedSurrogate?.includes("B{") || false;
 }
 function containsProfileEffects(revealedSurrogate) {
@@ -9728,6 +9728,7 @@ var fakeUserProfile_default = {
   apply(finale, patcher) {
     patcher.after(UserProfileStore2, "getUserProfile", (_, [userId], ret) => {
       const killProfileEffects = SettingsStore_default.get("killProfileEffects");
+      const profileEffectsEnabled = SettingsStore_default.get("profileEffects");
       const shouldProfileV2 = SettingsStore_default.get("profileV2");
       const disableUserBadge = SettingsStore_default.get("disableUserBadge");
       const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
@@ -9737,9 +9738,9 @@ var fakeUserProfile_default = {
       const perServer = getRevealedTextPerServer(userId, `\uDB40`);
       const revealedSurrogate = perServer ?? (ret?.bio ? secondsightifyRevealOnly(ret.bio) : undefined);
       const guildId = SelectedGuildStore2.getGuildId();
-      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsProfileV2(revealedSurrogate)) && (ret.premiumType = 2);
+      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsBanner(revealedSurrogate)) && (ret.premiumType = 2);
       const userBio = ret?.bio;
-      if (containsProfileEffects(revealedSurrogate) && !killProfileEffects) {
+      if (containsProfileEffects(revealedSurrogate) && !killProfileEffects && profileEffectsEnabled) {
         let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
         if (!parsed)
           return ret;
@@ -11664,7 +11665,7 @@ function Debug({ user }) {
       profilePicture: extractProfilePicture(pfpRevealed),
       profileEffects: containsProfileEffects(revealedText) ? extractProfileEffects(revealedText) : null,
       profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
-      profileV2: containsProfileV2(revealedText)
+      profileV2: containsBanner(revealedText)
     },
     rawRevealedTexts: {
       dns3y3: dnsRevealed,
@@ -11791,7 +11792,7 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
       ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
       let ffmpegSrc;
       try {
-        let file = tryFetchFromDisk("ffmpeg.js", "text/javascript");
+        let file = tryFetchFromDisk("ffmpeg.js", "utf8");
         if (file)
           ffmpegSrc = file;
         else

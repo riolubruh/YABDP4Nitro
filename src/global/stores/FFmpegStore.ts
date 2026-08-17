@@ -40,7 +40,7 @@ export default new class FFmpegStore extends BetterDiscord.Utils.Store {
             }
         }
 
-        async function fetchFFmpeg(filename){;
+        async function fetchFFmpeg(filename){
             const res = await Net.fetch(BASE_URL + filename, { timeout: 100000 });
             if(res.ok && res.status == 200){
                 return res;
@@ -72,7 +72,7 @@ export default new class FFmpegStore extends BetterDiscord.Utils.Store {
             //load FFmpeg.js as text
             let ffmpegSrc;
             try{
-                let file = tryFetchFromDisk("ffmpeg.js", "text/javascript");
+                let file = tryFetchFromDisk("ffmpeg.js", "utf8");
                 if(file) ffmpegSrc = file;
                 else ffmpegSrc = await (await fetchFFmpeg("ffmpeg.js")).text();
             }catch(err){

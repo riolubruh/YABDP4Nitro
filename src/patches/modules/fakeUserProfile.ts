@@ -34,6 +34,7 @@ export default {
     apply(finale, patcher) {
         patcher.after(UserProfileStore, "getUserProfile", (_: any, [userId]: string, ret: UserProfile) => {
             const killProfileEffects = SettingsStore.get("killProfileEffects");
+            const profileEffectsEnabled = SettingsStore.get("profileEffects");
             const shouldProfileV2 = SettingsStore.get("profileV2");
             const disableUserBadge = SettingsStore.get("disableUserBadge");
             const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
@@ -49,7 +50,7 @@ export default {
             (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsBanner(revealedSurrogate)) && (ret.premiumType = 2);
 
             const userBio = ret?.bio
-            if (containsProfileEffects(revealedSurrogate) && !killProfileEffects) {
+            if (containsProfileEffects(revealedSurrogate) && !killProfileEffects && profileEffectsEnabled) {
                 let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
 
                 if (!parsed) return ret;
