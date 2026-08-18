@@ -2991,7 +2991,7 @@ var banners_default = {
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, { walkable: ["props", "children"] });
       NodePatcher.patch(newRet, (props2, res) => {
         const bannerUrl = getBannerUrl(props2.user.id);
-        bannerUrl && (res.props.bannerSrc = bannerUrl);
+        UserBackgroundStore_default.hasHash(props2.user.id) && (res.props.bannerSrc = bannerUrl);
       });
       return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
         user: props.user
@@ -5807,9 +5807,11 @@ var bypassMap = {
   clientThemes: "clientThemes",
   soundboardEverywhere: "soundmojiEnabled"
 };
-var canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+var ModuleFilter = BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium");
+var unmangle = {
   canUserUse: (x2) => typeof x2 === "function" && x2.toString?.().includes?.(".getFeatureValue(")
-}, { mapDeclarations: true });
+};
+var canUserUse = BetterDiscord.Webpack.getMangled(ModuleFilter, unmangle, { mapDeclarations: true });
 var canUserUse_default = {
   name: "canUserUse",
   description: "Unlocks nitro-locked features based on settings.",
