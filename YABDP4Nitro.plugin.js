@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -123,7 +102,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -313,7 +292,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw TypeError('"ext" argument must be a string');
+    throw new TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -385,7 +364,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -922,7 +901,7 @@ function getBannerUrl(userId) {
   const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
   const match = parsed?.match(BANNER_REGEX)?.[0];
   const matched = match?.slice(2, -1);
-  return matched ? `https://i.imgur.com/${matched}.gif` : UserBackgroundStore_default.format(userId);
+  return matched ? `https://i.imgur.com/${matched}.gif` : UserBackgroundStore_default.hasHash(userId) ? UserBackgroundStore_default.format(userId) : null;
 }
 async function getDirectImgurHash(url) {
   if (url.match(IMGUR_URL_REGEX)?.[1])
@@ -2991,7 +2970,7 @@ var banners_default = {
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, { walkable: ["props", "children"] });
       NodePatcher.patch(newRet, (props2, res) => {
         const bannerUrl = getBannerUrl(props2.user.id);
-        UserBackgroundStore_default.hasHash(props2.user.id) && (res.props.bannerSrc = bannerUrl);
+        bannerUrl && (res.props.bannerSrc = bannerUrl);
       });
       return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
         user: props.user
@@ -3968,10 +3947,12 @@ async function doClipsBypass(file) {
       clipData.name = file.file.name;
     } else {
       let fileExtension = file.file.name.substring(file.file.name.lastIndexOf(".") + 1);
-      const zipFile = zipSync([await file.file.bytes()], { level: 6 }).buffer;
-      const zipArrayBuffer = concatArrayBuffers(clipMaBuffer, zipFile);
+      let fileToZip = {};
+      fileToZip[file.file.name] = await file.file.bytes();
+      const zipFile = zipSync(fileToZip, { level: 6 }).buffer;
+      const zipClipArrayBuffer = concatArrayBuffers(clipMaBuffer, zipFile);
       clipData.name = fileExtension.match(/z?\d+/) ? file.file.name + ".zip" : clipData.name += ".zip";
-      file.file = new File([new Uint8Array(zipArrayBuffer)], clipData.name + ".mp4", { type: "video/mp4" });
+      file.file = new File([new Uint8Array(zipClipArrayBuffer)], clipData.name + ".mp4", { type: "video/mp4" });
     }
     modifiedFile = true;
   }
@@ -5807,11 +5788,9 @@ var bypassMap = {
   clientThemes: "clientThemes",
   soundboardEverywhere: "soundmojiEnabled"
 };
-var ModuleFilter = BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium");
-var unmangle = {
+var canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
   canUserUse: (x2) => typeof x2 === "function" && x2.toString?.().includes?.(".getFeatureValue(")
-};
-var canUserUse = BetterDiscord.Webpack.getMangled(ModuleFilter, unmangle, { mapDeclarations: true });
+}, { mapDeclarations: true });
 var canUserUse_default = {
   name: "canUserUse",
   description: "Unlocks nitro-locked features based on settings.",

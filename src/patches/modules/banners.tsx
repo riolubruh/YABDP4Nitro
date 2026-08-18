@@ -98,7 +98,7 @@ export default {
             NodePatcher.patch(newRet, (props, res) =>
             {
                 const bannerUrl = getBannerUrl(props.user.id);
-                UserBackgroundStore.hasHash(props.user.id) && (res.props.bannerSrc = bannerUrl);
+                bannerUrl && (res.props.bannerSrc = bannerUrl);
             });
             return BadgesStore.isImportant(UserStore.getCurrentUser().id) ? [<Debug user={props.user}/>, ret] : ret;
         });

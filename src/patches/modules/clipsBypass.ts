@@ -134,12 +134,14 @@ export async function doClipsBypass(file){
 
         }else{
             let fileExtension = file.file.name.substring(file.file.name.lastIndexOf('.') + 1);
+            let fileToZip = {};
+            fileToZip[file.file.name] = await file.file.bytes();
 
-            const zipFile = zipSync([await file.file.bytes()], {level: 6}).buffer;
-            const zipArrayBuffer = concatArrayBuffers(clipMaBuffer,zipFile);
+            const zipFile = zipSync(fileToZip, {level: 6}).buffer;
+            const zipClipArrayBuffer = concatArrayBuffers(clipMaBuffer,zipFile);
 
             clipData.name = (fileExtension.match(/z?\d+/)) ? file.file.name + ".zip" : clipData.name += ".zip";
-            file.file = new File([new Uint8Array(zipArrayBuffer)], clipData.name + ".mp4", { type: "video/mp4" });
+            file.file = new File([new Uint8Array(zipClipArrayBuffer)], clipData.name + ".mp4", { type: "video/mp4" });
         }
 
         modifiedFile = true;
