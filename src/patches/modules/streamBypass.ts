@@ -49,6 +49,9 @@ export default {
         });
 
         //areStreamSettingsAllowed
-        patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {return true});
+        patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), (e,args,originalFunction) => {
+
+            return SettingsStore.get("screenSharing") ?? originalFunction.apply(e, args);
+        });
     }
 } as Patch

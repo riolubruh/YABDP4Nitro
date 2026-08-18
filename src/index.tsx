@@ -319,6 +319,13 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean"
     },
     {
+        key: "profileFrames",
+        label: "Fake Profile Frames",
+        note: "Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+        category: "Profile",
+        type: "boolean"
+    },
+    {
         key: "advancedProfileCustomization",
         label: "Advanced Profile Editing",
         note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.",

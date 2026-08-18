@@ -1,4 +1,5 @@
 import {BetterDiscord} from "@shared/";
+import SettingsStore from "./SettingsStore.ts";
 
 const USER_BG = "https://usrbg.is-hardly.online/users"
 // dude this api is terribly made.
@@ -9,6 +10,8 @@ export default new class UserBackgroundStore extends BetterDiscord.Utils.Store {
 
     get(userId: string)
     {
+        const enabled = SettingsStore.get("userBgIntegration");
+        if(!enabled) return null;
         return this.users[userId];
     }
 
@@ -19,6 +22,8 @@ export default new class UserBackgroundStore extends BetterDiscord.Utils.Store {
 
     hasHash(id: string)
     {
+        const enabled = SettingsStore.get("userBgIntegration");
+        if(!enabled) return false;
         return Boolean(this.users[id])
     }
 

@@ -9441,6 +9441,9 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
   users = {};
   meta = {};
   get(userId) {
+    const enabled = SettingsStore_default.get("userBgIntegration");
+    if (!enabled)
+      return null;
     return this.users[userId];
   }
   format(userId) {
@@ -9448,6 +9451,9 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
     return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
   }
   hasHash(id) {
+    const enabled = SettingsStore_default.get("userBgIntegration");
+    if (!enabled)
+      return false;
     return Boolean(this.users[id]);
   }
   async fetch() {
@@ -12361,8 +12367,8 @@ var streamBypass_default = {
       vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
       vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
     });
-    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), () => {
-      return true;
+    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), (e, args, originalFunction) => {
+      return SettingsStore_default.get("screenSharing") ?? originalFunction.apply(e, args);
     });
   }
 };
@@ -12964,14 +12970,12 @@ var goLiveModal_default = {
   waitFor: [LIVE_FILTER],
   apply(finale, patcher) {
     this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
-      if (!SettingsStore_default.get("ResolutionSwapper"))
-        return true;
       const config = GoLiveStore_default.getConfig();
-      if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null) {
+      if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null && SettingsStore_default.get("ResolutionSwapper")) {
         action.settings.qualityOptions.resolution = parseInt(config.resolution);
         action.settings.qualityOptions.frameRate = parseInt(config.fps);
       }
-      if (action?.type === "STREAM_UPDATE_SETTINGS") {
+      if (action?.type === "STREAM_UPDATE_SETTINGS" && SettingsStore_default.get("ResolutionSwapper")) {
         action.resolution = parseInt(config.resolution);
         action.frameRate = parseInt(config.fps);
       }
@@ -12980,8 +12984,6 @@ var goLiveModal_default = {
     const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
     patcher.instead(mod?.module, mod?.key, () => true);
     patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-      if (!SettingsStore_default.get("ResolutionSwapper"))
-        return ret;
       const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
       const footer = BetterDiscord.Utils.findInTree(ret, (x) => String(x?.className).startsWith("footer"));
       if (!footer)
@@ -12993,7 +12995,7 @@ var goLiveModal_default = {
         footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
         footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x) => !x?.type?.toString?.()?.includes("pill"));
       }
-      if (SettingsStore_default.get("screenSharing")) {
+      if (SettingsStore_default.get("ResolutionSwapper")) {
         const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) => String(x?.key).includes("gay"));
         if (!doesExist)
           footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
@@ -13884,9 +13886,15 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
     this.fetch();
   }
   get(userId) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return null;
     return this.users[userId];
   }
   hasHash(id) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return false;
     return Boolean(this.users[id]);
   }
   async fetch() {
@@ -14791,6 +14799,13 @@ var SettingsSchema = [
     key: "displayNameStyles",
     label: "Fake Display Name Styles",
     note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "profileFrames",
+    label: "Fake Profile Frames",
+    note: "Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio. Please paste the 3y3 information in your bio.",
     category: "Profile",
     type: "boolean"
   },

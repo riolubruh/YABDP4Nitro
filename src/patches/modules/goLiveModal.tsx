@@ -235,8 +235,6 @@ export default {
         patcher.instead(mod?.module, mod?.key, () => true);
 
         patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-            if (!SettingsStore.get("ResolutionSwapper")) return ret;
-
             const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
             const footer = BetterDiscord.Utils.findInTree(ret, x => String(x?.className).startsWith("footer"));
             if (!footer) return ret;
@@ -248,7 +246,7 @@ export default {
                 footerContent.children[1].props.children = footerContent.children[1].props.children.filter(x=> !x?.type?.toString?.()?.includes("pill"));
             }
 
-            if(SettingsStore.get("screenSharing")){
+            if(SettingsStore.get("ResolutionSwapper")){
                 const doesExist = BetterDiscord.Utils.findInTree(footerContent, x => String(x?.key).includes("gay"));
                 if (!doesExist)
                     footerContent.children[1].props.children.push(<CustomFooter key="yabd-is-gay"/>);

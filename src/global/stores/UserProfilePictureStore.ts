@@ -1,4 +1,5 @@
 import {BetterDiscord} from "@shared/";
+import SettingsStore from "./SettingsStore.ts";
 
 const USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json"
 // this api is kawaii. thank you. very simple.
@@ -14,11 +15,15 @@ export default new class UserProfilePictureStore extends BetterDiscord.Utils.Sto
 
     get(userId: string)
     {
+        const enabled = SettingsStore.get("userPfpIntegration");
+        if(!enabled) return null;
         return this.users[userId];
     }
 
     hasHash(id: string)
     {
+        const enabled = SettingsStore.get("userPfpIntegration");
+        if(!enabled) return false;
         return Boolean(this.users[id])
     }
 
