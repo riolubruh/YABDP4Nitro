@@ -216,16 +216,14 @@ export default {
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
         this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
-            if (!SettingsStore.get("ResolutionSwapper")) return true;
-
             const config = GoLiveStore.getConfig();
 
-            if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null) {
+            if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null && SettingsStore.get("ResolutionSwapper")) {
                 action.settings.qualityOptions.resolution = parseInt(config.resolution);
                 action.settings.qualityOptions.frameRate = parseInt(config.fps);
             }
 
-            if (action?.type === "STREAM_UPDATE_SETTINGS") {
+            if (action?.type === "STREAM_UPDATE_SETTINGS" && SettingsStore.get("ResolutionSwapper")) {
                 action.resolution = parseInt(config.resolution);
                 action.frameRate = parseInt(config.fps);
             }
