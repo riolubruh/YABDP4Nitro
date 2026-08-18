@@ -1,29 +1,31 @@
 import {BetterDiscord} from "@shared/";
 import UserBackgroundStore from "../../global/stores/UserBackgroundStore.ts";
-import {getBannerUrl, getRevealedText, secondsightifyEncodeOnly, styled} from "@utils/*";
+import {getBannerUrl, getRevealedText, styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import {Icon} from "@iconify/react";
 import {GlobalModules} from "@global/*";
 import {wpGetByKeys} from "../../global/webpack";
-const {UserStore} = BetterDiscord.Webpack.Stores;
-
 import {
-    extractDisplayNameStyles,
+    containsBanner,
+    containsProfileEffects,
+    containsProfileFrame,
     extractDecoration,
+    extractDisplayNameStyles,
     extractNameplate,
     extractProfileEffects,
     extractProfileFrame,
-    extractProfilePicture,
-    containsBanner,
-    containsProfileEffects,
-    containsProfileFrame
+    extractProfilePicture
 } from "../../global/shared/regexHelpers.ts";
+
+const {UserStore} = BetterDiscord.Webpack.Stores;
 
 const TopLeft = styled.div({zIndex: "100", position: 'absolute', padding: '10px'})
 const ModalModule = wpGetByKeys(["Modal"]);
 
-function Debug({user}: {user: User}) {
+const NodePatcher = BetterDiscord.ReactUtils.createNodePatcher();
+
+function Debug({user}: { user: User }) {
     const revealedText = getRevealedText(user.id);
     const decorationRevealed = getRevealedText(user.id, `\uDB40\uDC2F\uDB40\uDC61`);
     const nameplateRevealed = getRevealedText(user.id, `\uDB40\uDC6E\uDB40\uDC7B`);
@@ -76,7 +78,7 @@ function Debug({user}: {user: User}) {
     }
 
     return <TopLeft>
-        <Icon icon={"mdi:bug"} width={"24px"} color={"white"} onClick={OpenModal} />
+        <Icon icon={"mdi:bug"} width={"24px"} color={"white"} onClick={OpenModal}/>
     </TopLeft>
 }
 
@@ -92,12 +94,11 @@ export default {
         patcher.after(finale.mangled, "renderBanner", (_: any, [props]: any, ret: any) => {
             if (!SettingsStore.get("fakeProfileBanners")) return ret;
 
-            const unpatch = patcher.after(ret, 'type', (a, b, c) => {
-
+            const newRet = BetterDiscord.Utils.findInTree(ret, x => x?.props?.displayProfile, {walkable: ['props', 'children']});
+            NodePatcher.patch(newRet, (props, res) =>
+            {
                 const bannerUrl = getBannerUrl(props.user.id);
-                bannerUrl && (c.props.bannerSrc = bannerUrl);
-
-                unpatch();
+                bannerUrl && (res.props.bannerSrc = bannerUrl);
             });
             return BadgesStore.isImportant(UserStore.getCurrentUser().id) ? [<Debug user={props.user}/>, ret] : ret;
         });
