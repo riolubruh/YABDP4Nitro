@@ -1,14 +1,11 @@
 import {BetterDiscord} from "@shared/*";
-import JSZip from "jszip";
-
+import { zipSync, unzipSync, strToU8 } from 'fflate';
 import { Icon } from "@iconify/react";
 import {ContextMenuLabel, ContextMenuWrapper} from "@utils/*";
 import {CloseAllContextMenus} from "@global/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React} = BetterDiscord;
-
-const yourFlyIsShowing = new JSZip();
 
 const DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 
@@ -33,19 +30,19 @@ export default {
             }
 
             let files = await Promise.all(attachments.map(async (attachment) => ({
-                blob: await (await BetterDiscord.Net.fetch(attachment.url)).blob(),
+                blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
                 fileName: attachment.filename.replace(".zip.mp4", '.zip').replace('.7z.mp4','.7z'),
             })));
 
-            for (const file of files) {
-                yourFlyIsShowing.file(file.fileName, file.blob);
-                DiscordNativeModule.purgeMemory();
+            const zipped = {}
+            for(const file of files) {
+                zipped[file.fileName] = new Uint8Array(file.blob)
             }
 
-            const zipBlob = await yourFlyIsShowing.generateAsync({type: "blob"});
+            const zippedInt = zipSync(zipped, { level: 6 });
 
-            files = [];
-            const url = URL.createObjectURL(zipBlob);
+            const blob = new Blob([zippedInt as Uint8Array], { type: 'application/zip' });
+            const url = URL.createObjectURL(blob);
             const a = window.document.createElement("a");
             a.href = url;
             a.download = `${props.message.id}.zip`;

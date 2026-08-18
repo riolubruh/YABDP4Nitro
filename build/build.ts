@@ -77,7 +77,7 @@ await Bun.build({
     jsxFactory: "BdApi.React.createElement",
     jsxFragment: "BdApi.React.Fragment",
     format: "cjs",
-    target: "node",
+    target: "browser",
     plugins: [reactPolyfillPlugin],
 });
 
