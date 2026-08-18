@@ -9,7 +9,6 @@ export const defaultSettings = {
     "emojiBypassType": 0,
     "emojiBypassForValidEmoji": true,
     "PNGemote": true,
-    "uploadStickers": false,
     "CustomFPS": 60,
     "CustomResolution": 1440,
     "CustomBitrateEnabled": false,

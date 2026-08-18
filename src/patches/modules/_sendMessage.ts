@@ -85,20 +85,25 @@ export default {
 
 
             if (extraData.stickerIds && stickerBypass) {
-                for(const stickerId of extraData.stickerIds) {
+                extraData.stickerIds = extraData.stickerIds.map((stickerId, index) => {
 
                     const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
 
                     const sticker = StickersStore.getStickerById(stickerId);
+                    if(sticker.format_type == 3) return stickerId;
 
                     let extension = StickerTypeToExtension[sticker.format_type];
+
 
                     urlsToUpload.push({
                         url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
                         filename: `${sticker.name}${extension}`
                     });
-                }
-                extraData.stickerIds = [];
+
+                    return null;
+                });
+
+                extraData.stickerIds = extraData.stickerIds.filter(Boolean);
             }
 
             let soundmojiUrls: any = [];

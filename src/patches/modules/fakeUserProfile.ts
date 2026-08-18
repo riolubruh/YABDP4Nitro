@@ -3,13 +3,10 @@ import {BetterDiscord} from "@shared/";
 import {getRevealedTextPerServer, secondsightifyRevealOnly} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
-import CustomUserProfileStore from "../../global/stores/CustomUserProfileStore.ts";
 import {
     extractProfileEffects,
     extractProfileFrame,
-    containsBanner,
-    containsProfileEffects,
-    containsProfileFrame
+    containsProfileEffects
 } from "../../global/shared/regexHelpers.ts";
 import regexReveals from "../../global/shared/regexReveals.ts";
 
@@ -62,12 +59,6 @@ export default {
                 ret.profileEffect = {}
             }
 
-            const foundBadge = !Object.values(ret?.badges ?? {}).find(x => x.id.startsWith("yabdp"))
-
-            if (!disableUserBadge && foundBadge && BadgesStore.check(ret?.userId)) {
-                ret.badges.push(BadgesStore.returnRespondingBadge(ret.userId))
-            }
-
             if (profileThemesEnabled) {
                 const perServer = getRevealedTextPerServer(userId,`\uDB40\uDC5B\uDB40\uDC23`);
                 const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
@@ -82,6 +73,11 @@ export default {
                 match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
             }
 
+            const foundBadge = !Object.values(ret?.badges ?? {}).find(x => x.id.startsWith("yabdp"))
+
+            if (!disableUserBadge && foundBadge && BadgesStore.check(ret?.userId)) {
+                ret.badges.push(BadgesStore.returnRespondingBadge(ret.userId))
+            }
         });
     },
 } as Patch;

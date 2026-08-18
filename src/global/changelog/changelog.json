@@ -11,19 +11,22 @@
             "Improved performance and stability.",
             "Cleaner, more maintainable codebase for future updates.",
             "Improved UI.",
-            "Improved UI locations to be more convenient."
+            "Moved 3y3 profile editing to a YABDP4Nitro tab in the profile editor.",
+            "Removed some redundant/unnecessary settings.",
+            "Removed data json - you can now delete it.",
+            "Limited edition, quest-only, and off-sale collectibles are now consistently included in the 3y3 UI.",
+            "Download All Attachments button now zips the files before downloading."
           ]
         },
         {
           "title": "Known Bugs/Issues",
           "type": "progress",
           "items": [
-            "Downloading large attachments can cause a memory leak due to `Buffer` handling if DevTools is open.",
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
             "**\"Someones banner background is flickering\"** — We know. Our code is silly sometimes.",
             "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations...",
-            "The stream context menu to change quality and FPS will NOT work. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... \n\nIts not easy."
+            "The stream context menu to change quality and FPS will not work with Custom Stream Settings & Settings Quick Swapper enabled. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... \n\nIts not easy."
           ]
         },
         {

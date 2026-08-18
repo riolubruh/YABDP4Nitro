@@ -1,6 +1,7 @@
 import {BetterDiscord} from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import FFmpegStore from "../../global/stores/FFmpegStore.ts";
+import {zipSync} from "fflate";
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
 export async function ffmpegTransmux(arrayBuffer: ArrayBuffer,inFileName = "input.mp4",ffmpegArguments: string[],outFileName = "output.mp4"){
@@ -39,73 +40,6 @@ const udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buf
 
 const FREE_FILE_LIMIT = 20971520; //20MB
 const CLIPS_FILE_LIMIT = 104857600; //100MB
-
-//this shit needs to be replaced at some point
-function createZip(name, data) {
-
-    // Convert input to Uint8Array
-    const nameBytes = (new TextEncoder()).encode(name);
-    const dataBytes = new Uint8Array(data);
-    const crcTable = FFmpegStore.getCrcTable();
-
-    // Calculate CRC and lengths
-    let crc = -1;  // Initial value
-    const len = dataBytes.length;
-
-    // Process bytes in chunks
-    for(let i = 0; i < len; i++) {
-        crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
-    }
-
-    // Finalize CRC and convert to unsigned int
-    crc = (crc ^ -1) >>> 0;
-
-    const dataLength = dataBytes.length;
-    const headerLength = 30 + nameBytes.length;
-
-    // Local File Header (starts at 0)
-    const localHeader = new DataView(new ArrayBuffer(headerLength));
-    localHeader.setUint32(0, 0x04034B50, true);  // Signature
-    localHeader.setUint16(4, 0x0A00, true);      // Version needed
-    localHeader.setUint32(14, crc, true);        // CRC-32
-    localHeader.setUint32(18, dataLength, true); // Compressed size
-    localHeader.setUint32(22, dataLength, true); // Uncompressed size
-    localHeader.setUint16(26, nameBytes.length, true);
-    new Uint8Array(localHeader.buffer).set(nameBytes, 30);
-
-    // Central Directory (starts after file data)
-    // Note: Omitted fields default to 0, since the length is set manually.
-    const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
-    centralDir.setUint32(0, 0x02014B50, true);   // Signature
-    centralDir.setUint16(6, 0x0A00, true);       // Version needed
-    centralDir.setUint32(16, crc, true);         // CRC-32
-    centralDir.setUint32(20, dataLength, true);  // Sizes
-    centralDir.setUint32(24, dataLength, true);
-    centralDir.setUint16(28, nameBytes.length, true);
-    new Uint8Array(centralDir.buffer).set(nameBytes, 46);
-
-    // End of Central Directory
-    const end = new DataView(new ArrayBuffer(22));
-    end.setUint32(0, 0x06054B50, true);         // Signature
-    end.setUint16(8, 1, true);                  // Entry count
-    end.setUint16(10, 1, true);                 // Total entries
-    end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
-    end.setUint32(16, headerLength + dataLength, true);    // Dir offset
-
-    //Allocating a Uint8Array large enough for the file
-    const totalSize = localHeader.buffer.byteLength + dataBytes.length +
-        centralDir.buffer.byteLength + end.buffer.byteLength;
-    const result = new Uint8Array(totalSize);
-
-    //Putting all the data together
-    let offset = 0;
-    [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
-        result.set(new Uint8Array(buf), offset);
-        offset += buf.byteLength || buf.length;
-    });
-
-    return result;
-}
 
 export async function doClipsBypass(file){
 
@@ -201,8 +135,7 @@ export async function doClipsBypass(file){
         }else{
             let fileExtension = file.file.name.substring(file.file.name.lastIndexOf('.') + 1);
 
-            const arrayBuffer = await file.file.arrayBuffer();
-            const zipFile = createZip(file.file.name, arrayBuffer).buffer;
+            const zipFile = zipSync([await file.file.bytes()], {level: 6}).buffer;
             const zipArrayBuffer = concatArrayBuffers(clipMaBuffer,zipFile);
 
             clipData.name = (fileExtension.match(/z?\d+/)) ? file.file.name + ".zip" : clipData.name += ".zip";

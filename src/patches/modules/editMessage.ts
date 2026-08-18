@@ -38,6 +38,7 @@ export default {
                 const emojiUrl = getEmojiUrl(emoji);
 
                 switch(emojiBypassType){
+                    default:
                     case 0: //upload
                     case 1: //ghost mode (removed)
                     case 3: //vencord mode

@@ -1,5 +1,5 @@
 import {BetterDiscord} from "@shared/";
-const {Logger, Net, UI, DOM} = BetterDiscord;
+const {Logger, Net, UI} = BetterDiscord;
 const _path = () => require("path");
 const fs = () => require("fs");
 

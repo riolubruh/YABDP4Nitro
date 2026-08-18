@@ -46,6 +46,13 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean"
     },
     {
+        key: "ResolutionSwapper",
+        label: "Custom Stream Settings & Settings Quick Swapper",
+        note: "Lets you customize your resolution and FPS, and change it quickly in the stream settings modal!",
+        category: "Screen Share Features",
+        type: "boolean"
+    },
+    {
         key: "CustomResolution",
         label: "Resolution",
         note: "The custom resolution you want (in pixels)",
@@ -58,13 +65,6 @@ const SettingsSchema: SettingDef[] = [
         note: "The custom FPS you want to stream at.",
         category: "Screen Share Features",
         type: "number"
-    },
-    {
-        key: "ResolutionSwapper",
-        label: "Stream Settings Quick Swapper",
-        note: "Lets you change your custom resolution and FPS quickly in the stream settings modal!",
-        category: "Screen Share Features",
-        type: "boolean"
     },
     {
         key: "CustomBitrateEnabled",
@@ -194,13 +194,6 @@ const SettingsSchema: SettingDef[] = [
         key: "stickerBypass",
         label: "Sticker Bypass",
         note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.",
-        category: "Emojis",
-        type: "boolean"
-    },
-    {
-        key: "uploadStickers",
-        label: "Upload Stickers",
-        note: "Upload stickers in the same way as emotes.",
         category: "Emojis",
         type: "boolean"
     },

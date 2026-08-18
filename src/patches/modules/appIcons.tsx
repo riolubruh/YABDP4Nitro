@@ -12,8 +12,6 @@ export default {
     apply(finale: any, patcher: any) {
 
         const appIconsEnabled = SettingsStore.get("unlockAppIcons");
-        if(!appIconsEnabled) return;
-
         appIconsEnabled && GlobalModules.Dispatcher.dispatch({ //restore app icon on start
             type: "APP_ICON_UPDATED",
             id: SettingsStore.get("appIcon")
