@@ -388,8 +388,9 @@ Then, paste your clipboard into your profile bio and save.
 Demonstration:<br>
 <img width="1202" height="735" alt="Discord_d0xJ5N93Fj" src="https://github.com/user-attachments/assets/bab89f7f-5fd8-45b9-82f9-f1b7d6ecdf71" />
 
-
 **Please note that only other users with the plugin will be able to see it.**
+
+**For Nitro users only:** You can also set this per-server using the per-server bio.
 
 _________________________________________________________________________________________________________________
 
