@@ -11,16 +11,14 @@ import {
     containsProfileEffects,
     containsProfileFrame
 } from "../../global/shared/regexHelpers.ts";
+import regexReveals from "../../global/shared/regexReveals.ts";
 
 const {UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores
 
-function decodeProfileColors(string: string) {
+function extractProfileColors(string: string) {
     if (!string) return null;
 
-    const decoded = secondsightifyRevealOnly(string);
-    if (!decoded) return null;
-
-    const match = decoded.match(/\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/);
+    const match = string.match(regexReveals.PROFILE_COLORS);
     if (!match) return null;
 
     return [match[1], match[2]].map(x => parseInt(x, 16));
@@ -42,27 +40,21 @@ export default {
 
             if (!ret) return;
 
-            const perServer = getRevealedTextPerServer(userId, `\uDB40`);
-            const revealedSurrogate = perServer ?? (ret?.bio ? secondsightifyRevealOnly(ret.bio) : undefined);
+            const userBio = ret.bio;
+            (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
 
-            const guildId = SelectedGuildStore.getGuildId();
+            const revealedGlobalBio = secondsightifyRevealOnly(userBio);
 
-            (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsBanner(revealedSurrogate)) && (ret.premiumType = 2);
+            if (!killProfileEffects && profileEffectsEnabled) {
+                const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+                let parsed = perServer ?? userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null;
 
-            const userBio = ret?.bio
-            if (containsProfileEffects(revealedSurrogate) && !killProfileEffects && profileEffectsEnabled) {
-                let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
-
-                if (!parsed) return ret;
-
-                if (containsProfileEffects(parsed)) {
+                if (parsed && containsProfileEffects(parsed)) {
                     const skuId = extractProfileEffects(parsed);
-                    if (!skuId) return ret;
-
-                    ret.profileEffect = {
+                    skuId && (ret.profileEffect = {
                         skuId: skuId,
                         expiresAt: undefined
-                    }
+                    });
                 }
             }
 
@@ -77,23 +69,19 @@ export default {
             }
 
             if (profileThemesEnabled) {
-                const userGuildMemberCache = CustomUserProfileStore.getMember(userId, guildId);
+                const perServer = getRevealedTextPerServer(userId,`\uDB40\uDC5B\uDB40\uDC23`);
+                const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
 
-                const colors = {
-                    serverPronouns: decodeProfileColors(userGuildMemberCache?.pronouns),
-                    serverBio: decodeProfileColors(userGuildMemberCache?.bio),
-                    global: decodeProfileColors(ret?.bio)
-                };
-
-                ret.themeColors = Object.values(colors).find(Boolean);
+                (match) && (ret.themeColors = match);
             }
 
-            if (containsProfileFrame(revealedSurrogate) && profileFramesEnabled) {
+            if (profileFramesEnabled) {
+                const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+                const revealedSurrogate = perServer ?? userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null;
                 const match = extractProfileFrame(revealedSurrogate);
-                if (match) ret.profileFrame = { skuId: match, expiresAt: undefined };
+                match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
             }
 
-            return ret;
         });
     },
 } as Patch;

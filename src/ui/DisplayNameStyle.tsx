@@ -115,7 +115,6 @@ function DisplayNameStyle() {
 
         <Components.Text>Font</Components.Text>
         {Object.values(FONTS).map(font => {
-            console.log(font);
             return <FontButton
                 fontFamily={font}
                 selected={fontId == font.id}
@@ -125,7 +124,6 @@ function DisplayNameStyle() {
         <br/><br/>
         <Components.Text>Effect</Components.Text>
         {Object.entries(EFFECTS).map((effect, i) => {
-            console.log(effect);
             const data = {
                 effectName: effect[0],
                 effectColors: effect[1],

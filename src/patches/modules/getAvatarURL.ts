@@ -25,8 +25,6 @@ export default {
             const matches = foundPFP.match(suggondeeznutz.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
             if (!matches) return originalFunction.apply(thisContext, args);
 
-            console.log('matches',matches);
-
             return `https://i.imgur.com/${matches}.gif`;
         });
     }

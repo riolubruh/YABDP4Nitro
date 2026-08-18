@@ -21,14 +21,14 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
 
     if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
         const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-        if (revealed != "") BadgesStore.add(userId);
+        revealed && BadgesStore.add(userId);
 
         return revealed
     }
 
     if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
         const revealed = secondsightifyRevealOnly(String(userGuildProfile.bio));
-        if (revealed != "") BadgesStore.add(userId)
+        revealed && BadgesStore.add(userId);
 
         return revealed
     }

@@ -16,7 +16,6 @@ export default {
         const mod2 = getKey(finale.modules[1], x=>x?.toString?.().includes?.("targetIsUser", "showMute"));
         const openUserContextMenu = mod2?.module[mod2?.key];
 
-        console.log(openUserContextMenu);
         patcher.after(mod?.module, mod?.key, (_,[args],ret) => {
             const pfp = BetterDiscord.Utils.findInTree(ret, x=>x?.size, {walkable:["props","children"]});
             //find a channel, any fucking channel!

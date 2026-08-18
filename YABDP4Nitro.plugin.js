@@ -44,60 +44,39 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
-var __toESMCache_node;
-var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === "object";
-  if (canCache) {
-    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
-    var cached = cache.get(mod);
-    if (cached)
-      return cached;
-  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: __accessProp.bind(mod, key),
+        get: () => mod[key],
         enumerable: true
       });
-  if (canCache)
-    cache.set(mod, to);
   return to;
 };
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 
@@ -9012,7 +8991,7 @@ var require_zipEntries = __commonJS((exports2, module2) => {
       if (this.centralDirRecords !== this.files.length) {
         if (this.centralDirRecords !== 0 && this.files.length === 0) {
           throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }
+        } else {}
       }
     },
     readEndOfCentral: function() {
@@ -9549,14 +9528,12 @@ function getRevealedTextPerServer(userId, shouldInclude = "") {
   userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
     const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-    if (revealed != "")
-      BadgesStore_default.add(userId);
+    revealed && BadgesStore_default.add(userId);
     return revealed;
   }
   if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
     const revealed = secondsightifyRevealOnly(String(userGuildProfile.bio));
-    if (revealed != "")
-      BadgesStore_default.add(userId);
+    revealed && BadgesStore_default.add(userId);
     return revealed;
   }
 }
@@ -9678,7 +9655,8 @@ var regexReveals_default = {
   DECORATION: /\/a\d+/,
   NAMEPLATE: /n\{[^}]*?\}/,
   PROFILE_PICTURE: /P\{[^}]*?\}/,
-  PROFILE_FRAME: /pf\d+/
+  PROFILE_FRAME: /pf\d+/,
+  PROFILE_COLORS: /\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/
 };
 
 // src/global/shared/regexHelpers.ts
@@ -9730,13 +9708,10 @@ function containsProfileFrame(revealedSurrogate) {
 
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
-function decodeProfileColors(string) {
+function extractProfileColors(string) {
   if (!string)
     return null;
-  const decoded = secondsightifyRevealOnly(string);
-  if (!decoded)
-    return null;
-  const match = decoded.match(/\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/);
+  const match = string.match(regexReveals_default.PROFILE_COLORS);
   if (!match)
     return null;
   return [match[1], match[2]].map((x) => parseInt(x, 16));
@@ -9756,23 +9731,18 @@ var fakeUserProfile_default = {
       const profileFramesEnabled = SettingsStore_default.get("profileFrames");
       if (!ret)
         return;
-      const perServer = getRevealedTextPerServer(userId, `\uDB40`);
-      const revealedSurrogate = perServer ?? (ret?.bio ? secondsightifyRevealOnly(ret.bio) : undefined);
-      const guildId = SelectedGuildStore2.getGuildId();
-      (shouldProfileV2 || ret?.bio?.includes?.(`\uDB40`) || containsBanner(revealedSurrogate)) && (ret.premiumType = 2);
-      const userBio = ret?.bio;
-      if (containsProfileEffects(revealedSurrogate) && !killProfileEffects && profileEffectsEnabled) {
-        let parsed = !revealedSurrogate ? secondsightifyRevealOnly(userBio) : revealedSurrogate;
-        if (!parsed)
-          return ret;
-        if (containsProfileEffects(parsed)) {
+      const userBio = ret.bio;
+      (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
+      const revealedGlobalBio = secondsightifyRevealOnly(userBio);
+      if (!killProfileEffects && profileEffectsEnabled) {
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+        let parsed = perServer ?? userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null;
+        if (parsed && containsProfileEffects(parsed)) {
           const skuId = extractProfileEffects(parsed);
-          if (!skuId)
-            return ret;
-          ret.profileEffect = {
+          skuId && (ret.profileEffect = {
             skuId,
             expiresAt: undefined
-          };
+          });
         }
       }
       if (killProfileEffects) {
@@ -9783,20 +9753,16 @@ var fakeUserProfile_default = {
         ret.badges.push(BadgesStore_default.returnRespondingBadge(ret.userId));
       }
       if (profileThemesEnabled) {
-        const userGuildMemberCache = CustomUserProfileStore_default.getMember(userId, guildId);
-        const colors = {
-          serverPronouns: decodeProfileColors(userGuildMemberCache?.pronouns),
-          serverBio: decodeProfileColors(userGuildMemberCache?.bio),
-          global: decodeProfileColors(ret?.bio)
-        };
-        ret.themeColors = Object.values(colors).find(Boolean);
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
+        const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
+        match && (ret.themeColors = match);
       }
-      if (containsProfileFrame(revealedSurrogate) && profileFramesEnabled) {
+      if (profileFramesEnabled) {
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+        const revealedSurrogate = perServer ?? userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null;
         const match = extractProfileFrame(revealedSurrogate);
-        if (match)
-          ret.profileFrame = { skuId: match, expiresAt: undefined };
+        match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
       }
-      return ret;
     });
   }
 };
@@ -13237,14 +13203,12 @@ function DisplayNameStyle() {
       fontId
     }
   })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((font) => {
-    console.log(font);
     return /* @__PURE__ */ React9.createElement(FontButton, {
       fontFamily: font,
       selected: fontId == font.id,
       onClick: () => setFontId(font.id)
     });
   }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i) => {
-    console.log(effect);
     const data = {
       effectName: effect[0],
       effectColors: effect[1],
@@ -13953,7 +13917,6 @@ var getAvatarURL_default = {
       const matches = foundPFP.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
       if (!matches)
         return originalFunction.apply(thisContext, args);
-      console.log("matches", matches);
       return `https://i.imgur.com/${matches}.gif`;
     });
   }
@@ -14150,7 +14113,6 @@ var blockedUserContext_default = {
     const mod = getKey(SettingsModule.declarations, BdApi.Webpack.Filters.byStrings("unblockUser", "USER_SETTINGS"));
     const mod2 = getKey(finale.modules[1], (x) => x?.toString?.().includes?.("targetIsUser", "showMute"));
     const openUserContextMenu = mod2?.module[mod2?.key];
-    console.log(openUserContextMenu);
     patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
       const pfp = BetterDiscord.Utils.findInTree(ret, (x) => x?.size, { walkable: ["props", "children"] });
       const channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore2.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore2.getSortedPrivateChannels()?.[0];
