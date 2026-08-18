@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.8
+ * @version 6.10.9
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -267,16 +267,16 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.10.8",
+        "version": "6.10.9",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.10.8",
+            title: "6.10.9",
             items: [
-                "Fixed 3y3 Copying Zone button not appearing."
+                "Fixed 3y3 Copying Zone button not appearing when Remove Profile Customization Upsell is enabled or if you are a real Nitro user."
             ]
         }
     ],
@@ -904,7 +904,7 @@ module.exports = class YABDP4Nitro {
             if(!editPanel) return Logger.warn("editPanel is undefined!", ret);
 
             nodePatcher.patch(editPanel,(props,res) => {
-                const leftPanel = Utils.findInTree(res,x => x?.floatingFooter,{walkable: ["props","children"]});
+                const leftPanel = Utils.findInTree(res,x => Object.keys(x)?.includes?.('floatingFooter'),{walkable: ["props","children"]});
 
                 if(!leftPanel) return Logger.warn("leftPanel is undefined!", leftPanel);
 
