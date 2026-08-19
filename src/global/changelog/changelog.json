@@ -24,8 +24,7 @@
           "items": [
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
-            "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations...",
-            "The stream context menu to change quality and FPS will not work with Custom Stream Settings & Settings Quick Swapper enabled. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... \n\nIts not easy."
+            "**\"Opening the `Nameplates` and `Avatar Decorations` lags!\"**, We know. That's because **Discord:tm:** loves money. Theres a lot of decorations..."
           ]
         },
         {

@@ -104,7 +104,8 @@ function ProfileFrames(){
         <Components.SearchInput
             placeholder={"Search nameplates..."}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            defaultValue={""}
+            onChange={(e) => setQuery(e)}
         />
 
         {Collections.map(x=><ProfileFrameCategory skuId={x} query={query}/>)}

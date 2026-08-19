@@ -2968,7 +2968,7 @@ var banners_default = {
       if (!SettingsStore_default.get("fakeProfileBanners"))
         return ret;
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, { walkable: ["props", "children"] });
-      NodePatcher.patch(newRet, (props2, res) => {
+      NodePatcher.patch(newRet ?? ret, (props2, res) => {
         const bannerUrl = getBannerUrl(props2.user.id);
         bannerUrl && (res.props.bannerSrc = bannerUrl);
       });
@@ -2986,7 +2986,6 @@ var BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/hea
 var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Store {
   ffmpeg;
   loaded = false;
-  crcTable;
   constructor() {
     super();
   }
@@ -3099,14 +3098,6 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
         URL.revokeObjectURL(ffmpegWorkerURL);
     }
   }
-  calculateCrcTable() {
-    this.crcTable = Array.from({ length: 256 }, (_, i) => Array.from({ length: 8 }, (_2, j) => j).reduce((crc) => crc & 1 ? crc >>> 1 ^ 3988292384 : crc >>> 1, i));
-  }
-  getCrcTable() {
-    if (!this.crcTable)
-      this.calculateCrcTable();
-    return this.crcTable;
-  }
   unload() {
     if (this.loaded) {
       this.ffmpeg.terminate();
@@ -3114,7 +3105,6 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
     }
     const ffmpegScript = document.getElementById("ffmpegScript");
     ffmpegScript && ffmpegScript.remove();
-    this.crcTable = null;
     if (window.FFmpegWASM)
       delete window.FFmpegWASM;
     this.loaded = false;
@@ -4198,13 +4188,12 @@ var streamBypass_default = {
       const vqmOpt = vqm.options;
       if (CustomBitrateEnabled) {
         vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
+        vqmOpt.videoBitrateFloor = minBitrate > 0 ? minBitrate * 1000 : 500000;
         vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
         vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
+        vqmOpt.videoBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
       }
-      const maxVideoQuality = {
-        width: e.videoStreamParameters[0].maxResolution.width,
-        height: e.videoStreamParameters[0].maxResolution.height
-      };
+      const maxVideoQuality = e.videoStreamParameters[0].maxResolution;
       let videoCapture = {
         width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
         height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
@@ -4690,47 +4679,13 @@ var MODES = [
     patch: { CustomResolution: 1440, CustomFPS: 15 }
   }
 ];
-var TYPE_MAP = {
-  CustomFPS: "set_fps",
-  CustomResolution: "set_resolution",
-  maxBitrate: "set_max_bitrate",
-  minBitrate: "set_min_bitrate",
-  targetBitrate: "set_target_bitrate",
-  voiceBitrate: "set_voice_bitrate"
-};
-var FIELD_MAP = {
-  CustomFPS: "fps",
-  CustomResolution: "resolution",
-  maxBitrate: "maxBitrate",
-  minBitrate: "minBitrate",
-  targetBitrate: "targetBitrate",
-  voiceBitrate: "voiceBitrate"
-};
 function ConfigModal({ props, onClose, forceQuality }) {
   const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
   const [_, setData] = React5.useState(() => SettingsStore_default.getAll());
-  const [resolution, setResolution] = React5.useState(data.CustomResolution);
-  const [fps, setFps] = React5.useState(data.CustomFPS);
-  const [bitrate, setBitrate] = React5.useState({
-    minBitrate: data.minBitrate,
-    targetBitrate: data.targetBitrate,
-    maxBitrate: data.maxBitrate
-  });
-  console.log(data);
   const commit = (key, value) => {
     SettingsStore_default.set(key, value);
     setData((prev) => ({ ...prev, [key]: value }));
-    const type = TYPE_MAP[key];
-    const field = FIELD_MAP[key];
-    if (!type || !field) {
-      return;
-    }
-    forceQuality(type, { [field]: value });
   };
-  function apply() {
-    forceQuality("set_resolution", { resolution });
-    forceQuality("set_fps", { fps });
-  }
   const applyMode = (patch) => {
     Object.entries(patch).forEach(([key, value]) => SettingsStore_default.set(key, value));
     setData((prev) => ({ ...prev, ...patch }));
@@ -4749,11 +4704,16 @@ function ConfigModal({ props, onClose, forceQuality }) {
     { key: "targetBitrate", label: "Target Bitrate" },
     { key: "voiceBitrate", label: "Voice Bitrate" }
   ];
+  function onApply() {
+    forceQuality("set_resolution", { resolution: data.CustomResolution });
+    forceQuality("set_fps", { fps: data.CustomFPS });
+    forceQuality("set_min_bitrate", { minBitrate: data.minBitrate });
+    forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
+    forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
+    onClose();
+  }
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
-    confirmText: "Apply",
-    cancelText: "Cancel",
-    onConfirm: apply,
-    notice: { type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**") },
+    actions: [{ text: "Cancel", onClick: onClose }, { text: "Apply", onClick: onApply }],
     ...props,
     onClose,
     title: "YABDP4Nitro Configuration"
@@ -4783,9 +4743,11 @@ function CustomFooter() {
   const module2 = getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext"));
   const [start, dispatch] = module2.module[module2.key]();
   const forceQuality = (type, value) => {
+    console.log(type, value);
+    console.log({ type, ...value });
     dispatch({ type, ...value });
     const currentState = ApplicationStreamingSettingsStore.getState();
-    ApplicationStreamingSettingsStore.initializeFromState({
+    ApplicationStreamingSettingsStore.initialize({
       resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
       fps: type == "set_fps" ? value.fps : currentState.fps,
       preset: 3,
@@ -5430,8 +5392,9 @@ function AvatarDecorations() {
   const questDecorations = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getQuestAvatarDecorations());
   return /* @__PURE__ */ React11.createElement("div", null, /* @__PURE__ */ React11.createElement(Components7.SearchInput, {
     value: query,
+    defaultValue: "",
     placeholder: "Search decorations...",
-    onChange: (e) => setQuery(e.target.value),
+    onChange: (e) => setQuery(e),
     style: {
       backgroundColor: "var(--control-secondary-background-default)"
     }
@@ -5516,7 +5479,8 @@ function Nameplates() {
   return /* @__PURE__ */ React12.createElement("div", null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
     placeholder: "Search nameplates...",
     value: query,
-    onChange: (e) => setQuery(e.target.value)
+    defaultValue: "",
+    onChange: (e) => setQuery(e)
   }), Collections.map((x2) => /* @__PURE__ */ React12.createElement(NameplateCategory, {
     skuId: x2,
     query
@@ -5606,7 +5570,8 @@ function ProfileFrames() {
   return /* @__PURE__ */ React13.createElement("div", null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
     placeholder: "Search nameplates...",
     value: query,
-    onChange: (e) => setQuery(e.target.value)
+    defaultValue: "",
+    onChange: (e) => setQuery(e)
   }), Collections.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrameCategory, {
     skuId: x2,
     query
@@ -6280,10 +6245,7 @@ var changelog_default = {
           items: [
             "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
             "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
-            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
-            `The stream context menu to change quality and FPS will not work with Custom Stream Settings & Settings Quick Swapper enabled. This is because of Discord:tm: having the most complex and confusing code internally. I will work on a fix soon after release... 
-
-Its not easy.`
+            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...'
           ]
         },
         {

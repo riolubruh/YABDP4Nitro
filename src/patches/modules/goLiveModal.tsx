@@ -84,24 +84,6 @@ const MODES = [
     },
 ];
 
-const TYPE_MAP = {
-    CustomFPS: "set_fps",
-    CustomResolution: "set_resolution",
-    maxBitrate: "set_max_bitrate",
-    minBitrate: "set_min_bitrate",
-    targetBitrate: "set_target_bitrate",
-    voiceBitrate: "set_voice_bitrate",
-};
-
-const FIELD_MAP = {
-    CustomFPS: "fps",
-    CustomResolution: "resolution",
-    maxBitrate: "maxBitrate",
-    minBitrate: "minBitrate",
-    targetBitrate: "targetBitrate",
-    voiceBitrate: "voiceBitrate",
-};
-
 function ConfigModal({props, onClose, forceQuality}) {
     const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
     const [_, setData] = React.useState(() => SettingsStore.getAll());
@@ -109,14 +91,6 @@ function ConfigModal({props, onClose, forceQuality}) {
     const commit = (key, value) => {
         SettingsStore.set(key, value);
         setData(prev => ({...prev, [key]: value}));
-
-        const type = TYPE_MAP[key];
-        const field = FIELD_MAP[key];
-        if (!type || !field) {
-            return;
-        }
-
-        forceQuality(type, {[field]: value});
     };
 
     const applyMode = (patch) => {
@@ -140,8 +114,17 @@ function ConfigModal({props, onClose, forceQuality}) {
         {key: "voiceBitrate", label: "Voice Bitrate"},
     ];
 
+    function onApply(){
+        forceQuality("set_resolution", {resolution: data.CustomResolution});
+        forceQuality("set_fps", {fps: data.CustomFPS});
+        forceQuality("set_min_bitrate", {minBitrate: data.minBitrate});
+        forceQuality("set_target_bitrate", {targetBitrate: data.targetBitrate});
+        forceQuality("set_max_bitrate", {maxBitrate: data.maxBitrate});
+        onClose();
+    }
+
     return (
-        <ModalModule.Modal notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal actions={[{text:"Cancel", onClick:onClose}, {text:"Apply", onClick: onApply}]} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
@@ -223,25 +206,6 @@ export default {
     ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'), {raw: true}).then(x => x.id)],
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
-        console.log(ModalModule);
-        /*this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
-            const config = GoLiveStore.getConfig();
-
-            if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null && SettingsStore.get("ResolutionSwapper")) {
-                console.log(action);
-                action.settings.qualityOptions.resolution = parseInt(config.resolution);
-                action.settings.qualityOptions.frameRate = parseInt(config.fps);
-            }
-
-            if (action?.type === "STREAM_UPDATE_SETTINGS" && SettingsStore.get("ResolutionSwapper")) {
-                console.log(action);
-                action.resolution = parseInt(config.resolution);
-                action.frameRate = parseInt(config.fps);
-            }
-
-            return false;
-        });*/
-
         const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
         patcher.instead(mod?.module, mod?.key, () => true);
 
@@ -276,9 +240,5 @@ export default {
 
             return ret;
         });
-    },
-    revert()
-    {
-        // this._removeInterceptor();
     }
 }

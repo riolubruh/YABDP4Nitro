@@ -21,14 +21,13 @@ export default {
             if(CustomBitrateEnabled){
                 //old plugin changes ALL different variables related to bitrate, but these seem to be enough?
                 vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 5e5;
+                vqmOpt.videoBitrateFloor = minBitrate > 0 ? minBitrate * 1000 : 5e5;
                 vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 45e5;
                 vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9e6;
+                vqmOpt.videoBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9e6;
             }
 
-            const maxVideoQuality = {
-                width: e.videoStreamParameters[0].maxResolution.width,
-                height: e.videoStreamParameters[0].maxResolution.height,
-            }
+            const maxVideoQuality = e.videoStreamParameters[0].maxResolution;
 
             let videoCapture = {
                 width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,

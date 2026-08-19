@@ -229,8 +229,9 @@ function AvatarDecorations() {
     return <div>
         <Components.SearchInput
             value={query}
+            defaultValue={""}
             placeholder={"Search decorations..."}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e)}
             style={{
                 backgroundColor: "var(--control-secondary-background-default)"
             }}

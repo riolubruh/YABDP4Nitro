@@ -95,7 +95,7 @@ export default {
             if (!SettingsStore.get("fakeProfileBanners")) return ret;
 
             const newRet = BetterDiscord.Utils.findInTree(ret, x => x?.props?.displayProfile, {walkable: ['props', 'children']});
-            NodePatcher.patch(newRet, (props, res) =>
+            NodePatcher.patch(newRet ?? ret, (props, res) =>
             {
                 const bannerUrl = getBannerUrl(props.user.id);
                 bannerUrl && (res.props.bannerSrc = bannerUrl);

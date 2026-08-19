@@ -85,7 +85,8 @@ function Nameplates(){
         <Components.SearchInput
             placeholder={"Search nameplates..."}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            defaultValue={""}
+            onChange={(e) => setQuery(e)}
         />
 
         {Collections.map(x=><NameplateCategory skuId={x} query={query}/>)}
