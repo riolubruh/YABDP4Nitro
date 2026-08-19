@@ -105,14 +105,6 @@ const FIELD_MAP = {
 function ConfigModal({props, onClose, forceQuality}) {
     const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
     const [_, setData] = React.useState(() => SettingsStore.getAll());
-    const [resolution, setResolution] = React.useState<number>(data.CustomResolution);
-    const [fps, setFps] = React.useState<number>(data.CustomFPS);
-    const [bitrate, setBitrate] = React.useState({
-        minBitrate: data.minBitrate,
-        targetBitrate: data.targetBitrate,
-        maxBitrate: data.maxBitrate,
-    });
-    console.log(data);
 
     const commit = (key, value) => {
         SettingsStore.set(key, value);
@@ -126,11 +118,6 @@ function ConfigModal({props, onClose, forceQuality}) {
 
         forceQuality(type, {[field]: value});
     };
-
-    function apply(){
-        forceQuality("set_resolution", {resolution: resolution});
-        forceQuality("set_fps", {fps: fps});
-    }
 
     const applyMode = (patch) => {
         Object.entries(patch).forEach(([key, value]) => SettingsStore.set(key, value));
@@ -154,7 +141,7 @@ function ConfigModal({props, onClose, forceQuality}) {
     ];
 
     return (
-        <ModalModule.Modal confirmText={"Apply"} cancelText={"Cancel"} onConfirm={apply} notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
@@ -194,7 +181,7 @@ function CustomFooter() {
         dispatch({type: type, ...value});
 
         const currentState = ApplicationStreamingSettingsStore.getState();
-        ApplicationStreamingSettingsStore.initializeFromState({
+        ApplicationStreamingSettingsStore.initialize({
             resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
             fps: type == "set_fps" ? value.fps : currentState.fps,
             preset: 3,
