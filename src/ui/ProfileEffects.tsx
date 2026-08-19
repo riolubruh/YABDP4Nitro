@@ -80,7 +80,7 @@ function ProfileEffects() {
 
     return <div>
         <Components.SearchInput
-            value={query}
+            defaultValue={query}
             placeholder={"Search..."}
             onChange={(e) => setQuery(e.target.value)}
             style={{

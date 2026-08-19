@@ -84,8 +84,7 @@ function Nameplates(){
     return <div>
         <Components.SearchInput
             placeholder={"Search nameplates..."}
-            value={query}
-            defaultValue={""}
+            defaultValue={query}
             onChange={(e) => setQuery(e)}
         />
 

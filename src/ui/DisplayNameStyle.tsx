@@ -140,7 +140,7 @@ function DisplayNameStyle() {
         <br/>
         <Components.Text>Primary Color</Components.Text>
         <Components.ColorInput
-            value={colors.primary}
+            defaultValue={colors.primary}
             onChange={(e) => {
                 setColors({primary: e, accent: colors.accent})
             }}
@@ -148,7 +148,7 @@ function DisplayNameStyle() {
         {effectId === 1 ? <div><br/>
             <Components.Text>Secondary Color</Components.Text>
             <Components.ColorInput
-                value={colors.accent}
+                defaultValue={colors.accent}
                 onChange={(e) => {
                     setColors({primary: colors.primary, accent: e})
                 }}
