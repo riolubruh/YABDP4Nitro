@@ -4615,29 +4615,6 @@ var userCallTileBg_default = {
     });
   }
 };
-// src/global/stores/GoLiveStore.ts
-var GoLiveStore_default = new class GoLiveStore extends BetterDiscord.Utils.Store {
-  getConfig() {
-    const settings = SettingsStore_default.getAll();
-    return {
-      maxBitrate: settings.maxBitrate,
-      minBitrate: settings.minBitrate,
-      fps: settings.CustomFPS,
-      targetBitrate: settings.targetBitrate,
-      voiceBitrate: settings.voiceBitrate,
-      videoCodec: settings.videoCodec2,
-      resolution: settings.CustomResolution
-    };
-  }
-  isEnabled() {
-    const d = SettingsStore_default.getAll();
-    return {
-      isResolutionEnabled: d.screenSharing,
-      isBitrateEnabled: d.CustomBitrateEnabled
-    };
-  }
-};
-
 // src/patches/modules/goLiveModal.tsx
 var { React: React5, Components } = BetterDiscord;
 var { ApplicationStreamingSettingsStore } = BetterDiscord.Webpack.Stores;
@@ -4732,6 +4709,14 @@ var FIELD_MAP = {
 function ConfigModal({ props, onClose, forceQuality }) {
   const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.getAll());
   const [_, setData] = React5.useState(() => SettingsStore_default.getAll());
+  const [resolution, setResolution] = React5.useState(data.CustomResolution);
+  const [fps, setFps] = React5.useState(data.CustomFPS);
+  const [bitrate, setBitrate] = React5.useState({
+    minBitrate: data.minBitrate,
+    targetBitrate: data.targetBitrate,
+    maxBitrate: data.maxBitrate
+  });
+  console.log(data);
   const commit = (key, value) => {
     SettingsStore_default.set(key, value);
     setData((prev) => ({ ...prev, [key]: value }));
@@ -4742,6 +4727,10 @@ function ConfigModal({ props, onClose, forceQuality }) {
     }
     forceQuality(type, { [field]: value });
   };
+  function apply() {
+    forceQuality("set_resolution", { resolution });
+    forceQuality("set_fps", { fps });
+  }
   const applyMode = (patch) => {
     Object.entries(patch).forEach(([key, value]) => SettingsStore_default.set(key, value));
     setData((prev) => ({ ...prev, ...patch }));
@@ -4761,6 +4750,9 @@ function ConfigModal({ props, onClose, forceQuality }) {
     { key: "voiceBitrate", label: "Voice Bitrate" }
   ];
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
+    confirmText: "Apply",
+    cancelText: "Cancel",
+    onConfirm: apply,
     notice: { type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**") },
     ...props,
     onClose,
@@ -4792,6 +4784,13 @@ function CustomFooter() {
   const [start, dispatch] = module2.module[module2.key]();
   const forceQuality = (type, value) => {
     dispatch({ type, ...value });
+    const currentState = ApplicationStreamingSettingsStore.getState();
+    ApplicationStreamingSettingsStore.initializeFromState({
+      resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
+      fps: type == "set_fps" ? value.fps : currentState.fps,
+      preset: 3,
+      soundshareEnabled: currentState.soundshareEnabled
+    });
   };
   return /* @__PURE__ */ React5.createElement("div", {
     style: {
@@ -4805,7 +4804,7 @@ function CustomFooter() {
       minWidth: "38px"
     }
   }, /* @__PURE__ */ React5.createElement(IconModule.Icon, {
-    tooltip: "YABDP4Nitro Configuration",
+    tooltip: "Configure Stream Settings",
     tooltipPosition: "top",
     onClick: () => openConfigModal(forceQuality),
     key: "balls-2",
@@ -4820,18 +4819,7 @@ var goLiveModal_default = {
   ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"), { raw: true }).then((x2) => x2.id)],
   waitFor: [LIVE_FILTER],
   apply(finale, patcher) {
-    this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
-      const config = GoLiveStore_default.getConfig();
-      if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null && SettingsStore_default.get("ResolutionSwapper")) {
-        action.settings.qualityOptions.resolution = parseInt(config.resolution);
-        action.settings.qualityOptions.frameRate = parseInt(config.fps);
-      }
-      if (action?.type === "STREAM_UPDATE_SETTINGS" && SettingsStore_default.get("ResolutionSwapper")) {
-        action.resolution = parseInt(config.resolution);
-        action.frameRate = parseInt(config.fps);
-      }
-      return false;
-    });
+    console.log(ModalModule2);
     const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
     patcher.instead(mod?.module, mod?.key, () => true);
     patcher.after(finale.modules[0], "default", (_, [args], ret) => {
@@ -4858,9 +4846,7 @@ var goLiveModal_default = {
       return ret;
     });
   },
-  revert() {
-    this._removeInterceptor();
-  }
+  revert() {}
 };
 // src/ui/AccentColors.tsx
 var { UserProfileStore: UserProfileStore3, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;

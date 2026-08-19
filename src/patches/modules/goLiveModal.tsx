@@ -105,6 +105,14 @@ const FIELD_MAP = {
 function ConfigModal({props, onClose, forceQuality}) {
     const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
     const [_, setData] = React.useState(() => SettingsStore.getAll());
+    const [resolution, setResolution] = React.useState<number>(data.CustomResolution);
+    const [fps, setFps] = React.useState<number>(data.CustomFPS);
+    const [bitrate, setBitrate] = React.useState({
+        minBitrate: data.minBitrate,
+        targetBitrate: data.targetBitrate,
+        maxBitrate: data.maxBitrate,
+    });
+    console.log(data);
 
     const commit = (key, value) => {
         SettingsStore.set(key, value);
@@ -118,6 +126,11 @@ function ConfigModal({props, onClose, forceQuality}) {
 
         forceQuality(type, {[field]: value});
     };
+
+    function apply(){
+        forceQuality("set_resolution", {resolution: resolution});
+        forceQuality("set_fps", {fps: fps});
+    }
 
     const applyMode = (patch) => {
         Object.entries(patch).forEach(([key, value]) => SettingsStore.set(key, value));
@@ -141,7 +154,7 @@ function ConfigModal({props, onClose, forceQuality}) {
     ];
 
     return (
-        <ModalModule.Modal notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal confirmText={"Apply"} cancelText={"Cancel"} onConfirm={apply} notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Everything changed here will instantly apply. Not like anything here can crash you but be weary**")}} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
@@ -179,6 +192,14 @@ function CustomFooter() {
 
     const forceQuality = (type, value) => {
         dispatch({type: type, ...value});
+
+        const currentState = ApplicationStreamingSettingsStore.getState();
+        ApplicationStreamingSettingsStore.initializeFromState({
+            resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
+            fps: type == "set_fps" ? value.fps : currentState.fps,
+            preset: 3,
+            soundshareEnabled: currentState.soundshareEnabled,
+        })
     };
 
     return (
@@ -195,7 +216,7 @@ function CustomFooter() {
             }}
         >
             <IconModule.Icon
-                tooltip={"YABDP4Nitro Configuration"}
+                tooltip={"Configure Stream Settings"}
                 tooltipPosition={"top"}
                 onClick={() => openConfigModal(forceQuality)}
                 key={"balls-2"}
@@ -215,21 +236,24 @@ export default {
     ids: [async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'), {raw: true}).then(x => x.id)],
     waitFor: [LIVE_FILTER],
     apply(finale, patcher) {
-        this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
+        console.log(ModalModule);
+        /*this._removeInterceptor = GlobalModules.Dispatcher.addInterceptor((action) => {
             const config = GoLiveStore.getConfig();
 
             if (action?.type === "MEDIA_ENGINE_SET_GO_LIVE_SOURCE" && action.settings?.qualityOptions != null && SettingsStore.get("ResolutionSwapper")) {
+                console.log(action);
                 action.settings.qualityOptions.resolution = parseInt(config.resolution);
                 action.settings.qualityOptions.frameRate = parseInt(config.fps);
             }
 
             if (action?.type === "STREAM_UPDATE_SETTINGS" && SettingsStore.get("ResolutionSwapper")) {
+                console.log(action);
                 action.resolution = parseInt(config.resolution);
                 action.frameRate = parseInt(config.fps);
             }
 
             return false;
-        });
+        });*/
 
         const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
         patcher.instead(mod?.module, mod?.key, () => true);
@@ -268,6 +292,6 @@ export default {
     },
     revert()
     {
-        this._removeInterceptor();
+        // this._removeInterceptor();
     }
 }
