@@ -85,24 +85,14 @@ const MODES = [
 ];
 
 function ConfigModal({props, onClose, forceQuality}) {
-    const data = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () => SettingsStore.getAll())
-    const [_, setData] = React.useState(() => SettingsStore.getAll());
+    const [data, setData] = React.useState(() => SettingsStore.getAll());
 
     const commit = (key, value) => {
-        SettingsStore.set(key, value);
         setData(prev => ({...prev, [key]: value}));
     };
 
     const applyMode = (patch) => {
-        Object.entries(patch).forEach(([key, value]) => SettingsStore.set(key, value));
         setData(prev => ({...prev, ...patch}));
-
-        if ("CustomResolution" in patch) {
-            forceQuality("set_resolution", {resolution: patch.CustomResolution});
-        }
-        if ("CustomFPS" in patch) {
-            forceQuality("set_fps", {fps: patch.CustomFPS});
-        }
     };
 
     const fields = [
@@ -120,11 +110,13 @@ function ConfigModal({props, onClose, forceQuality}) {
         forceQuality("set_min_bitrate", {minBitrate: data.minBitrate});
         forceQuality("set_target_bitrate", {targetBitrate: data.targetBitrate});
         forceQuality("set_max_bitrate", {maxBitrate: data.maxBitrate});
+
+        Object.entries(data).forEach(([key, value]) => SettingsStore.set(key, value));
         onClose();
     }
 
     return (
-        <ModalModule.Modal actions={[{text:"Cancel", onClick:onClose}, {text:"Apply", onClick: onApply}]} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal actions={[{text:"Cancel", onClick:onClose, variant:"secondary"}, {text:"Apply", onClick: onApply}]} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
