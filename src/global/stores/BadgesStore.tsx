@@ -16,6 +16,24 @@ const Badges = {
         }
     },
 
+    silly: {
+        ids: ['917630027477159986'],
+        badge: {
+            id: "yabdp_silly",
+            iconSrc: "https://i.imgur.com/AP9unnu.png",
+            description: "Honk."
+        }
+    },
+
+    sera: {
+        ids: ["1323433010858557523"],
+        badge: {
+            id: "yabdp_sera",
+            iconSrc: "https://ik.imagekit.io/vcbg/download.gif?size=4096",
+            description: "sera so silly ;3",
+        }
+    },
+
     contributors: {
         ids: specialThanks,
         badge: {
@@ -25,6 +43,13 @@ const Badges = {
             link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
         }
     },
+}
+
+const defaultBadge = {
+    id: "yabdp_user",
+    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+    description: "A fellow YABDP4Nitro user!",
+    link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
 }
 
 export default new class BadgesStore {
@@ -37,22 +62,22 @@ export default new class BadgesStore {
     }
 
     check(id: string): boolean {
-        return this.foundUsers.includes(id);
+        return this.foundUsers.includes(id) || this.isImportant(id);
     }
 
     isImportant(id: string): boolean {
-        return [...Badges.developers.ids, ...Badges.contributors.ids].includes(id);
+        return Object.values(Badges).some(category => category.ids.includes(id));
     }
 
-    returnRespondingBadge(id: string) {
-        const category = Object.values(Badges).find(x => x.ids.includes(id))
+    findBadgesForUser(id: string): Badge[] {
+        return Object.values(Badges)
+            .filter(category => category.ids.includes(id))
+            .map(category => category.badge);
+    }
 
-        return category?.badge ?? {
-            id: "yabdp_user",
-            iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
-            description: "A fellow YABDP4Nitro user!",
-            link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
-        }
+    returnRespondingBadges(id: string): Badge[] {
+        const categories = Object.values(Badges).filter(x => x.ids.includes(id))
+        return categories.length ? categories.map(x => x.badge) : [defaultBadge]
     }
 
     unload(){

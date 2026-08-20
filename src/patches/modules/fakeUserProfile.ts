@@ -27,7 +27,7 @@ export default {
     ids: undefined,
     waitFor: [x => x.getUser],
     apply(finale, patcher) {
-        patcher.after(UserProfileStore, "getUserProfile", (_: any, [userId]: string, ret: UserProfile) => {
+        patcher.after(UserProfileStore, "getUserProfile", (_: any, [userId]: [string], ret: UserProfile) => {
             const killProfileEffects = SettingsStore.get("killProfileEffects");
             const profileEffectsEnabled = SettingsStore.get("profileEffects");
             const shouldProfileV2 = SettingsStore.get("profileV2");
@@ -44,7 +44,7 @@ export default {
 
             if (!killProfileEffects && profileEffectsEnabled) {
                 const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-                let parsed = perServer ?? userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null;
+                const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
 
                 if (parsed && containsProfileEffects(parsed)) {
                     const skuId = extractProfileEffects(parsed);
@@ -60,7 +60,7 @@ export default {
             }
 
             if (profileThemesEnabled) {
-                const perServer = getRevealedTextPerServer(userId,`\uDB40\uDC5B\uDB40\uDC23`);
+                const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
                 const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
 
                 (match) && (ret.themeColors = match);
@@ -68,15 +68,16 @@ export default {
 
             if (profileFramesEnabled) {
                 const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
-                const revealedSurrogate = perServer ?? userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null;
+                const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
                 const match = extractProfileFrame(revealedSurrogate);
                 match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
             }
 
-            const foundBadge = !Object.values(ret?.badges ?? {}).find(x => x.id.startsWith("yabdp"))
+            const noBadgeFound = !Object.values(ret?.badges ?? {}).find(x => x?.id?.startsWith("yabdp"))
 
-            if (!disableUserBadge && foundBadge && BadgesStore.check(ret?.userId)) {
-                ret.badges.push(BadgesStore.returnRespondingBadge(ret.userId))
+            if (!disableUserBadge && noBadgeFound && BadgesStore.check(ret?.userId)) {
+                if (!ret.badges) ret.badges = [];
+                ret.badges.push(...BadgesStore.findBadgesForUser(ret.userId));
             }
         });
     },

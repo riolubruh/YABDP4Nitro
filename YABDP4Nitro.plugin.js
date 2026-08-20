@@ -44,39 +44,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -102,7 +123,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -292,7 +313,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw new TypeError('"ext" argument must be a string');
+    throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -364,7 +385,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -741,6 +762,22 @@ var Badges = {
       link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
     }
   },
+  silly: {
+    ids: ["917630027477159986"],
+    badge: {
+      id: "yabdp_silly",
+      iconSrc: "https://i.imgur.com/AP9unnu.png",
+      description: "Honk."
+    }
+  },
+  sera: {
+    ids: ["1323433010858557523"],
+    badge: {
+      id: "yabdp_sera",
+      iconSrc: "https://ik.imagekit.io/vcbg/download.gif?size=4096",
+      description: "sera so silly ;3"
+    }
+  },
   contributors: {
     ids: specialThanks,
     badge: {
@@ -751,6 +788,12 @@ var Badges = {
     }
   }
 };
+var defaultBadge = {
+  id: "yabdp_user",
+  iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+  description: "A fellow YABDP4Nitro user!",
+  link: "https://github.com/riolubruh/YABDP4Nitro"
+};
 var BadgesStore_default = new class BadgesStore {
   foundUsers = [];
   add(id) {
@@ -759,19 +802,17 @@ var BadgesStore_default = new class BadgesStore {
     }
   }
   check(id) {
-    return this.foundUsers.includes(id);
+    return this.foundUsers.includes(id) || this.isImportant(id);
   }
   isImportant(id) {
-    return [...Badges.developers.ids, ...Badges.contributors.ids].includes(id);
+    return Object.values(Badges).some((category) => category.ids.includes(id));
   }
-  returnRespondingBadge(id) {
-    const category = Object.values(Badges).find((x) => x.ids.includes(id));
-    return category?.badge ?? {
-      id: "yabdp_user",
-      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
-      description: "A fellow YABDP4Nitro user!",
-      link: "https://github.com/riolubruh/YABDP4Nitro"
-    };
+  findBadgesForUser(id) {
+    return Object.values(Badges).filter((category) => category.ids.includes(id)).map((category) => category.badge);
+  }
+  returnRespondingBadges(id) {
+    const categories = Object.values(Badges).filter((x) => x.ids.includes(id));
+    return categories.length ? categories.map((x) => x.badge) : [defaultBadge];
   }
   unload() {
     this.foundUsers = [];
@@ -998,7 +1039,7 @@ var fakeUserProfile_default = {
       const revealedGlobalBio = secondsightifyRevealOnly(userBio);
       if (!killProfileEffects && profileEffectsEnabled) {
         const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-        let parsed = perServer ?? userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null;
+        const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
         if (parsed && containsProfileEffects(parsed)) {
           const skuId = extractProfileEffects(parsed);
           skuId && (ret.profileEffect = {
@@ -1017,13 +1058,15 @@ var fakeUserProfile_default = {
       }
       if (profileFramesEnabled) {
         const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
-        const revealedSurrogate = perServer ?? userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null;
+        const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
         const match = extractProfileFrame(revealedSurrogate);
         match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
       }
-      const foundBadge = !Object.values(ret?.badges ?? {}).find((x) => x.id.startsWith("yabdp"));
-      if (!disableUserBadge && foundBadge && BadgesStore_default.check(ret?.userId)) {
-        ret.badges.push(BadgesStore_default.returnRespondingBadge(ret.userId));
+      const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) => x?.id?.startsWith("yabdp"));
+      if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
+        if (!ret.badges)
+          ret.badges = [];
+        ret.badges.push(...BadgesStore_default.findBadgesForUser(ret.userId));
       }
     });
   }
@@ -2924,7 +2967,7 @@ function Debug({ user }) {
       pfp3y3: pfpRevealed,
       general3y3: revealedText
     },
-    badge: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadge(user.id).id : "not known user"
+    badge: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadges(user.id).map((x) => String(x.id)).join(", ") : "none"
   };
   function OpenModal() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -4184,7 +4227,6 @@ var streamBypass_default = {
     const _class = finale.modules[0];
     patcher.before(_class.prototype, "updateVideoQuality", (e) => {
       const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
-      console.log(e);
       const vqm = e.videoQualityManager;
       const vqmOpt = vqm.options;
       if (CustomBitrateEnabled) {
@@ -4682,7 +4724,6 @@ var MODES = [
 ];
 function ConfigModal({ props, onClose, forceQuality }) {
   const [data, setData] = React5.useState(() => SettingsStore_default.getAll());
-  console.log("localData", { ...data });
   const commit = (key, value) => {
     setData((prev) => ({ ...prev, [key]: value }));
   };
@@ -5932,14 +5973,17 @@ var dev_default = {
     patcher.after(module2.Ay, "type", (_, args, res) => {
       if (!BadgesStore_default.isImportant(UserStore9.getCurrentUser().id))
         return res;
-      const user = args[0].message.author;
+      const user = args[0]?.message?.author;
+      if (!user)
+        return res;
       if (!res.props.badges.find((x2) => x2.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
-        res.props.badges.push(/* @__PURE__ */ React16.createElement("img", {
-          key: "yabd-badge",
+        const badges = BadgesStore_default.findBadgesForUser(user.id);
+        res.props.badges.push(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
+          key: `yabd-${x2.id}`,
           height: "16px",
           width: "16px",
-          src: BadgesStore_default.returnRespondingBadge(user.id).iconSrc
-        }));
+          src: x2.iconSrc
+        })));
       }
       return res;
     });

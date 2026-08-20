@@ -53,7 +53,7 @@ function Debug({user}: { user: User }) {
             pfp3y3: pfpRevealed,
             general3y3: revealedText
         },
-        badge: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadge(user.id).id : "not known user"
+        badge: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadges(user.id).map(x => String(x.id)).join(", ") : "none"
     }
 
     function OpenModal() {
