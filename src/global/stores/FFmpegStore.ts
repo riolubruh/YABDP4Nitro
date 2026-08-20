@@ -1,7 +1,6 @@
 import {BetterDiscord} from "@shared/";
 const {Logger, Net, UI} = BetterDiscord;
-const _path = () => require("path");
-const fs = () => require("fs");
+import {fs, _path} from "../../index.tsx";
 
 const BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/`;
 

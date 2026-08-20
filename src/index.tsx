@@ -489,8 +489,8 @@ function normalizeVersion(v: string): string {
 }
 
 const Electron = () => eval("require(\"electron\")");
-const _path = () => require("path");
-const fs = () => require("fs");
+export const _path = () => require("path");
+export const fs = () => eval("require(\"fs\")");
 
 let unpatchDevMode: (() => void) | null = null;
 
