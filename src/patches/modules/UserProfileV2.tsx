@@ -106,7 +106,7 @@ export function CustomSettingsTab() {
                 <div style={{display: "flex", gap: "8px", width: "100%"}}>
                     <Components.TextInput value={devText} onChange={setDevText} style={{flex: 1}}/>
                     <Components.Button onClick={() => {
-                        copyToClipboard(secondsightifyEncodeOnly(devText), "[DEV] Copied uwu!")
+                        copyToClipboard(secondsightifyEncodeOnly(devText), "Copied encoded text to clipboard!");
                     }}>Encode</Components.Button>
                 </div>
             </Card> : null}
