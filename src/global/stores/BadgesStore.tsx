@@ -38,7 +38,7 @@ const Badges = {
         ids: specialThanks,
         badge: {
             id: "yabdp_contributor",
-            iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+            iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi_red.gif",
             description: "YABDP4Nitro Contributor!",
             link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
         }
