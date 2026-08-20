@@ -1,10 +1,12 @@
 import {GlobalModules} from "@global/*";
 import {BetterDiscord} from "@shared/*";
 import {wpGetByKeys, wpWait} from "../global/webpack";
-import {useMemo, useState} from "react";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
 import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
+import SettingsStore from "../global/stores/SettingsStore.ts";
+
 const {React, Components} = BetterDiscord;
+const {useMemo, useState} = React;
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
@@ -31,12 +33,41 @@ function copyProfileFrame3y3({skuId}){
     copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
 }
 
-function ProfileFrame({product}){
+function CustomSkuTextInput({skuId, setSkuId}){
+    const [customSkuTextBox, setCustomSkuTextBox] = useState("");
+
+    function onChange(e){
+        setCustomSkuTextBox(e);
+    }
+
+    function onKeyDown(e){
+        if(e.keyCode == 13 || e.key == "Enter") return copyProfileFrame3y3({skuId: skuId ?? customSkuTextBox});
+        else {
+            setCustomSkuTextBox(skuId ?? customSkuTextBox);
+            setSkuId(null);
+        }
+    }
+
+    return <div style={{marginBottom: "8px"}}>
+        <Components.TextInput
+            placeholder={"Custom SKU ID... (enter to copy)"}
+            defaultValue={skuId ?? customSkuTextBox}
+            value={skuId ?? customSkuTextBox}
+            onKeyDown={onKeyDown}
+            onChange={onChange}
+        />
+    </div>
+}
+
+function ProfileFrame({product, setSkuId}){
     const [hovered, setHovered] = React.useState(false);
     return <div
         onMouseOver={() => setHovered(true)}
         onMouseOut={() => setHovered(false)}
-        onClick={() => copyProfileFrame3y3({skuId: product.sku_id})}
+        onClick={() => {
+            copyProfileFrame3y3({skuId: product.sku_id})
+            setSkuId(product.sku_id);
+        }}
         title={product.productName}
     >
         <ProfileFrameElem
@@ -61,7 +92,7 @@ function ProfileFrame({product}){
     </div>
 }
 
-function ProfileFrameCategory({skuId, query}){
+function ProfileFrameCategory({skuId, query, setSkuId}){
     const category = ShopCollectiblesStore.getCategory(skuId);
     if(!category) return null;
     const products = ShopCollectiblesStore.getProfileFrames(skuId);
@@ -91,22 +122,25 @@ function ProfileFrameCategory({skuId, query}){
             gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
             gap: "8px"
         }}>
-            {filteredProducts.map(x => <ProfileFrame product={x}/>)}
+            {filteredProducts.map(x => <ProfileFrame product={x} setSkuId={setSkuId}/>)}
         </div>
     </div> : null;
 }
 
 function ProfileFrames(){
     const [query, setQuery] = useState("");
+    const [skuId, setSkuId] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
+    const advancedProfileCustomization = SettingsStore.get("advancedProfileCustomization");
 
     return <div>
+        {advancedProfileCustomization ? <CustomSkuTextInput setSkuId={setSkuId} skuId={skuId} /> : null}
         <Components.SearchInput
             placeholder={"Search nameplates..."}
             defaultValue={query}
             onChange={(e) => setQuery(e)}
         />
 
-        {Collections.map(x=><ProfileFrameCategory skuId={x} query={query}/>)}
+        {Collections.map(x=><ProfileFrameCategory skuId={x} query={query} setSkuId={setSkuId}/>)}
     </div>
 }

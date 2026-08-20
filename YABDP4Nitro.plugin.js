@@ -5046,7 +5046,7 @@ function DisplayNameStyle() {
       const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ""), 16);
       const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ""), 16);
       const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
-      copyToClipboard(secondsightifyEncodeOnly(`S{${fontId + 1},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
+      copyToClipboard(secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
     }
   }, "Copy 3y3"));
 }
@@ -5152,6 +5152,7 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
 
 // src/ui/ProfileEffects.tsx
 var { Components: Components6, React: React10 } = BetterDiscord;
+var { useState: useState2 } = React10;
 var ModalModule4 = wpGetByKeys(["Modal"]);
 function OpenProfileEffectModalButton() {
   function handleClick() {
@@ -5166,15 +5167,41 @@ function OpenProfileEffectModalButton() {
     onClick: handleClick
   }, "Change");
 }
-function ProfileEffect({ product }) {
+function CustomSkuTextInput({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState2("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyProfileEffect3y3(skuId ?? customSkuTextBox);
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React10.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React10.createElement(Components6.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
+function copyProfileEffect3y3(skuId) {
+  copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
+}
+function ProfileEffect({ product, setSkuId }) {
   const skuId = product.sku_id;
   const src = product.thumbnailPreviewSrc;
   const title = product.title;
-  function copyProfileEffect3y3(skuId2) {
-    copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId2), "3y3 copied to clipboard!");
-  }
   return /* @__PURE__ */ React10.createElement("img", {
-    onClick: () => copyProfileEffect3y3(skuId),
+    onClick: () => {
+      setSkuId(skuId);
+      copyProfileEffect3y3(skuId);
+    },
     src,
     title,
     style: {
@@ -5187,7 +5214,7 @@ function ProfileEffect({ product }) {
     }
   });
 }
-function Category({ skuId, query }) {
+function Category({ skuId, query, setSkuId }) {
   const category = ShopCollectiblesStore_default.getCategory(skuId);
   const products = ShopCollectiblesStore_default.getProfileEffects(skuId);
   const filteredProducts = products?.filter?.((product) => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
@@ -5201,13 +5228,19 @@ function Category({ skuId, query }) {
   }, filteredProducts?.length ? /* @__PURE__ */ React10.createElement(Components6.Text, {
     style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" }
   }, category?.name) : null, filteredProducts?.map((x2) => /* @__PURE__ */ React10.createElement(ProfileEffect, {
-    product: x2
+    product: x2,
+    setSkuId
   })));
 }
 function ProfileEffects() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState2("");
+  const [skuId, setSkuId] = useState2("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  return /* @__PURE__ */ React10.createElement("div", null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  return /* @__PURE__ */ React10.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React10.createElement(CustomSkuTextInput, {
+    setSkuId,
+    skuId
+  }) : null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
     defaultValue: query,
     placeholder: "Search...",
     onChange: (e) => setQuery(e.target.value),
@@ -5217,12 +5250,14 @@ function ProfileEffects() {
   }), Collections.map((id) => {
     return /* @__PURE__ */ React10.createElement(Category, {
       skuId: id,
-      query
+      query,
+      setSkuId
     });
   }));
 }
 // src/ui/AvatarDecorations.tsx
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
+var { useState: useState3, useMemo: useMemo2, useCallback: useCallback2 } = React11;
 var { UserStore: UserStore6 } = Webpack2.Stores;
 var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
@@ -5239,17 +5274,21 @@ function OpenAvatarDecorationModalButton() {
     onClick: handleClick
   }, "Change");
 }
-function copyProfileEffect3y3(skuId) {
+function copyAvatarDecoration3y3(skuId) {
   copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
 }
-function AvatarDecoration({ product }) {
-  const [hovered, setHovered] = useState(false);
+function AvatarDecoration({ product, setSkuId }) {
+  const [hovered, setHovered] = useState3(false);
   const skuId = product.sku_id;
   const decorationItem = { ...product, skuId: product.sku_id };
+  function handleClick() {
+    setSkuId(skuId);
+    copyAvatarDecoration3y3(skuId);
+  }
   return /* @__PURE__ */ React11.createElement("div", {
     onMouseOver: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
-    onClick: () => copyProfileEffect3y3(skuId),
+    onClick: handleClick,
     title: product.productName,
     style: { cursor: "pointer" }
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
@@ -5259,14 +5298,14 @@ function AvatarDecoration({ product }) {
     avatarSize: "SIZE_72"
   }));
 }
-function InvalidProductDisplay({ product }) {
-  const [hovered, setHovered] = useState(false);
+function InvalidProductDisplay({ product, setSkuId }) {
+  const [hovered, setHovered] = useState3(false);
   const skuId = product.sku_id;
   const decorationItem = { ...product, skuId: product.sku_id };
   return /* @__PURE__ */ React11.createElement("div", {
     onMouseOver: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
-    onClick: () => copyProfileEffect3y3(skuId),
+    onClick: () => copyAvatarDecoration3y3(skuId),
     title: product.name,
     style: { cursor: "pointer" }
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
@@ -5276,10 +5315,10 @@ function InvalidProductDisplay({ product }) {
     user: UserStore6.getCurrentUser()
   }));
 }
-function Category2({ skuId, query }) {
+function Category2({ skuId, query, setSkuId }) {
   const category = ShopCollectiblesStore_default.getCategory(skuId);
   const products = ShopCollectiblesStore_default.getAvatarDecorations(skuId);
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo2(() => {
     if (!products?.length)
       return [];
     if (!query.trim())
@@ -5311,11 +5350,12 @@ function Category2({ skuId, query }) {
     }
   }, filteredProducts.map((x2) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
     key: x2.sku_id,
-    product: x2
+    product: x2,
+    setSkuId
   }))));
 }
-function QuestCategory({ questDecorations, query }) {
-  const filteredProducts = useMemo(() => {
+function QuestCategory({ questDecorations, query, setSkuId }) {
+  const filteredProducts = useMemo2(() => {
     if (!questDecorations?.length)
       return [];
     if (!query.trim())
@@ -5347,11 +5387,12 @@ function QuestCategory({ questDecorations, query }) {
     }
   }, filteredProducts.map((x2) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
     key: x2.sku_id,
-    product: x2
+    product: x2,
+    setSkuId
   }))));
 }
-function InvalidCategory({ category, query }) {
-  const filteredProducts = useMemo(() => {
+function InvalidCategory({ category, query, setSkuId }) {
+  const filteredProducts = useMemo2(() => {
     if (!category?.products?.length)
       return [];
     if (!query.trim())
@@ -5383,24 +5424,54 @@ function InvalidCategory({ category, query }) {
     }
   }, filteredProducts.map((product) => /* @__PURE__ */ React11.createElement(InvalidProductDisplay, {
     key: product.sku_id,
-    product
+    product,
+    setSkuId
   }))));
 }
-function Invalid({ query }) {
+function Invalid({ query, setSkuId }) {
   const categories = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getInvalids().map((x2) => ShopCollectiblesStore_default.getInvalid(x2)).filter(Boolean));
   if (!categories?.length)
     return null;
   return /* @__PURE__ */ React11.createElement("div", null, categories.map((x2) => /* @__PURE__ */ React11.createElement(InvalidCategory, {
     key: x2.id,
     category: x2,
-    query
+    query,
+    setSkuId
   })));
 }
+function CustomSkuTextInput2({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState3("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyAvatarDecoration3y3(skuId ?? customSkuTextBox);
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React11.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React11.createElement(Components7.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
 function AvatarDecorations() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState3("");
+  const [skuId, setSkuId] = useState3("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
   const questDecorations = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getQuestAvatarDecorations());
-  return /* @__PURE__ */ React11.createElement("div", null, /* @__PURE__ */ React11.createElement(Components7.SearchInput, {
+  return /* @__PURE__ */ React11.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React11.createElement(CustomSkuTextInput2, {
+    skuId,
+    setSkuId
+  }) : null, /* @__PURE__ */ React11.createElement(Components7.SearchInput, {
     value: query,
     defaultValue: "",
     placeholder: "Search decorations...",
@@ -5411,16 +5482,20 @@ function AvatarDecorations() {
   }), Collections?.map((id) => /* @__PURE__ */ React11.createElement(Category2, {
     key: id,
     skuId: id,
-    query
+    query,
+    setSkuId
   })), /* @__PURE__ */ React11.createElement(QuestCategory, {
     query,
-    questDecorations
+    questDecorations,
+    setSkuId
   }), /* @__PURE__ */ React11.createElement(Invalid, {
-    query
+    query,
+    setSkuId
   }));
 }
 // src/ui/Nameplates.tsx
 var { React: React12, Components: Components8 } = BetterDiscord;
+var { useMemo: useMemo3, useState: useState4 } = React12;
 var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { declaration: (x2) => String(x2).includes(".x5CoXR),className:") }) }));
 var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
@@ -5440,12 +5515,45 @@ function OpenNameplateModalButton() {
 function copyNameplate3y3({ skuId, palette }) {
   copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
 }
-function Nameplate3y3({ product }) {
+function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState4("");
+  const [customPaletteTextBox, setCustomPaletteTextBox] = useState4("");
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyNameplate3y3({ skuId: skuId ?? customSkuTextBox, palette: palette ?? customPaletteTextBox });
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setCustomPaletteTextBox(palette ?? customPaletteTextBox);
+      setSkuId(null);
+      setPalette(null);
+    }
+  }
+  return /* @__PURE__ */ React12.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React12.createElement(Components8.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange: (e) => setCustomSkuTextBox(e)
+  }), /* @__PURE__ */ React12.createElement(Components8.TextInput, {
+    placeholder: "Palette... (enter to copy)",
+    defaultValue: palette ?? customPaletteTextBox,
+    value: palette ?? customPaletteTextBox,
+    onKeyDown,
+    onChange: (e) => setCustomPaletteTextBox(e)
+  }));
+}
+function Nameplate3y3({ product, setPalette, setSkuId }) {
   const [hovered, setHovered] = React12.useState(false);
   return /* @__PURE__ */ React12.createElement("div", {
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
-    onClick: () => copyNameplate3y3({ skuId: product.sku_id, palette: product.palette }),
+    onClick: () => {
+      setPalette(product.palette);
+      setSkuId(product.sku_id);
+      copyNameplate3y3({ skuId: product.sku_id, palette: product.palette });
+    },
     style: {
       marginBottom: "10px"
     },
@@ -5458,12 +5566,12 @@ function Nameplate3y3({ product }) {
     isSelected: hovered
   }));
 }
-function NameplateCategory({ skuId, query }) {
+function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
   const category = ShopCollectiblesStore_default.getCategory(skuId);
   if (!category)
     return null;
   const products = ShopCollectiblesStore_default.getNameplates(skuId);
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo3(() => {
     if (!products?.length)
       return [];
     if (!query.trim())
@@ -5480,23 +5588,36 @@ function NameplateCategory({ skuId, query }) {
       padding: "8px"
     }
   }, filteredProducts.length ? /* @__PURE__ */ React12.createElement(Components8.Text, null, category.name) : null, filteredProducts.map((x2) => /* @__PURE__ */ React12.createElement(Nameplate3y3, {
-    product: x2
+    product: x2,
+    setSkuId,
+    setPalette
   }))) : null;
 }
 function Nameplates() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState4("");
+  const [skuId, setSkuId] = useState4("");
+  const [palette, setPalette] = useState4("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  return /* @__PURE__ */ React12.createElement("div", null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
+  return /* @__PURE__ */ React12.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React12.createElement(AdvancedNameplateTextInput, {
+    palette,
+    setPalette,
+    skuId,
+    setSkuId
+  }) : null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
     placeholder: "Search nameplates...",
     defaultValue: query,
     onChange: (e) => setQuery(e)
   }), Collections.map((x2) => /* @__PURE__ */ React12.createElement(NameplateCategory, {
     skuId: x2,
-    query
+    query,
+    setSkuId,
+    setPalette
   })));
 }
 // src/ui/ProfileFrames.tsx
 var { React: React13, Components: Components9 } = BetterDiscord;
+var { useMemo: useMemo4, useState: useState5 } = React13;
 var ModalModule7 = wpGetByKeys(["Modal"]);
 var ProfileFrameElem = React13.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), { declaration: (x2) => String(x2).includes("let{profileFrame:") }) }));
 function OpenProfileFramesModalButton() {
@@ -5516,12 +5637,38 @@ function OpenProfileFramesModalButton() {
 function copyProfileFrame3y3({ skuId }) {
   copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
 }
-function ProfileFrame({ product }) {
+function CustomSkuTextInput3({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState5("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyProfileFrame3y3({ skuId: skuId ?? customSkuTextBox });
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React13.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React13.createElement(Components9.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
+function ProfileFrame({ product, setSkuId }) {
   const [hovered, setHovered] = React13.useState(false);
   return /* @__PURE__ */ React13.createElement("div", {
     onMouseOver: () => setHovered(true),
     onMouseOut: () => setHovered(false),
-    onClick: () => copyProfileFrame3y3({ skuId: product.sku_id }),
+    onClick: () => {
+      copyProfileFrame3y3({ skuId: product.sku_id });
+      setSkuId(product.sku_id);
+    },
     title: product.productName
   }, /* @__PURE__ */ React13.createElement(ProfileFrameElem, {
     profileFrame: {
@@ -5542,12 +5689,12 @@ function ProfileFrame({ product }) {
     }
   }));
 }
-function ProfileFrameCategory({ skuId, query }) {
+function ProfileFrameCategory({ skuId, query, setSkuId }) {
   const category = ShopCollectiblesStore_default.getCategory(skuId);
   if (!category)
     return null;
   const products = ShopCollectiblesStore_default.getProfileFrames(skuId);
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo4(() => {
     if (!products?.length)
       return [];
     if (!query.trim())
@@ -5570,19 +5717,26 @@ function ProfileFrameCategory({ skuId, query }) {
       gap: "8px"
     }
   }, filteredProducts.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrame, {
-    product: x2
+    product: x2,
+    setSkuId
   })))) : null;
 }
 function ProfileFrames() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState5("");
+  const [skuId, setSkuId] = useState5("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  return /* @__PURE__ */ React13.createElement("div", null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  return /* @__PURE__ */ React13.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React13.createElement(CustomSkuTextInput3, {
+    setSkuId,
+    skuId
+  }) : null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
     placeholder: "Search nameplates...",
     defaultValue: query,
     onChange: (e) => setQuery(e)
   }), Collections.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrameCategory, {
     skuId: x2,
-    query
+    query,
+    setSkuId
   })));
 }
 // src/patches/modules/UserProfileV2.tsx
@@ -6297,8 +6451,7 @@ var package_default = {
   dependencies: {
     "@iconify/react": "^6.0.2",
     "@types/react": "^19.2.18",
-    fflate: "^0.8.3",
-    react: "^19.2.8"
+    fflate: "^0.8.3"
   }
 };
 

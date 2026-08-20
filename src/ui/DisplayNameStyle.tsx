@@ -160,7 +160,7 @@ function DisplayNameStyle() {
                 const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ''), 16);
                 const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ''), 16);
                 const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
-                copyToClipboard(secondsightifyEncodeOnly(`S{${fontId + 1},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
+                copyToClipboard(secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
             }}
         >
             Copy 3y3

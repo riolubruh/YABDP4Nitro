@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "yabdp4nitro",
@@ -8,7 +7,6 @@
         "@iconify/react": "^6.0.2",
         "@types/react": "^19.2.18",
         "fflate": "^0.8.3",
-        "react": "^19.2.8",
       },
       "devDependencies": {
         "@types/bun": "latest",

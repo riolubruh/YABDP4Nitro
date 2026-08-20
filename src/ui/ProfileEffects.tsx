@@ -2,10 +2,11 @@ import {GlobalModules} from "@global/*";
 import {wpGetByKeys} from "../global/webpack";
 import {BetterDiscord} from "@shared/*";
 import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
-import {useState} from "react";
 import {copyToClipboard, secondsightifyEncodeOnly} from "@utils/*";
+import SettingsStore from "../global/stores/SettingsStore.ts";
 
 const {Components, React} = BetterDiscord;
+const {useState} = React;
 
 const ModalModule = wpGetByKeys(["Modal"]);
 
@@ -25,18 +26,47 @@ export default function OpenProfileEffectModalButton() {
     </Components.Button>
 }
 
-function ProfileEffect({product}) {
+function CustomSkuTextInput({skuId, setSkuId}){
+    const [customSkuTextBox, setCustomSkuTextBox] = useState("");
+
+    function onChange(e){
+        setCustomSkuTextBox(e);
+    }
+
+    function onKeyDown(e){
+        if(e.keyCode == 13 || e.key == "Enter") return copyProfileEffect3y3(skuId ?? customSkuTextBox);
+        else {
+            setCustomSkuTextBox(skuId ?? customSkuTextBox);
+            setSkuId(null);
+        }
+    }
+
+    return <div style={{marginBottom: "8px"}}>
+        <Components.TextInput
+            placeholder={"Custom SKU ID... (enter to copy)"}
+            defaultValue={skuId ?? customSkuTextBox}
+            value={skuId ?? customSkuTextBox}
+            onKeyDown={onKeyDown}
+            onChange={onChange}
+        />
+    </div>
+}
+
+function copyProfileEffect3y3(skuId) {
+    copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
+}
+
+function ProfileEffect({product, setSkuId}) {
 
     const skuId = product.sku_id;
     const src = product.thumbnailPreviewSrc;
     const title = product.title;
 
-    function copyProfileEffect3y3(skuId) {
-        copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
-    }
-
     return <img
-        onClick={() => copyProfileEffect3y3(skuId)}
+        onClick={() => {
+            setSkuId(skuId);
+            copyProfileEffect3y3(skuId);
+        }}
         src={src}
         title={title}
         style={{
@@ -50,7 +80,7 @@ function ProfileEffect({product}) {
     />
 }
 
-function Category({skuId, query}) {
+function Category({skuId, query, setSkuId}) {
     const category = ShopCollectiblesStore.getCategory(skuId);
     const products = ShopCollectiblesStore.getProfileEffects(skuId)
 
@@ -70,15 +100,19 @@ function Category({skuId, query}) {
         </Components.Text> : null}
         {filteredProducts?.map(x => <ProfileEffect
             product={x}
+            setSkuId={setSkuId}
         />)}
     </div>
 }
 
 function ProfileEffects() {
     const [query, setQuery] = useState("");
+    const [skuId, setSkuId] = useState("");
     const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () => ShopCollectiblesStore.getCategories());
+    const advancedProfileCustomization = SettingsStore.get("advancedProfileCustomization");
 
     return <div>
+        {advancedProfileCustomization ? <CustomSkuTextInput setSkuId={setSkuId} skuId={skuId}/> : null}
         <Components.SearchInput
             defaultValue={query}
             placeholder={"Search..."}
@@ -88,7 +122,7 @@ function ProfileEffects() {
             }}
         />
         {Collections.map(id => {
-            return <Category skuId={id} query={query}/>
+            return <Category skuId={id} query={query} setSkuId={setSkuId}/>
         })}
     </div>
 }
