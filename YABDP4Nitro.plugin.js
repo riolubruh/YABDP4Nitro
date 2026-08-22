@@ -4714,8 +4714,11 @@ function ConfigModal({ props, onClose, forceQuality }) {
     forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
     forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
     Object.entries(data).forEach(([key, value]) => SettingsStore_default.set(key, value));
-    let connection = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.()).filter?.((x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == "stream").find(Boolean);
-    connection && connection?.updateVideoQuality?.apply?.(connection, []);
+    const connections = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.());
+    const streamConnection = connections.filter?.((x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == "stream").find(Boolean);
+    streamConnection && streamConnection?.updateVideoQuality?.apply?.(streamConnection, []);
+    const audioConnection = connections.filter?.((x2) => x2?.userId == UserStore4.getCurrentUser().id && x2?.context == "default" && !x2?.streamUserId).find(Boolean);
+    audioConnection && audioConnection?.updateVideoQuality?.apply?.(audioConnection, []);
     onClose();
   }
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {

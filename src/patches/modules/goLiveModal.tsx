@@ -112,8 +112,15 @@ function ConfigModal({props, onClose, forceQuality}) {
         forceQuality("set_max_bitrate", {maxBitrate: data.maxBitrate});
 
         Object.entries(data).forEach(([key, value]) => SettingsStore.set(key, value));
-        let connection = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.()).filter?.(x=>x?.streamUserId == UserStore.getCurrentUser().id && x?.context == "stream").find(Boolean);
-        connection && connection?.updateVideoQuality?.apply?.(connection, []);
+        const connections = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.());
+
+        //stream
+        const streamConnection = connections.filter?.(x=>x?.streamUserId == UserStore.getCurrentUser().id && x?.context == "stream").find(Boolean);
+        streamConnection && streamConnection?.updateVideoQuality?.apply?.(streamConnection, []);
+
+        //voice & camera
+        const audioConnection = connections.filter?.(x=>x?.userId == UserStore.getCurrentUser().id && x?.context == "default" && !x?.streamUserId).find(Boolean);
+        audioConnection && audioConnection?.updateVideoQuality?.apply?.(audioConnection, []);
         onClose();
     }
 
