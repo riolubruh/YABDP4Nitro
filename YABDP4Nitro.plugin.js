@@ -4197,7 +4197,6 @@ var appIcons_default = {
   }
 };
 // src/patches/modules/streamBypass.ts
-var LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", { searchExports: true });
 var streamBypass_default = {
   name: "streamBypass",
   description: "Custom Bitrates, FPS, Resolution",
@@ -4208,26 +4207,17 @@ var streamBypass_default = {
       const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
       const vqm = e.videoQualityManager;
       const vqmOpt = vqm.options;
-      if (CustomBitrateEnabled) {
-        vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 500000;
-        vqmOpt.videoBitrateFloor = minBitrate > 0 ? minBitrate * 1000 : 500000;
-        vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 4500000;
-        vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
-        vqmOpt.videoBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9000000;
-      }
-      const maxVideoQuality = e.videoStreamParameters[0].maxResolution;
-      let videoCapture = {
-        width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
-        height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
-        framerate: e.videoStreamParameters[0].maxFrameRate
+      voiceBitrate >= 0 && e.setVoiceBitRate(voiceBitrate * 1000);
+      let quality = {
+        bitrateMax: CustomBitrateEnabled && maxBitrate > 0 ? maxBitrate * 1000 : null,
+        bitrateMin: CustomBitrateEnabled && minBitrate >= 0 ? minBitrate * 1000 : null,
+        bitrateTarget: CustomBitrateEnabled && targetBitrate >= 0 ? targetBitrate * 1000 : null
       };
-      voiceBitrate > 0 && (e.voiceBitrate = voiceBitrate * 1000);
-      vqmOpt.videoBudget = videoCapture;
-      vqmOpt.videoCapture = videoCapture;
-      let pixelBudget = videoCapture.width * videoCapture.height;
-      vqm.ladder.pixelBudget = pixelBudget;
-      vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
-      vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
+      vqmOpt.videoBitrateFloor = CustomBitrateEnabled && minBitrate > 0 ? minBitrate * 1000 : 150000;
+      vqm.setGoliveQuality(quality);
+      e.context == "default" && vqm.setQualityOverwrite({
+        ...quality
+      });
     });
     patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), (e, args, originalFunction) => {
       return SettingsStore_default.get("screenSharing") ?? originalFunction.apply(e, args);
@@ -4628,7 +4618,7 @@ var userCallTileBg_default = {
 };
 // src/patches/modules/goLiveModal.tsx
 var { React: React5, Components } = BetterDiscord;
-var { ApplicationStreamingSettingsStore } = BetterDiscord.Webpack.Stores;
+var { ApplicationStreamingSettingsStore, MediaEngineStore, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
 var FooterColumn = styled.div({
   display: "flex",
   flexDirection: "column",
@@ -4724,13 +4714,16 @@ function ConfigModal({ props, onClose, forceQuality }) {
     forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
     forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
     Object.entries(data).forEach(([key, value]) => SettingsStore_default.set(key, value));
+    let connection = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.()).filter?.((x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == "stream").find(Boolean);
+    connection && connection?.updateVideoQuality?.apply?.(connection, []);
     onClose();
   }
   return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
     actions: [{ text: "Cancel", onClick: onClose, variant: "secondary" }, { text: "Apply", onClick: onApply }],
+    notice: { type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**") },
     ...props,
     onClose,
-    title: "YABDP4Nitro Configuration"
+    title: "Stream Settings Configuration"
   }, /* @__PURE__ */ React5.createElement(ModeRow, null, MODES.map(({ label, patch }) => /* @__PURE__ */ React5.createElement(Components.Button, {
     key: label,
     onClick: () => applyMode(patch)
@@ -4742,6 +4735,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
     id: `yabd-${key}`,
     initalValue: data[key],
     value: data[key],
+    min: -1,
     onChange: (val) => commit(key, val)
   })))));
 }
@@ -4821,10 +4815,10 @@ var goLiveModal_default = {
   }
 };
 // src/ui/AccentColors.tsx
-var { UserProfileStore: UserProfileStore3, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
+var { UserProfileStore: UserProfileStore3, UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
 var { React: React6, Components: Components2 } = BetterDiscord;
 function AccentColors() {
-  const CurrentUser = UserStore4.getCurrentUser();
+  const CurrentUser = UserStore5.getCurrentUser();
   const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
   const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
   const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8");
@@ -4921,7 +4915,7 @@ function CustomBanner() {
 // src/ui/DisplayNameStyle.tsx
 var { React: React9, Components: Components5 } = BetterDiscord;
 var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
-var { UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
   { name: "GG Sans", id: 11 },
   { name: "Tempo", id: 12 },
@@ -5003,7 +4997,7 @@ function DisplayNameStyle() {
   return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
     style: { fontSize: "25px", marginBottom: "10px" }
   }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
-    userName: UserStore5.getCurrentUser().globalName,
+    userName: UserStore6.getCurrentUser().globalName,
     loop: true,
     shouldWrap: false,
     inProfile: true,
@@ -5258,7 +5252,7 @@ function ProfileEffects() {
 // src/ui/AvatarDecorations.tsx
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
 var { useState: useState3, useMemo: useMemo2, useCallback: useCallback2 } = React11;
-var { UserStore: UserStore6 } = Webpack2.Stores;
+var { UserStore: UserStore7 } = Webpack2.Stores;
 var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
 function OpenAvatarDecorationModalButton() {
@@ -5294,7 +5288,7 @@ function AvatarDecoration({ product, setSkuId }) {
   }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore6.getCurrentUser(),
+    user: UserStore7.getCurrentUser(),
     avatarSize: "SIZE_72"
   }));
 }
@@ -5312,7 +5306,7 @@ function InvalidProductDisplay({ product, setSkuId }) {
     avatarSize: "SIZE_72",
     isHighlighted: hovered,
     item: decorationItem,
-    user: UserStore6.getCurrentUser()
+    user: UserStore7.getCurrentUser()
   }));
 }
 function Category2({ skuId, query, setSkuId }) {
@@ -5498,7 +5492,7 @@ var { React: React12, Components: Components8 } = BetterDiscord;
 var { useMemo: useMemo3, useState: useState4 } = React12;
 var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({ default: await wpWait(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), { declaration: (x2) => String(x2).includes(".x5CoXR),className:") }) }));
-var { UserStore: UserStore7 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -5560,7 +5554,7 @@ function Nameplate3y3({ product, setPalette, setSkuId }) {
     title: product.productName
   }, /* @__PURE__ */ React12.createElement(Nameplate, {
     section: "purchase",
-    currentUser: UserStore7.getCurrentUser(),
+    currentUser: UserStore8.getCurrentUser(),
     nameplate: { skuId: product.sku_id, asset: product.asset, label: product.label, palette: product.palette },
     canUsePremiumCollectibles: true,
     isSelected: hovered
@@ -5741,7 +5735,7 @@ function ProfileFrames() {
 }
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
-var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Scroller = styled.div({
   overflowY: "scroll",
@@ -5778,7 +5772,7 @@ var CardLabel = styled.div({
   letterSpacing: "0.02em"
 });
 function CustomSettingsTab() {
-  const isDeveloper = BadgesStore_default.isImportant(UserStore8.getCurrentUser().id);
+  const isDeveloper = BadgesStore_default.isImportant(UserStore9.getCurrentUser().id);
   const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const [devText, setDevText] = React14.useState("");
   return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
@@ -5823,7 +5817,7 @@ var UserProfileV2_default = {
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      if (args?.displayProfile?.userId != UserStore8.getCurrentUser().id)
+      if (args?.displayProfile?.userId != UserStore9.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x2) => x2.text.includes("YABD")))
         return;
@@ -6098,13 +6092,13 @@ var blockedUserContext_default = {
 };
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
-      if (!BadgesStore_default.isImportant(UserStore9.getCurrentUser().id))
+      if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;
       const user = args[0]?.message?.author;
       if (!user)
@@ -6230,13 +6224,13 @@ var expressionPicker_default = {
   }
 };
 // src/patches/contextMenus/streamContext.tsx
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
 var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", { searchExports: true });
 var streamContext_default = {
   id: "stream-context",
   callback(res, props) {
     const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
-    const currentUserId = UserStore10.getCurrentUser().id;
+    const currentUserId = UserStore11.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
@@ -6483,7 +6477,7 @@ function startChangelog(sourceVersion) {
 var import_varforcer = __toESM(require_varforcer(), 1);
 var { Components: Components12 } = BetterDiscord;
 var { React: React18 } = BetterDiscord;
-var { UserStore: UserStore11, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
+var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -6954,7 +6948,7 @@ class Plugin {
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore11.getCurrentUser().id)) {
+    if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
       BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
@@ -7035,13 +7029,13 @@ class Plugin {
     ShopCollectiblesStore_default.unload();
     CustomUserProfileStore_default.unload();
     BadgesStore_default.unload();
-    UserStore11.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+    UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
   }
   renderControl(def, value) {
     const onChange = (v) => {
       SettingsStore_default.set(def.key, v);
       if (def.key == "changePremiumType2" && v != -1)
-        UserStore11.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+        UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
       if (def.key == "experiments")
         startSet();
       if (def.key == "enableClipsExperiment") {

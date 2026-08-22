@@ -6,7 +6,7 @@ import {styled} from "@utils/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const {React, Components} = BetterDiscord;
-const {ApplicationStreamingSettingsStore} = BetterDiscord.Webpack.Stores;
+const {ApplicationStreamingSettingsStore, MediaEngineStore, UserStore} = BetterDiscord.Webpack.Stores;
 
 const FooterColumn = styled.div({
     display: "flex",
@@ -112,11 +112,13 @@ function ConfigModal({props, onClose, forceQuality}) {
         forceQuality("set_max_bitrate", {maxBitrate: data.maxBitrate});
 
         Object.entries(data).forEach(([key, value]) => SettingsStore.set(key, value));
+        let connection = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.()).filter?.(x=>x?.streamUserId == UserStore.getCurrentUser().id && x?.context == "stream").find(Boolean);
+        connection && connection?.updateVideoQuality?.apply?.(connection, []);
         onClose();
     }
 
     return (
-        <ModalModule.Modal actions={[{text:"Cancel", onClick:onClose, variant:"secondary"}, {text:"Apply", onClick: onApply}]} {...props} onClose={onClose} title="YABDP4Nitro Configuration">
+        <ModalModule.Modal actions={[{text:"Cancel", onClick:onClose, variant:"secondary"}, {text:"Apply", onClick: onApply}]} notice={{type: "warning", message: GlobalModules.SimpleMarkdownWrapper.parse("**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**")}} {...props} onClose={onClose} title="Stream Settings Configuration">
             <ModeRow>
                 {MODES.map(({label, patch}) => (
                     <Components.Button key={label} onClick={() => applyMode(patch)}>
@@ -132,6 +134,7 @@ function ConfigModal({props, onClose, forceQuality}) {
                             id={`yabd-${key}`}
                             initalValue={data[key]}
                             value={data[key]}
+                            min={-1}
                             onChange={(val) => commit(key, val)}
                         />
                     </FieldWrapper>

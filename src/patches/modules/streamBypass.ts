@@ -2,8 +2,6 @@ import type {Patch} from "../../types/patches";
 import {BetterDiscord} from "@shared/";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 
-const LadderModule = BetterDiscord.Webpack.getByKeys("calculateLadder", {searchExports: true})
-
 export default {
     name: 'streamBypass',
     description: 'Custom Bitrates, FPS, Resolution',
@@ -14,37 +12,26 @@ export default {
         patcher.before(_class.prototype, "updateVideoQuality", (e:any) => {
             const {CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate} = SettingsStore.getAll();
 
-            //(shorthands)
             const vqm = e.videoQualityManager;
             const vqmOpt = vqm.options;
 
-            if(CustomBitrateEnabled){
-                //old plugin changes ALL different variables related to bitrate, but these seem to be enough?
-                vqmOpt.desktopBitrate.min = minBitrate > 0 ? minBitrate * 1000 : 5e5;
-                vqmOpt.videoBitrateFloor = minBitrate > 0 ? minBitrate * 1000 : 5e5;
-                vqmOpt.desktopBitrate.target = targetBitrate > 0 ? targetBitrate * 1000 : 45e5;
-                vqmOpt.desktopBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9e6;
-                vqmOpt.videoBitrate.max = maxBitrate > 0 ? maxBitrate * 1000 : 9e6;
-            }
+            (voiceBitrate >= 0) && e.setVoiceBitRate(voiceBitrate * 1000);
 
-            const maxVideoQuality = e.videoStreamParameters[0].maxResolution;
-
-            let videoCapture = {
-                width: maxVideoQuality.width > 0 ? maxVideoQuality.width : screen.width,
-                height: maxVideoQuality.height > 0 ? maxVideoQuality.height : screen.height,
-                framerate: e.videoStreamParameters[0].maxFrameRate
+            //stream bitrate
+            let quality = {
+                bitrateMax: CustomBitrateEnabled && maxBitrate > 0 ? maxBitrate * 1000 : null,
+                bitrateMin: CustomBitrateEnabled && minBitrate >= 0 ? minBitrate * 1000 : null,
+                bitrateTarget: CustomBitrateEnabled && targetBitrate >= 0 ? targetBitrate * 1000 : null,
             };
 
-            (voiceBitrate > 0) && (e.voiceBitrate = voiceBitrate * 1000);
+            vqmOpt.videoBitrateFloor = CustomBitrateEnabled && minBitrate > 0 ? minBitrate * 1000 : 150000;
 
-            vqmOpt.videoBudget = videoCapture;
-            vqmOpt.videoCapture = videoCapture;
+            vqm.setGoliveQuality(quality);
 
-            //Ladder bypasses - still not 100% sure what this does, probably related to Adaptive Bitrate. Maybe remove.
-            let pixelBudget = (videoCapture.width * videoCapture.height);
-            vqm.ladder.pixelBudget = pixelBudget;
-            vqm.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
-            vqm.ladder.orderedLadder = LadderModule.calculateOrderedLadder(vqm.ladder.ladder);
+            //Camera bitrate
+            e.context == "default" && vqm.setQualityOverwrite({
+                ...quality
+            });
         });
 
         //areStreamSettingsAllowed
