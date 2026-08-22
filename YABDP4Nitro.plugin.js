@@ -6531,10 +6531,8 @@ var SettingsSchema = [
   {
     key: "maxBitrate",
     label: "Maximum Bitrate",
-    note: `The maximum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used. 
-                    The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025. 
-                    There is also a strange bug(?) where setting your max bitrate will cause issues with your stream's preview. 
-                    If you want to avoid these issues, please disable this option.`,
+    note: `The maximum bitrate (in kbps). If this is set to zero or a negative number, the default for your quality choices is used. 
+                    The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025.`,
     category: "Screen Share Features",
     type: "number"
   },
