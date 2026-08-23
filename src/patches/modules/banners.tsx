@@ -17,6 +17,7 @@ import {
     extractProfileFrame,
     extractProfilePicture
 } from "../../global/shared/regexHelpers.ts";
+import UserProfilePictureStore from "../../global/stores/UserProfilePictureStore.ts";
 
 const {UserStore} = BetterDiscord.Webpack.Stores;
 
@@ -53,6 +54,7 @@ function Debug({user}: { user: User }) {
             pfp3y3: pfpRevealed,
             general3y3: revealedText
         },
+        pfp: UserProfilePictureStore.get(user.id),
         badge: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadges(user.id).map(x => String(x.id)).join(", ") : "none"
     }
 
