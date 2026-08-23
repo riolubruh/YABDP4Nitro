@@ -5240,7 +5240,7 @@ function ProfileEffects() {
   }) : null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
     defaultValue: query,
     placeholder: "Search...",
-    onChange: (e) => setQuery(e.target.value),
+    onChange: (e) => setQuery(e),
     style: {
       backgroundColor: `var(--control-secondary-background-default)`
     }

@@ -116,7 +116,7 @@ function ProfileEffects() {
         <Components.SearchInput
             defaultValue={query}
             placeholder={"Search..."}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e)}
             style={{
                 backgroundColor: `var(--control-secondary-background-default)`
             }}
