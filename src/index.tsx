@@ -14,6 +14,7 @@ import varForcer from "../src/global/shared/varforcer"
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
 import UserProfilePictureStore from "./global/stores/UserProfilePictureStore.ts";
 import CustomUserProfileStore from "./global/stores/CustomUserProfileStore.ts";
+import changelog from "./global/changelog/changelog.json";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -673,6 +674,28 @@ export default class Plugin {
                         ))}
                     </Components.SettingGroup>
                 ))}
+                <div style={{padding: '5px', justifyContent: 'space-between'}}>
+                    <div style={{width: "24px"}}>
+                        <Components.Tooltip text={"Check recent changelog"}>
+                            {(props) => {
+                                return <div {...props}>
+                                    <Icon onClick={() => {
+                                        const entry = changelog?.[Meta.version];
+                                        if (!entry) return;
+
+                                        BetterDiscord.UI.showChangelogModal({
+                                            title: Meta.name,
+                                            subtitle: `v${Meta.version}`,
+                                            ...entry[0]
+                                        });
+                                    }}
+                                          width={24}
+                                          icon={"material-symbols:update"}/>
+                                </div>
+                            }}
+                        </Components.Tooltip>
+                    </div>
+                </div>
             </>;
         };
     }

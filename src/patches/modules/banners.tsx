@@ -34,7 +34,7 @@ function Debug({user}: { user: User }) {
     const dnsRevealed = getRevealedText(user.id, `\uDB40\uDC53\uDB40\uDC7B`);
 
     const data = {
-        hasBanner: UserBackgroundStore.hasHash(user.id),
+        pfp: UserProfilePictureStore.get(user.id),
         url: UserBackgroundStore.get(user.id),
         isImportant: BadgesStore.isImportant(user.id),
         revealedText,
@@ -47,15 +47,7 @@ function Debug({user}: { user: User }) {
             profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
             profileV2: containsBanner(revealedText)
         },
-        rawRevealedTexts: {
-            dns3y3: dnsRevealed,
-            decor3y3: decorationRevealed,
-            nameplate3y3: nameplateRevealed,
-            pfp3y3: pfpRevealed,
-            general3y3: revealedText
-        },
-        pfp: UserProfilePictureStore.get(user.id),
-        badge: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadges(user.id).map(x => String(x.id)).join(", ") : "none"
+        badges: BadgesStore.check(user.id) ? BadgesStore.returnRespondingBadges(user.id).map(x => String(x.id)).join(", ") : "none"
     }
 
     function OpenModal() {
@@ -97,11 +89,14 @@ export default {
             if (!SettingsStore.get("fakeProfileBanners")) return ret;
 
             const newRet = BetterDiscord.Utils.findInTree(ret, x => x?.props?.displayProfile, {walkable: ['props', 'children']});
-            NodePatcher.patch(newRet ?? ret, (props, res) =>
-            {
-                const bannerUrl = getBannerUrl(props.user.id);
-                bannerUrl && (res.props.bannerSrc = bannerUrl);
-            });
+            try {
+                NodePatcher.patch(newRet ?? ret, (props, res) => {
+                    const bannerUrl = getBannerUrl(props.user.id);
+                    bannerUrl && (res.props.bannerSrc = bannerUrl);
+                });
+            } catch (e) {
+                BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
+            }
             return BadgesStore.isImportant(UserStore.getCurrentUser().id) ? [<Debug user={props.user}/>, ret] : ret;
         });
     }

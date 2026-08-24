@@ -44,39 +44,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -207,7 +228,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -397,7 +418,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw new TypeError('"ext" argument must be a string');
+    throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -469,7 +490,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -2916,6 +2937,36 @@ function CloseAllContextMenus() {
   GlobalModules.Dispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" });
 }
 
+// src/global/stores/UserProfilePictureStore.ts
+var USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+var UserProfilePictureStore_default = new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
+  users = {};
+  constructor() {
+    super();
+    this.fetch();
+  }
+  get(userId) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return null;
+    return this.users[userId];
+  }
+  hasHash(id) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return false;
+    return Boolean(this.users[id]);
+  }
+  async fetch() {
+    const data = await BetterDiscord.Net.fetch(USER_PFP);
+    const response = await data.json();
+    this.users = response.avatars;
+  }
+  unload() {
+    this.users = {};
+  }
+};
+
 // src/patches/modules/banners.tsx
 var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
 var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
@@ -2928,7 +2979,7 @@ function Debug({ user }) {
   const pfpRevealed = getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
   const dnsRevealed = getRevealedText(user.id, `\uDB40\uDC53\uDB40\uDC7B`);
   const data = {
-    hasBanner: UserBackgroundStore_default.hasHash(user.id),
+    pfp: UserProfilePictureStore_default.get(user.id),
     url: UserBackgroundStore_default.get(user.id),
     isImportant: BadgesStore_default.isImportant(user.id),
     revealedText,
@@ -2941,14 +2992,7 @@ function Debug({ user }) {
       profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
       profileV2: containsBanner(revealedText)
     },
-    rawRevealedTexts: {
-      dns3y3: dnsRevealed,
-      decor3y3: decorationRevealed,
-      nameplate3y3: nameplateRevealed,
-      pfp3y3: pfpRevealed,
-      general3y3: revealedText
-    },
-    badge: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadges(user.id).map((x) => String(x.id)).join(", ") : "none"
+    badges: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadges(user.id).map((x) => String(x.id)).join(", ") : "none"
   };
   function OpenModal() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -2992,10 +3036,14 @@ var banners_default = {
       if (!SettingsStore_default.get("fakeProfileBanners"))
         return ret;
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, { walkable: ["props", "children"] });
-      NodePatcher.patch(newRet ?? ret, (props2, res) => {
-        const bannerUrl = getBannerUrl(props2.user.id);
-        bannerUrl && (res.props.bannerSrc = bannerUrl);
-      });
+      try {
+        NodePatcher.patch(newRet ?? ret, (props2, res) => {
+          const bannerUrl = getBannerUrl(props2.user.id);
+          bannerUrl && (res.props.bannerSrc = bannerUrl);
+        });
+      } catch (e) {
+        BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
+      }
       return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
         user: props.user
       }), ret] : ret;
@@ -5838,36 +5886,6 @@ var UserProfileV2_default = {
     return;
   }
 };
-// src/global/stores/UserProfilePictureStore.ts
-var USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
-var UserProfilePictureStore_default = new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
-  users = {};
-  constructor() {
-    super();
-    this.fetch();
-  }
-  get(userId) {
-    const enabled = SettingsStore_default.get("userPfpIntegration");
-    if (!enabled)
-      return null;
-    return this.users[userId];
-  }
-  hasHash(id) {
-    const enabled = SettingsStore_default.get("userPfpIntegration");
-    if (!enabled)
-      return false;
-    return Boolean(this.users[id]);
-  }
-  async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_PFP);
-    const response = await data.json();
-    this.users = response.avatars;
-  }
-  unload() {
-    this.users = {};
-  }
-};
-
 // src/patches/modules/getAvatarURL.ts
 var UserClass = wpGet((x2) => x2.prototype?.getAvatarURL, { searchExports: true });
 var getAvatarURL_default = {
@@ -7100,7 +7118,30 @@ class Plugin {
         key: def.key,
         name: def.label,
         note: def.note
-      }, this.renderControl(def, values[def.key]))))));
+      }, this.renderControl(def, values[def.key]))))), /* @__PURE__ */ React18.createElement("div", {
+        style: { padding: "5px", justifyContent: "space-between" }
+      }, /* @__PURE__ */ React18.createElement("div", {
+        style: { width: "24px" }
+      }, /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+        text: "Check recent changelog"
+      }, (props) => {
+        return /* @__PURE__ */ React18.createElement("div", {
+          ...props
+        }, /* @__PURE__ */ React18.createElement(Icon, {
+          onClick: () => {
+            const entry = changelog_default?.[package_default.version];
+            if (!entry)
+              return;
+            BetterDiscord.UI.showChangelogModal({
+              title: package_default.name,
+              subtitle: `v${package_default.version}`,
+              ...entry[0]
+            });
+          },
+          width: 24,
+          icon: "material-symbols:update"
+        }));
+      }))));
     };
   }
 }
