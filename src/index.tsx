@@ -213,7 +213,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "soundmojiEnabled",
         label: "Soundmoji Bypass",
-        note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with an OGG upload and some text representing the soundmoji. Please note that this will enable Experiments.",
+        note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with an OGG upload and some text representing the soundmoji.",
         category: "Emojis",
         type: "boolean"
     },
@@ -376,7 +376,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "enableClipsExperiment",
         label: "Enable Clips Experiments",
-        note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings.",
+        note: "Whether or not Clips-related experiments should be enabled.",
         category: "Clips",
         type: "boolean"
     },
@@ -428,7 +428,7 @@ const SettingsSchema: SettingDef[] = [
     {
         key: "experiments",
         label: "Experiments",
-        note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.",
+        note: "Unlocks experiments.",
         category: "Miscellaneous",
         type: "boolean"
     },
