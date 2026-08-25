@@ -1,2 +1,4 @@
 YABDP4Nitro.plugin.js
 /src/global/quests/index.ts
+/src/patches/modules/clipsBypass.ts
+/ffmpeg/*

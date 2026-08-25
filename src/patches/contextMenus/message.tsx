@@ -10,73 +10,75 @@ const { React } = BetterDiscord;
 const DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 
 export default {
-  id: "message",
-  callback(res, props) {
-    const enabled = SettingsStore.get("extraContextMenus");
-    if (!enabled) return;
+	id: "message",
+	callback(res, props) {
+		const enabled = SettingsStore.get("extraContextMenus");
+		if (!enabled) return;
 
-    const attachmentsLmao = [
-      ...props.message.attachments,
-      ...(props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []),
-    ];
+		const attachmentsLmao = [
+			...props.message.attachments,
+			...(props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []),
+		];
 
-    async function startDownload() {
-      BetterDiscord.UI.showToast("Downloading attachments...");
+		async function startDownload() {
+			BetterDiscord.UI.showToast("Downloading attachments...");
 
-      const attachments = attachmentsLmao.filter(Boolean);
-      if (!attachments.length) {
-        BetterDiscord.UI.showToast("No attachments found?");
-        return;
-      }
+			const attachments = attachmentsLmao.filter(Boolean);
+			if (!attachments.length) {
+				BetterDiscord.UI.showToast("No attachments found?");
+				return;
+			}
 
-      let files = await Promise.all(
-        attachments.map(async (attachment) => ({
-          blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
-          fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z"),
-        }))
-      );
+			let files = await Promise.all(
+				attachments.map(async (attachment) => ({
+					blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
+					fileName: attachment.filename
+						.replace(".zip.mp4", ".zip")
+						.replace(".7z.mp4", ".7z"),
+				}))
+			);
 
-      const zipped = {};
-      for (const file of files) {
-        zipped[file.fileName] = new Uint8Array(file.blob);
-      }
+			const zipped = {};
+			for (const file of files) {
+				zipped[file.fileName] = new Uint8Array(file.blob);
+			}
 
-      const zippedInt = zipSync(zipped, { level: 6 });
+			const zippedInt = zipSync(zipped, { level: 6 });
 
-      const blob = new Blob([zippedInt as Uint8Array], { type: "application/zip" });
-      const url = URL.createObjectURL(blob);
-      const a = window.document.createElement("a");
-      a.href = url;
-      a.download = `${props.message.id}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+			const blob = new Blob([zippedInt as Uint8Array], { type: "application/zip" });
+			const url = URL.createObjectURL(blob);
+			const a = window.document.createElement("a");
+			a.href = url;
+			a.download = `${props.message.id}.zip`;
+			a.click();
+			URL.revokeObjectURL(url);
 
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        DiscordNativeModule.purgeMemory();
-      }, 1000);
-    }
+			setTimeout(() => {
+				URL.revokeObjectURL(url);
+				DiscordNativeModule.purgeMemory();
+			}, 1000);
+		}
 
-    const Menu = (
-      <BetterDiscord.ContextMenu.Item
-        onClose={CloseAllContextMenus}
-        action={startDownload}
-        leadingAccessory={{
-          type: "icon",
-          icon: () => <Icon width={"22"} icon={"mdi:download"} />,
-        }}
-        label={
-          <ContextMenuWrapper>
-            <ContextMenuLabel />
-            <span>Download Attachment(s)</span>
-          </ContextMenuWrapper>
-        }
-        id={"yabdp4nitro-download-attachments"}
-      />
-    );
+		const Menu = (
+			<BetterDiscord.ContextMenu.Item
+				onClose={CloseAllContextMenus}
+				action={startDownload}
+				leadingAccessory={{
+					type: "icon",
+					icon: () => <Icon width={"22"} icon={"mdi:download"} />,
+				}}
+				label={
+					<ContextMenuWrapper>
+						<ContextMenuLabel />
+						<span>Download Attachment(s)</span>
+					</ContextMenuWrapper>
+				}
+				id={"yabdp4nitro-download-attachments"}
+			/>
+		);
 
-    const Sep = <BetterDiscord.ContextMenu.Separator />;
+		const Sep = <BetterDiscord.ContextMenu.Separator />;
 
-    attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
-  },
+		attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
+	},
 };

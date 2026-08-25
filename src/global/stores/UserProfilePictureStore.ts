@@ -5,34 +5,34 @@ const USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/
 // this api is kawaii. thank you. very simple.
 
 export default new (class UserProfilePictureStore extends BetterDiscord.Utils.Store {
-  private users: Record<string, string> = {};
+	private users: Record<string, string> = {};
 
-  constructor() {
-    super();
+	constructor() {
+		super();
 
-    this.fetch();
-  }
+		this.fetch();
+	}
 
-  get(userId: string) {
-    const enabled = SettingsStore.get("userPfpIntegration");
-    if (!enabled) return null;
-    return this.users[userId];
-  }
+	get(userId: string) {
+		const enabled = SettingsStore.get("userPfpIntegration");
+		if (!enabled) return null;
+		return this.users[userId];
+	}
 
-  hasHash(id: string) {
-    const enabled = SettingsStore.get("userPfpIntegration");
-    if (!enabled) return false;
-    return Boolean(this.users[id]);
-  }
+	hasHash(id: string) {
+		const enabled = SettingsStore.get("userPfpIntegration");
+		if (!enabled) return false;
+		return Boolean(this.users[id]);
+	}
 
-  async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_PFP);
-    const response = await data.json();
+	async fetch() {
+		const data = await BetterDiscord.Net.fetch(USER_PFP);
+		const response = await data.json();
 
-    this.users = response.avatars;
-  }
+		this.users = response.avatars;
+	}
 
-  unload() {
-    this.users = {};
-  }
+	unload() {
+		this.users = {};
+	}
 })();

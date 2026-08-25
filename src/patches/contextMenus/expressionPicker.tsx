@@ -1,9 +1,9 @@
 import { BetterDiscord } from "@shared/*";
 import {
-  ContextMenuLabel,
-  ContextMenuWrapper,
-  EMOJI_ID_FROM_URL_REGEX,
-  getEmojiUrl,
+	ContextMenuLabel,
+	ContextMenuWrapper,
+	EMOJI_ID_FROM_URL_REGEX,
+	getEmojiUrl,
 } from "@utils/*";
 import { Icon } from "@iconify/react";
 import { CloseAllContextMenus } from "@global/*";
@@ -12,45 +12,45 @@ import SettingsStore from "../../global/stores/SettingsStore.ts";
 const { EmojiStore } = BetterDiscord.Webpack.Stores;
 
 export default {
-  id: "expression-picker",
-  callback(res, props) {
-    const enabled = SettingsStore.get("extraContextMenus");
-    if (!enabled) return;
+	id: "expression-picker",
+	callback(res, props) {
+		const enabled = SettingsStore.get("extraContextMenus");
+		if (!enabled) return;
 
-    let src = props?.target?.src ?? props?.target?.firstChild?.src;
-    if (!src) return;
-    let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
-    if (emojiId) {
-      let emoji = EmojiStore.getCustomEmojiById(emojiId);
-      emoji && (src = getEmojiUrl(emoji, 4096));
-    } else {
-      let url = new URL(src);
-      url.searchParams.set("size", 4096);
-      src = url.toString();
-    }
+		let src = props?.target?.src ?? props?.target?.firstChild?.src;
+		if (!src) return;
+		let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
+		if (emojiId) {
+			let emoji = EmojiStore.getCustomEmojiById(emojiId);
+			emoji && (src = getEmojiUrl(emoji, 4096));
+		} else {
+			let url = new URL(src);
+			url.searchParams.set("size", 4096);
+			src = url.toString();
+		}
 
-    function openUrl() {
-      window.open(src);
-    }
+		function openUrl() {
+			window.open(src);
+		}
 
-    const MenuItem = (
-      <BetterDiscord.ContextMenu.Item
-        onClose={CloseAllContextMenus}
-        leadingAccessory={{
-          type: "icon",
-          icon: () => <Icon width={"22"} icon={"mdi:external-link"} />,
-        }}
-        label={
-          <ContextMenuWrapper>
-            <ContextMenuLabel />
-            <span>Open {emojiId ? "Emoji" : "Sticker"} URL</span>
-          </ContextMenuWrapper>
-        }
-        id={"yabd-open-url-expression-picker"}
-        action={openUrl}
-      />
-    );
+		const MenuItem = (
+			<BetterDiscord.ContextMenu.Item
+				onClose={CloseAllContextMenus}
+				leadingAccessory={{
+					type: "icon",
+					icon: () => <Icon width={"22"} icon={"mdi:external-link"} />,
+				}}
+				label={
+					<ContextMenuWrapper>
+						<ContextMenuLabel />
+						<span>Open {emojiId ? "Emoji" : "Sticker"} URL</span>
+					</ContextMenuWrapper>
+				}
+				id={"yabd-open-url-expression-picker"}
+				action={openUrl}
+			/>
+		);
 
-    res.props.children.props.children.push(MenuItem);
-  },
+		res.props.children.props.children.push(MenuItem);
+	},
 };
