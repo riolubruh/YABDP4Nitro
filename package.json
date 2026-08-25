@@ -8,7 +8,8 @@
     "@types/bun": "latest"
   },
   "scripts": {
-    "prod": "npx prettier . --write && bun run ./build/build.ts"
+    "prod": "bun run ./build/build.ts",
+    "pretty": "npx prettier . --write"
   },
   "peerDependencies": {
     "typescript": "^5"
