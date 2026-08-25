@@ -6547,7 +6547,7 @@ var changelog_default = {
             "Removed some redundant/unnecessary settings.",
             "Removed data json - you can now delete it.",
             "Limited edition, quest-only, and off-sale collectibles are now consistently included in the 3y3 UI.",
-            "Download All Attachments button now zips the files before downloading.",
+            "Download All Attachments button now zips the files when downloading.",
             "Experiment override options (Clips, Soundmoji experiments) no longer put you into staff mode.",
             "You no longer need to refresh to remove staff/experiments.",
             "Changing min, target, max, or audio bitrate in the Quick Swapper now applies to the active stream / audio connection instantly upon pressing Apply.",
@@ -6589,7 +6589,8 @@ var package_default = {
     "@types/bun": "latest"
   },
   scripts: {
-    prod: "npx prettier . --write && bun run ./build/build.ts"
+    prod: "bun run ./build/build.ts",
+    pretty: "npx prettier . --write"
   },
   peerDependencies: {
     typescript: "^5"
