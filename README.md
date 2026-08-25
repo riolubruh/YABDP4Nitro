@@ -1,49 +1,50 @@
 # YABDP4Nitro
 
-*Probably* the best "Nitro plugin" out there. 
+_Probably_ the best "Nitro plugin" out there.
 
-YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience. 
-This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more! 
+YABDP4Nitro is a feature-rich BetterDiscord plugin designed to enhance your Discord experience.
+This plugin offers various functionality such as customizable screensharing quality, emoji bypasses, profile accents, client themes, and more!
 
 ### <a href="https://riolubruh.github.io/autoDownload/?file=https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js" target="_blank" rel="noopener noreferrer">Download Link</a>
 
 Raw File Link: [YABDP4Nitro.plugin.js](https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js)
 
-*"Discord" and "Nitro" are trademarks of Discord Inc. This project is not affiliated with Discord Inc. <br>
-See full trademark notice [here.](#trademark-notice)*
+_"Discord" and "Nitro" are trademarks of Discord Inc. This project is not affiliated with Discord Inc. <br>
+See full trademark notice [here.](#trademark-notice)_
 
 ## Table of Contents:
+
 - [About](#about-yabdp4nitro)
 - [Features](#features)
-  * [Streaming Features](#streaming-features)
-     + [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
-     + [Stream Sharpness](#stream-sharpness)
-  * [Emoji Bypasses](#emoji-bypasses)
-     + [Upload Emotes](#upload-emotes)
-     + [Classic Mode](#classic-mode)
-     + [Hyperlink / Vencord-like Mode](#hyperlink--vencord-like-mode)
-       - [Fake Inline Hyperlink Emojis](#fake-inline-hyperlink-emojis)
-   * [Profile](#profile)
-     + [Profile Accents for All Users](#profile-accents-for-all-users)
-     + [Fake Profile Themes](#fake-profile-themes)
-     + [Fake Profile Banners](#fake-profile-banners)
-     + [Fake Avatar Decorations](#fake-avatar-decorations)
-     + [Fake Profile Effects](#fake-profile-effects)
-     + [Fake Profile Pictures](#fake-profile-pictures)
-     + [Fake Nameplates](#fake-nameplates)
-     + [Fake Display Name Styles](#fake-display-name-styles)
-     + [Fake Profile Frames](#fake-profile-frames)
-   * [Clips 100MB Limit Bypasses](#clips)
-     + [Video Files](#videos)
-     + [Audio Files](#audio)
-     + [Other Files](#zipclips-any-file)
-     + [Loading FFmpeg.js](#loading-ffmpegjs)
-   * [Miscellaneous](#miscellaneous)
-     + [Nitro Client Themes](#nitro-client-themes)
-     + [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
-     + [In-App Icons](#in-app-icons)
-     + [Extra Context Menus and Options](#extra-context-menus-and-options)
-     + [Custom Camera Background](#custom-camera-background)
+  - [Streaming Features](#streaming-features)
+    - [Custom Screenshare, FPS, Bitrate](#fully-customizable-screensharing-quality-fps-and-bitrate)
+    - [Stream Sharpness](#stream-sharpness)
+  - [Emoji Bypasses](#emoji-bypasses)
+    - [Upload Emotes](#upload-emotes)
+    - [Classic Mode](#classic-mode)
+    - [Hyperlink / Vencord-like Mode](#hyperlink--vencord-like-mode)
+      - [Fake Inline Hyperlink Emojis](#fake-inline-hyperlink-emojis)
+  - [Profile](#profile)
+    - [Profile Accents for All Users](#profile-accents-for-all-users)
+    - [Fake Profile Themes](#fake-profile-themes)
+    - [Fake Profile Banners](#fake-profile-banners)
+    - [Fake Avatar Decorations](#fake-avatar-decorations)
+    - [Fake Profile Effects](#fake-profile-effects)
+    - [Fake Profile Pictures](#fake-profile-pictures)
+    - [Fake Nameplates](#fake-nameplates)
+    - [Fake Display Name Styles](#fake-display-name-styles)
+    - [Fake Profile Frames](#fake-profile-frames)
+  - [Clips 100MB Limit Bypasses](#clips)
+    - [Video Files](#videos)
+    - [Audio Files](#audio)
+    - [Other Files](#zipclips-any-file)
+    - [Loading FFmpeg.js](#loading-ffmpegjs)
+  - [Miscellaneous](#miscellaneous)
+    - [Nitro Client Themes](#nitro-client-themes)
+    - [Remove Screenshare Nitro Upsell](#remove-screenshare-nitro-upsell)
+    - [In-App Icons](#in-app-icons)
+    - [Extra Context Menus and Options](#extra-context-menus-and-options)
+    - [Custom Camera Background](#custom-camera-background)
 - [FAQ & Installation (read this before asking!)](#frequently-asked-questions)
 - [Reporting Issues](#reporting-issues)
 - [Contributing](#contributing)
@@ -56,15 +57,15 @@ See full trademark notice [here.](#trademark-notice)*
 
 ## About YABDP4Nitro
 
-YABDP4Nitro was created in November 2021 as a fork of the [original abandoned NitroPerks plugin](https://github.com/respecting/NitroPerks) by someone called "[respecting](https://github.com/respecting)"/"[lemons](https://github.com/lem6ns)" 
+YABDP4Nitro was created in November 2021 as a fork of the [original abandoned NitroPerks plugin](https://github.com/respecting/NitroPerks) by someone called "[respecting](https://github.com/respecting)"/"[lemons](https://github.com/lem6ns)"
 after it was almost entirely broken by a combination of crappy code and numerous Discord updates.<br>
 This project also went under the name NitroPerks at the time.
 
-In June 2022, this project was renamed from NitroPerks to YABDP4Nitro (which is an acyonym for _Yet Another BetterDiscord Plugin for Nitro_) 
+In June 2022, this project was renamed from NitroPerks to YABDP4Nitro (which is an acyonym for _Yet Another BetterDiscord Plugin for Nitro_)
 for a couple of reasons. Firstly, it had gone through so many changes that it was already effectively an entirely separate codebase.
 Secondly, I wanted to distance it from the original NitroPerks and any of its forks since at this point the original name
 was only really holding the project back. It would often get compared to the original NitroPerks
-which had a pretty bad reputation due to the aforementioned shitty and broken code. So I chose the name YABDP4Nitro, 
+which had a pretty bad reputation due to the aforementioned shitty and broken code. So I chose the name YABDP4Nitro,
 a name so (intentionally) bad that nobody would mistake it for anything except its own thing.
 
 Since then, it has been known as YABDP4Nitro and offers much much more than the original project ever did.
@@ -73,15 +74,15 @@ YABDP4Nitro is designed to make Discord better for people that can't afford Nitr
 
 The most important aspect of this project is this:
 
-This plugin is **free software**, and will _always_ be free, with ***no strings attached.***<br>
-  
+This plugin is **free software**, and will _always_ be free, with _**no strings attached.**_<br>
+
 ## Features
 
 ## Streaming Features
 
 Customizable stream options and enhancements to the streaming experience.
 
-_________________________________________________________________________________________________________________
+---
 
 ### Fully Customizable Screensharing Quality, FPS, and Bitrate
 
@@ -92,7 +93,7 @@ Stream at any resolution, framerate, and bitrate you want! Who needs Nitro?
 <img width="579" height="443" alt="Discord_eMdf2Xnk9e" src="https://github.com/user-attachments/assets/20f6f672-0b46-445d-a3cd-e68abbe900b1" />
 <img width="583" height="219" alt="Discord_5D8zQNXDxw" src="https://github.com/user-attachments/assets/ddd88edf-1745-4a4b-b094-e794c71d85bc" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### Stream Sharpness
 
@@ -109,13 +110,14 @@ Video Demonstration (you likely have to fullscreen to properly see the effect):
 
 This cannot adjust the sharpness of your own stream nor can it add sharpness to your stream for other users.<br>
 It is purely client-side.
-_________________________________________________________________________________________________________________
+
+---
 
 ## Emoji Bypasses
 
 Allows you to seamlessly use animated emojis and emojis from any server you're in by linking or uploading them!
 
-_________________________________________________________________________________________________________________
+---
 
 ### Upload Emotes
 
@@ -123,7 +125,7 @@ Automatically uploads the emojis used in your message as an attachment!
 
 <img width="745" height="576" alt="Uploading Demonstration" src="https://github.com/user-attachments/assets/2c161ca1-ba02-4a5d-8967-c21ba1e824b3" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### Hyperlink / Vencord-Like Mode
 
@@ -143,7 +145,7 @@ Enabled:
 
 ![inline_on](https://github.com/user-attachments/assets/86668cb7-2c69-4788-9b35-5c8e4d2dd5f9)
 
-_________________________________________________________________________________________________________________
+---
 
 ### Classic Mode
 
@@ -151,7 +153,7 @@ Simply replaces the emoji in the message with its' URL.
 
 <img width="744" height="274" alt="Discord_je1QmEkqUh" src="https://github.com/user-attachments/assets/9c31443f-dc30-460b-97e6-525aacfc2209" />
 
-_________________________________________________________________________________________________________________
+---
 
 ## Profile
 
@@ -162,7 +164,8 @@ ________________________________________________________________________________
 To clarify: What this does is make **all profiles** render with the gradient accent on the **client-side**.
 
 We'll get into profile accents that other users can see in a second.
-_________________________________________________________________________________________________________________
+
+---
 
 ### Fake Profile Themes
 
@@ -178,7 +181,7 @@ Happy theming!
 
 **Note that only users that have either YABDP4Nitro, FakeProfileThemes (Vencord), UnrealProfileThemes (Enmity), or a similar plugin (that decodes 3y3-encoded profile colors) installed will be able to see the profile colors.**
 
-_________________________________________________________________________________________________________________
+---
 
 ### Fake Profile Banners
 
@@ -187,7 +190,7 @@ Only supports Imgur URLs for security reasons.
 
 ![Fake Profile Banners Big Yosher](https://github.com/riolubruh/YABDP4Nitro/assets/54255074/f7edda1f-531b-45b8-bc8b-ee50d5c5cfdb)
 
-To use Fake Profile Banners, go to Settings>Edit Profiles. In the YABDP4Nitro tab, find the Banner Imgur URL text area and 
+To use Fake Profile Banners, go to Settings>Edit Profiles. In the YABDP4Nitro tab, find the Banner Imgur URL text area and
 "Copy Banner 3y3" button under the Profile Banners section:
 
 <img width="201" height="123" alt="Banner Tutorial Sceenshot" src="https://github.com/user-attachments/assets/b5991426-c743-40e8-b8db-2af8543cf6c8" />
@@ -204,7 +207,8 @@ The banner should appear in the "Try It Out" preview to let you know that it is 
 <br>Please note you may only have one 3y3 code in the pronouns field at a time.
 
 **Note that only other users with YABDP4Nitro installed and enabled will be able to see this.**
-_________________________________________________________________________________________________________________
+
+---
 
 ### Fake Avatar Decorations
 
@@ -223,26 +227,25 @@ Clicking this button will reveal a menu with each of the avatar decorations in a
 Clicking one of these avatar decorations will copy the invisible 3y3-encoded data into your clipboard.
 <br>Now follow one or both **(for the best effect, do both!)** of the following methods to apply the avatar decoration to your profile:
 
-
 <details>
  <summary>
  Custom Status 
 </summary>
  Now that you have the 3y3 encoded data in your clipboard,
 
- click the button to add
- <br>
- <img width="407" height="338" alt="add custom status" src="https://github.com/user-attachments/assets/afca57c5-9a1c-4d54-aa24-5d12a65b8d43" />
- <br>
- or edit
- <br>
- <img width="386" height="322" alt="image" src="https://github.com/user-attachments/assets/23494137-b948-42e9-b417-a6b9f91fde99" />
+click the button to add
+<br>
+<img width="407" height="338" alt="add custom status" src="https://github.com/user-attachments/assets/afca57c5-9a1c-4d54-aa24-5d12a65b8d43" />
+<br>
+or edit
+<br>
+<img width="386" height="322" alt="image" src="https://github.com/user-attachments/assets/23494137-b948-42e9-b417-a6b9f91fde99" />
 
- your custom status, then paste (Ctrl+V) your clipboard into it and save.
+your custom status, then paste (Ctrl+V) your clipboard into it and save.
 
- **Note that if you are using the Custom Status method only, it will only appear for other YABDP4Nitro users when you are online.**
+**Note that if you are using the Custom Status method only, it will only appear for other YABDP4Nitro users when you are online.**
 
- You should now see the avatar decoration appear around your profile picture!
+You should now see the avatar decoration appear around your profile picture!
 </details>
 
 <details>
@@ -252,20 +255,20 @@ Clicking one of these avatar decorations will copy the invisible 3y3-encoded dat
  Now that you have the 3y3 encoded data in your clipboard:
  <br>Paste your clipboard into the About Me section of your profile.
 
- Demonstration:
- 
+Demonstration:
+
  <img width="1203" height="913" alt="decoration demonstration" src="https://github.com/user-attachments/assets/6b01761f-cebf-4674-807d-0bbf0824381c" />
 
- **Note: If your Avatar Decoration is in the About Me section of your profile, it will only appear for other users *after* they have opened your profile at least once.**
+**Note: If your Avatar Decoration is in the About Me section of your profile, it will only appear for other users _after_ they have opened your profile at least once.**
 
- **For Nitro users only:** You can also set this per-server using the per-server bio.
- 
+**For Nitro users only:** You can also set this per-server using the per-server bio.
+
 </details>
 
 <br>
 Any other user of YABDP4Nitro with Fake Avatar Decorations enabled will now be able to see your avatar decoration.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Fake Profile Effects
 
@@ -277,7 +280,7 @@ To use Fake Profile Effects, first go to Settings>Edit Profile and open the YABD
 
 ![Profile Effect section](https://github.com/user-attachments/assets/124312d1-870b-4030-9845-033ec6fc934a)
 
-Clicking the "Change" button under Profile Effect should reveal a menu with all of the available profile effects: 
+Clicking the "Change" button under Profile Effect should reveal a menu with all of the available profile effects:
 
 ![profile effect section opened](https://github.com/user-attachments/assets/0dd56af5-fe8a-4e26-80a0-2d6dfb0631df)
 
@@ -292,7 +295,7 @@ Clicking one of these profile effects will copy the invisible 3y3-encoded data i
 
 Any **other user of YABDP4Nitro** with Fake Profile Effects enabled will now be able to see your profile effect!
 
-_________________________________________________________________________________________________________________
+---
 
 ## Fake Profile Pictures
 
@@ -321,7 +324,7 @@ Now, go and paste your clipboard into your Custom Status:
 **For per-server fake profile pictures**: you can put the 3y3 code in the per-server pronouns field.
 <br>Please note you may only have one 3y3 code in the pronouns field at a time.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Fake Nameplates
 
@@ -351,7 +354,7 @@ Demonstration:<br>
 
 **Please note that only other users with the plugin will be able to see it.**
 
-_________________________________________________________________________________________________________________
+---
 
 ## Fake Display Name Styles
 
@@ -371,7 +374,7 @@ Demonstration:<br>
 
 **Please note that only other users with the plugin will be able to see it.**
 
-_________________________________________________________________________________________________________________
+---
 
 ## Fake Profile Frames
 
@@ -392,8 +395,7 @@ Demonstration:<br>
 
 **For Nitro users only:** You can also set this per-server using the per-server bio.
 
-_________________________________________________________________________________________________________________
-
+---
 
 ## Clips
 
@@ -408,7 +410,7 @@ and then appending a special tag that the Discord API specifically checks for to
 
 The plugin does everything automatically, so all you'll need to do is upload the video as you usually would, and enjoy the higher 100MB file limit!
 
-_________________________________________________________________________________________________________________
+---
 
 ### Audio
 
@@ -425,13 +427,13 @@ If your audio file has an embedded cover image, it will use the cover image for 
 
 ![Audio Clips Example](https://github.com/user-attachments/assets/95874e2d-1a7e-4fbb-a8a3-a66e1b24a77a)
 
-_________________________________________________________________________________________________________________
+---
 
 ### ZipClips (Any File)
 
 ![ZipClip_Example](https://github.com/user-attachments/assets/edc8277c-f6ec-4f7c-a7ca-ad1ed531ea41)
 
-Increases the file upload limit for *any* file to 100 MB by sending them as "Discord Clip"s.
+Increases the file upload limit for _any_ file to 100 MB by sending them as "Discord Clip"s.
 
 How does it work? We make a polyglot file which functions as both a valid clip (MP4 video file with proper tags and branding) **AND** an archive (zip, 7z, rar, etc.).
 
@@ -455,14 +457,14 @@ In WinRAR, simply remove the `.mp4` from the file name and open it as you usuall
 
 If your file is already an archive (7z, zip, rar, tar, gz, bz2), it will simply add the archive to the special video file.
 
-Otherwise, it will ***create a new zip that contains your file automatically!*** 
+Otherwise, it will _**create a new zip that contains your file automatically!**_
 <br><sub>(Note: No compression will be done since it would just take too long. If you want compression, zip the file yourself.)</sub>
 
-_________________________________________________________________________________________________________________
+---
 
 ### Loading FFmpeg.js
 
-By default, FFmpeg.js (necessary for Clips, Audio Clips, and ZipClips to function) will be **downloaded automatically** if necessary. However, this is a _bit_ of a waste of bandwidth, and not entirely reliable. Luckily, there _is_ an alternative option! 
+By default, FFmpeg.js (necessary for Clips, Audio Clips, and ZipClips to function) will be **downloaded automatically** if necessary. However, this is a _bit_ of a waste of bandwidth, and not entirely reliable. Luckily, there _is_ an alternative option!
 
 If you download the necessary files (easiest way is to [download the full repo](https://github.com/riolubruh/YABDP4Nitro/archive/refs/heads/main.zip)) and extract the `ffmpeg` folder into your BetterDiscord plugins folder as shown:<br>
 <img width="644" height="172" alt="image" src="https://github.com/user-attachments/assets/91af1da6-8ae3-4739-9cd0-0946dd98b99a" />
@@ -473,7 +475,7 @@ This makes the loading of FFmpeg.js more reliable, faster, and less wasteful.
 
 This also allows you to override the files to whatever you please, if you wanted to do so for some reason.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Miscellaneous
 
@@ -485,7 +487,7 @@ Allows you to use the Nitro-exclusive gradient client themes by Discord.
 
 <img width="681" height="181" alt="Nitro Client Theme Options" src="https://github.com/user-attachments/assets/44538ebe-d79b-453f-a438-c47a78cc4b91" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### Remove Screenshare Nitro Upsell
 
@@ -493,7 +495,7 @@ Removes the annoying Nitro upsell in the screen share quality menu.
 
 <img width="952" height="150" alt="upsell" src="https://github.com/user-attachments/assets/dde41faa-4bdd-4b36-9d08-914cb08a14cf" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### In-App Icons
 
@@ -501,7 +503,7 @@ Nitro In-App icons are unlocked.
 
 <img width="712" height="223" alt="App Icons" src="https://github.com/user-attachments/assets/ed0aca6c-a122-476e-b4b0-39513c04cee4" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### Extra Context Menus and Options
 
@@ -518,7 +520,7 @@ You can also now download all attachments in a message by right-clicking it:<br>
 You also now right-click a user in the blocked/ignored user list and open the user context menu from there:<br>
 <img width="698" height="374" alt="image" src="https://github.com/user-attachments/assets/3b0a5945-9cb6-428a-a682-578be2603a04" />
 
-_________________________________________________________________________________________________________________
+---
 
 ### Custom Camera Background
 
@@ -536,38 +538,44 @@ and turn on your camera!
 
 <img width="869" height="656" alt="Discord_THkqpnShlh" src="https://github.com/user-attachments/assets/ce445eb1-78d1-4811-9924-5fcc43f9536c" />
 
-_________________________________________________________________________________________________________________
+---
 
 # Frequently Asked Questions
+
 [Go here for the FAQ and installation instructions!](https://github.com/riolubruh/YABDP4Nitro/issues/76)
 
-If your question isn't there **and you think it should be there,** write a comment below that issue. 
+If your question isn't there **and you think it should be there,** write a comment below that issue.
 
-If you have any other questions, you may DM me directly if you wish, otherwise you can [make a new Issue](https://github.com/riolubruh/YABDP4Nitro/issues/new) 
+If you have any other questions, you may DM me directly if you wish, otherwise you can [make a new Issue](https://github.com/riolubruh/YABDP4Nitro/issues/new)
 with your question, and I'll try to answer it to the best of my abilities.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Reporting Issues
+
 To report an issue, please open a new issue on the [Issues page](https://github.com/YABDP4Nitro/YABDP4Nitro/issues)
 of this GitHub repository with a clear description of the problem and any steps to reproduce it.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Contributing
+
 If you would like to contribute to the project, there are several ways to do so. You can:
+
 - Submit a bug report or feature request
 - Fork the repository and make changes
 - Submit a pull request to merge your changes back into the main branch
 
 Thank you for your interest in contributing to YABDP4Nitro!
 
-_________________________________________________________________________________________________________________
+---
 
 ## Contributors
+
 Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
 
 Special thanks to:
+
 - Weblure for making [multiple code contributions](https://github.com/riolubruh/YABDP4Nitro/commits?author=Weblure)!
 - Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
 - Moeefa for [committing a bugfix](https://github.com/riolubruh/YABDP4Nitro/commits?author=Moeefa)!
@@ -576,7 +584,7 @@ Special thanks to:
 
 Thank you all so much for your effort in making this plugin great!
 
-_________________________________________________________________________________________________________________
+---
 
 ## Recommended additional plugins for more Nitro features
 
@@ -584,7 +592,7 @@ ________________________________________________________________________________
 
 [SplitLargeMessages by DevilBro](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/SplitLargeMessages) - Send longer messages!
 
-_________________________________________________________________________________________________________________
+---
 
 ## License
 
@@ -592,7 +600,7 @@ The plugin is licensed under the OSL Version 3 License. You can find it [here](h
 
 This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied, including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose. THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU. This DISCLAIMER OF WARRANTY constitutes an essential part of this License. No license to the Original Work is granted by this License except under this disclaimer.
 
-_________________________________________________________________________________________________________________
+---
 
 ## Discord Server
 
@@ -600,15 +608,15 @@ Please read [this README](#readme) and [the FAQ / Installation Instructions](htt
 
 https://discord.gg/HfFxUbgsBc
 
-_________________________________________________________________________________________________________________
+---
 
 ## Trademark Notice
 
-*"Discord," "Nitro," and related trademarks are the property of Discord Inc.  
+_"Discord," "Nitro," and related trademarks are the property of Discord Inc.  
 This project is not affiliated with, endorsed by, or monetarily benefiting from Discord Inc.  
-It does not provide official Discord Nitro services or features.*
+It does not provide official Discord Nitro services or features._
 
-_________________________________________________________________________________________________________________
+---
 
 ## Donate
 
@@ -619,16 +627,15 @@ By donating, you agree that funds are non-refundable and grant no rights to soft
 Donations are voluntary and do not affect software access or functionality.<br>
 All donation rewards and acknowledgements are entirely opt-in and do not serve any functional purpose.
 
-*Donations to this project do not support Discord Inc. or its services.*
+_Donations to this project do not support Discord Inc. or its services._
 
 Methods of donations without fees are obviously preferred. See more info below.
 
-_________________________________________________________________________________________________________________
+---
 
 ### P2P
 
 Using a P2P payment processor will ensure that 100% of your donation will be received and none will be taken by transaction fees (unless you choose to use an instant transfer).
-
 
 ### Venmo
 
@@ -644,7 +651,7 @@ QR Code:
 
 <a href="https://cash.app/$riolubruh" target='_blank'><img height='200' src="https://github.com/user-attachments/assets/745f778b-82e1-4cb8-93ca-f96d0fd10fc2"></a>
 
-_________________________________________________________________________________________________________________
+---
 
 ### Payment Processor(s) with no fee
 
@@ -656,7 +663,7 @@ Only downside is you have to use a credit or debit card.
 
 https://github.com/sponsors/riolubruh
 
-_________________________________________________________________________________________________________________
+---
 
 ### Payment Processors with a fee
 

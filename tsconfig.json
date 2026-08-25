@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["ESNext","DOM"],
+    "lib": ["ESNext", "DOM"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
@@ -20,21 +20,11 @@
 
     "baseUrl": ".",
     "paths": {
-      "@global/*": [
-        "src/global"
-      ],
-      "@patches/*": [
-        "src/patches"
-      ],
-      "@utils/*": [
-        "src/utils"
-      ],
-      "@type/*": [
-        "src/types"
-      ],
-      "@shared/*": [
-        "src/global/shared"
-      ]
+      "@global/*": ["src/global"],
+      "@patches/*": ["src/patches"],
+      "@utils/*": ["src/utils"],
+      "@type/*": ["src/types"],
+      "@shared/*": ["src/global/shared"]
     },
 
     // Best practices

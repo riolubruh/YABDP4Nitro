@@ -1,9 +1,9 @@
-import os from "os";
-import path from "path";
-import * as fs from "node:fs";
-import JSONMeta from "../package.json"
+import os from 'os';
+import path from 'path';
+import * as fs from 'node:fs';
+import JSONMeta from '../package.json';
 
-import { reactPolyfillPlugin } from "./plugins/react-polyfill";
+import { reactPolyfillPlugin } from './plugins/react-polyfill';
 
 const BANNER = `/**
  * @name YABDP4Nitro
@@ -45,41 +45,45 @@ const BANNER = `/**
 */
  
 const React = window.BdApi.React
-`
+`;
 
 const FOOTER = `/*@end@*/`;
 
-const GLOBAL_NAME = 'YABDP4Nitro.plugin.js'
+const GLOBAL_NAME = 'YABDP4Nitro.plugin.js';
 
 function getBetterDiscordPath() {
-    const homeDir = os.homedir();
+  const homeDir = os.homedir();
 
-    switch (os.platform()) {
-        case "win32":
-            return path.join(homeDir, "AppData", "Roaming", "BetterDiscord", "plugins");
-        case "darwin":
-            return path.join(homeDir, "Library", "Application Support", "BetterDiscord", "plugins");
-        case "linux":
-            return path.join(process.env.XDG_CONFIG_HOME || path.join(homeDir, ".config"), "BetterDiscord", "plugins");
-        default:
-            return path.join(homeDir, "AppData", "Roaming", "BetterDiscord", "plugins");
-    }
+  switch (os.platform()) {
+    case 'win32':
+      return path.join(homeDir, 'AppData', 'Roaming', 'BetterDiscord', 'plugins');
+    case 'darwin':
+      return path.join(homeDir, 'Library', 'Application Support', 'BetterDiscord', 'plugins');
+    case 'linux':
+      return path.join(
+        process.env.XDG_CONFIG_HOME || path.join(homeDir, '.config'),
+        'BetterDiscord',
+        'plugins'
+      );
+    default:
+      return path.join(homeDir, 'AppData', 'Roaming', 'BetterDiscord', 'plugins');
+  }
 }
 
 await Bun.build({
-    entrypoints: ['src/index.tsx'],
-    outdir: './',
-    banner: BANNER,
-    footer: FOOTER,
-    naming: GLOBAL_NAME,
-    loader: {".js": "jsx", ".jsx": "jsx", ".ts": "tsx", ".tsx": "tsx", ".css": "text"},
-    resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
-    jsxFactory: "BdApi.React.createElement",
-    jsxFragment: "BdApi.React.Fragment",
-    format: "cjs",
-    target: "browser",
-    plugins: [reactPolyfillPlugin],
+  entrypoints: ['src/index.tsx'],
+  outdir: './',
+  banner: BANNER,
+  footer: FOOTER,
+  naming: GLOBAL_NAME,
+  loader: { '.js': 'jsx', '.jsx': 'jsx', '.ts': 'tsx', '.tsx': 'tsx', '.css': 'text' },
+  resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+  jsxFactory: 'BdApi.React.createElement',
+  jsxFragment: 'BdApi.React.Fragment',
+  format: 'cjs',
+  target: 'browser',
+  plugins: [reactPolyfillPlugin],
 });
 
-const fileData = fs.readFileSync(path.join("./", GLOBAL_NAME), 'utf8');
+const fileData = fs.readFileSync(path.join('./', GLOBAL_NAME), 'utf8');
 fs.writeFileSync(path.join(getBetterDiscordPath(), GLOBAL_NAME), fileData);

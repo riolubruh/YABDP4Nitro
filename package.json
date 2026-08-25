@@ -20,8 +20,11 @@
     }
   },
   "dependencies": {
+    "@eslint/js": "^10.0.1",
     "@iconify/react": "^6.0.2",
     "@types/react": "^19.2.18",
-    "fflate": "^0.8.3"
+    "eslint": "^10.9.1",
+    "fflate": "^0.8.3",
+    "prettier": "^3.9.6"
   }
 }

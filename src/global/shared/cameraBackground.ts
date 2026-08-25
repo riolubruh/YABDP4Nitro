@@ -1,26 +1,35 @@
-import {BetterDiscord} from "./index.tsx";
+import { BetterDiscord } from './index.tsx';
 
-export const MediaFilterModule = BetterDiscord.Webpack.getModule(m => typeof m.wq === "function" && typeof m.Oo === "function")?.wq
-    ? BetterDiscord.Webpack.getModule(m => typeof m.wq === "function" && typeof m.Oo === "function")
-    : null;
+export const MediaFilterModule = BetterDiscord.Webpack.getModule(
+  (m) => typeof m.wq === 'function' && typeof m.Oo === 'function'
+)?.wq
+  ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === 'function' && typeof m.Oo === 'function')
+  : null;
 
-const BackgroundEnums = BetterDiscord.Webpack.getModule(m => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE);
-export const PresetModule = BetterDiscord.Webpack.getBySource("52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661")
+const BackgroundEnums = BetterDiscord.Webpack.getModule(
+  (m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE
+);
+export const PresetModule = BetterDiscord.Webpack.getBySource(
+  '52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661'
+);
 
 export const Enums = {
-    filterType: {          // a.Tr
-        LIVE: BackgroundEnums.Tr.CAMERA_BACKGROUND_LIVE,
-        PREVIEW: BackgroundEnums.Tr.CAMERA_BACKGROUND_PREVIEW,
-    },
-    graph: {                // a.gO
-        NONE: BackgroundEnums.gO.NONE,
-        BLUR: BackgroundEnums.gO.BACKGROUND_BLUR,
-        REPLACEMENT: BackgroundEnums.gO.BACKGROUND_REPLACEMENT,
-    },
-    targetType: {           // a.Qo
-        INPUT_DEVICE: BackgroundEnums.Qo.INPUT_DEVICE,
-        STREAM: BackgroundEnums.Qo.STREAM,
-    },
+  filterType: {
+    // a.Tr
+    LIVE: BackgroundEnums.Tr.CAMERA_BACKGROUND_LIVE,
+    PREVIEW: BackgroundEnums.Tr.CAMERA_BACKGROUND_PREVIEW,
+  },
+  graph: {
+    // a.gO
+    NONE: BackgroundEnums.gO.NONE,
+    BLUR: BackgroundEnums.gO.BACKGROUND_BLUR,
+    REPLACEMENT: BackgroundEnums.gO.BACKGROUND_REPLACEMENT,
+  },
+  targetType: {
+    // a.Qo
+    INPUT_DEVICE: BackgroundEnums.Qo.INPUT_DEVICE,
+    STREAM: BackgroundEnums.Qo.STREAM,
+  },
 };
 
 // const MediaEngineStore = BetterDiscord.Webpack.getModule(m => typeof m.isSupported === "function" && typeof m.isVideoAvailable === "function");

@@ -1,1 +1,1 @@
-export const BetterDiscord = new BdApi("YABDP4Nitro")
+export const BetterDiscord = new BdApi('YABDP4Nitro');
