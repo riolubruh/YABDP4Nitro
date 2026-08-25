@@ -531,6 +531,27 @@ export default class Plugin {
   private source: string = "";
 
   async start() {
+    const version =
+      BetterDiscord.Utils.semverCompare(normalizeVersion(BdApi.version), "1.14.0") <= 0;
+
+    if (!version && !SettingsStore.get("dontUpdate"))
+      return BetterDiscord.UI.showNotification({
+        title: "Cannot start YABD4Nitro",
+        type: "error",
+        content:
+          'You need to be on BetterDiscord version 1.14.0 to have the smoothest experience. Please update. If you dont wish to update, then click "I dont care".\n\nThis will reload the plugin and you can use it normally.',
+        duration: Infinity,
+        actions: [
+          {
+            label: "I dont care",
+            onClick: () => {
+              SettingsStore.set("dontUpdate", true);
+              this.start();
+            },
+          },
+        ],
+      });
+
     this.checkChangelog();
     startSet();
 
@@ -635,11 +656,12 @@ export default class Plugin {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore.unload();
-    UserBackgroundStore.unload();
-    UserProfilePictureStore.unload();
-    ShopCollectiblesStore.unload();
-    CustomUserProfileStore.unload();
-    BadgesStore.unload();
+    // UserBackgroundStore.unload();
+    // UserProfilePictureStore.unload();
+    // ShopCollectiblesStore.unload();
+    // CustomUserProfileStore.unload();
+    // BadgesStore.unload();
+    // this doesnt need to be unloaded...
     UserStore.getCurrentUser().premiumType = OverridePremiumTypeStore.getPremiumTypeActual();
   }
 

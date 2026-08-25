@@ -158,7 +158,7 @@ function Nameplates() {
     <Suspense
       fallback={
         <div>
-          This could be infinite loading situation, Please load the normal profile effects button
+          This could be infinite loading situation, Please load the normal nameplates button
         </div>
       }
     >

@@ -68,6 +68,7 @@ export const defaultSettings = {
     type: "mp4",
   },
   customVideoFilterEnabled: false,
+  dontUpdate: false,
 } as const satisfies Record<string, unknown>;
 
 type SettingsResult = { [K in keyof typeof defaultSettings]: (typeof defaultSettings)[K] };
