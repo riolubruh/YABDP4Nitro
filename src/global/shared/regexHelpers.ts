@@ -1,11 +1,11 @@
-import suggondeeznutz from '../../global/shared/regexReveals.ts';
+import suggondeeznutz from "../../global/shared/regexReveals.ts";
 
 export function extractDisplayNameStyles(revealedText: string | undefined | null) {
   if (!revealedText) return null;
   const match = revealedText
     .match(suggondeeznutz.DISPLAY_NAME_STYLES)?.[0]
     ?.slice?.(2, -1)
-    ?.split?.(',');
+    ?.split?.(",");
   return match || null;
 }
 
@@ -17,7 +17,7 @@ export function extractDecoration(revealedText: string | undefined | null) {
 
 export function extractNameplate(revealedText: string | undefined | null) {
   if (!revealedText) return null;
-  const match = revealedText.match(suggondeeznutz.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(',');
+  const match = revealedText.match(suggondeeznutz.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(",");
   return match || null;
 }
 
@@ -37,19 +37,19 @@ export function extractProfilePicture(revealedText: string | undefined | null) {
   if (!revealedText) return null;
   const matches = revealedText
     .match(suggondeeznutz.PROFILE_PICTURE)?.[0]
-    .replace('P{', '')
-    .replace('}', '');
+    .replace("P{", "")
+    .replace("}", "");
   return matches || null;
 }
 
 export function containsBanner(revealedSurrogate: string | undefined | null) {
-  return revealedSurrogate?.includes('B{') || false;
+  return revealedSurrogate?.includes("B{") || false;
 }
 
 export function containsProfileEffects(revealedSurrogate: string | undefined | null) {
-  return revealedSurrogate?.includes('fx') || false;
+  return revealedSurrogate?.includes("fx") || false;
 }
 
 export function containsProfileFrame(revealedSurrogate: string | undefined | null) {
-  return revealedSurrogate?.includes('pf') || false;
+  return revealedSurrogate?.includes("pf") || false;
 }

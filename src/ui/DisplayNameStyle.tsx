@@ -1,26 +1,26 @@
-import { BetterDiscord } from '@shared/';
-import { copyToClipboard, secondsightifyEncodeOnly } from '@utils/*';
-import { GlobalModules } from '@global/*';
-import { wpGet, wpGetByKeys } from '../global/webpack';
+import { BetterDiscord } from "@shared/";
+import { copyToClipboard, secondsightifyEncodeOnly } from "@utils/*";
+import { GlobalModules } from "@global/*";
+import { wpGet, wpGetByKeys } from "../global/webpack";
 
 const { React, Components } = BetterDiscord;
-const EffectText = BetterDiscord.Webpack.getBySource('UserNameWithEffects').A;
+const EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
 const FONTS = [
-  { name: 'GG Sans', id: 11 },
-  { name: 'Tempo', id: 12 },
-  { name: 'Sakura', id: 3 },
-  { name: 'Jellybean', id: 4 },
-  { name: 'Modern', id: 6 },
-  { name: 'Medieval', id: 7 },
-  { name: '8Bit', id: 8 },
-  { name: 'Vampyre', id: 10 },
-  { name: 'Monkey Bars', id: 13 },
-  { name: 'Mainframe', id: 14 },
-  { name: 'Headbang', id: 15 },
-  { name: 'Journal', id: 16 },
+  { name: "GG Sans", id: 11 },
+  { name: "Tempo", id: 12 },
+  { name: "Sakura", id: 3 },
+  { name: "Jellybean", id: 4 },
+  { name: "Modern", id: 6 },
+  { name: "Medieval", id: 7 },
+  { name: "8Bit", id: 8 },
+  { name: "Vampyre", id: 10 },
+  { name: "Monkey Bars", id: 13 },
+  { name: "Mainframe", id: 14 },
+  { name: "Headbang", id: 15 },
+  { name: "Journal", id: 16 },
 ];
 
 const EFFECTS = {
@@ -42,11 +42,11 @@ function FontButton({ onClick, selected, fontFamily: font }) {
     <Components.Button
       style={{
         fontFamily: font.name,
-        color: 'var(--text-default)',
-        backgroundColor: 'var(--control-secondary-background-default)',
-        border: selected ? '1px solid white' : 'none',
-        margin: '0px 5px 5px 0px',
-        display: 'inline-block',
+        color: "var(--text-default)",
+        backgroundColor: "var(--control-secondary-background-default)",
+        border: selected ? "1px solid white" : "none",
+        margin: "0px 5px 5px 0px",
+        display: "inline-block",
       }}
       onClick={onClick}
     >
@@ -59,11 +59,11 @@ function EffectButton({ onClick, selected, children, data, colors }) {
   return (
     <Components.Button
       style={{
-        backgroundColor: 'var(--control-secondary-background-default)',
-        color: 'var(--text-default)',
-        border: selected ? '1px solid white' : 'none',
-        margin: '0px 5px 5px 0px',
-        display: 'inline-block',
+        backgroundColor: "var(--control-secondary-background-default)",
+        color: "var(--text-default)",
+        border: selected ? "1px solid white" : "none",
+        margin: "0px 5px 5px 0px",
+        display: "inline-block",
       }}
       onClick={onClick}
     >
@@ -78,7 +78,7 @@ function EffectButton({ onClick, selected, children, data, colors }) {
   );
 }
 
-const ModalModule = wpGetByKeys(['Modal']);
+const ModalModule = wpGetByKeys(["Modal"]);
 
 export default function OpenDisplayNameStyleModalButton() {
   function handleClick() {
@@ -86,12 +86,12 @@ export default function OpenDisplayNameStyleModalButton() {
       return (
         <ModalModule.Modal
           notice={{
-            type: 'warning',
+            type: "warning",
             message: GlobalModules.SimpleMarkdownWrapper.parse(
-              '`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies.'
+              "`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies."
             ),
           }}
-          title={'Change Display Name Style'}
+          title={"Change Display Name Style"}
           {...props}
         >
           <DisplayNameStyle />
@@ -104,8 +104,8 @@ export default function OpenDisplayNameStyleModalButton() {
 }
 
 function DisplayNameStyle() {
-  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource('UserNameWithEffects'), {
-    declaration: (x) => String(x.type).includes('UserNameWithEffects'),
+  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource("UserNameWithEffects"), {
+    declaration: (x) => String(x.type).includes("UserNameWithEffects"),
   });
   // this looks like bad practice but cache exists.
   // also its a BetterDiscord plugin, arent we known for bad practice?
@@ -113,13 +113,13 @@ function DisplayNameStyle() {
   const [fontId, setFontId] = React.useState(11);
   const [effectId, setEffectId] = React.useState(0);
   const [colors, setColors] = React.useState({
-    primary: '#ffffff',
-    accent: '#000000',
+    primary: "#ffffff",
+    accent: "#000000",
   });
 
   return (
     <div>
-      <div style={{ fontSize: '25px', marginBottom: '10px' }}>
+      <div style={{ fontSize: "25px", marginBottom: "10px" }}>
         <UserNameWithEffects
           userName={UserStore.getCurrentUser().globalName}
           loop={true}
@@ -129,7 +129,7 @@ function DisplayNameStyle() {
           displayNameStyles={{
             colors: [colors.primary, colors.accent]
               .filter(Boolean)
-              .map((x) => parseInt(x.replace('#', '0x'), 16)),
+              .map((x) => parseInt(x.replace("#", "0x"), 16)),
             effectId: effectId + 1,
             fontId: fontId,
           }}
@@ -190,15 +190,15 @@ function DisplayNameStyle() {
       <br />
       <Components.Button
         onClick={() => {
-          const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace('#', ''), 16);
-          const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace('#', ''), 16);
+          const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ""), 16);
+          const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ""), 16);
           const colorString =
             effectId === 1
               ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}`
               : PRIMARY_COLOR_DECIMAL;
           copyToClipboard(
             secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`),
-            '3y3 copied to clipboard!'
+            "3y3 copied to clipboard!"
           );
         }}
       >

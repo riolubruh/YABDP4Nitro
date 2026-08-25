@@ -20,7 +20,7 @@ export interface ShopStyles {
   confetti_colors: ShopColor[];
 }
 
-export type Currency = 'usd' | 'discord_orb' | (string & {});
+export type Currency = "usd" | "discord_orb" | (string & {});
 
 export interface PriceAmount {
   amount: number;
@@ -99,9 +99,9 @@ export interface NameplateItem {
 
 export interface ProfileFrameLayer {
   id: string;
-  type: 'staple' | 'rail' | (string & {});
-  order: 'front' | 'back';
-  anchor: 'top' | 'bottom';
+  type: "staple" | "rail" | (string & {});
+  order: "front" | "back";
+  anchor: "top" | "bottom";
   responsive: boolean;
 }
 
@@ -252,7 +252,7 @@ export interface QuestMessages {
   game_publisher: string;
 }
 
-export type QuestJoinOperator = 'and' | 'or';
+export type QuestJoinOperator = "and" | "or";
 
 export interface QuestTaskConfig {
   tasks: Partial<Record<QuestTaskType, QuestTask>>;
@@ -260,23 +260,23 @@ export interface QuestTaskConfig {
 }
 
 export type QuestTaskType =
-  | 'PLAY_ON_DESKTOP'
-  | 'PLAY_ON_MOBILE'
-  | 'WATCH_VIDEO'
-  | 'WATCH_VIDEO_ON_MOBILE'
-  | 'STREAM_ON_DESKTOP';
+  | "PLAY_ON_DESKTOP"
+  | "PLAY_ON_MOBILE"
+  | "WATCH_VIDEO"
+  | "WATCH_VIDEO_ON_MOBILE"
+  | "STREAM_ON_DESKTOP";
 
 export type QuestTask = PlayOnDesktopTask | WatchVideoTask;
 
 export interface PlayOnDesktopTask {
-  type: 'PLAY_ON_DESKTOP';
+  type: "PLAY_ON_DESKTOP";
   /** seconds of playtime required */
   target: number;
   applications: { id: string }[];
 }
 
 export interface WatchVideoTask {
-  type: 'WATCH_VIDEO' | 'WATCH_VIDEO_ON_MOBILE';
+  type: "WATCH_VIDEO" | "WATCH_VIDEO_ON_MOBILE";
   /** seconds of watch time required */
   target: number;
   assets: {
@@ -317,7 +317,7 @@ export interface QuestReward {
   premium_orb_quantity: number;
 }
 
-export type QuestSharePolicy = 'shareable_everywhere' | (string & {});
+export type QuestSharePolicy = "shareable_everywhere" | (string & {});
 
 export interface QuestCtaConfig {
   link: string;

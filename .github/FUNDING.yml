@@ -13,7 +13,7 @@ polar: # Replace with a single Polar username
 buy_me_a_coffee: # Replace with a single Buy Me a Coffee username
 custom:
   [
-    'https://venmo.com/riolubruh',
-    'https://cash.app/$riolubruh',
-    'https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ',
+    "https://venmo.com/riolubruh",
+    "https://cash.app/$riolubruh",
+    "https://www.paypal.com/donate/?hosted_button_id=U5PZFBNGKSGFQ",
   ]

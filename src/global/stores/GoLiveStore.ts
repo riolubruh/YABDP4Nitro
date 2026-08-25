@@ -1,5 +1,5 @@
-import { BetterDiscord } from '@shared/*';
-import SettingsStore from './SettingsStore.ts';
+import { BetterDiscord } from "@shared/*";
+import SettingsStore from "./SettingsStore.ts";
 
 export default new (class GoLiveStore extends BetterDiscord.Utils.Store {
   getConfig() {

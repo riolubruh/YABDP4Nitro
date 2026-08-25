@@ -1,17 +1,17 @@
-import { GlobalModules } from '@global/*';
-import { wpGetByKeys, wpGetProxy } from '../global/webpack';
-import { BetterDiscord } from '@shared/*';
-import ShopCollectiblesStore from '../global/stores/ShopCollectiblesStore.tsx';
-import { copyToClipboard, secondsightifyEncodeOnly } from '@utils/*';
-import SettingsStore from '../global/stores/SettingsStore.ts';
+import { GlobalModules } from "@global/*";
+import { wpGetByKeys, wpGetProxy } from "../global/webpack";
+import { BetterDiscord } from "@shared/*";
+import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
+import { copyToClipboard, secondsightifyEncodeOnly } from "@utils/*";
+import SettingsStore from "../global/stores/SettingsStore.ts";
 
 const { Components, React, Webpack } = BetterDiscord;
 const { useState, useMemo, useCallback } = React;
 const { UserStore } = Webpack.Stores;
 
-const ModalModule = wpGetByKeys(['Modal']);
+const ModalModule = wpGetByKeys(["Modal"]);
 const ProductDisplayer = wpGetProxy(
-  Webpack.Filters.byStrings('),{avatarDecorationSrc:', ',avatarSrcOverride:'),
+  Webpack.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"),
   { searchExports: true }
 );
 
@@ -19,7 +19,7 @@ export default function OpenAvatarDecorationModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
       return (
-        <ModalModule.Modal title={'Change Avatar Decorations'} {...props}>
+        <ModalModule.Modal title={"Change Avatar Decorations"} {...props}>
           <AvatarDecorations />
         </ModalModule.Modal>
       );
@@ -30,7 +30,7 @@ export default function OpenAvatarDecorationModalButton() {
 }
 
 function copyAvatarDecoration3y3(skuId: string) {
-  copyToClipboard(' ' + secondsightifyEncodeOnly('/a' + skuId), '3y3 copied to clipboard!');
+  copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
 }
 
 function AvatarDecoration({ product, setSkuId }: { product: any; setSkuId: Function }) {
@@ -49,13 +49,13 @@ function AvatarDecoration({ product, setSkuId }: { product: any; setSkuId: Funct
       onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
       title={product.productName}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: "pointer" }}
     >
       <ProductDisplayer
         isHighlighted={hovered}
         item={decorationItem}
         user={UserStore.getCurrentUser()}
-        avatarSize={'SIZE_72'}
+        avatarSize={"SIZE_72"}
       />
     </div>
   );
@@ -72,10 +72,10 @@ function InvalidProductDisplay({ product, setSkuId }: { product: any; setSkuId: 
       onMouseLeave={() => setHovered(false)}
       onClick={() => copyAvatarDecoration3y3(skuId)}
       title={product.name}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: "pointer" }}
     >
       <ProductDisplayer
-        avatarSize={'SIZE_72'}
+        avatarSize={"SIZE_72"}
         isHighlighted={hovered}
         item={decorationItem}
         user={UserStore.getCurrentUser()}
@@ -110,28 +110,28 @@ function Category({
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       }}
     >
       <Components.Text
         style={{
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         }}
       >
         {category?.name}
       </Components.Text>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         }}
       >
         {filteredProducts.map((x) => (
@@ -165,28 +165,28 @@ function QuestCategory({
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       }}
     >
       <Components.Text
         style={{
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         }}
       >
         Quests
       </Components.Text>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         }}
       >
         {filteredProducts.map((x) => (
@@ -220,28 +220,28 @@ function InvalidCategory({
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       }}
     >
       <Components.Text
         style={{
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         }}
       >
         {category?.name} (Offsale)
       </Components.Text>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         }}
       >
         {filteredProducts.map((product: any) => (
@@ -271,14 +271,14 @@ function Invalid({ query, setSkuId }: { query: string; setSkuId: Function }) {
 }
 
 function CustomSkuTextInput({ skuId, setSkuId }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState("");
 
   function onChange(e) {
     setCustomSkuTextBox(e);
   }
 
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter')
+    if (e.keyCode == 13 || e.key == "Enter")
       return copyAvatarDecoration3y3(skuId ?? customSkuTextBox);
     else {
       setCustomSkuTextBox(skuId ?? customSkuTextBox);
@@ -287,9 +287,9 @@ function CustomSkuTextInput({ skuId, setSkuId }) {
   }
 
   return (
-    <div style={{ marginBottom: '8px' }}>
+    <div style={{ marginBottom: "8px" }}>
       <Components.TextInput
-        placeholder={'Custom SKU ID... (enter to copy)'}
+        placeholder={"Custom SKU ID... (enter to copy)"}
         defaultValue={skuId ?? customSkuTextBox}
         value={skuId ?? customSkuTextBox}
         onKeyDown={onKeyDown}
@@ -300,9 +300,9 @@ function CustomSkuTextInput({ skuId, setSkuId }) {
 }
 
 function AvatarDecorations() {
-  const [query, setQuery] = useState('');
-  const [skuId, setSkuId] = useState('');
-  const advancedProfileCustomization = SettingsStore.get('advancedProfileCustomization');
+  const [query, setQuery] = useState("");
+  const [skuId, setSkuId] = useState("");
+  const advancedProfileCustomization = SettingsStore.get("advancedProfileCustomization");
 
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () =>
     ShopCollectiblesStore.getCategories()
@@ -319,11 +319,11 @@ function AvatarDecorations() {
       ) : null}
       <Components.SearchInput
         value={query}
-        defaultValue={''}
-        placeholder={'Search decorations...'}
+        defaultValue={""}
+        placeholder={"Search decorations..."}
         onChange={(e) => setQuery(e)}
         style={{
-          backgroundColor: 'var(--control-secondary-background-default)',
+          backgroundColor: "var(--control-secondary-background-default)",
         }}
       />
       {Collections?.map((id) => (

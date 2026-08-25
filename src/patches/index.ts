@@ -1,23 +1,23 @@
-import { BetterDiscord } from '@shared/*';
+import { BetterDiscord } from "@shared/*";
 
-import * as modules from './modules';
-import * as contextMenus from './contextMenus';
+import * as modules from "./modules";
+import * as contextMenus from "./contextMenus";
 
-import type { Ids, Patch } from '../types/patches';
-import { forceLoad } from '../global/webpack';
+import type { Ids, Patch } from "../types/patches";
+import { forceLoad } from "../global/webpack";
 
-const PatcherAPI = new BdApi('Patcher');
+const PatcherAPI = new BdApi("Patcher");
 
 const moduleCache = new Map<any, any>();
 const idCache = new Map<string, number>();
 
 async function resolveIds(ids?: Ids): Promise<number[]> {
   if (!ids) return [];
-  const entries = typeof ids === 'function' ? await ids() : ids;
+  const entries = typeof ids === "function" ? await ids() : ids;
 
   const results = await Promise.allSettled(
     entries.map(async (entry) => {
-      const id = typeof entry === 'function' ? await entry() : entry;
+      const id = typeof entry === "function" ? await entry() : entry;
       const cacheKey = id.toString();
 
       if (idCache.has(cacheKey)) {
@@ -33,7 +33,7 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
 
   const resolved: number[] = [];
   results.forEach((r, i) => {
-    if (r.status === 'fulfilled') {
+    if (r.status === "fulfilled") {
       resolved.push(r.value); // fixed race condition with loading modules ?
     } else {
       BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i}`, r.reason);
@@ -53,7 +53,7 @@ export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promis
 }
 
 async function getCachedModule(filter: any, patchName: string): Promise<any> {
-  const cacheKey = typeof filter === 'function' ? filter : JSON.stringify(filter);
+  const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
 
   if (moduleCache.has(cacheKey)) {
     return moduleCache.get(cacheKey);

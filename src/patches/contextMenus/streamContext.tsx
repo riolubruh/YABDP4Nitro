@@ -1,23 +1,23 @@
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
-import { BetterDiscord } from '@shared/';
-import { ContextMenuLabel, ContextMenuWrapper } from '@utils/*';
-import { CloseAllContextMenus } from '@global/*';
+import { BetterDiscord } from "@shared/";
+import { ContextMenuLabel, ContextMenuWrapper } from "@utils/*";
+import { CloseAllContextMenus } from "@global/*";
 
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
-const Slider = BetterDiscord.Webpack.getByStrings('initialValue', 'label', 'sortedMarkers', {
+const Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", {
   searchExports: true,
 });
 
 export default {
-  id: 'stream-context',
+  id: "stream-context",
   callback(res, props) {
-    const sharpenStreamsEnabled = SettingsStore.get('sharpenStreams');
+    const sharpenStreamsEnabled = SettingsStore.get("sharpenStreams");
     const currentUserId = UserStore.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore], () =>
-      SettingsStore.get('userSharpenPreferences')
+      SettingsStore.get("userSharpenPreferences")
     );
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
 
@@ -29,8 +29,8 @@ export default {
       return;
 
     function handleChange(percentSharpness: number) {
-      SettingsStore.set('userSharpenPreferences', {
-        ...SettingsStore.get('userSharpenPreferences'),
+      SettingsStore.set("userSharpenPreferences", {
+        ...SettingsStore.get("userSharpenPreferences"),
         [streamingUserId]: percentSharpness,
       });
     }
@@ -38,7 +38,7 @@ export default {
     const ContextMenuSlider = (
       <BetterDiscord.ContextMenu.Item
         onClose={CloseAllContextMenus}
-        id={'yabd-sharpness-slider'}
+        id={"yabd-sharpness-slider"}
         label={
           <Slider
             initialValue={streamSharpnessPreference}
@@ -47,8 +47,8 @@ export default {
                 <ContextMenuLabel />
                 <BetterDiscord.Components.Text
                   style={{
-                    fontSize: '14px',
-                    fontWeight: 'var(--font-weight-medium)',
+                    fontSize: "14px",
+                    fontWeight: "var(--font-weight-medium)",
                   }}
                 >
                   Sharpness

@@ -1,23 +1,23 @@
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 import {
   EMOJI_PREFIX,
   getEmojiExtension,
   getEmojiString,
   getEmojiUrl,
   shouldSkipEmojiBypass,
-} from '@utils/*';
-import { BetterDiscord } from '@shared/';
-import { doClipsBypass } from './clipsBypass.ts';
+} from "@utils/*";
+import { BetterDiscord } from "@shared/";
+import { doClipsBypass } from "./clipsBypass.ts";
 const { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
 enum StickerTypeToExtension {
   // @ts-ignore
-  '.png' = 1,
-  '.png',
-  '.json',
-  '.gif',
+  ".png" = 1,
+  ".png",
+  ".json",
+  ".gif",
 }
 
-const CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys('uploadFileToCloud', {
+const CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", {
   searchExports: true,
 });
 
@@ -60,12 +60,12 @@ async function downloadAndUploadUrls(
     await send(channelId, msg, extraData);
   }
   extraData.attachmentsToUpload = [];
-  msg.content = '';
+  msg.content = "";
 
   while (uploads.length) {
     await send(
       channelId,
-      { content: '' },
+      { content: "" },
       { attachmentsToUpload: uploads.splice(0, numFilesInMessage) }
     );
   }
@@ -74,19 +74,19 @@ async function downloadAndUploadUrls(
 const SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
 
 export default {
-  name: 'Send Message',
-  description: 'Upload emoji, soundmoji, stickers, and insta-clips.',
+  name: "Send Message",
+  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
   ids: undefined,
   waitFor: [(x) => x._sendMessage],
   apply(finale, patcher) {
     patcher.instead(
       finale.modules[0],
-      '_sendMessage',
+      "_sendMessage",
       async (_: any, [channelId, msg, extraData]: any, send: Function) => {
-        if (extraData.poll || extraData.activityAction || msg.location === 'forwarding')
+        if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
           return send.apply(_, [channelId, msg, extraData]);
 
-        const emojiBypassType: number = SettingsStore.get('emojiBypassType');
+        const emojiBypassType: number = SettingsStore.get("emojiBypassType");
         const {
           zipClip,
           useClipBypass,
@@ -107,7 +107,7 @@ export default {
 
           //skip if hyphen precedes the emoji
           if (msg.content.includes(`-${emojiString}`)) {
-            msg.content = msg.content.replace('-' + emojiString, emojiString);
+            msg.content = msg.content.replace("-" + emojiString, emojiString);
             continue;
           }
 
@@ -115,7 +115,7 @@ export default {
 
           switch (emojiBypassType) {
             case 0: //upload
-              msg.content = msg.content.replace(emojiString, '');
+              msg.content = msg.content.replace(emojiString, "");
               urlsToUpload.push({
                 url: emojiUrl,
                 filename: emoji.name + getEmojiExtension(emoji),
@@ -133,7 +133,7 @@ export default {
 
         if (extraData.stickerIds && stickerBypass) {
           extraData.stickerIds = extraData.stickerIds.map((stickerId, index) => {
-            const STICKER_PREFIX = 'https://media.discordapp.net/stickers/';
+            const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
 
             const sticker = StickersStore.getStickerById(stickerId);
             if (sticker.format_type == 3) return stickerId;
@@ -153,15 +153,15 @@ export default {
 
         let soundmojiUrls: any = [];
         if (soundmojiEnabled) {
-          const SOUNDBOARD_PREFIX = 'https://cdn.discordapp.com/soundboard-sounds/';
+          const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
           const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
           const soundmojiObjects = soundmojiStrings?.map?.((x) =>
-            SoundboardStore.getSoundById(x?.split?.(':')?.[2]?.slice?.(0, -1))
+            SoundboardStore.getSoundById(x?.split?.(":")?.[2]?.slice?.(0, -1))
           );
           soundmojiObjects?.forEach?.((x) =>
             soundmojiUrls.push({
               url: SOUNDBOARD_PREFIX + x.soundId,
-              filename: x.name + '.ogg',
+              filename: x.name + ".ogg",
             })
           );
           for (let i = 0; i < soundmojiObjects?.length; i++) {
@@ -181,7 +181,7 @@ export default {
               let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
               msg.content = msg.content.replace(
                 soundmojiString,
-                `( [${emoji?.name ?? 'someCustomEmoji'}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? 'webp' : 'png'}?size=32&animated=true) ${sound.name} ) `
+                `( [${emoji?.name ?? "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `
               );
             }
             //no emoji
@@ -192,7 +192,7 @@ export default {
         }
 
         if (
-          extraData?.location === 'instant_upload' &&
+          extraData?.location === "instant_upload" &&
           (zipClip || useClipBypass || useAudioClipBypass)
         ) {
           await Promise.all(

@@ -1,13 +1,13 @@
-import { BetterDiscord } from '@shared/*';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
-import { getKey } from '../../global/webpack';
+import { BetterDiscord } from "@shared/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
+import { getKey } from "../../global/webpack";
 const { React } = BetterDiscord;
 
 export function Sharpener({ userId }) {
   let ref = BetterDiscord.React.useRef(null);
   const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores(
     [SettingsStore],
-    () => SettingsStore.get('userSharpenPreferences')[userId] ?? 0
+    () => SettingsStore.get("userSharpenPreferences")[userId] ?? 0
   );
   const sharpness = sharpnessSetting / 100;
   const [size, setSize] = BetterDiscord.React.useState({
@@ -36,8 +36,8 @@ export function Sharpener({ userId }) {
   }, []);
 
   return (
-    <svg ref={ref} style={{ width: '100%', height: '100%' }}>
-      <filter id={'yabd-svgSharpen-' + userId} colorInterpolationFilters={'sRGB'}>
+    <svg ref={ref} style={{ width: "100%", height: "100%" }}>
+      <filter id={"yabd-svgSharpen-" + userId} colorInterpolationFilters={"sRGB"}>
         <feConvolveMatrix order="3" kernelMatrix="0 -1 0 -1 5 -1 0 -1 0" result="sharpen" />
         <feComposite
           in="SourceGraphic"
@@ -66,18 +66,18 @@ export function Sharpener({ userId }) {
 }
 
 export default {
-  name: 'Stream Sharpener',
-  description: 'Sharpens streams.',
+  name: "Stream Sharpener",
+  description: "Sharpens streams.",
   ids: undefined, // array of entry ids
   waitFor: [
-    BetterDiscord.Webpack.Filters.bySource('VideoStream', 'videoComponent'),
-    BetterDiscord.Webpack.Filters.bySource('backgroundKey', 'onForceIdle'),
+    BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent"),
+    BetterDiscord.Webpack.Filters.bySource("backgroundKey", "onForceIdle"),
   ],
   apply(finale, patcher) {
     const mod = Object.values(finale.modules[0]).find((x) => x.type);
     //video call tile
-    patcher.after(mod, 'type', (_, [args], ret) => {
-      if (!SettingsStore.get('sharpenStreams')) return;
+    patcher.after(mod, "type", (_, [args], ret) => {
+      if (!SettingsStore.get("sharpenStreams")) return;
 
       ret.props.children.push(<Sharpener userId={args.userId} />);
       ret?.props?.children?.[0] &&
@@ -86,12 +86,12 @@ export default {
 
     //pip player
     const pipPlayerMod = getKey(finale.modules[1], (x) =>
-      x?.toString?.()?.includes?.('backgroundKey')
+      x?.toString?.()?.includes?.("backgroundKey")
     );
     patcher.after(pipPlayerMod?.module, pipPlayerMod?.key, (_, [args], ret) => {
-      if (!SettingsStore.get('sharpenStreams')) return;
+      if (!SettingsStore.get("sharpenStreams")) return;
 
-      const userId = args?.backgroundKey?.split?.(':')?.[3];
+      const userId = args?.backgroundKey?.split?.(":")?.[3];
       if (!userId) return;
 
       ret.props.children.push(<Sharpener userId={userId} />);

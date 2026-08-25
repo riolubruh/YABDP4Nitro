@@ -7,25 +7,25 @@ import {
   getEmojiUrl,
   HYPERLINK_EMOJI_REGEX,
   shouldSkipEmojiBypass,
-} from '@utils/*';
-import { BetterDiscord } from '@shared/*';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+} from "@utils/*";
+import { BetterDiscord } from "@shared/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const { EmojiStore } = BetterDiscord.Webpack.Stores;
 
 export default {
-  name: 'Edit Message',
+  name: "Edit Message",
   description:
-    'Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.',
+    "Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.",
   ids: undefined,
   waitFor: [(x) => x._sendMessage],
   apply(finale, patcher) {
-    patcher.before(finale.modules[0], 'editMessage', (_, [channelId, msgId, msg]: any) => {
-      const emojiBypassEnabled = SettingsStore.get('emojiBypass');
+    patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]: any) => {
+      const emojiBypassEnabled = SettingsStore.get("emojiBypass");
       if (!emojiBypassEnabled) return;
 
-      const emojiBypassType: number = SettingsStore.get('emojiBypassType');
-      const editMessageWithEmoji: boolean = SettingsStore.get('editMessageWithEmoji');
+      const emojiBypassType: number = SettingsStore.get("emojiBypassType");
+      const editMessageWithEmoji: boolean = SettingsStore.get("editMessageWithEmoji");
 
       if (!editMessageWithEmoji) return;
 
@@ -33,7 +33,7 @@ export default {
 
       for (let i = 0; i < matches?.length; i++) {
         const emojiString = matches[i];
-        let emojiId = emojiString.replace('<', '').replace('>', '').split(':')[2];
+        let emojiId = emojiString.replace("<", "").replace(">", "").split(":")[2];
         const emoji = EmojiStore.getCustomEmojiById(emojiId);
 
         if (shouldSkipEmojiBypass(emoji, channelId)) continue;
@@ -55,8 +55,8 @@ export default {
     });
 
     //starting editing message
-    patcher.before(finale.modules[0], 'startEditMessageRecord', (_, [channelId, msg]: any) => {
-      const editMessageWithEmoji: boolean = SettingsStore.get('editMessageWithEmoji');
+    patcher.before(finale.modules[0], "startEditMessageRecord", (_, [channelId, msg]: any) => {
+      const editMessageWithEmoji: boolean = SettingsStore.get("editMessageWithEmoji");
       if (!msg?.content || !editMessageWithEmoji) return;
 
       function replaceMatchWithEmojiString(match: string) {

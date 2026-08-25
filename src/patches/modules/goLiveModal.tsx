@@ -1,59 +1,59 @@
-import { BetterDiscord } from '@shared/*';
-import GoLiveStore from '../../global/stores/GoLiveStore.ts';
-import { GlobalModules } from '@global/*';
-import { getKey, wpFilter, wpGet, wpGetByKeys, wpGetProxy } from '../../global/webpack';
-import { styled } from '@utils/*';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+import { BetterDiscord } from "@shared/*";
+import GoLiveStore from "../../global/stores/GoLiveStore.ts";
+import { GlobalModules } from "@global/*";
+import { getKey, wpFilter, wpGet, wpGetByKeys, wpGetProxy } from "../../global/webpack";
+import { styled } from "@utils/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const { React, Components } = BetterDiscord;
 const { ApplicationStreamingSettingsStore, MediaEngineStore, UserStore } =
   BetterDiscord.Webpack.Stores;
 
 const FooterColumn = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
 });
 
 const FooterRow = styled.div({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
 });
 
 const ModalBody = styled.div({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: '12px',
-  padding: '16px',
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "12px",
+  padding: "16px",
 });
 
 const FieldWrapper = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
 });
 
 const FieldLabel = styled.label({
-  fontSize: '12px',
+  fontSize: "12px",
   fontWeight: 600,
-  color: 'var(--text-muted)',
-  textTransform: 'uppercase',
+  color: "var(--text-muted)",
+  textTransform: "uppercase",
 });
 
 const ModeRow = styled.div({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
-  padding: '0 16px 16px 16px',
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px",
 });
 
 const ToggleRow = styled.div({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
-  padding: '0 16px 16px 16px',
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px",
 });
 
 const AdminIcon = () => (
@@ -66,24 +66,24 @@ const AdminIcon = () => (
   </svg>
 );
 
-const IconModule = wpGetByKeys(['Icon', 'ChannelIcon']);
-const ModalModule = wpGetByKeys(['Modal']);
+const IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
+const ModalModule = wpGetByKeys(["Modal"]);
 
 const MODES = [
   {
-    label: '4K Mode',
+    label: "4K Mode",
     patch: { CustomResolution: 2160, CustomFPS: 60 },
   },
   {
-    label: '2K Mode',
+    label: "2K Mode",
     patch: { CustomResolution: 1440, CustomFPS: 60 },
   },
   {
-    label: 'Deez Nutz Mode',
+    label: "Deez Nutz Mode",
     patch: { CustomResolution: 20, CustomFPS: 60 },
   },
   {
-    label: 'Screen Reader Mode',
+    label: "Screen Reader Mode",
     patch: { CustomResolution: 1440, CustomFPS: 15 },
   },
 ];
@@ -100,27 +100,27 @@ function ConfigModal({ props, onClose, forceQuality }) {
   };
 
   const fields = [
-    { key: 'CustomFPS', label: 'FPS' },
-    { key: 'CustomResolution', label: 'Resolution' },
-    { key: 'maxBitrate', label: 'Max Bitrate' },
-    { key: 'minBitrate', label: 'Min Bitrate' },
-    { key: 'targetBitrate', label: 'Target Bitrate' },
-    { key: 'voiceBitrate', label: 'Voice Bitrate' },
+    { key: "CustomFPS", label: "FPS" },
+    { key: "CustomResolution", label: "Resolution" },
+    { key: "maxBitrate", label: "Max Bitrate" },
+    { key: "minBitrate", label: "Min Bitrate" },
+    { key: "targetBitrate", label: "Target Bitrate" },
+    { key: "voiceBitrate", label: "Voice Bitrate" },
   ];
 
   function onApply() {
-    forceQuality('set_resolution', { resolution: data.CustomResolution });
-    forceQuality('set_fps', { fps: data.CustomFPS });
-    forceQuality('set_min_bitrate', { minBitrate: data.minBitrate });
-    forceQuality('set_target_bitrate', { targetBitrate: data.targetBitrate });
-    forceQuality('set_max_bitrate', { maxBitrate: data.maxBitrate });
+    forceQuality("set_resolution", { resolution: data.CustomResolution });
+    forceQuality("set_fps", { fps: data.CustomFPS });
+    forceQuality("set_min_bitrate", { minBitrate: data.minBitrate });
+    forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
+    forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
 
     Object.entries(data).forEach(([key, value]) => SettingsStore.set(key, value));
     const connections = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.());
 
     //stream
     const streamConnection = connections
-      .filter?.((x) => x?.streamUserId == UserStore.getCurrentUser().id && x?.context == 'stream')
+      .filter?.((x) => x?.streamUserId == UserStore.getCurrentUser().id && x?.context == "stream")
       .find(Boolean);
     streamConnection && streamConnection?.updateVideoQuality?.apply?.(streamConnection, []);
 
@@ -128,7 +128,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
     const audioConnection = connections
       .filter?.(
         (x) =>
-          x?.userId == UserStore.getCurrentUser().id && x?.context == 'default' && !x?.streamUserId
+          x?.userId == UserStore.getCurrentUser().id && x?.context == "default" && !x?.streamUserId
       )
       .find(Boolean);
     audioConnection && audioConnection?.updateVideoQuality?.apply?.(audioConnection, []);
@@ -138,13 +138,13 @@ function ConfigModal({ props, onClose, forceQuality }) {
   return (
     <ModalModule.Modal
       actions={[
-        { text: 'Cancel', onClick: onClose, variant: 'secondary' },
-        { text: 'Apply', onClick: onApply },
+        { text: "Cancel", onClick: onClose, variant: "secondary" },
+        { text: "Apply", onClick: onApply },
       ]}
       notice={{
-        type: 'warning',
+        type: "warning",
         message: GlobalModules.SimpleMarkdownWrapper.parse(
-          '**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**'
+          "**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**"
         ),
       }}
       {...props}
@@ -183,10 +183,10 @@ function openConfigModal(forceQuality) {
 }
 
 function CustomFooter() {
-  const StreamingModule = wpGet(wpFilter.bySource('GQgGHISKZ5aYqYeYhX9isDUHGw'), { raw: true });
+  const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
   const module = getKey(
     StreamingModule.declarations,
-    BetterDiscord.Webpack.Filters.byStrings('.useContext')
+    BetterDiscord.Webpack.Filters.byStrings(".useContext")
   );
   const [start, dispatch] = module.module[module.key]();
 
@@ -195,8 +195,8 @@ function CustomFooter() {
 
     const currentState = ApplicationStreamingSettingsStore.getState();
     ApplicationStreamingSettingsStore.initialize({
-      resolution: type == 'set_resolution' ? value.resolution : currentState.resolution,
-      fps: type == 'set_fps' ? value.fps : currentState.fps,
+      resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
+      fps: type == "set_fps" ? value.fps : currentState.fps,
       preset: 3,
       soundshareEnabled: currentState.soundshareEnabled,
     });
@@ -205,21 +205,21 @@ function CustomFooter() {
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 'var(--radius-sm)',
-        backgroundColor: 'var(--control-secondary-background-default)',
-        borderColor: 'var(--control-secondary-border-default)',
-        minHeight: '38px',
-        minWidth: '38px',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "var(--radius-sm)",
+        backgroundColor: "var(--control-secondary-background-default)",
+        borderColor: "var(--control-secondary-border-default)",
+        minHeight: "38px",
+        minWidth: "38px",
       }}
     >
       <IconModule.Icon
-        tooltip={'Configure Stream Settings'}
-        tooltipPosition={'top'}
+        tooltip={"Configure Stream Settings"}
+        tooltipPosition={"top"}
         onClick={() => openConfigModal(forceQuality)}
-        key={'balls-2'}
+        key={"balls-2"}
         icon={() => <AdminIcon />}
       />
     </div>
@@ -227,20 +227,20 @@ function CustomFooter() {
 }
 
 const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource(
-  'GO_LIVE_MODAL_V2',
-  'getUseSystemScreensharePicker',
-  'canStreamQuality'
+  "GO_LIVE_MODAL_V2",
+  "getUseSystemScreensharePicker",
+  "canStreamQuality"
 );
 
-const validatorMod = BetterDiscord.Webpack.getBySource('canStreamWithSettings', { raw: true });
+const validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 
 export default {
-  name: 'goLiveModal',
-  description: 'Streaming modal customization.',
+  name: "goLiveModal",
+  description: "Streaming modal customization.",
   ids: [
     async () =>
       await BetterDiscord.Webpack.waitForModule(
-        BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'),
+        BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"),
         { raw: true }
       ).then((x) => x.id),
   ],
@@ -248,31 +248,31 @@ export default {
   apply(finale, patcher) {
     const mod = getKey(
       validatorMod.declarations,
-      BetterDiscord.Webpack.Filters.byStrings('canStreamWithSettings')
+      BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings")
     );
     patcher.instead(mod?.module, mod?.key, () => true);
 
-    patcher.after(finale.modules[0], 'default', (_, [args], ret) => {
-      const removeScreenshareUpsell = SettingsStore.get('removeScreenshareUpsell');
+    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
       const footer = BetterDiscord.Utils.findInTree(ret, (x) =>
-        String(x?.className).startsWith('footer')
+        String(x?.className).startsWith("footer")
       );
       if (!footer) return ret;
       const footerContent = BetterDiscord.Utils.findInTree(footer, (x) =>
-        String(x?.className).startsWith('footerContent')
+        String(x?.className).startsWith("footerContent")
       );
       if (!footerContent) return ret;
 
       if (removeScreenshareUpsell) {
-        footer.children = footer.children.filter((x) => !x?.props?.className.startsWith('upsell'));
+        footer.children = footer.children.filter((x) => !x?.props?.className.startsWith("upsell"));
         footerContent.children[1].props.children = footerContent.children[1].props.children.filter(
-          (x) => !x?.type?.toString?.()?.includes('pill')
+          (x) => !x?.type?.toString?.()?.includes("pill")
         );
       }
 
-      if (SettingsStore.get('ResolutionSwapper')) {
+      if (SettingsStore.get("ResolutionSwapper")) {
         const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) =>
-          String(x?.key).includes('gay')
+          String(x?.key).includes("gay")
         );
         if (!doesExist)
           footerContent.children[1].props.children.push(<CustomFooter key="yabd-is-gay" />);

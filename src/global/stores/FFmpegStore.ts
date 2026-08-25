@@ -1,6 +1,6 @@
-import { BetterDiscord } from '@shared/';
+import { BetterDiscord } from "@shared/";
 const { Logger, Net, UI } = BetterDiscord;
-import { fs, _path } from '../../index.tsx';
+import { fs, _path } from "../../index.tsx";
 
 const BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/`;
 
@@ -16,14 +16,14 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
     if (this.loaded) return;
     const defineTemp = window.global.define;
 
-    let ffmpegScript = document.getElementById('ffmpegScript');
+    let ffmpegScript = document.getElementById("ffmpegScript");
     if (ffmpegScript) {
       ffmpegScript.remove();
     }
     delete window.FFmpegWASM;
 
     function tryFetchFromDisk(filename, encoding) {
-      const basepath = _path().join(BdApi.Plugins.folder, 'ffmpeg');
+      const basepath = _path().join(BdApi.Plugins.folder, "ffmpeg");
       let filepath = _path().join(basepath, filename);
       try {
         if (fs().existsSync(filepath)) {
@@ -32,7 +32,7 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
           return file;
         } else return false;
       } catch (err) {
-        Logger.warn('Tried to read ' + filename + ' from disk but an error occurred.');
+        Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
         Logger.warn(err);
       }
     }
@@ -43,19 +43,19 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
         return res;
       } else {
         Logger.error(res);
-        throw new Error(filename + ' failed to fetch.');
+        throw new Error(filename + " failed to fetch.");
       }
     }
 
     async function fetchBlobUrl(filename) {
       try {
         let blobUrl;
-        let file = tryFetchFromDisk(filename, '');
+        let file = tryFetchFromDisk(filename, "");
         if (file) blobUrl = URL.createObjectURL(new Blob([file]));
         else blobUrl = URL.createObjectURL(await (await fetchFFmpeg(filename)).blob());
         return blobUrl;
       } catch (err) {
-        Logger.error('An error occurred while fetching ' + filename);
+        Logger.error("An error occurred while fetching " + filename);
         throw err;
       }
     }
@@ -63,16 +63,16 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
     let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
     try {
       //load 814.ffmpeg.js (ffmpeg worker)
-      ffmpegWorkerURL = await fetchBlobUrl('814.ffmpeg.js');
+      ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
 
       //load FFmpeg.js as text
       let ffmpegSrc;
       try {
-        let file = tryFetchFromDisk('ffmpeg.js', 'utf8');
+        let file = tryFetchFromDisk("ffmpeg.js", "utf8");
         if (file) ffmpegSrc = file;
-        else ffmpegSrc = await (await fetchFFmpeg('ffmpeg.js')).text();
+        else ffmpegSrc = await (await fetchFFmpeg("ffmpeg.js")).text();
       } catch (err) {
-        Logger.error('An error occurred while fetching ffmpeg.js');
+        Logger.error("An error occurred while fetching ffmpeg.js");
         throw err;
       }
 
@@ -87,8 +87,8 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
 
       //load external JS as a script
       await new Promise((load, err) => {
-        const ffmpegScriptElem = document.createElement('script');
-        ffmpegScriptElem.id = 'ffmpegScript';
+        const ffmpegScriptElem = document.createElement("script");
+        ffmpegScriptElem.id = "ffmpegScript";
         ffmpegScriptElem.src = ffmpegURL;
         ffmpegScriptElem.onload = load;
         ffmpegScriptElem.onerror = err;
@@ -98,9 +98,9 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
       window.global.define = defineTemp;
 
       //load ffmpeg core
-      ffmpegCoreURL = await fetchBlobUrl('ffmpeg-core.js');
+      ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
 
-      ffmpegCoreWasmURL = await fetchBlobUrl('ffmpeg-core.wasm');
+      ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
 
       if (window.FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
         this.ffmpeg = new window.FFmpegWASM.FFmpeg();
@@ -109,25 +109,25 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
           coreURL: ffmpegCoreURL,
           wasmURL: ffmpegCoreWasmURL,
         });
-        Logger.info('FFmpeg load success!');
+        Logger.info("FFmpeg load success!");
         this.loaded = true;
-        this.ffmpeg.on('log', ({ message }) => {
+        this.ffmpeg.on("log", ({ message }) => {
           console.log(message);
         });
       } else {
-        Logger.info('FFmpegWASM', window.FFmpegWASM);
-        Logger.info('ffmpegCoreURL', ffmpegCoreURL);
-        Logger.info('ffmpegCoreWasmURL', ffmpegCoreWasmURL);
-        Logger.info('ffmpegWorkerURL', ffmpegWorkerURL);
-        throw new Error('One or more of the necessary components failed to load.');
+        Logger.info("FFmpegWASM", window.FFmpegWASM);
+        Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+        Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+        Logger.info("ffmpegWorkerURL", ffmpegWorkerURL);
+        throw new Error("One or more of the necessary components failed to load.");
       }
     } catch (err) {
-      UI.showToast('An error occured trying to load FFmpeg.wasm. Check console for details.', {
-        type: 'error',
+      UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", {
+        type: "error",
         forceShow: true,
       });
       Logger.info(
-        'FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!'
+        "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!"
       );
       Logger.error(err);
     } finally {
@@ -146,7 +146,7 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
       this.ffmpeg.terminate();
       this.ffmpeg = undefined;
     }
-    const ffmpegScript = document.getElementById('ffmpegScript');
+    const ffmpegScript = document.getElementById("ffmpegScript");
     ffmpegScript && ffmpegScript.remove();
     if (window.FFmpegWASM) delete window.FFmpegWASM;
     this.loaded = false;

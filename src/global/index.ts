@@ -1,5 +1,5 @@
-import { BetterDiscord } from '@shared/*';
-import { wpGetBulkKeyed } from './webpack';
+import { BetterDiscord } from "@shared/*";
+import { wpGetBulkKeyed } from "./webpack";
 const DefaultOptions = {
   options: {
     searchExports: true,
@@ -8,48 +8,48 @@ const DefaultOptions = {
 
 export const GlobalModules = wpGetBulkKeyed({
   Typing: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('startTyping'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping"),
   },
   Endpoints: {
     filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
     ...DefaultOptions,
   },
   Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName('A'),
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
     // A is faster than UserStore
     ...DefaultOptions,
     options: {
-      key: '_dispatcher',
+      key: "_dispatcher",
     },
   },
   HTTP: {
-    filter: (m) => typeof m === 'object' && m.del && m.put,
+    filter: (m) => typeof m === "object" && m.del && m.put,
     ...DefaultOptions,
   },
   Gateway: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName('GatewayConnectionStore'),
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore"),
   },
   Flux: {
-    filter: BetterDiscord.Webpack.Filters.bySource('OfflineCacheStore'),
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
     options: {
-      key: 'Ay',
+      key: "Ay",
     },
   },
   Intl: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('intl'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl"),
   },
   ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('openModal'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal"),
   },
   SimpleMarkdownWrapper: {
     filter: (m) => m.reactParserFor,
   },
   AssetModule: {
-    filter: BetterDiscord.Webpack.Filters.bySource('ApplicationAssetUtils'),
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
     map: {
-      getAssetImage: BetterDiscord.Webpack.Filters.byStrings('.TWITCH?null'),
-      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings('.serialize(t)'),
-      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings('APPLICATION_ASSETS_UPDATE'),
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
       getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`),
     },
   },
@@ -61,22 +61,22 @@ export const GlobalModules = wpGetBulkKeyed({
 export const LayerManager = {
   pushLayer(component) {
     GlobalModules.Dispatcher.dispatch({
-      type: 'LAYER_PUSH',
+      type: "LAYER_PUSH",
       component,
     });
   },
   popLayer() {
     GlobalModules.Dispatcher.dispatch({
-      type: 'LAYER_POP',
+      type: "LAYER_POP",
     });
   },
   popAllLayers() {
     GlobalModules.Dispatcher.dispatch({
-      type: 'LAYER_POP_ALL',
+      type: "LAYER_POP_ALL",
     });
   },
 };
 
 export function CloseAllContextMenus() {
-  GlobalModules.Dispatcher.dispatch({ type: 'CONTEXT_MENU_CLOSE' });
+  GlobalModules.Dispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" });
 }

@@ -1,18 +1,18 @@
-import changelog from './changelog.json';
-import { BetterDiscord } from '@shared/';
-import Metadata from '../../../package.json';
-import SettingsStore from '../stores/SettingsStore.ts';
+import changelog from "./changelog.json";
+import { BetterDiscord } from "@shared/";
+import Metadata from "../../../package.json";
+import SettingsStore from "../stores/SettingsStore.ts";
 
 const Meta = Metadata;
 
 function normalizeVersion(v: string): string {
-  const parts = v.split('.');
-  while (parts.length < 3) parts.push('0');
-  return parts.join('.');
+  const parts = v.split(".");
+  while (parts.length < 3) parts.push("0");
+  return parts.join(".");
 }
 
 export function startChangelog(sourceVersion) {
-  const lastSeen = normalizeVersion(SettingsStore.get('lastChangelogVersion') ?? '0.0.0');
+  const lastSeen = normalizeVersion(SettingsStore.get("lastChangelogVersion") ?? "0.0.0");
   const currentVersion = sourceVersion ?? normalizeVersion(Meta.version);
 
   if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0) return;
@@ -26,5 +26,5 @@ export function startChangelog(sourceVersion) {
     ...entry,
   });
 
-  SettingsStore.set('lastChangelogVersion', currentVersion);
+  SettingsStore.set("lastChangelogVersion", currentVersion);
 }

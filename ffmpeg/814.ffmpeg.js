@@ -1,9 +1,9 @@
 !(function (e, t) {
-  'object' == typeof exports && 'object' == typeof module
+  "object" == typeof exports && "object" == typeof module
     ? (module.exports = t())
-    : 'function' == typeof define && define.amd
+    : "function" == typeof define && define.amd
       ? define([], t)
-      : 'object' == typeof exports
+      : "object" == typeof exports
         ? (exports.FFmpegWASM = t())
         : (e.FFmpegWASM = t());
 })(self, () =>
@@ -13,7 +13,7 @@
           function t(e) {
             return Promise.resolve().then(() => {
               var t = new Error("Cannot find module '" + e + "'");
-              throw ((t.code = 'MODULE_NOT_FOUND'), t);
+              throw ((t.code = "MODULE_NOT_FOUND"), t);
             });
           }
           ((t.keys = () => []), (t.resolve = t), (t.id = 454), (e.exports = t));
@@ -29,31 +29,31 @@
     return (
       (r.o = (e, t) => Object.prototype.hasOwnProperty.call(e, t)),
       (() => {
-        'use strict';
-        const e = 'https://unpkg.com/@ffmpeg/core@0.12.9/dist/umd/ffmpeg-core.js';
+        "use strict";
+        const e = "https://unpkg.com/@ffmpeg/core@0.12.9/dist/umd/ffmpeg-core.js";
         var t;
         !(function (e) {
-          ((e.LOAD = 'LOAD'),
-            (e.EXEC = 'EXEC'),
-            (e.FFPROBE = 'FFPROBE'),
-            (e.WRITE_FILE = 'WRITE_FILE'),
-            (e.READ_FILE = 'READ_FILE'),
-            (e.DELETE_FILE = 'DELETE_FILE'),
-            (e.RENAME = 'RENAME'),
-            (e.CREATE_DIR = 'CREATE_DIR'),
-            (e.LIST_DIR = 'LIST_DIR'),
-            (e.DELETE_DIR = 'DELETE_DIR'),
-            (e.ERROR = 'ERROR'),
-            (e.DOWNLOAD = 'DOWNLOAD'),
-            (e.PROGRESS = 'PROGRESS'),
-            (e.LOG = 'LOG'),
-            (e.MOUNT = 'MOUNT'),
-            (e.UNMOUNT = 'UNMOUNT'));
+          ((e.LOAD = "LOAD"),
+            (e.EXEC = "EXEC"),
+            (e.FFPROBE = "FFPROBE"),
+            (e.WRITE_FILE = "WRITE_FILE"),
+            (e.READ_FILE = "READ_FILE"),
+            (e.DELETE_FILE = "DELETE_FILE"),
+            (e.RENAME = "RENAME"),
+            (e.CREATE_DIR = "CREATE_DIR"),
+            (e.LIST_DIR = "LIST_DIR"),
+            (e.DELETE_DIR = "DELETE_DIR"),
+            (e.ERROR = "ERROR"),
+            (e.DOWNLOAD = "DOWNLOAD"),
+            (e.PROGRESS = "PROGRESS"),
+            (e.LOG = "LOG"),
+            (e.MOUNT = "MOUNT"),
+            (e.UNMOUNT = "UNMOUNT"));
         })(t || (t = {}));
-        const o = new Error('unknown message type'),
-          s = new Error('ffmpeg is not loaded, call `await ffmpeg.load()` first'),
+        const o = new Error("unknown message type"),
+          s = new Error("ffmpeg is not loaded, call `await ffmpeg.load()` first"),
           a =
-            (new Error('called FFmpeg.terminate()'), new Error('failed to import ffmpeg-core.js'));
+            (new Error("called FFmpeg.terminate()"), new Error("failed to import ffmpeg-core.js"));
         let n;
         self.onmessage = async ({ data: { id: E, type: c, data: i } }) => {
           const p = [];
@@ -68,15 +68,15 @@
                     (o || (o = e), importScripts(o));
                   } catch {
                     if (
-                      ((o && o !== e) || (o = e.replace('/umd/', '/esm/')),
+                      ((o && o !== e) || (o = e.replace("/umd/", "/esm/")),
                       (self.createFFmpegCore = (await r(454)(o)).default),
                       !self.createFFmpegCore)
                     )
                       throw a;
                   }
                   const i = o,
-                    p = s || o.replace(/.js$/g, '.wasm'),
-                    f = E || o.replace(/.js$/g, '.worker.js');
+                    p = s || o.replace(/.js$/g, ".wasm"),
+                    f = E || o.replace(/.js$/g, ".worker.js");
                   return (
                     (n = await self.createFFmpegCore({
                       mainScriptUrlOrBlob: `${i}#${btoa(JSON.stringify({ wasmURL: p, workerURL: f }))}`,

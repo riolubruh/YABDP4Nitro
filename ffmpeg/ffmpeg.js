@@ -1,50 +1,50 @@
 !(function (e, t) {
-  'object' == typeof exports && 'object' == typeof module
+  "object" == typeof exports && "object" == typeof module
     ? (module.exports = t())
-    : 'function' == typeof define && define.amd
+    : "function" == typeof define && define.amd
       ? define([], t)
-      : 'object' == typeof exports
+      : "object" == typeof exports
         ? (exports.FFmpegWASM = t())
         : (e.FFmpegWASM = t());
 })(self, () =>
   (() => {
-    'use strict';
+    "use strict";
     var e = {
       m: {},
       d: (t, s) => {
         for (var r in s)
           e.o(s, r) && !e.o(t, r) && Object.defineProperty(t, r, { enumerable: !0, get: s[r] });
       },
-      u: (e) => e + '.ffmpeg.js',
+      u: (e) => e + ".ffmpeg.js",
     };
     ((e.g = (function () {
-      if ('object' == typeof globalThis) return globalThis;
+      if ("object" == typeof globalThis) return globalThis;
       try {
-        return this || new Function('return this')();
+        return this || new Function("return this")();
       } catch (e) {
-        if ('object' == typeof window) return window;
+        if ("object" == typeof window) return window;
       }
     })()),
       (e.o = (e, t) => Object.prototype.hasOwnProperty.call(e, t)),
       (e.r = (e) => {
-        ('undefined' != typeof Symbol &&
+        ("undefined" != typeof Symbol &&
           Symbol.toStringTag &&
-          Object.defineProperty(e, Symbol.toStringTag, { value: 'Module' }),
-          Object.defineProperty(e, '__esModule', { value: !0 }));
+          Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }),
+          Object.defineProperty(e, "__esModule", { value: !0 }));
       }),
       (() => {
         var t;
-        e.g.importScripts && (t = e.g.location + '');
+        e.g.importScripts && (t = e.g.location + "");
         var s = e.g.document;
         if (!t && s && (s.currentScript && (t = s.currentScript.src), !t)) {
-          var r = s.getElementsByTagName('script');
+          var r = s.getElementsByTagName("script");
           if (r.length) for (var a = r.length - 1; a > -1 && !t;) t = r[a--].src;
         }
-        if (!t) throw new Error('Automatic publicPath is not supported in this browser');
+        if (!t) throw new Error("Automatic publicPath is not supported in this browser");
         ((t = t
-          .replace(/#.*$/, '')
-          .replace(/\?.*$/, '')
-          .replace(/\/[^\/]+$/, '/')),
+          .replace(/#.*$/, "")
+          .replace(/\?.*$/, "")
+          .replace(/\/[^\/]+$/, "/")),
           (e.p = t));
       })(),
       (e.b = document.baseURI || self.location.href));
@@ -53,32 +53,32 @@
     (e.r(s),
       e.d(s, { FFFSType: () => n, FFmpeg: () => i }),
       (function (e) {
-        ((e.LOAD = 'LOAD'),
-          (e.EXEC = 'EXEC'),
-          (e.FFPROBE = 'FFPROBE'),
-          (e.WRITE_FILE = 'WRITE_FILE'),
-          (e.READ_FILE = 'READ_FILE'),
-          (e.DELETE_FILE = 'DELETE_FILE'),
-          (e.RENAME = 'RENAME'),
-          (e.CREATE_DIR = 'CREATE_DIR'),
-          (e.LIST_DIR = 'LIST_DIR'),
-          (e.DELETE_DIR = 'DELETE_DIR'),
-          (e.ERROR = 'ERROR'),
-          (e.DOWNLOAD = 'DOWNLOAD'),
-          (e.PROGRESS = 'PROGRESS'),
-          (e.LOG = 'LOG'),
-          (e.MOUNT = 'MOUNT'),
-          (e.UNMOUNT = 'UNMOUNT'));
+        ((e.LOAD = "LOAD"),
+          (e.EXEC = "EXEC"),
+          (e.FFPROBE = "FFPROBE"),
+          (e.WRITE_FILE = "WRITE_FILE"),
+          (e.READ_FILE = "READ_FILE"),
+          (e.DELETE_FILE = "DELETE_FILE"),
+          (e.RENAME = "RENAME"),
+          (e.CREATE_DIR = "CREATE_DIR"),
+          (e.LIST_DIR = "LIST_DIR"),
+          (e.DELETE_DIR = "DELETE_DIR"),
+          (e.ERROR = "ERROR"),
+          (e.DOWNLOAD = "DOWNLOAD"),
+          (e.PROGRESS = "PROGRESS"),
+          (e.LOG = "LOG"),
+          (e.MOUNT = "MOUNT"),
+          (e.UNMOUNT = "UNMOUNT"));
       })(t || (t = {})));
     const r = (() => {
         let e = 0;
         return () => e++;
       })(),
       a =
-        (new Error('unknown message type'),
-        new Error('ffmpeg is not loaded, call `await ffmpeg.load()` first')),
-      o = new Error('called FFmpeg.terminate()');
-    new Error('failed to import ffmpeg-core.js');
+        (new Error("unknown message type"),
+        new Error("ffmpeg is not loaded, call `await ffmpeg.load()` first")),
+      o = new Error("called FFmpeg.terminate()");
+    new Error("failed to import ffmpeg-core.js");
     class i {
       #e = null;
       #t = {};
@@ -126,21 +126,21 @@
                 (this.#t[n] = a),
                 (this.#s[n] = i),
                 o?.addEventListener(
-                  'abort',
+                  "abort",
                   () => {
-                    i(new DOMException(`Message # ${n} was aborted`, 'AbortError'));
+                    i(new DOMException(`Message # ${n} was aborted`, "AbortError"));
                   },
                   { once: !0 }
                 ));
             })
           : Promise.reject(a);
       on(e, t) {
-        'log' === e ? this.#r.push(t) : 'progress' === e && this.#a.push(t);
+        "log" === e ? this.#r.push(t) : "progress" === e && this.#a.push(t);
       }
       off(e, t) {
-        'log' === e
+        "log" === e
           ? (this.#r = this.#r.filter((e) => e !== t))
-          : 'progress' === e && (this.#a = this.#a.filter((e) => e !== t));
+          : "progress" === e && (this.#a = this.#a.filter((e) => e !== t));
       }
       load = ({ classWorkerURL: s, ...r } = {}, { signal: a } = {}) => (
         this.#e ||
@@ -148,9 +148,9 @@
             ? new Worker(
                 new URL(
                   s,
-                  'file:///Users/focus/Projects/ffmpeg.wasm/packages/ffmpeg/dist/esm/classes.js'
+                  "file:///Users/focus/Projects/ffmpeg.wasm/packages/ffmpeg/dist/esm/classes.js"
                 ),
-                { type: 'module' }
+                { type: "module" }
               )
             : new Worker(new URL(e.p + e.u(814), e.b), { type: void 0 })),
           this.#o()),
@@ -175,7 +175,7 @@
       mount = (e, s, r) =>
         this.#i({ type: t.MOUNT, data: { fsType: e, options: s, mountPoint: r } }, []);
       unmount = (e) => this.#i({ type: t.UNMOUNT, data: { mountPoint: e } }, []);
-      readFile = (e, s = 'binary', { signal: r } = {}) =>
+      readFile = (e, s = "binary", { signal: r } = {}) =>
         this.#i({ type: t.READ_FILE, data: { path: e, encoding: s } }, void 0, r);
       deleteFile = (e, { signal: s } = {}) =>
         this.#i({ type: t.DELETE_FILE, data: { path: e } }, void 0, s);
@@ -191,12 +191,12 @@
     var n;
     return (
       (function (e) {
-        ((e.MEMFS = 'MEMFS'),
-          (e.NODEFS = 'NODEFS'),
-          (e.NODERAWFS = 'NODERAWFS'),
-          (e.IDBFS = 'IDBFS'),
-          (e.WORKERFS = 'WORKERFS'),
-          (e.PROXYFS = 'PROXYFS'));
+        ((e.MEMFS = "MEMFS"),
+          (e.NODEFS = "NODEFS"),
+          (e.NODERAWFS = "NODERAWFS"),
+          (e.IDBFS = "IDBFS"),
+          (e.WORKERFS = "WORKERFS"),
+          (e.PROXYFS = "PROXYFS"));
       })(n || (n = {})),
       s
     );

@@ -50,7 +50,7 @@ function __accessProp(key) {
 var __toESMCache_node;
 var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
-  var canCache = mod != null && typeof mod === 'object';
+  var canCache = mod != null && typeof mod === "object";
   if (canCache) {
     var cache = isNodeMode
       ? (__toESMCache_node ??= new WeakMap())
@@ -61,7 +61,7 @@ var __toESM = (mod, isNodeMode, target) => {
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to =
     isNodeMode || !mod || !mod.__esModule
-      ? __defProp(target, 'default', { value: mod, enumerable: true })
+      ? __defProp(target, "default", { value: mod, enumerable: true })
       : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
@@ -76,8 +76,8 @@ var __toCommonJS = (from) => {
   var entry = (__moduleCache ??= new WeakMap()).get(from),
     desc;
   if (entry) return entry;
-  entry = __defProp({}, '__esModule', { value: true });
-  if ((from && typeof from === 'object') || typeof from === 'function') {
+  entry = __defProp({}, "__esModule", { value: true });
+  if ((from && typeof from === "object") || typeof from === "function") {
     for (var key of __getOwnPropNames(from))
       if (!__hasOwnProp.call(entry, key))
         __defProp(entry, key, {
@@ -110,64 +110,64 @@ var require_varforcer = __commonJS((exports2, module2) => {
   function normalizeFunctionSource(str) {
     const trimmed = str.trimStart();
     if (/^function\b/.test(trimmed)) return str;
-    const arrowIdx = str.indexOf('=>');
-    const braceIdx = str.indexOf('{');
+    const arrowIdx = str.indexOf("=>");
+    const braceIdx = str.indexOf("{");
     if (arrowIdx !== -1 && (braceIdx === -1 || arrowIdx < braceIdx)) return str;
     let rest = trimmed;
     let isAsync = false;
     let isGenerator = false;
-    if (rest.startsWith('async')) {
+    if (rest.startsWith("async")) {
       isAsync = true;
       rest = rest.slice(5).trimStart();
     }
-    if (rest.startsWith('*')) {
+    if (rest.startsWith("*")) {
       isGenerator = true;
       rest = rest.slice(1).trimStart();
     }
-    const parenIdx = rest.indexOf('(');
+    const parenIdx = rest.indexOf("(");
     if (parenIdx === -1)
-      throw new Error('[varForcer] Could not normalize function source (no `(` found).');
+      throw new Error("[varForcer] Could not normalize function source (no `(` found).");
     rest = rest.slice(parenIdx);
-    return `${isAsync ? 'async ' : ''}function${isGenerator ? '*' : ''} ${rest}`;
+    return `${isAsync ? "async " : ""}function${isGenerator ? "*" : ""} ${rest}`;
   }
   function parseDestructuredVars(fnStr) {
-    const letIndex = fnStr.indexOf('let{');
+    const letIndex = fnStr.indexOf("let{");
     if (letIndex === -1) {
-      throw new Error('[varForcer] Could not find a `let{...}` destructure in the given function.');
+      throw new Error("[varForcer] Could not find a `let{...}` destructure in the given function.");
     }
     const openBrace = letIndex + 4;
-    const closeBrace = fnStr.indexOf('}', openBrace);
+    const closeBrace = fnStr.indexOf("}", openBrace);
     if (closeBrace === -1) {
-      throw new Error('[varForcer] Found `let{` but no matching closing `}`.');
+      throw new Error("[varForcer] Found `let{` but no matching closing `}`.");
     }
     const body = fnStr.slice(openBrace, closeBrace);
     const entries = body
-      .split(',')
+      .split(",")
       .map((chunk) => chunk.trim())
       .filter(Boolean)
       .map((chunk) => {
-        const [remote, local] = chunk.split(':').map((s) => s.trim());
+        const [remote, local] = chunk.split(":").map((s) => s.trim());
         return [remote, local || remote];
       });
     return Object.fromEntries(entries);
   }
   function serializeValue(value) {
-    if (typeof value === 'string') return JSON.stringify(value);
-    if (value === undefined) return 'undefined';
-    if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+    if (typeof value === "string") return JSON.stringify(value);
+    if (value === undefined) return "undefined";
+    if (typeof value === "object" && value !== null) return JSON.stringify(value);
     return String(value);
   }
   function forceFunctionVars(fn, declarations, options) {
     const { after, offset = 0, sets, throwIfMissingAnchor = true } = options;
-    if (!after) throw new Error('[varForcer] `options.after` (anchor string) is required.');
+    if (!after) throw new Error("[varForcer] `options.after` (anchor string) is required.");
     if (!sets || Object.keys(sets).length === 0)
-      throw new Error('[varForcer] `options.sets` must have at least one entry.');
+      throw new Error("[varForcer] `options.sets` must have at least one entry.");
     const str = normalizeFunctionSource(fn.toString());
     const vars = parseDestructuredVars(str);
     const missing = Object.keys(sets).filter((name) => !vars[name]);
     if (missing.length) {
       throw new Error(
-        `[varForcer] Could not resolve destructured var(s): ${missing.join(', ')}. Found: ${Object.keys(vars).join(', ')}`
+        `[varForcer] Could not resolve destructured var(s): ${missing.join(", ")}. Found: ${Object.keys(vars).join(", ")}`
       );
     }
     const anchorIndex = str.indexOf(after);
@@ -181,10 +181,10 @@ var require_varforcer = __commonJS((exports2, module2) => {
     const rest = str.slice(insertAt);
     const assignments = Object.entries(sets)
       .map(([name, value]) => `${vars[name]}=${serializeValue(value)};`)
-      .join('');
+      .join("");
     const source = `with (__DECLARATIONS__) return (${before}${assignments}${rest});`;
     try {
-      return new Function('__DECLARATIONS__', source)(declarations);
+      return new Function("__DECLARATIONS__", source)(declarations);
     } catch (err2) {
       throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
 
@@ -195,12 +195,12 @@ ${source}`);
   function replaceFunctionLiteral(fn, declarations, options) {
     const { find, replace, throwIfMissing = true } = options;
     const str = normalizeFunctionSource(fn.toString());
-    const found = typeof find === 'string' ? str.includes(find) : find.test(str);
+    const found = typeof find === "string" ? str.includes(find) : find.test(str);
     if (!found && throwIfMissing) throw new Error(`[varForcer] Pattern not found: ${find}`);
     const patched = str.replace(find, replace);
     const source = `with (__DECLARATIONS__) return (${patched});`;
     try {
-      return new Function('__DECLARATIONS__', source)(declarations);
+      return new Function("__DECLARATIONS__", source)(declarations);
     } catch (err2) {
       throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
 
@@ -237,11 +237,11 @@ __export(exports_path, {
   _makeLong: () => _makeLong,
 });
 function assertPath(path) {
-  if (typeof path !== 'string')
-    throw TypeError('Path must be a string. Received ' + JSON.stringify(path));
+  if (typeof path !== "string")
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
-  var res = '',
+  var res = "",
     lastSegmentLength = 0,
     lastSlash = -1,
     dots = 0,
@@ -260,27 +260,27 @@ function normalizeStringPosix(path, allowAboveRoot) {
           res.charCodeAt(res.length - 2) !== 46
         ) {
           if (res.length > 2) {
-            var lastSlashIndex = res.lastIndexOf('/');
+            var lastSlashIndex = res.lastIndexOf("/");
             if (lastSlashIndex !== res.length - 1) {
-              if (lastSlashIndex === -1) ((res = ''), (lastSegmentLength = 0));
+              if (lastSlashIndex === -1) ((res = ""), (lastSegmentLength = 0));
               else
                 ((res = res.slice(0, lastSlashIndex)),
-                  (lastSegmentLength = res.length - 1 - res.lastIndexOf('/')));
+                  (lastSegmentLength = res.length - 1 - res.lastIndexOf("/")));
               ((lastSlash = i2), (dots = 0));
               continue;
             }
           } else if (res.length === 2 || res.length === 1) {
-            ((res = ''), (lastSegmentLength = 0), (lastSlash = i2), (dots = 0));
+            ((res = ""), (lastSegmentLength = 0), (lastSlash = i2), (dots = 0));
             continue;
           }
         }
         if (allowAboveRoot) {
-          if (res.length > 0) res += '/..';
-          else res = '..';
+          if (res.length > 0) res += "/..";
+          else res = "..";
           lastSegmentLength = 2;
         }
       } else {
-        if (res.length > 0) res += '/' + path.slice(lastSlash + 1, i2);
+        if (res.length > 0) res += "/" + path.slice(lastSlash + 1, i2);
         else res = path.slice(lastSlash + 1, i2);
         lastSegmentLength = i2 - lastSlash - 1;
       }
@@ -292,13 +292,13 @@ function normalizeStringPosix(path, allowAboveRoot) {
 }
 function _format(sep, pathObject) {
   var dir = pathObject.dir || pathObject.root,
-    base = pathObject.base || (pathObject.name || '') + (pathObject.ext || '');
+    base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
   if (!dir) return base;
   if (dir === pathObject.root) return dir + base;
   return dir + sep + base;
 }
 function resolve() {
-  var resolvedPath = '',
+  var resolvedPath = "",
     resolvedAbsolute = false,
     cwd;
   for (var i2 = arguments.length - 1; i2 >= -1 && !resolvedAbsolute; i2--) {
@@ -309,42 +309,42 @@ function resolve() {
       path = cwd;
     }
     if ((assertPath(path), path.length === 0)) continue;
-    ((resolvedPath = path + '/' + resolvedPath), (resolvedAbsolute = path.charCodeAt(0) === 47));
+    ((resolvedPath = path + "/" + resolvedPath), (resolvedAbsolute = path.charCodeAt(0) === 47));
   }
   if (((resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute)), resolvedAbsolute))
-    if (resolvedPath.length > 0) return '/' + resolvedPath;
-    else return '/';
+    if (resolvedPath.length > 0) return "/" + resolvedPath;
+    else return "/";
   else if (resolvedPath.length > 0) return resolvedPath;
-  else return '.';
+  else return ".";
 }
 function normalize(path) {
-  if ((assertPath(path), path.length === 0)) return '.';
+  if ((assertPath(path), path.length === 0)) return ".";
   var isAbsolute = path.charCodeAt(0) === 47,
     trailingSeparator = path.charCodeAt(path.length - 1) === 47;
   if (((path = normalizeStringPosix(path, !isAbsolute)), path.length === 0 && !isAbsolute))
-    path = '.';
-  if (path.length > 0 && trailingSeparator) path += '/';
-  if (isAbsolute) return '/' + path;
+    path = ".";
+  if (path.length > 0 && trailingSeparator) path += "/";
+  if (isAbsolute) return "/" + path;
   return path;
 }
 function isAbsolute(path) {
   return (assertPath(path), path.length > 0 && path.charCodeAt(0) === 47);
 }
 function join() {
-  if (arguments.length === 0) return '.';
+  if (arguments.length === 0) return ".";
   var joined;
   for (var i2 = 0; i2 < arguments.length; ++i2) {
     var arg = arguments[i2];
     if ((assertPath(arg), arg.length > 0))
       if (joined === undefined) joined = arg;
-      else joined += '/' + arg;
+      else joined += "/" + arg;
   }
-  if (joined === undefined) return '.';
+  if (joined === undefined) return ".";
   return normalize(joined);
 }
 function relative(from, to) {
-  if ((assertPath(from), assertPath(to), from === to)) return '';
-  if (((from = resolve(from)), (to = resolve(to)), from === to)) return '';
+  if ((assertPath(from), assertPath(to), from === to)) return "";
+  if (((from = resolve(from)), (to = resolve(to)), from === to)) return "";
   var fromStart = 1;
   for (; fromStart < from.length; ++fromStart) if (from.charCodeAt(fromStart) !== 47) break;
   var fromEnd = from.length,
@@ -372,11 +372,11 @@ function relative(from, to) {
     if (fromCode !== toCode) break;
     else if (fromCode === 47) lastCommonSep = i2;
   }
-  var out = '';
+  var out = "";
   for (i2 = fromStart + lastCommonSep + 1; i2 <= fromEnd; ++i2)
     if (i2 === fromEnd || from.charCodeAt(i2) === 47)
-      if (out.length === 0) out += '..';
-      else out += '/..';
+      if (out.length === 0) out += "..";
+      else out += "/..";
   if (out.length > 0) return out + to.slice(toStart + lastCommonSep);
   else {
     if (((toStart += lastCommonSep), to.charCodeAt(toStart) === 47)) ++toStart;
@@ -387,7 +387,7 @@ function _makeLong(path) {
   return path;
 }
 function dirname(path) {
-  if ((assertPath(path), path.length === 0)) return '.';
+  if ((assertPath(path), path.length === 0)) return ".";
   var code = path.charCodeAt(0),
     hasRoot = code === 47,
     end = -1,
@@ -399,12 +399,12 @@ function dirname(path) {
         break;
       }
     } else matchedSlash = false;
-  if (end === -1) return hasRoot ? '/' : '.';
-  if (hasRoot && end === 1) return '//';
+  if (end === -1) return hasRoot ? "/" : ".";
+  if (hasRoot && end === 1) return "//";
   return path.slice(0, end);
 }
 function basename(path, ext) {
-  if (ext !== undefined && typeof ext !== 'string')
+  if (ext !== undefined && typeof ext !== "string")
     throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0,
@@ -412,7 +412,7 @@ function basename(path, ext) {
     matchedSlash = true,
     i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
-    if (ext.length === path.length && ext === path) return '';
+    if (ext.length === path.length && ext === path) return "";
     var extIdx = ext.length - 1,
       firstNonSlashEnd = -1;
     for (i2 = path.length - 1; i2 >= 0; --i2) {
@@ -441,7 +441,7 @@ function basename(path, ext) {
           break;
         }
       } else if (end === -1) ((matchedSlash = false), (end = i2 + 1));
-    if (end === -1) return '';
+    if (end === -1) return "";
     return path.slice(start, end);
   }
 }
@@ -473,24 +473,24 @@ function extname(path) {
     preDotState === 0 ||
     (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
   )
-    return '';
+    return "";
   return path.slice(startDot, end);
 }
 function format(pathObject) {
-  if (pathObject === null || typeof pathObject !== 'object')
+  if (pathObject === null || typeof pathObject !== "object")
     throw TypeError(
       'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject
     );
-  return _format('/', pathObject);
+  return _format("/", pathObject);
 }
 function parse(path) {
   assertPath(path);
-  var ret = { root: '', dir: '', base: '', ext: '', name: '' };
+  var ret = { root: "", dir: "", base: "", ext: "", name: "" };
   if (path.length === 0) return ret;
   var code = path.charCodeAt(0),
     isAbsolute2 = code === 47,
     start;
-  if (isAbsolute2) ((ret.root = '/'), (start = 1));
+  if (isAbsolute2) ((ret.root = "/"), (start = 1));
   else start = 0;
   var startDot = -1,
     startPart = 0,
@@ -528,11 +528,11 @@ function parse(path) {
     ret.ext = path.slice(startDot, end);
   }
   if (startPart > 0) ret.dir = path.slice(0, startPart - 1);
-  else if (isAbsolute2) ret.dir = '/';
+  else if (isAbsolute2) ret.dir = "/";
   return ret;
 }
-var sep = '/',
-  delimiter = ':',
+var sep = "/",
+  delimiter = ":",
   posix,
   path_default;
 var init_path = __esm(() => {
@@ -566,7 +566,7 @@ __export(exports_src, {
 module.exports = __toCommonJS(exports_src);
 
 // src/global/shared/index.tsx
-var BetterDiscord = new BdApi('YABDP4Nitro');
+var BetterDiscord = new BdApi("YABDP4Nitro");
 
 // src/patches/modules/index.ts
 var exports_modules = {};
@@ -672,23 +672,23 @@ var defaultSettings = {
   displayNameStyles: true,
   customUserThemeSettings: {
     custom: false,
-    theme: 'dark',
+    theme: "dark",
   },
-  appIcon: 'AppIcon',
+  appIcon: "AppIcon",
   voiceTileBannerBackground: false,
   advancedProfileCustomization: false,
-  lastChangelogVersion: '6.10.7',
-  installedVersion: '6.10.7',
+  lastChangelogVersion: "6.10.7",
+  installedVersion: "6.10.7",
   customVideoFilter: {
-    link: 'https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&',
-    type: 'mp4',
+    link: "https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&",
+    type: "mp4",
   },
   customVideoFilterEnabled: false,
 };
 var SettingsStore_default = new (class SettingsStore extends Utils.Store {
   settings = {
     ...defaultSettings,
-    ...(Data.load('settings') ?? {}),
+    ...(Data.load("settings") ?? {}),
   };
   listeners = new Map();
   get(id) {
@@ -696,13 +696,13 @@ var SettingsStore_default = new (class SettingsStore extends Utils.Store {
   }
   set(id, value) {
     this.settings = { ...this.settings, [id]: value };
-    Data.save('settings', this.settings);
+    Data.save("settings", this.settings);
     this.emitChange();
     this.notify(id, value);
   }
   del(id) {
     this.settings = { ...this.settings, [id]: defaultSettings[id] };
-    Data.save('settings', this.settings);
+    Data.save("settings", this.settings);
     this.emitChange();
     this.notify(id, this.settings[id]);
   }
@@ -724,12 +724,12 @@ var SettingsStore_default = new (class SettingsStore extends Utils.Store {
 })();
 
 // src/global/stores/UserBackgroundStore.ts
-var USER_BG = 'https://usrbg.is-hardly.online/users';
+var USER_BG = "https://usrbg.is-hardly.online/users";
 var UserBackgroundStore_default = new (class UserBackgroundStore extends BetterDiscord.Utils.Store {
   users = {};
   meta = {};
   get(userId) {
-    const enabled = SettingsStore_default.get('userBgIntegration');
+    const enabled = SettingsStore_default.get("userBgIntegration");
     if (!enabled) return null;
     return this.users[userId];
   }
@@ -738,14 +738,14 @@ var UserBackgroundStore_default = new (class UserBackgroundStore extends BetterD
     return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
   }
   hasHash(id) {
-    const enabled = SettingsStore_default.get('userBgIntegration');
+    const enabled = SettingsStore_default.get("userBgIntegration");
     if (!enabled) return false;
     return Boolean(this.users[id]);
   }
   async fetch() {
     const data = await BetterDiscord.Net.fetch(USER_BG);
     const response = await data.json();
-    this.meta = { ...this.meta, ['bucket']: response.bucket, ['prefix']: response.prefix };
+    this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
     this.users = response.users;
   }
   unload() {
@@ -756,56 +756,56 @@ var UserBackgroundStore_default = new (class UserBackgroundStore extends BetterD
 
 // src/global/stores/BadgesStore.tsx
 var specialThanks = [
-  '122072911455453184',
-  '760274365853335563',
-  '482224256730791967',
-  '1106012563835195412',
+  "122072911455453184",
+  "760274365853335563",
+  "482224256730791967",
+  "1106012563835195412",
 ];
 var Badges = {
   developers: {
-    ids: ['359063827091816448', '917630027477159986'],
+    ids: ["359063827091816448", "917630027477159986"],
     badge: {
-      id: 'yabdp_developer',
+      id: "yabdp_developer",
       iconSrc:
-        'https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif',
-      description: 'YABDP4Nitro Developer!',
-      link: 'https://github.com/riolubruh/YABDP4Nitro#contributors',
+        "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Developer!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors",
     },
   },
   silly: {
-    ids: ['917630027477159986'],
+    ids: ["917630027477159986"],
     badge: {
-      id: 'yabdp_silly',
+      id: "yabdp_silly",
       iconSrc:
-        'https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_silly.png',
-      description: 'Honk.',
+        "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_silly.png",
+      description: "Honk.",
     },
   },
   sera: {
-    ids: ['1323433010858557523'],
+    ids: ["1323433010858557523"],
     badge: {
-      id: 'yabdp_sera',
+      id: "yabdp_sera",
       iconSrc:
-        'https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_sera.gif',
-      description: 'sera so silly ;3',
+        "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_sera.gif",
+      description: "sera so silly ;3",
     },
   },
   contributors: {
     ids: specialThanks,
     badge: {
-      id: 'yabdp_contributor',
+      id: "yabdp_contributor",
       iconSrc:
-        'https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi_red.gif',
-      description: 'YABDP4Nitro Contributor!',
-      link: 'https://github.com/riolubruh/YABDP4Nitro#contributors',
+        "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi_red.gif",
+      description: "YABDP4Nitro Contributor!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors",
     },
   },
 };
 var defaultBadge = {
-  id: 'yabdp_user',
-  iconSrc: 'https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png',
-  description: 'A fellow YABDP4Nitro user!',
-  link: 'https://github.com/riolubruh/YABDP4Nitro',
+  id: "yabdp_user",
+  iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+  description: "A fellow YABDP4Nitro user!",
+  link: "https://github.com/riolubruh/YABDP4Nitro",
 };
 var BadgesStore_default = new (class BadgesStore {
   foundUsers = [];
@@ -838,14 +838,14 @@ var BadgesStore_default = new (class BadgesStore {
 var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } =
   BetterDiscord.Webpack.Stores;
 var DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings(
-  'await window.navigator.clipboard.writeText',
+  "await window.navigator.clipboard.writeText",
   { searchExports: true }
 );
-function getRevealedTextPerServer(userId, shouldInclude = '') {
+function getRevealedTextPerServer(userId, shouldInclude = "") {
   const guildId = SelectedGuildStore.getGuildId();
   if (!guildId) return;
   const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-  userGuildProfile && Object.defineProperty(userGuildProfile, 'guildId', { value: guildId });
+  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
   userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
     const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
@@ -858,7 +858,7 @@ function getRevealedTextPerServer(userId, shouldInclude = '') {
     return revealed;
   }
 }
-function getRevealedText(userId, shouldInclude = '') {
+function getRevealedText(userId, shouldInclude = "") {
   const perServer = getRevealedTextPerServer(userId, shouldInclude);
   if (perServer) return perServer;
   const bioText = getRevealedTextFromBio(userId, shouldInclude);
@@ -883,10 +883,10 @@ function getRevealedTextFromCustomStatus(userId, shouldInclude) {
   let customStatusActivity;
   try {
     customStatusActivity = PresenceStore.getActivities(userId).find(
-      (activity) => activity.name === 'Custom Status' || activity.id === 'custom'
+      (activity) => activity.name === "Custom Status" || activity.id === "custom"
     );
   } catch (err) {
-    BetterDiscord.Logger.error('Something went wrong getting custom status, oh god oh shit!', err);
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
     return;
   }
   if (!customStatusActivity?.state?.includes(shouldInclude)) return;
@@ -902,7 +902,7 @@ function secondsightifyRevealOnly(t) {
             ? String.fromCodePoint(x.codePointAt(0) - 917504)
             : x
         )
-        .join(''))(t);
+        .join(""))(t);
   } else {
     return;
   }
@@ -918,13 +918,13 @@ function secondsightifyEncodeOnly(t) {
             ? String.fromCodePoint(x.codePointAt(0) + 917504)
             : x
         )
-        .join(''))(t);
+        .join(""))(t);
   }
 }
 function shouldSkipEmojiBypass(emoji, currentChannelId) {
-  const shouldAlwaysUseEmojiBypass = SettingsStore_default.get('emojiBypassForValidEmoji');
+  const shouldAlwaysUseEmojiBypass = SettingsStore_default.get("emojiBypassForValidEmoji");
   return (
-    emoji.type === 'UNICODE' ||
+    emoji.type === "UNICODE" ||
     !emoji.guildId ||
     !emoji.id ||
     emoji.useSpriteSheet ||
@@ -938,15 +938,15 @@ function shouldSkipEmojiBypass(emoji, currentChannelId) {
   );
 }
 function getEmojiExtension(emoji) {
-  const pngEmote = SettingsStore_default.get('PNGemote');
-  return `${emoji.animated ? '.webp' : pngEmote ? '.png' : '.webp'}`;
+  const pngEmote = SettingsStore_default.get("PNGemote");
+  return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
 }
-var EMOJI_PREFIX = 'https://cdn.discordapp.com/emojis/';
-function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get('emojiSize')) {
+var EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
+function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get("emojiSize")) {
   return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 function getEmojiString(emoji) {
-  return `<${emoji.animated ? 'a:' : ':'}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
+  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
 }
 var styled = new Proxy(styledBase, {
   get(target, p) {
@@ -955,32 +955,32 @@ var styled = new Proxy(styledBase, {
 });
 function styledBase(tag, cssOrFn) {
   return (props) => {
-    const style = typeof cssOrFn === 'function' ? cssOrFn(props) : cssOrFn;
+    const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
     return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
   };
 }
 var ContextMenuWrapper = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
 });
 var ContextMenuLabel = () =>
   /* @__PURE__ */ React.createElement(
-    'span',
+    "span",
     {
-      style: { fontSize: '14px', opacity: 0.6 },
+      style: { fontSize: "14px", opacity: 0.6 },
     },
-    'YABDP4Nitro'
+    "YABDP4Nitro"
   );
 function copyToClipboard(
   string,
   successMessage = undefined,
-  errorMessage = 'Failed to copy to clipboard!'
+  errorMessage = "Failed to copy to clipboard!"
 ) {
   try {
     DiscordCopyToClipboardFn(string);
-    if (successMessage) BetterDiscord.UI.showToast(successMessage, { type: 'info' });
+    if (successMessage) BetterDiscord.UI.showToast(successMessage, { type: "info" });
   } catch (err) {
-    BetterDiscord.UI.showToast(errorMessage, { type: 'error', forceShow: true });
+    BetterDiscord.UI.showToast(errorMessage, { type: "error", forceShow: true });
     BetterDiscord.Logger.error(err);
   }
 }
@@ -1022,7 +1022,7 @@ function extractDisplayNameStyles(revealedText) {
   const match = revealedText
     .match(regexReveals_default.DISPLAY_NAME_STYLES)?.[0]
     ?.slice?.(2, -1)
-    ?.split?.(',');
+    ?.split?.(",");
   return match || null;
 }
 function extractDecoration(revealedText) {
@@ -1032,7 +1032,7 @@ function extractDecoration(revealedText) {
 }
 function extractNameplate(revealedText) {
   if (!revealedText) return null;
-  const match = revealedText.match(regexReveals_default.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(',');
+  const match = revealedText.match(regexReveals_default.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(",");
   return match || null;
 }
 function extractProfileEffects(parsedText) {
@@ -1049,18 +1049,18 @@ function extractProfilePicture(revealedText) {
   if (!revealedText) return null;
   const matches = revealedText
     .match(regexReveals_default.PROFILE_PICTURE)?.[0]
-    .replace('P{', '')
-    .replace('}', '');
+    .replace("P{", "")
+    .replace("}", "");
   return matches || null;
 }
 function containsBanner(revealedSurrogate) {
-  return revealedSurrogate?.includes('B{') || false;
+  return revealedSurrogate?.includes("B{") || false;
 }
 function containsProfileEffects(revealedSurrogate) {
-  return revealedSurrogate?.includes('fx') || false;
+  return revealedSurrogate?.includes("fx") || false;
 }
 function containsProfileFrame(revealedSurrogate) {
-  return revealedSurrogate?.includes('pf') || false;
+  return revealedSurrogate?.includes("pf") || false;
 }
 
 // src/patches/modules/fakeUserProfile.ts
@@ -1073,18 +1073,18 @@ function extractProfileColors(string) {
   return [match[1], match[2]].map((x) => parseInt(x, 16));
 }
 var fakeUserProfile_default = {
-  name: 'User Profile',
-  description: 'Performs fake profile stuffs.',
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
   ids: undefined,
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
-    patcher.after(UserProfileStore2, 'getUserProfile', (_, [userId], ret) => {
-      const killProfileEffects = SettingsStore_default.get('killProfileEffects');
-      const profileEffectsEnabled = SettingsStore_default.get('profileEffects');
-      const shouldProfileV2 = SettingsStore_default.get('profileV2');
-      const disableUserBadge = SettingsStore_default.get('disableUserBadge');
-      const profileThemesEnabled = SettingsStore_default.get('fakeProfileThemes');
-      const profileFramesEnabled = SettingsStore_default.get('profileFrames');
+    patcher.after(UserProfileStore2, "getUserProfile", (_, [userId], ret) => {
+      const killProfileEffects = SettingsStore_default.get("killProfileEffects");
+      const profileEffectsEnabled = SettingsStore_default.get("profileEffects");
+      const shouldProfileV2 = SettingsStore_default.get("profileV2");
+      const disableUserBadge = SettingsStore_default.get("disableUserBadge");
+      const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
+      const profileFramesEnabled = SettingsStore_default.get("profileFrames");
       if (!ret) return;
       const userBio = ret.bio;
       (shouldProfileV2 ||
@@ -1123,7 +1123,7 @@ var fakeUserProfile_default = {
         match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
       }
       const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) =>
-        x?.id?.startsWith('yabdp')
+        x?.id?.startsWith("yabdp")
       );
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
         if (!ret.badges) ret.badges = [];
@@ -1151,22 +1151,22 @@ function getStyleData(surrogate) {
   };
 }
 var fakeUser_default = {
-  name: 'User Profile',
-  description: 'Performs fake profile stuffs.',
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
   ids: undefined,
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
-    patcher.after(UserStore, 'getUser', (_, [userId], ret) => {
-      const dnsEnabled = SettingsStore_default.get('displayNameStyles');
-      const decorEnabled = SettingsStore_default.get('fakeAvatarDecorations');
-      const nameplatesEnabled = SettingsStore_default.get('nameplatesEnabled');
+    patcher.after(UserStore, "getUser", (_, [userId], ret) => {
+      const dnsEnabled = SettingsStore_default.get("displayNameStyles");
+      const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
+      const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
         const match = extractDisplayNameStyles(revealedText);
         if (match) {
           const styleData = getStyleData(match);
           styleData &&
-            Object.defineProperty(ret, 'displayNameStyles', {
+            Object.defineProperty(ret, "displayNameStyles", {
               value: {
                 fontId: styleData.fontId,
                 effectId: styleData.effectId,
@@ -1204,13 +1204,13 @@ var fakeUser_default = {
 };
 // src/patches/modules/allowClips.ts
 var { ClipsStore } = BetterDiscord.Webpack.Stores;
-var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource('useEnableClips');
+var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource("useEnableClips");
 var allowClips_default = {
-  name: 'allowClips',
-  description: 'Allow clips',
+  name: "allowClips",
+  description: "Allow clips",
   waitFor: [GLOBAL_SOURCE],
   mangled: {
-    areClipsEnabled: (x) => x.toString().includes('areClipsEnabled'),
+    areClipsEnabled: (x) => x.toString().includes("areClipsEnabled"),
   },
   apply(finale, patcher) {
     Object.entries(finale.mangled).map(([key, value]) => {
@@ -1221,9 +1221,9 @@ var allowClips_default = {
       });
     });
     [
-      'isViewerClippingAllowedForUser',
-      'isClipsEnabledForUser',
-      'isVoiceRecordingAllowedForUse',
+      "isViewerClippingAllowedForUser",
+      "isClipsEnabledForUser",
+      "isVoiceRecordingAllowedForUse",
     ].map((x) =>
       patcher.instead(ClipsStore, x, (_, __, originalFunction) => {
         const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
@@ -1234,44 +1234,44 @@ var allowClips_default = {
   },
 };
 // bdapi-react-shim:react
-var Children = BdApi.React['Children'];
-var Component = BdApi.React['Component'];
-var Fragment = BdApi.React['Fragment'];
-var Profiler = BdApi.React['Profiler'];
-var PureComponent = BdApi.React['PureComponent'];
-var StrictMode = BdApi.React['StrictMode'];
-var Suspense = BdApi.React['Suspense'];
-var cloneElement = BdApi.React['cloneElement'];
-var createContext = BdApi.React['createContext'];
-var createElement = BdApi.React['createElement'];
-var createFactory = BdApi.React['createFactory'];
-var createRef = BdApi.React['createRef'];
-var forwardRef = BdApi.React['forwardRef'];
-var isValidElement = BdApi.React['isValidElement'];
-var lazy = BdApi.React['lazy'];
-var memo = BdApi.React['memo'];
-var startTransition = BdApi.React['startTransition'];
-var unstable_act = BdApi.React['unstable_act'];
-var useCallback = BdApi.React['useCallback'];
-var useContext = BdApi.React['useContext'];
-var useDebugValue = BdApi.React['useDebugValue'];
-var useDeferredValue = BdApi.React['useDeferredValue'];
-var useEffect = BdApi.React['useEffect'];
-var useId = BdApi.React['useId'];
-var useImperativeHandle = BdApi.React['useImperativeHandle'];
-var useInsertionEffect = BdApi.React['useInsertionEffect'];
-var useLayoutEffect = BdApi.React['useLayoutEffect'];
-var useMemo = BdApi.React['useMemo'];
-var useReducer = BdApi.React['useReducer'];
-var useRef = BdApi.React['useRef'];
-var useState = BdApi.React['useState'];
-var useSyncExternalStore = BdApi.React['useSyncExternalStore'];
-var useTransition = BdApi.React['useTransition'];
-var version = BdApi.React['version'];
+var Children = BdApi.React["Children"];
+var Component = BdApi.React["Component"];
+var Fragment = BdApi.React["Fragment"];
+var Profiler = BdApi.React["Profiler"];
+var PureComponent = BdApi.React["PureComponent"];
+var StrictMode = BdApi.React["StrictMode"];
+var Suspense = BdApi.React["Suspense"];
+var cloneElement = BdApi.React["cloneElement"];
+var createContext = BdApi.React["createContext"];
+var createElement = BdApi.React["createElement"];
+var createFactory = BdApi.React["createFactory"];
+var createRef = BdApi.React["createRef"];
+var forwardRef = BdApi.React["forwardRef"];
+var isValidElement = BdApi.React["isValidElement"];
+var lazy = BdApi.React["lazy"];
+var memo = BdApi.React["memo"];
+var startTransition = BdApi.React["startTransition"];
+var unstable_act = BdApi.React["unstable_act"];
+var useCallback = BdApi.React["useCallback"];
+var useContext = BdApi.React["useContext"];
+var useDebugValue = BdApi.React["useDebugValue"];
+var useDeferredValue = BdApi.React["useDeferredValue"];
+var useEffect = BdApi.React["useEffect"];
+var useId = BdApi.React["useId"];
+var useImperativeHandle = BdApi.React["useImperativeHandle"];
+var useInsertionEffect = BdApi.React["useInsertionEffect"];
+var useLayoutEffect = BdApi.React["useLayoutEffect"];
+var useMemo = BdApi.React["useMemo"];
+var useReducer = BdApi.React["useReducer"];
+var useRef = BdApi.React["useRef"];
+var useState = BdApi.React["useState"];
+var useSyncExternalStore = BdApi.React["useSyncExternalStore"];
+var useTransition = BdApi.React["useTransition"];
+var version = BdApi.React["version"];
 var react_default = BdApi.React;
 
 // node_modules/@iconify/react/dist/iconify.js
-('use client');
+("use client");
 function getIconsTree(data, names) {
   const icons = data.icons;
   const aliases = data.aliases || Object.create(null);
@@ -1306,7 +1306,7 @@ var defaultIconProps = Object.freeze({
 });
 var defaultExtendedIconProps = Object.freeze({
   ...defaultIconProps,
-  body: '',
+  body: "",
   hidden: false,
 });
 function mergeIconTransformations(obj1, obj2) {
@@ -1339,7 +1339,7 @@ function internalGetIconData(data, name, tree) {
 }
 function parseIconSet(data, callback) {
   const names = [];
-  if (typeof data !== 'object' || typeof data.icons !== 'object') return names;
+  if (typeof data !== "object" || typeof data.icons !== "object") return names;
   if (data.not_found instanceof Array)
     data.not_found.forEach((name) => {
       callback(name, null);
@@ -1356,7 +1356,7 @@ function parseIconSet(data, callback) {
   return names;
 }
 var optionalPropertyDefaults = {
-  provider: '',
+  provider: "",
   aliases: {},
   not_found: {},
   ...defaultIconDimensions,
@@ -1367,16 +1367,16 @@ function checkOptionalProps(item, defaults) {
   return true;
 }
 function quicklyValidateIconSet(obj) {
-  if (typeof obj !== 'object' || obj === null) return null;
+  if (typeof obj !== "object" || obj === null) return null;
   const data = obj;
-  if (typeof data.prefix !== 'string' || !obj.icons || typeof obj.icons !== 'object') return null;
+  if (typeof data.prefix !== "string" || !obj.icons || typeof obj.icons !== "object") return null;
   if (!checkOptionalProps(obj, optionalPropertyDefaults)) return null;
   const icons = data.icons;
   for (const name in icons) {
     const icon = icons[name];
     if (
       !name ||
-      typeof icon.body !== 'string' ||
+      typeof icon.body !== "string" ||
       !checkOptionalProps(icon, defaultExtendedIconProps)
     )
       return null;
@@ -1387,7 +1387,7 @@ function quicklyValidateIconSet(obj) {
     const parent = icon.parent;
     if (
       !name ||
-      typeof parent !== 'string' ||
+      typeof parent !== "string" ||
       (!icons[parent] && !aliases[parent]) ||
       !checkOptionalProps(icon, defaultExtendedIconProps)
     )
@@ -1417,7 +1417,7 @@ function addIconSet(storage, data) {
 }
 function addIconToStorage(storage, name, icon) {
   try {
-    if (typeof icon.body === 'string') {
+    if (typeof icon.body === "string") {
       storage.icons[name] = { ...icon };
       return true;
     }
@@ -1425,9 +1425,9 @@ function addIconToStorage(storage, name, icon) {
   return false;
 }
 var matchIconName = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-var stringToIcon = (value, validate, allowSimpleName, provider = '') => {
-  const colonSeparated = value.split(':');
-  if (value.slice(0, 1) === '@') {
+var stringToIcon = (value, validate, allowSimpleName, provider = "") => {
+  const colonSeparated = value.split(":");
+  if (value.slice(0, 1) === "@") {
     if (colonSeparated.length < 2 || colonSeparated.length > 3) return null;
     provider = colonSeparated.shift().slice(1);
   }
@@ -1443,19 +1443,19 @@ var stringToIcon = (value, validate, allowSimpleName, provider = '') => {
     return validate && !validateIconName(result) ? null : result;
   }
   const name = colonSeparated[0];
-  const dashSeparated = name.split('-');
+  const dashSeparated = name.split("-");
   if (dashSeparated.length > 1) {
     const result = {
       provider,
       prefix: dashSeparated.shift(),
-      name: dashSeparated.join('-'),
+      name: dashSeparated.join("-"),
     };
     return validate && !validateIconName(result) ? null : result;
   }
-  if (allowSimpleName && provider === '') {
+  if (allowSimpleName && provider === "") {
     const result = {
       provider,
-      prefix: '',
+      prefix: "",
       name,
     };
     return validate && !validateIconName(result, allowSimpleName) ? null : result;
@@ -1464,15 +1464,15 @@ var stringToIcon = (value, validate, allowSimpleName, provider = '') => {
 };
 var validateIconName = (icon, allowSimpleName) => {
   if (!icon) return false;
-  return !!(((allowSimpleName && icon.prefix === '') || !!icon.prefix) && !!icon.name);
+  return !!(((allowSimpleName && icon.prefix === "") || !!icon.prefix) && !!icon.name);
 };
 var simpleNames = false;
 function allowSimpleNames(allow) {
-  if (typeof allow === 'boolean') simpleNames = allow;
+  if (typeof allow === "boolean") simpleNames = allow;
   return simpleNames;
 }
 function getIconData(name) {
-  const icon = typeof name === 'string' ? stringToIcon(name, true, simpleNames) : name;
+  const icon = typeof name === "string" ? stringToIcon(name, true, simpleNames) : name;
   if (icon) {
     const storage = getStorage(icon.provider, icon.prefix);
     const iconName = icon.name;
@@ -1490,12 +1490,12 @@ function addIcon(name, data) {
   }
 }
 function addCollection(data, provider) {
-  if (typeof data !== 'object') return false;
-  if (typeof provider !== 'string') provider = data.provider || '';
+  if (typeof data !== "object") return false;
+  if (typeof provider !== "string") provider = data.provider || "";
   if (simpleNames && !provider && !data.prefix) {
     let added = false;
     if (quicklyValidateIconSet(data)) {
-      data.prefix = '';
+      data.prefix = "";
       parseIconSet(data, (name, icon) => {
         if (addIcon(name, icon)) added = true;
       });
@@ -1506,7 +1506,7 @@ function addCollection(data, provider) {
   if (
     !validateIconName({
       prefix,
-      name: 'a',
+      name: "a",
     })
   )
     return false;
@@ -1526,8 +1526,8 @@ var unitsTest = /^-?[0-9.]*[0-9]+[0-9.]*$/g;
 function calculateSize(size, ratio, precision) {
   if (ratio === 1) return size;
   precision = precision || 100;
-  if (typeof size === 'number') return Math.ceil(size * ratio * precision) / precision;
-  if (typeof size !== 'string') return size;
+  if (typeof size === "number") return Math.ceil(size * ratio * precision) / precision;
+  if (typeof size !== "string") return size;
   const oldParts = size.split(unitsSplit);
   if (oldParts === null || !oldParts.length) return size;
   const newParts = [];
@@ -1540,18 +1540,18 @@ function calculateSize(size, ratio, precision) {
       else newParts.push(Math.ceil(num * ratio * precision) / precision);
     } else newParts.push(code);
     code = oldParts.shift();
-    if (code === undefined) return newParts.join('');
+    if (code === undefined) return newParts.join("");
     isNumber = !isNumber;
   }
 }
-function splitSVGDefs(content, tag = 'defs') {
-  let defs = '';
-  const index = content.indexOf('<' + tag);
+function splitSVGDefs(content, tag = "defs") {
+  let defs = "";
+  const index = content.indexOf("<" + tag);
   while (index >= 0) {
-    const start = content.indexOf('>', index);
-    const end = content.indexOf('</' + tag);
+    const start = content.indexOf(">", index);
+    const end = content.indexOf("</" + tag);
     if (start === -1 || end === -1) break;
-    const endEnd = content.indexOf('>', end);
+    const endEnd = content.indexOf(">", end);
     if (endEnd === -1) break;
     defs += content.slice(start + 1, end).trim();
     content = content.slice(0, index).trim() + content.slice(endEnd + 1);
@@ -1562,13 +1562,13 @@ function splitSVGDefs(content, tag = 'defs') {
   };
 }
 function mergeDefsAndContent(defs, content) {
-  return defs ? '<defs>' + defs + '</defs>' + content : content;
+  return defs ? "<defs>" + defs + "</defs>" + content : content;
 }
 function wrapSVGContent(body, start, end) {
   const split = splitSVGDefs(body);
   return mergeDefsAndContent(split.defs, start + split.content + end);
 }
-var isUnsetKeyword = (value) => value === 'unset' || value === 'undefined' || value === 'none';
+var isUnsetKeyword = (value) => value === "unset" || value === "undefined" || value === "none";
 function iconToSVG(icon, customisations) {
   const fullIcon = {
     ...defaultIconProps,
@@ -1594,16 +1594,16 @@ function iconToSVG(icon, customisations) {
       if (vFlip) rotation += 2;
       else {
         transformations.push(
-          'translate(' + (box.width + box.left).toString() + ' ' + (0 - box.top).toString() + ')'
+          "translate(" + (box.width + box.left).toString() + " " + (0 - box.top).toString() + ")"
         );
-        transformations.push('scale(-1 1)');
+        transformations.push("scale(-1 1)");
         box.top = box.left = 0;
       }
     else if (vFlip) {
       transformations.push(
-        'translate(' + (0 - box.left).toString() + ' ' + (box.height + box.top).toString() + ')'
+        "translate(" + (0 - box.left).toString() + " " + (box.height + box.top).toString() + ")"
       );
-      transformations.push('scale(1 -1)');
+      transformations.push("scale(1 -1)");
       box.top = box.left = 0;
     }
     let tempValue;
@@ -1613,22 +1613,22 @@ function iconToSVG(icon, customisations) {
       case 1:
         tempValue = box.height / 2 + box.top;
         transformations.unshift(
-          'rotate(90 ' + tempValue.toString() + ' ' + tempValue.toString() + ')'
+          "rotate(90 " + tempValue.toString() + " " + tempValue.toString() + ")"
         );
         break;
       case 2:
         transformations.unshift(
-          'rotate(180 ' +
+          "rotate(180 " +
             (box.width / 2 + box.left).toString() +
-            ' ' +
+            " " +
             (box.height / 2 + box.top).toString() +
-            ')'
+            ")"
         );
         break;
       case 3:
         tempValue = box.width / 2 + box.left;
         transformations.unshift(
-          'rotate(-90 ' + tempValue.toString() + ' ' + tempValue.toString() + ')'
+          "rotate(-90 " + tempValue.toString() + " " + tempValue.toString() + ")"
         );
         break;
     }
@@ -1645,7 +1645,7 @@ function iconToSVG(icon, customisations) {
       }
     }
     if (transformations.length)
-      body = wrapSVGContent(body, '<g transform="' + transformations.join(' ') + '">', '</g>');
+      body = wrapSVGContent(body, '<g transform="' + transformations.join(" ") + '">', "</g>");
   });
   const customisationsWidth = fullCustomisations.width;
   const customisationsHeight = fullCustomisations.height;
@@ -1656,17 +1656,17 @@ function iconToSVG(icon, customisations) {
   if (customisationsWidth === null) {
     height =
       customisationsHeight === null
-        ? '1em'
-        : customisationsHeight === 'auto'
+        ? "1em"
+        : customisationsHeight === "auto"
           ? boxHeight
           : customisationsHeight;
     width = calculateSize(height, boxWidth / boxHeight);
   } else {
-    width = customisationsWidth === 'auto' ? boxWidth : customisationsWidth;
+    width = customisationsWidth === "auto" ? boxWidth : customisationsWidth;
     height =
       customisationsHeight === null
         ? calculateSize(width, boxHeight / boxWidth)
-        : customisationsHeight === 'auto'
+        : customisationsHeight === "auto"
           ? boxHeight
           : customisationsHeight;
   }
@@ -1674,10 +1674,10 @@ function iconToSVG(icon, customisations) {
   const setAttr = (prop, value) => {
     if (!isUnsetKeyword(value)) attributes[prop] = value.toString();
   };
-  setAttr('width', width);
-  setAttr('height', height);
+  setAttr("width", width);
+  setAttr("height", height);
   const viewBox = [box.left, box.top, boxWidth, boxHeight];
-  attributes.viewBox = viewBox.join(' ');
+  attributes.viewBox = viewBox.join(" ");
   return {
     attributes,
     viewBox,
@@ -1686,23 +1686,23 @@ function iconToSVG(icon, customisations) {
 }
 var regex = /\sid="(\S+)"/g;
 var randomPrefix =
-  'IconifyId' + Date.now().toString(16) + ((Math.random() * 16777216) | 0).toString(16);
+  "IconifyId" + Date.now().toString(16) + ((Math.random() * 16777216) | 0).toString(16);
 var counter = 0;
 function replaceIDs(body, prefix = randomPrefix) {
   const ids = [];
   let match;
   while ((match = regex.exec(body))) ids.push(match[1]);
   if (!ids.length) return body;
-  const suffix = 'suffix' + ((Math.random() * 16777216) | Date.now()).toString(16);
+  const suffix = "suffix" + ((Math.random() * 16777216) | Date.now()).toString(16);
   ids.forEach((id) => {
-    const newID = typeof prefix === 'function' ? prefix(id) : prefix + (counter++).toString();
-    const escapedID = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const newID = typeof prefix === "function" ? prefix(id) : prefix + (counter++).toString();
+    const escapedID = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     body = body.replace(
-      new RegExp('([#;"])(' + escapedID + ')([")]|\\.[a-z])', 'g'),
-      '$1' + newID + suffix + '$3'
+      new RegExp('([#;"])(' + escapedID + ')([")]|\\.[a-z])', "g"),
+      "$1" + newID + suffix + "$3"
     );
   });
-  body = body.replace(new RegExp(suffix, 'g'), '');
+  body = body.replace(new RegExp(suffix, "g"), "");
   return body;
 }
 var storage = Object.create(null);
@@ -1710,18 +1710,18 @@ function setAPIModule(provider, item) {
   storage[provider] = item;
 }
 function getAPIModule(provider) {
-  return storage[provider] || storage[''];
+  return storage[provider] || storage[""];
 }
 function createAPIConfig(source) {
   let resources;
-  if (typeof source.resources === 'string') resources = [source.resources];
+  if (typeof source.resources === "string") resources = [source.resources];
   else {
     resources = source.resources;
     if (!(resources instanceof Array) || !resources.length) return null;
   }
   const result = {
     resources,
-    path: source.path || '/',
+    path: source.path || "/",
     maxURL: source.maxURL || 500,
     rotate: source.rotate || 750,
     timeout: source.timeout || 5000,
@@ -1732,14 +1732,14 @@ function createAPIConfig(source) {
   return result;
 }
 var configStorage = Object.create(null);
-var fallBackAPISources = ['https://api.simplesvg.com', 'https://api.unisvg.com'];
+var fallBackAPISources = ["https://api.simplesvg.com", "https://api.unisvg.com"];
 var fallBackAPI = [];
 while (fallBackAPISources.length > 0)
   if (fallBackAPISources.length === 1) fallBackAPI.push(fallBackAPISources.shift());
   else if (Math.random() > 0.5) fallBackAPI.push(fallBackAPISources.shift());
   else fallBackAPI.push(fallBackAPISources.pop());
-configStorage[''] = createAPIConfig({
-  resources: ['https://api.iconify.design'].concat(fallBackAPI),
+configStorage[""] = createAPIConfig({
+  resources: ["https://api.iconify.design"].concat(fallBackAPI),
 });
 function addAPIProvider(provider, customConfig) {
   const config = createAPIConfig(customConfig);
@@ -1754,7 +1754,7 @@ var detectFetch = () => {
   let callback;
   try {
     callback = fetch;
-    if (typeof callback === 'function') return callback;
+    if (typeof callback === "function") return callback;
   } catch (err) {}
 };
 var fetchModule = detectFetch();
@@ -1769,7 +1769,7 @@ function calculateMaxLength(provider, prefix) {
       const host = item;
       maxHostLength = Math.max(maxHostLength, host.length);
     });
-    const url = prefix + '.json?icons=';
+    const url = prefix + ".json?icons=";
     result = config.maxURL - maxHostLength - config.path.length - url.length;
   }
   return result;
@@ -1780,7 +1780,7 @@ function shouldAbort(status) {
 var prepare = (provider, prefix, icons) => {
   const results = [];
   const maxLength = calculateMaxLength(provider, prefix);
-  const type = 'icons';
+  const type = "icons";
   let item = {
     type,
     provider,
@@ -1806,34 +1806,34 @@ var prepare = (provider, prefix, icons) => {
   return results;
 };
 function getPath(provider) {
-  if (typeof provider === 'string') {
+  if (typeof provider === "string") {
     const config = getAPIConfig(provider);
     if (config) return config.path;
   }
-  return '/';
+  return "/";
 }
 var send = (host, params, callback) => {
   if (!fetchModule) {
-    callback('abort', 424);
+    callback("abort", 424);
     return;
   }
   let path = getPath(params.provider);
   switch (params.type) {
-    case 'icons': {
+    case "icons": {
       const prefix = params.prefix;
       const icons = params.icons;
-      const iconsList = icons.join(',');
+      const iconsList = icons.join(",");
       const urlParams = new URLSearchParams({ icons: iconsList });
-      path += prefix + '.json?' + urlParams.toString();
+      path += prefix + ".json?" + urlParams.toString();
       break;
     }
-    case 'custom': {
+    case "custom": {
       const uri = params.uri;
-      path += uri.slice(0, 1) === '/' ? uri.slice(1) : uri;
+      path += uri.slice(0, 1) === "/" ? uri.slice(1) : uri;
       break;
     }
     default:
-      callback('abort', 400);
+      callback("abort", 400);
       return;
   }
   let defaultError = 503;
@@ -1842,7 +1842,7 @@ var send = (host, params, callback) => {
       const status = response.status;
       if (status !== 200) {
         setTimeout(() => {
-          callback(shouldAbort(status) ? 'abort' : 'next', status);
+          callback(shouldAbort(status) ? "abort" : "next", status);
         });
         return;
       }
@@ -1850,19 +1850,19 @@ var send = (host, params, callback) => {
       return response.json();
     })
     .then((data) => {
-      if (typeof data !== 'object' || data === null) {
+      if (typeof data !== "object" || data === null) {
         setTimeout(() => {
-          if (data === 404) callback('abort', data);
-          else callback('next', defaultError);
+          if (data === 404) callback("abort", data);
+          else callback("next", defaultError);
         });
         return;
       }
       setTimeout(() => {
-        callback('success', data);
+        callback("success", data);
       });
     })
     .catch(() => {
-      callback('next', defaultError);
+      callback("next", defaultError);
     });
 };
 var fetchAPIModule = {
@@ -1951,9 +1951,9 @@ function sortIcons(icons) {
     return a.name.localeCompare(b.name);
   });
   let lastIcon = {
-    provider: '',
-    prefix: '',
-    name: '',
+    provider: "",
+    prefix: "",
+    name: "",
   };
   icons.forEach((icon) => {
     if (
@@ -1971,7 +1971,7 @@ function sortIcons(icons) {
       providerStorage[prefix] || (providerStorage[prefix] = getStorage(provider, prefix));
     let list;
     if (name in localStorage.icons) list = result.loaded;
-    else if (prefix === '' || localStorage.missing.has(name)) list = result.missing;
+    else if (prefix === "" || localStorage.missing.has(name)) list = result.missing;
     else list = result.pending;
     const item = {
       provider,
@@ -1985,7 +1985,7 @@ function sortIcons(icons) {
 function listToIcons(list, validate = true, simpleNames2 = false) {
   const result = [];
   list.forEach((item) => {
-    const icon = typeof item === 'string' ? stringToIcon(item, validate, simpleNames2) : item;
+    const icon = typeof item === "string" ? stringToIcon(item, validate, simpleNames2) : item;
     if (icon) result.push(icon);
   });
   return result;
@@ -2014,13 +2014,13 @@ function sendQuery(config, payload, query, done) {
   } else
     resources = config.resources.slice(startIndex).concat(config.resources.slice(0, startIndex));
   const startTime = Date.now();
-  let status = 'pending';
+  let status = "pending";
   let queriesSent = 0;
   let lastError;
   let timer = null;
   let queue = [];
   let doneCallbacks = [];
-  if (typeof done === 'function') doneCallbacks.push(done);
+  if (typeof done === "function") doneCallbacks.push(done);
   function resetTimer() {
     if (timer) {
       clearTimeout(timer);
@@ -2028,16 +2028,16 @@ function sendQuery(config, payload, query, done) {
     }
   }
   function abort() {
-    if (status === 'pending') status = 'aborted';
+    if (status === "pending") status = "aborted";
     resetTimer();
     queue.forEach((item) => {
-      if (item.status === 'pending') item.status = 'aborted';
+      if (item.status === "pending") item.status = "aborted";
     });
     queue = [];
   }
   function subscribe(callback, overwrite) {
     if (overwrite) doneCallbacks = [];
-    if (typeof callback === 'function') doneCallbacks.push(callback);
+    if (typeof callback === "function") doneCallbacks.push(callback);
   }
   function getQueryStatus() {
     return {
@@ -2051,30 +2051,30 @@ function sendQuery(config, payload, query, done) {
     };
   }
   function failQuery() {
-    status = 'failed';
+    status = "failed";
     doneCallbacks.forEach((callback) => {
       callback(undefined, lastError);
     });
   }
   function clearQueue() {
     queue.forEach((item) => {
-      if (item.status === 'pending') item.status = 'aborted';
+      if (item.status === "pending") item.status = "aborted";
     });
     queue = [];
   }
   function moduleResponse(item, response, data) {
-    const isError = response !== 'success';
+    const isError = response !== "success";
     queue = queue.filter((queued) => queued !== item);
     switch (status) {
-      case 'pending':
+      case "pending":
         break;
-      case 'failed':
+      case "failed":
         if (isError || !config.dataAfterTimeout) return;
         break;
       default:
         return;
     }
-    if (response === 'abort') {
+    if (response === "abort") {
       lastError = data;
       failQuery();
       return;
@@ -2092,20 +2092,20 @@ function sendQuery(config, payload, query, done) {
       const index = config.resources.indexOf(item.resource);
       if (index !== -1 && index !== config.index) config.index = index;
     }
-    status = 'completed';
+    status = "completed";
     doneCallbacks.forEach((callback) => {
       callback(data);
     });
   }
   function execNext() {
-    if (status !== 'pending') return;
+    if (status !== "pending") return;
     resetTimer();
     const resource = resources.shift();
     if (resource === undefined) {
       if (queue.length) {
         timer = setTimeout(() => {
           resetTimer();
-          if (status === 'pending') {
+          if (status === "pending") {
             clearQueue();
             failQuery();
           }
@@ -2116,7 +2116,7 @@ function sendQuery(config, payload, query, done) {
       return;
     }
     const item = {
-      status: 'pending',
+      status: "pending",
       resource,
       callback: (status$1, data) => {
         moduleResponse(item, status$1, data);
@@ -2137,7 +2137,7 @@ function initRedundancy(cfg) {
   };
   let queries = [];
   function cleanup() {
-    queries = queries.filter((item) => item().status === 'pending');
+    queries = queries.filter((item) => item().status === "pending");
   }
   function query(payload, queryCallback, doneCallback) {
     const query$1 = sendQuery(config, payload, queryCallback, (data, error) => {
@@ -2183,7 +2183,7 @@ function getRedundancyCache(provider) {
 function sendAPIQuery(target, query, callback) {
   let redundancy;
   let send2;
-  if (typeof target === 'string') {
+  if (typeof target === "string") {
     const api = getAPIModule(target);
     if (!api) {
       callback(undefined, 424);
@@ -2196,7 +2196,7 @@ function sendAPIQuery(target, query, callback) {
     const config = createAPIConfig(target);
     if (config) {
       redundancy = initRedundancy(config);
-      const moduleKey = target.resources ? target.resources[0] : '';
+      const moduleKey = target.resources ? target.resources[0] : "";
       const api = getAPIModule(moduleKey);
       if (api) send2 = api.send;
     }
@@ -2236,7 +2236,7 @@ function parseLoaderResponse(storage2, icons, data) {
       if (!storage2.icons[name]) storage2.missing.add(name);
     });
   }
-  if (data && typeof data === 'object')
+  if (data && typeof data === "object")
     try {
       const parsed = addIconSet(storage2, data);
       if (!parsed.length) {
@@ -2358,9 +2358,9 @@ function mergeCustomisations(defaults, item) {
     const value = item[key];
     const valueType = typeof value;
     if (key in defaultIconSizeCustomisations) {
-      if (value === null || (value && (valueType === 'string' || valueType === 'number')))
+      if (value === null || (value && (valueType === "string" || valueType === "number")))
         result[key] = value;
-    } else if (valueType === typeof result[key]) result[key] = key === 'rotate' ? value % 4 : value;
+    } else if (valueType === typeof result[key]) result[key] = key === "rotate" ? value % 4 : value;
   }
   return result;
 }
@@ -2369,31 +2369,31 @@ function flipFromString(custom, flip) {
   flip.split(separator).forEach((str) => {
     const value = str.trim();
     switch (value) {
-      case 'horizontal':
+      case "horizontal":
         custom.hFlip = true;
         break;
-      case 'vertical':
+      case "vertical":
         custom.vFlip = true;
         break;
     }
   });
 }
 function rotateFromString(value, defaultValue = 0) {
-  const units = value.replace(/^-?[0-9.]*/, '');
+  const units = value.replace(/^-?[0-9.]*/, "");
   function cleanup(value$1) {
     while (value$1 < 0) value$1 += 4;
     return value$1 % 4;
   }
-  if (units === '') {
+  if (units === "") {
     const num = parseInt(value);
     return isNaN(num) ? 0 : cleanup(num);
   } else if (units !== value) {
     let split = 0;
     switch (units) {
-      case '%':
+      case "%":
         split = 25;
         break;
-      case 'deg':
+      case "deg":
         split = 90;
     }
     if (split) {
@@ -2407,21 +2407,21 @@ function rotateFromString(value, defaultValue = 0) {
 }
 function iconToHTML(body, attributes) {
   let renderAttribsHTML =
-    body.indexOf('xlink:') === -1 ? '' : ' xmlns:xlink="http://www.w3.org/1999/xlink"';
-  for (const attr in attributes) renderAttribsHTML += ' ' + attr + '="' + attributes[attr] + '"';
-  return '<svg xmlns="http://www.w3.org/2000/svg"' + renderAttribsHTML + '>' + body + '</svg>';
+    body.indexOf("xlink:") === -1 ? "" : ' xmlns:xlink="http://www.w3.org/1999/xlink"';
+  for (const attr in attributes) renderAttribsHTML += " " + attr + '="' + attributes[attr] + '"';
+  return '<svg xmlns="http://www.w3.org/2000/svg"' + renderAttribsHTML + ">" + body + "</svg>";
 }
 function encodeSVGforURL(svg) {
   return svg
     .replace(/"/g, "'")
-    .replace(/%/g, '%25')
-    .replace(/#/g, '%23')
-    .replace(/</g, '%3C')
-    .replace(/>/g, '%3E')
-    .replace(/\s+/g, ' ');
+    .replace(/%/g, "%25")
+    .replace(/#/g, "%23")
+    .replace(/</g, "%3C")
+    .replace(/>/g, "%3E")
+    .replace(/\s+/g, " ");
 }
 function svgToData(svg) {
-  return 'data:image/svg+xml,' + encodeSVGforURL(svg);
+  return "data:image/svg+xml," + encodeSVGforURL(svg);
 }
 function svgToURL(svg) {
   return 'url("' + svgToData(svg) + '")';
@@ -2429,7 +2429,7 @@ function svgToURL(svg) {
 var policy;
 function createPolicy() {
   try {
-    policy = window.trustedTypes.createPolicy('iconify', { createHTML: (s) => s });
+    policy = window.trustedTypes.createPolicy("iconify", { createHTML: (s) => s });
   } catch (err) {
     policy = null;
   }
@@ -2443,24 +2443,24 @@ var defaultExtendedIconCustomisations = {
   inline: false,
 };
 var svgDefaults = {
-  xmlns: 'http://www.w3.org/2000/svg',
-  xmlnsXlink: 'http://www.w3.org/1999/xlink',
-  'aria-hidden': true,
-  role: 'img',
+  xmlns: "http://www.w3.org/2000/svg",
+  xmlnsXlink: "http://www.w3.org/1999/xlink",
+  "aria-hidden": true,
+  role: "img",
 };
 var commonProps = {
-  display: 'inline-block',
+  display: "inline-block",
 };
 var monotoneProps = {
-  backgroundColor: 'currentColor',
+  backgroundColor: "currentColor",
 };
 var coloredProps = {
-  backgroundColor: 'transparent',
+  backgroundColor: "transparent",
 };
 var propsToAdd = {
-  Image: 'var(--svg)',
-  Repeat: 'no-repeat',
-  Size: '100% 100%',
+  Image: "var(--svg)",
+  Repeat: "no-repeat",
+  Size: "100% 100%",
 };
 var propsToAddTo = {
   WebkitMask: monotoneProps,
@@ -2478,28 +2478,28 @@ var inlineDefaults = {
   inline: true,
 };
 function fixSize(value) {
-  return value + (value.match(/^[-0-9.]+$/) ? 'px' : '');
+  return value + (value.match(/^[-0-9.]+$/) ? "px" : "");
 }
 var render = (icon, props, name) => {
   const defaultProps = props.inline ? inlineDefaults : defaultExtendedIconCustomisations;
   const customisations = mergeCustomisations(defaultProps, props);
-  const mode = props.mode || 'svg';
+  const mode = props.mode || "svg";
   const style = {};
   const customStyle = props.style || {};
   const componentProps = {
-    ...(mode === 'svg' ? svgDefaults : {}),
+    ...(mode === "svg" ? svgDefaults : {}),
   };
   if (name) {
     const iconName = stringToIcon(name, false, true);
     if (iconName) {
-      const classNames = ['iconify'];
-      const props2 = ['provider', 'prefix'];
+      const classNames = ["iconify"];
+      const props2 = ["provider", "prefix"];
       for (const prop of props2) {
         if (iconName[prop]) {
-          classNames.push('iconify--' + iconName[prop]);
+          classNames.push("iconify--" + iconName[prop]);
         }
       }
-      componentProps.className = classNames.join(' ');
+      componentProps.className = classNames.join(" ");
     }
   }
   for (let key in props) {
@@ -2508,44 +2508,44 @@ var render = (icon, props, name) => {
       continue;
     }
     switch (key) {
-      case 'icon':
-      case 'style':
-      case 'children':
-      case 'onLoad':
-      case 'mode':
-      case 'ssr':
-      case 'fallback':
+      case "icon":
+      case "style":
+      case "children":
+      case "onLoad":
+      case "mode":
+      case "ssr":
+      case "fallback":
         break;
-      case '_ref':
+      case "_ref":
         componentProps.ref = value;
         break;
-      case 'className':
-        componentProps[key] = (componentProps[key] ? componentProps[key] + ' ' : '') + value;
+      case "className":
+        componentProps[key] = (componentProps[key] ? componentProps[key] + " " : "") + value;
         break;
-      case 'inline':
-      case 'hFlip':
-      case 'vFlip':
-        customisations[key] = value === true || value === 'true' || value === 1;
+      case "inline":
+      case "hFlip":
+      case "vFlip":
+        customisations[key] = value === true || value === "true" || value === 1;
         break;
-      case 'flip':
-        if (typeof value === 'string') {
+      case "flip":
+        if (typeof value === "string") {
           flipFromString(customisations, value);
         }
         break;
-      case 'color':
+      case "color":
         style.color = value;
         break;
-      case 'rotate':
-        if (typeof value === 'string') {
+      case "rotate":
+        if (typeof value === "string") {
           customisations[key] = rotateFromString(value);
-        } else if (typeof value === 'number') {
+        } else if (typeof value === "number") {
           customisations[key] = value;
         }
         break;
-      case 'ariaHidden':
-      case 'aria-hidden':
-        if (value !== true && value !== 'true') {
-          delete componentProps['aria-hidden'];
+      case "ariaHidden":
+      case "aria-hidden":
+        if (value !== true && value !== "true") {
+          delete componentProps["aria-hidden"];
         }
         break;
       default:
@@ -2557,9 +2557,9 @@ var render = (icon, props, name) => {
   const item = iconToSVG(icon, customisations);
   const renderAttribs = item.attributes;
   if (customisations.inline) {
-    style.verticalAlign = '-0.125em';
+    style.verticalAlign = "-0.125em";
   }
-  if (mode === 'svg') {
+  if (mode === "svg") {
     componentProps.style = {
       ...style,
       ...customStyle,
@@ -2567,50 +2567,50 @@ var render = (icon, props, name) => {
     Object.assign(componentProps, renderAttribs);
     let localCounter = 0;
     let id = props.id;
-    if (typeof id === 'string') {
-      id = id.replace(/-/g, '_');
+    if (typeof id === "string") {
+      id = id.replace(/-/g, "_");
     }
     componentProps.dangerouslySetInnerHTML = {
       __html: cleanUpInnerHTML(
-        replaceIDs(item.body, id ? () => id + 'ID' + localCounter++ : 'iconifyReact')
+        replaceIDs(item.body, id ? () => id + "ID" + localCounter++ : "iconifyReact")
       ),
     };
-    return createElement('svg', componentProps);
+    return createElement("svg", componentProps);
   }
   const { body, width, height } = icon;
-  const useMask = mode === 'mask' || (mode === 'bg' ? false : body.indexOf('currentColor') !== -1);
+  const useMask = mode === "mask" || (mode === "bg" ? false : body.indexOf("currentColor") !== -1);
   const html = iconToHTML(body, {
     ...renderAttribs,
-    width: width + '',
-    height: height + '',
+    width: width + "",
+    height: height + "",
   });
   componentProps.style = {
     ...style,
-    '--svg': svgToURL(html),
+    "--svg": svgToURL(html),
     width: fixSize(renderAttribs.width),
     height: fixSize(renderAttribs.height),
     ...commonProps,
     ...(useMask ? monotoneProps : coloredProps),
     ...customStyle,
   };
-  return createElement('span', componentProps);
+  return createElement("span", componentProps);
 };
 allowSimpleNames(true);
-setAPIModule('', fetchAPIModule);
-if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+setAPIModule("", fetchAPIModule);
+if (typeof document !== "undefined" && typeof window !== "undefined") {
   const _window = window;
   if (_window.IconifyPreload !== undefined) {
     const preload = _window.IconifyPreload;
-    const err = 'Invalid IconifyPreload syntax.';
-    if (typeof preload === 'object' && preload !== null) {
+    const err = "Invalid IconifyPreload syntax.";
+    if (typeof preload === "object" && preload !== null) {
       (preload instanceof Array ? preload : [preload]).forEach((item) => {
         try {
           if (
-            typeof item !== 'object' ||
+            typeof item !== "object" ||
             item === null ||
             item instanceof Array ||
-            typeof item.icons !== 'object' ||
-            typeof item.prefix !== 'string' ||
+            typeof item.icons !== "object" ||
+            typeof item.prefix !== "string" ||
             !addCollection(item)
           ) {
             console.error(err);
@@ -2623,12 +2623,12 @@ if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   }
   if (_window.IconifyProviders !== undefined) {
     const providers = _window.IconifyProviders;
-    if (typeof providers === 'object' && providers !== null) {
+    if (typeof providers === "object" && providers !== null) {
       for (let key in providers) {
-        const err = 'IconifyProviders[' + key + '] is invalid.';
+        const err = "IconifyProviders[" + key + "] is invalid.";
         try {
           const value = providers[key];
-          if (typeof value !== 'object' || !value || value.resources === undefined) {
+          if (typeof value !== "object" || !value || value.resources === undefined) {
             continue;
           }
           if (!addAPIProvider(key, value)) {
@@ -2647,9 +2647,9 @@ function IconComponent(props) {
   function getInitialState(mounted2) {
     if (mounted2) {
       const name2 = props.icon;
-      if (typeof name2 === 'object') {
+      if (typeof name2 === "object") {
         return {
-          name: '',
+          name: "",
           data: name2,
         };
       }
@@ -2662,7 +2662,7 @@ function IconComponent(props) {
       }
     }
     return {
-      name: '',
+      name: "",
     };
   }
   const [state, setState] = useState(getInitialState(!!props.ssr));
@@ -2683,9 +2683,9 @@ function IconComponent(props) {
   function updateState() {
     var _a;
     const name2 = props.icon;
-    if (typeof name2 === 'object') {
+    if (typeof name2 === "object") {
       changeState({
-        name: '',
+        name: "",
         data: name2,
       });
       return;
@@ -2722,7 +2722,7 @@ function IconComponent(props) {
       ? props.children
       : props.fallback
         ? props.fallback
-        : createElement('span', {});
+        : createElement("span", {});
   }
   return render(
     {
@@ -2750,13 +2750,13 @@ var InlineIcon = forwardRef((props, ref) =>
 // src/global/webpack/index.ts
 var { Webpack } = BdApi;
 function queryToFilter(query) {
-  if ('filter' in query) return query.filter;
-  if ('keys' in query) return Webpack.Filters.byKeys(...query.keys);
-  if ('prototypeKeys' in query) return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
-  if ('strings' in query) return Webpack.Filters.byStrings(...query.strings);
-  if ('source' in query) return Webpack.Filters.bySource(...query.source);
-  if ('regex' in query) return Webpack.Filters.byRegex(query.regex);
-  if ('displayName' in query) return Webpack.Filters.byDisplayName(query.displayName);
+  if ("filter" in query) return query.filter;
+  if ("keys" in query) return Webpack.Filters.byKeys(...query.keys);
+  if ("prototypeKeys" in query) return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
+  if ("strings" in query) return Webpack.Filters.byStrings(...query.strings);
+  if ("source" in query) return Webpack.Filters.bySource(...query.source);
+  if ("regex" in query) return Webpack.Filters.byRegex(query.regex);
+  if ("displayName" in query) return Webpack.Filters.byDisplayName(query.displayName);
   return Webpack.Filters.byStoreName(query.storeName);
 }
 function resolveModule(filter, options) {
@@ -2787,7 +2787,7 @@ async function resolveModuleAsync(filter, options) {
   return (await Webpack.waitForModule(filter, opts)) ?? null;
 }
 function resolveQuery(query) {
-  if ('map' in query) {
+  if ("map" in query) {
     const q = query;
     const newModule = {};
     const foundModule = Webpack.getModule(q.filter);
@@ -2840,15 +2840,15 @@ async function wpWaitWithTimeout(filter, { timeout = 1e4, ...options } = {}) {
   ]);
 }
 var PASSTHROUGH_PROPS = new Set([
-  'then',
-  'toJSON',
-  'valueOf',
-  'toString',
+  "then",
+  "toJSON",
+  "valueOf",
+  "toString",
   Symbol.toPrimitive,
   Symbol.toStringTag,
   Symbol.iterator,
 ]);
-var IDENTITY_PROPS = new Set(['prototype', 'contextType', 'defaultProps', '$$typeof']);
+var IDENTITY_PROPS = new Set(["prototype", "contextType", "defaultProps", "$$typeof"]);
 function resolveLive(filter, options, path) {
   let current = resolveModule(filter, options);
   for (const seg of path) {
@@ -2865,7 +2865,7 @@ function createLiveProxy(filter, options, path) {
         const val = resolveLive(filter, options, path);
         if (val == null) return;
         const member = val[prop];
-        return typeof member === 'function' ? member.bind(val) : member;
+        return typeof member === "function" ? member.bind(val) : member;
       }
       return createLiveProxy(filter, options, [...path, prop]);
     },
@@ -2876,8 +2876,8 @@ function createLiveProxy(filter, options, path) {
     },
     construct(_t, args, _newTarget) {
       const ctor = resolveLive(filter, options, path);
-      if (typeof ctor !== 'function') {
-        throw new TypeError(`${String(path[path.length - 1] ?? 'target')} is not a constructor`);
+      if (typeof ctor !== "function") {
+        throw new TypeError(`${String(path[path.length - 1] ?? "target")} is not a constructor`);
       }
       return Reflect.construct(ctor, args, ctor);
     },
@@ -2894,11 +2894,11 @@ function createLiveProxy(filter, options, path) {
     ownKeys(_t) {
       const val = resolveLive(filter, options, path);
       const keys = val ? Reflect.ownKeys(val) : [];
-      if (!keys.includes('prototype')) keys.push('prototype');
+      if (!keys.includes("prototype")) keys.push("prototype");
       return keys;
     },
     getOwnPropertyDescriptor(_t, prop) {
-      if (prop === 'prototype') {
+      if (prop === "prototype") {
         return Reflect.getOwnPropertyDescriptor(_t, prop);
       }
       const val = resolveLive(filter, options, path);
@@ -2930,47 +2930,47 @@ var DefaultOptions = {
 };
 var GlobalModules = wpGetBulkKeyed({
   Typing: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('startTyping'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping"),
   },
   Endpoints: {
     filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
     ...DefaultOptions,
   },
   Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName('A'),
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
     ...DefaultOptions,
     options: {
-      key: '_dispatcher',
+      key: "_dispatcher",
     },
   },
   HTTP: {
-    filter: (m) => typeof m === 'object' && m.del && m.put,
+    filter: (m) => typeof m === "object" && m.del && m.put,
     ...DefaultOptions,
   },
   Gateway: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName('GatewayConnectionStore'),
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore"),
   },
   Flux: {
-    filter: BetterDiscord.Webpack.Filters.bySource('OfflineCacheStore'),
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
     options: {
-      key: 'Ay',
+      key: "Ay",
     },
   },
   Intl: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('intl'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl"),
   },
   ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys('openModal'),
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal"),
   },
   SimpleMarkdownWrapper: {
     filter: (m) => m.reactParserFor,
   },
   AssetModule: {
-    filter: BetterDiscord.Webpack.Filters.bySource('ApplicationAssetUtils'),
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
     map: {
-      getAssetImage: BetterDiscord.Webpack.Filters.byStrings('.TWITCH?null'),
-      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings('.serialize(t)'),
-      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings('APPLICATION_ASSETS_UPDATE'),
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
       getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`),
     },
   },
@@ -2979,11 +2979,11 @@ var GlobalModules = wpGetBulkKeyed({
   },
 });
 function CloseAllContextMenus() {
-  GlobalModules.Dispatcher.dispatch({ type: 'CONTEXT_MENU_CLOSE' });
+  GlobalModules.Dispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" });
 }
 
 // src/global/stores/UserProfilePictureStore.ts
-var USER_PFP = 'https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json';
+var USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
 var UserProfilePictureStore_default = new (class UserProfilePictureStore
   extends BetterDiscord.Utils.Store
 {
@@ -2993,12 +2993,12 @@ var UserProfilePictureStore_default = new (class UserProfilePictureStore
     this.fetch();
   }
   get(userId) {
-    const enabled = SettingsStore_default.get('userPfpIntegration');
+    const enabled = SettingsStore_default.get("userPfpIntegration");
     if (!enabled) return null;
     return this.users[userId];
   }
   hasHash(id) {
-    const enabled = SettingsStore_default.get('userPfpIntegration');
+    const enabled = SettingsStore_default.get("userPfpIntegration");
     if (!enabled) return false;
     return Boolean(this.users[id]);
   }
@@ -3014,8 +3014,8 @@ var UserProfilePictureStore_default = new (class UserProfilePictureStore
 
 // src/patches/modules/banners.tsx
 var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
-var TopLeft = styled.div({ zIndex: '100', position: 'absolute', padding: '10px' });
-var ModalModule = wpGetByKeys(['Modal']);
+var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
+var ModalModule = wpGetByKeys(["Modal"]);
 var NodePatcher = BetterDiscord.ReactUtils.createNodePatcher();
 function Debug({ user }) {
   const revealedText = getRevealedText(user.id);
@@ -3042,32 +3042,32 @@ function Debug({ user }) {
     badges: BadgesStore_default.check(user.id)
       ? BadgesStore_default.returnRespondingBadges(user.id)
           .map((x) => String(x.id))
-          .join(', ')
-      : 'none',
+          .join(", ")
+      : "none",
   };
   function OpenModal() {
     GlobalModules.ModalModule.openModal((props) => {
       return /* @__PURE__ */ React.createElement(
         ModalModule.Modal,
         {
-          size: 'lg',
-          title: 'Debug',
+          size: "lg",
+          title: "Debug",
           ...props,
         },
         /* @__PURE__ */ React.createElement(
-          'pre',
+          "pre",
           {
             style: {
-              color: '#d4d4d4',
-              padding: '16px',
-              borderRadius: '8px',
-              overflow: 'auto',
-              maxHeight: '70vh',
-              fontSize: '24px',
-              lineHeight: '1.5',
-              fontFamily: 'monospace',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
+              color: "#d4d4d4",
+              padding: "16px",
+              borderRadius: "8px",
+              overflow: "auto",
+              maxHeight: "70vh",
+              fontSize: "24px",
+              lineHeight: "1.5",
+              fontFamily: "monospace",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
             },
           },
           JSON.stringify(data, null, 2)
@@ -3079,26 +3079,26 @@ function Debug({ user }) {
     TopLeft,
     null,
     /* @__PURE__ */ React.createElement(Icon, {
-      icon: 'mdi:bug',
-      width: '24px',
-      color: 'white',
+      icon: "mdi:bug",
+      width: "24px",
+      color: "white",
       onClick: OpenModal,
     })
   );
 }
 var banners_default = {
-  name: 'fakeBanners',
-  description: '3y3 banners',
+  name: "fakeBanners",
+  description: "3y3 banners",
   ids: undefined,
   waitFor: [BetterDiscord.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
   mangled: {
-    renderBanner: (x) => x?.toString?.()?.includes?.('canUsePremiumProfileCustomization'),
+    renderBanner: (x) => x?.toString?.()?.includes?.("canUsePremiumProfileCustomization"),
   },
   apply(finale, patcher) {
-    patcher.after(finale.mangled, 'renderBanner', (_, [props], ret) => {
-      if (!SettingsStore_default.get('fakeProfileBanners')) return ret;
+    patcher.after(finale.mangled, "renderBanner", (_, [props], ret) => {
+      if (!SettingsStore_default.get("fakeProfileBanners")) return ret;
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, {
-        walkable: ['props', 'children'],
+        walkable: ["props", "children"],
       });
       try {
         NodePatcher.patch(newRet ?? ret, (props2, res) => {
@@ -3106,7 +3106,7 @@ var banners_default = {
           bannerUrl && (res.props.bannerSrc = bannerUrl);
         });
       } catch (e) {
-        BetterDiscord.Logger.error('Opened profile was not a valid user profile banner');
+        BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
       }
       return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id)
         ? [
@@ -3131,13 +3131,13 @@ var FFmpegStore_default = new (class FFmpegStore extends BetterDiscord.Utils.Sto
   async ensureFFmpeg() {
     if (this.loaded) return;
     const defineTemp = window.global.define;
-    let ffmpegScript = document.getElementById('ffmpegScript');
+    let ffmpegScript = document.getElementById("ffmpegScript");
     if (ffmpegScript) {
       ffmpegScript.remove();
     }
     delete window.FFmpegWASM;
     function tryFetchFromDisk(filename, encoding) {
-      const basepath = _path().join(BdApi.Plugins.folder, 'ffmpeg');
+      const basepath = _path().join(BdApi.Plugins.folder, "ffmpeg");
       let filepath = _path().join(basepath, filename);
       try {
         if (fs().existsSync(filepath)) {
@@ -3146,7 +3146,7 @@ var FFmpegStore_default = new (class FFmpegStore extends BetterDiscord.Utils.Sto
           return file;
         } else return false;
       } catch (err) {
-        Logger.warn('Tried to read ' + filename + ' from disk but an error occurred.');
+        Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
         Logger.warn(err);
       }
     }
@@ -3156,72 +3156,72 @@ var FFmpegStore_default = new (class FFmpegStore extends BetterDiscord.Utils.Sto
         return res;
       } else {
         Logger.error(res);
-        throw new Error(filename + ' failed to fetch.');
+        throw new Error(filename + " failed to fetch.");
       }
     }
     async function fetchBlobUrl(filename) {
       try {
         let blobUrl;
-        let file = tryFetchFromDisk(filename, '');
+        let file = tryFetchFromDisk(filename, "");
         if (file) blobUrl = URL.createObjectURL(new Blob([file]));
         else blobUrl = URL.createObjectURL(await (await fetchFFmpeg(filename)).blob());
         return blobUrl;
       } catch (err) {
-        Logger.error('An error occurred while fetching ' + filename);
+        Logger.error("An error occurred while fetching " + filename);
         throw err;
       }
     }
     let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
     try {
-      ffmpegWorkerURL = await fetchBlobUrl('814.ffmpeg.js');
+      ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
       let ffmpegSrc;
       try {
-        let file = tryFetchFromDisk('ffmpeg.js', 'utf8');
+        let file = tryFetchFromDisk("ffmpeg.js", "utf8");
         if (file) ffmpegSrc = file;
-        else ffmpegSrc = await (await fetchFFmpeg('ffmpeg.js')).text();
+        else ffmpegSrc = await (await fetchFFmpeg("ffmpeg.js")).text();
       } catch (err) {
-        Logger.error('An error occurred while fetching ffmpeg.js');
+        Logger.error("An error occurred while fetching ffmpeg.js");
         throw err;
       }
       ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
       ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
       window.global.define = undefined;
       await new Promise((load, err) => {
-        const ffmpegScriptElem = document.createElement('script');
-        ffmpegScriptElem.id = 'ffmpegScript';
+        const ffmpegScriptElem = document.createElement("script");
+        ffmpegScriptElem.id = "ffmpegScript";
         ffmpegScriptElem.src = ffmpegURL;
         ffmpegScriptElem.onload = load;
         ffmpegScriptElem.onerror = err;
         document.head.appendChild(ffmpegScriptElem);
       });
       window.global.define = defineTemp;
-      ffmpegCoreURL = await fetchBlobUrl('ffmpeg-core.js');
-      ffmpegCoreWasmURL = await fetchBlobUrl('ffmpeg-core.wasm');
+      ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
+      ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
       if (window.FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
         this.ffmpeg = new window.FFmpegWASM.FFmpeg();
         await this.ffmpeg.load({
           coreURL: ffmpegCoreURL,
           wasmURL: ffmpegCoreWasmURL,
         });
-        Logger.info('FFmpeg load success!');
+        Logger.info("FFmpeg load success!");
         this.loaded = true;
-        this.ffmpeg.on('log', ({ message }) => {
+        this.ffmpeg.on("log", ({ message }) => {
           console.log(message);
         });
       } else {
-        Logger.info('FFmpegWASM', window.FFmpegWASM);
-        Logger.info('ffmpegCoreURL', ffmpegCoreURL);
-        Logger.info('ffmpegCoreWasmURL', ffmpegCoreWasmURL);
-        Logger.info('ffmpegWorkerURL', ffmpegWorkerURL);
-        throw new Error('One or more of the necessary components failed to load.');
+        Logger.info("FFmpegWASM", window.FFmpegWASM);
+        Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+        Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+        Logger.info("ffmpegWorkerURL", ffmpegWorkerURL);
+        throw new Error("One or more of the necessary components failed to load.");
       }
     } catch (err) {
-      UI.showToast('An error occured trying to load FFmpeg.wasm. Check console for details.', {
-        type: 'error',
+      UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", {
+        type: "error",
         forceShow: true,
       });
       Logger.info(
-        'FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!'
+        "FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!"
       );
       Logger.error(err);
     } finally {
@@ -3237,7 +3237,7 @@ var FFmpegStore_default = new (class FFmpegStore extends BetterDiscord.Utils.Sto
       this.ffmpeg.terminate();
       this.ffmpeg = undefined;
     }
-    const ffmpegScript = document.getElementById('ffmpegScript');
+    const ffmpegScript = document.getElementById("ffmpegScript");
     ffmpegScript && ffmpegScript.remove();
     if (window.FFmpegWASM) delete window.FFmpegWASM;
     this.loaded = false;
@@ -3346,20 +3346,20 @@ var slc = function (v, s, e) {
   return new u8(v.subarray(s, e));
 };
 var ec = [
-  'unexpected EOF',
-  'invalid block type',
-  'invalid length/literal',
-  'invalid distance',
-  'stream finished',
-  'no stream handler',
+  "unexpected EOF",
+  "invalid block type",
+  "invalid length/literal",
+  "invalid distance",
+  "stream finished",
+  "no stream handler",
   ,
-  'no callback',
-  'invalid UTF-8 data',
-  'extra field too long',
-  'date not in range 1980-2099',
-  'filename too long',
-  'stream finishing',
-  'invalid zip data',
+  "no callback",
+  "invalid UTF-8 data",
+  "extra field too long",
+  "date not in range 1980-2099",
+  "filename too long",
+  "stream finishing",
+  "invalid zip data",
 ];
 var err = function (ind, msg, nt) {
   var e = new Error(msg || ec[ind]);
@@ -3752,13 +3752,13 @@ var fltn = function (d, p, t, o) {
     if (Array.isArray(val)) ((op = mrg(o, val[1])), (val = val[0]));
     if (ArrayBuffer.isView(val)) t[n] = [val, op];
     else {
-      t[(n += '/')] = [new u8(0), op];
+      t[(n += "/")] = [new u8(0), op];
       fltn(val, n, t, o);
     }
   }
 };
-var te = typeof TextEncoder != 'undefined' && /* @__PURE__ */ new TextEncoder();
-var td = typeof TextDecoder != 'undefined' && /* @__PURE__ */ new TextDecoder();
+var te = typeof TextEncoder != "undefined" && /* @__PURE__ */ new TextEncoder();
+var td = typeof TextDecoder != "undefined" && /* @__PURE__ */ new TextDecoder();
 var tds = 0;
 try {
   td.decode(et, { stream: true });
@@ -3868,7 +3868,7 @@ function zipSync(data, opts) {
   if (!opts) opts = {};
   var r = {};
   var files = [];
-  fltn(data, '', r, opts);
+  fltn(data, "", r, opts);
   var o = 0;
   var tot = 0;
   for (var fn in r) {
@@ -3920,17 +3920,17 @@ function zipSync(data, opts) {
 var { UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
 async function ffmpegTransmux(
   arrayBuffer,
-  inFileName = 'input.mp4',
+  inFileName = "input.mp4",
   ffmpegArguments,
-  outFileName = 'output.mp4'
+  outFileName = "output.mp4"
 ) {
   await FFmpegStore_default.ensureFFmpeg();
   const ffmpeg = FFmpegStore_default.getFFmpegInstance();
   if (!ffmpeg) throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
-  inFileName == outFileName && (inFileName = 'in_' + inFileName);
+  inFileName == outFileName && (inFileName = "in_" + inFileName);
   arrayBuffer && (await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer)));
-  BetterDiscord.Logger.log('Approximately equivalent ffmpeg command:');
-  BetterDiscord.Logger.log('ffmpeg ' + ffmpegArguments.join(' '));
+  BetterDiscord.Logger.log("Approximately equivalent ffmpeg command:");
+  BetterDiscord.Logger.log("ffmpeg " + ffmpegArguments.join(" "));
   await ffmpeg.exec(ffmpegArguments);
   const data = await ffmpeg.readFile(outFileName);
   inFileName && ffmpeg.deleteFile(inFileName);
@@ -3938,8 +3938,8 @@ async function ffmpegTransmux(
   if (data.length == 0)
     throw new Error(
       "An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " +
-        'likely due to an FFmpeg error. Please check the FFmpeg logs above. ' +
-        'If you need assistance, please use the support channel in the Discord server.'
+        "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
+        "If you need assistance, please use the support channel in the Discord server."
     );
   return data.buffer;
 }
@@ -3949,46 +3949,46 @@ function concatArrayBuffers(buf1, buf2) {
   newArray.set(new Uint8Array(buf2), buf1.byteLength);
   return newArray.buffer;
 }
-var udtaBuffer = Uint8Array.fromBase64('AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv').buffer;
+var udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 var FREE_FILE_LIMIT = 20971520;
 var CLIPS_FILE_LIMIT = 104857600;
 async function doClipsBypass(file) {
   const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } =
     SettingsStore_default.getAll();
   const skippedFileTypes = [
-    'video/3gp',
-    'video/asf',
-    'video/ivf',
-    'video/mpeg',
-    'audio/mid',
-    'audio/basic',
-    'audio/mpegurl',
-    'audio/3gp',
+    "video/3gp",
+    "video/asf",
+    "video/ivf",
+    "video/mpeg",
+    "audio/mid",
+    "audio/basic",
+    "audio/mpegurl",
+    "audio/3gp",
   ];
   if (skippedFileTypes.includes(file.file.type)) return file;
   const movTypes = [
-    'video/flv',
-    'video/ogg',
-    'video/wmv',
-    'video/mov',
-    'audio/wav',
-    'audio/aiff',
-    'audio/x-ms-wma',
-    'audio/mpeg',
+    "video/flv",
+    "video/ogg",
+    "video/wmv",
+    "video/mov",
+    "audio/wav",
+    "audio/aiff",
+    "audio/x-ms-wma",
+    "audio/mpeg",
   ];
-  let outFileName = movTypes.includes(file.file.type) ? 'output.mov' : 'output.mp4';
+  let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
   const clipData = {
     id: 0n,
     createdAt: 0,
     version: 3,
-    applicationName: '',
-    applicationId: '1301689862256066560',
+    applicationName: "",
+    applicationId: "1301689862256066560",
     users: [UserStore3.getCurrentUser().id],
-    clipMethod: 'manual',
+    clipMethod: "manual",
     length: file.file.size,
-    thumbnail: '',
-    filepath: '',
-    name: file.file.name.substring(0, file.file.name.lastIndexOf('.')),
+    thumbnail: "",
+    filepath: "",
+    name: file.file.name.substring(0, file.file.name.lastIndexOf(".")),
   };
   switch (clipTimestamp) {
     default:
@@ -4009,34 +4009,34 @@ async function doClipsBypass(file) {
   if (
     (file.file.size > FREE_FILE_LIMIT || forceClip) &&
     useClipBypass &&
-    file.file.type.startsWith('video/') &&
+    file.file.type.startsWith("video/") &&
     !skippedFileTypes.includes(file.file.type) &&
     file.file.size <= CLIPS_FILE_LIMIT
   ) {
     const ffmpegVideoClipArgs = [
-      '-i',
+      "-i",
       file.file.name,
-      '-c:v',
-      'copy',
-      '-c:a',
-      'copy',
-      '-c:s',
-      'mov_text',
-      '-dn',
-      '-brand',
-      'isom/avc1',
-      '-movflags',
-      '+faststart',
-      '-map',
-      '0',
-      '-map_metadata',
-      '-1',
-      '-map_chapters',
-      '-1',
-      '-map',
-      '-0:t',
-      '-strict',
-      '-2',
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-c:s",
+      "mov_text",
+      "-dn",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map",
+      "0",
+      "-map_metadata",
+      "-1",
+      "-map_chapters",
+      "-1",
+      "-map",
+      "-0:t",
+      "-strict",
+      "-2",
       outFileName,
     ];
     const arrayBuffer = await file.file.arrayBuffer();
@@ -4044,61 +4044,61 @@ async function doClipsBypass(file) {
       await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegVideoClipArgs, outFileName),
       udtaBuffer
     );
-    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + '.mp4', {
-      type: 'video/mp4',
+    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + ".mp4", {
+      type: "video/mp4",
     });
     modifiedFile = true;
   } else if (
     useAudioClipBypass &&
     (file.file.size > FREE_FILE_LIMIT || forceAudioClip) &&
-    file.file.type.startsWith('audio/') &&
+    file.file.type.startsWith("audio/") &&
     file.file.size <= CLIPS_FILE_LIMIT
   ) {
     const ffmpegAudioClipArgs = [
-      '-i',
+      "-i",
       file.file.name,
-      '-f',
-      'lavfi',
-      '-i',
-      'color=c=black:s=300x100',
-      '-shortest',
-      '-fflags',
-      '+shortest',
-      '-map',
-      '0:v?',
-      '-map',
-      '1:v',
-      '-map',
-      '0:a',
-      '-disposition:v',
-      'default',
-      '-brand',
-      'isom/avc1',
-      '-movflags',
-      '+faststart',
-      '-map_metadata',
-      '-1',
-      '-dn',
-      '-map_chapters',
-      '-1',
-      '-preset',
-      'ultrafast',
-      '-c:v',
-      'libx264',
-      '-c:a',
-      'copy',
-      '-strict',
-      '-2',
-      '-tune',
-      'stillimage',
-      '-r',
-      '5',
-      '-pix_fmt',
-      'yuv420p',
-      '-vf',
-      'crop=trunc(iw/2)*2:trunc(ih/2)*2',
-      '-max_interleave_delta',
-      '1',
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=300x100",
+      "-shortest",
+      "-fflags",
+      "+shortest",
+      "-map",
+      "0:v?",
+      "-map",
+      "1:v",
+      "-map",
+      "0:a",
+      "-disposition:v",
+      "default",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      "-dn",
+      "-map_chapters",
+      "-1",
+      "-preset",
+      "ultrafast",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "-strict",
+      "-2",
+      "-tune",
+      "stillimage",
+      "-r",
+      "5",
+      "-pix_fmt",
+      "yuv420p",
+      "-vf",
+      "crop=trunc(iw/2)*2:trunc(ih/2)*2",
+      "-max_interleave_delta",
+      "1",
       outFileName,
     ];
     const arrayBuffer = await file.file.arrayBuffer();
@@ -4106,69 +4106,69 @@ async function doClipsBypass(file) {
       await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegAudioClipArgs, outFileName),
       udtaBuffer
     );
-    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + '.mp4', {
-      type: 'video/mp4',
+    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + ".mp4", {
+      type: "video/mp4",
     });
     modifiedFile = true;
   } else if (file.file.size >= FREE_FILE_LIMIT && file.file.size <= CLIPS_FILE_LIMIT && zipClip) {
     const clipMaFFmpegArgs = [
-      '-f',
-      'lavfi',
-      '-i',
-      'color=c=black:s=128x96:duration=1',
-      '-f',
-      'lavfi',
-      '-i',
-      'anullsrc=r=44100:cl=mono',
-      '-shortest',
-      '-fflags',
-      '+shortest',
-      '-brand',
-      'isom/avc1',
-      '-movflags',
-      '+faststart',
-      '-map_metadata',
-      '-1',
-      '-preset',
-      'ultrafast',
-      '-vframes',
-      '5',
-      '-c:v',
-      'mjpeg',
-      'output.mp4',
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=128x96:duration=1",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=r=44100:cl=mono",
+      "-shortest",
+      "-fflags",
+      "+shortest",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      "-preset",
+      "ultrafast",
+      "-vframes",
+      "5",
+      "-c:v",
+      "mjpeg",
+      "output.mp4",
     ];
     const archiveMimeTypes = [
-      'x-7z-compressed',
-      'x-bzip',
-      'x-bzip2',
-      'x-rar-compressed',
-      'x-tar',
-      'gzip',
-      'x-gzip',
-      'zip',
-      'x-zip-compressed',
+      "x-7z-compressed",
+      "x-bzip",
+      "x-bzip2",
+      "x-rar-compressed",
+      "x-tar",
+      "gzip",
+      "x-gzip",
+      "zip",
+      "x-zip-compressed",
     ];
-    const videoArrayBuffer = await ffmpegTransmux(undefined, '', clipMaFFmpegArgs, 'output.mp4');
+    const videoArrayBuffer = await ffmpegTransmux(undefined, "", clipMaFFmpegArgs, "output.mp4");
     const clipMaBuffer = concatArrayBuffers(videoArrayBuffer, udtaBuffer);
     if (!clipMaBuffer) return file;
-    if (archiveMimeTypes.includes(file.file.type.replace('application/', ''))) {
+    if (archiveMimeTypes.includes(file.file.type.replace("application/", ""))) {
       const arrayBuffer = await file.file.arrayBuffer();
       const newArrBuf = concatArrayBuffers(clipMaBuffer, arrayBuffer);
-      file.file = new File([new Uint8Array(newArrBuf)], file.file.name + '.mp4', {
-        type: 'video/mp4',
+      file.file = new File([new Uint8Array(newArrBuf)], file.file.name + ".mp4", {
+        type: "video/mp4",
       });
       clipData.name = file.file.name;
     } else {
-      let fileExtension = file.file.name.substring(file.file.name.lastIndexOf('.') + 1);
+      let fileExtension = file.file.name.substring(file.file.name.lastIndexOf(".") + 1);
       let fileToZip = {};
       fileToZip[file.file.name] = await file.file.bytes();
       const zipFile = zipSync(fileToZip, { level: 6 }).buffer;
       const zipClipArrayBuffer = concatArrayBuffers(clipMaBuffer, zipFile);
       clipData.name = fileExtension.match(/z?\d+/)
-        ? file.file.name + '.zip'
-        : (clipData.name += '.zip');
-      file.file = new File([new Uint8Array(zipClipArrayBuffer)], clipData.name + '.mp4', {
-        type: 'video/mp4',
+        ? file.file.name + ".zip"
+        : (clipData.name += ".zip");
+      file.file = new File([new Uint8Array(zipClipArrayBuffer)], clipData.name + ".mp4", {
+        type: "video/mp4",
       });
     }
     modifiedFile = true;
@@ -4177,23 +4177,23 @@ async function doClipsBypass(file) {
   return file;
 }
 function genericErrorHandler(err2, currentFile = undefined) {
-  BetterDiscord.UI.showToast('Something went wrong. See console for details.', {
-    type: 'error',
+  BetterDiscord.UI.showToast("Something went wrong. See console for details.", {
+    type: "error",
     forceShow: true,
   });
   BetterDiscord.Logger.error(err2);
   if (currentFile) {
-    BetterDiscord.Logger.info('Current file information for debugging:', currentFile);
+    BetterDiscord.Logger.info("Current file information for debugging:", currentFile);
     BetterDiscord.Logger.info(`File Type: "${currentFile?.file?.type}"`);
   }
 }
 var clipsBypass_default = {
-  name: 'Clips Bypass',
-  description: 'Modify files to be sendable as a clip, changing the file upload limit to 100MB.',
+  name: "Clips Bypass",
+  description: "Modify files to be sendable as a clip, changing the file upload limit to 100MB.",
   ids: undefined,
   waitFor: [(x2) => x2.addFiles],
   apply(finale, patcher) {
-    patcher.instead(finale.modules[0], 'addFiles', async (_, [args], originalFunction) => {
+    patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
       const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
       if (!args?.files?.length || (!useClipBypass && !useAudioClipBypass && !zipClip))
         return originalFunction.apply(_, [args]);
@@ -4216,12 +4216,12 @@ var clipsBypass_default = {
 var { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
 var StickerTypeToExtension;
 ((StickerTypeToExtension2) => {
-  StickerTypeToExtension2[(StickerTypeToExtension2['.png'] = 1)] = '.png';
-  StickerTypeToExtension2[(StickerTypeToExtension2['.png'] = 2)] = '.png';
-  StickerTypeToExtension2[(StickerTypeToExtension2['.json'] = 3)] = '.json';
-  StickerTypeToExtension2[(StickerTypeToExtension2['.gif'] = 4)] = '.gif';
+  StickerTypeToExtension2[(StickerTypeToExtension2[".png"] = 1)] = ".png";
+  StickerTypeToExtension2[(StickerTypeToExtension2[".png"] = 2)] = ".png";
+  StickerTypeToExtension2[(StickerTypeToExtension2[".json"] = 3)] = ".json";
+  StickerTypeToExtension2[(StickerTypeToExtension2[".gif"] = 4)] = ".gif";
 })((StickerTypeToExtension ||= {}));
-var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys('uploadFileToCloud', {
+var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", {
   searchExports: true,
 });
 async function downloadAndUploadUrls(
@@ -4260,29 +4260,29 @@ async function downloadAndUploadUrls(
     await send2(channelId, msg, extraData);
   }
   extraData.attachmentsToUpload = [];
-  msg.content = '';
+  msg.content = "";
   while (uploads.length) {
     await send2(
       channelId,
-      { content: '' },
+      { content: "" },
       { attachmentsToUpload: uploads.splice(0, numFilesInMessage) }
     );
   }
 }
 var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
 var _sendMessage_default = {
-  name: 'Send Message',
-  description: 'Upload emoji, soundmoji, stickers, and insta-clips.',
+  name: "Send Message",
+  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
   ids: undefined,
   waitFor: [(x2) => x2._sendMessage],
   apply(finale, patcher) {
     patcher.instead(
       finale.modules[0],
-      '_sendMessage',
+      "_sendMessage",
       async (_, [channelId, msg, extraData], send2) => {
-        if (extraData.poll || extraData.activityAction || msg.location === 'forwarding')
+        if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
           return send2.apply(_, [channelId, msg, extraData]);
-        const emojiBypassType = SettingsStore_default.get('emojiBypassType');
+        const emojiBypassType = SettingsStore_default.get("emojiBypassType");
         const {
           zipClip,
           useClipBypass,
@@ -4298,13 +4298,13 @@ var _sendMessage_default = {
           if (shouldSkipEmojiBypass(emoji, channelId)) continue;
           const emojiString = getEmojiString(emoji);
           if (msg.content.includes(`-${emojiString}`)) {
-            msg.content = msg.content.replace('-' + emojiString, emojiString);
+            msg.content = msg.content.replace("-" + emojiString, emojiString);
             continue;
           }
           const emojiUrl = getEmojiUrl(emoji);
           switch (emojiBypassType) {
             case 0:
-              msg.content = msg.content.replace(emojiString, '');
+              msg.content = msg.content.replace(emojiString, "");
               urlsToUpload.push({
                 url: emojiUrl,
                 filename: emoji.name + getEmojiExtension(emoji),
@@ -4321,7 +4321,7 @@ var _sendMessage_default = {
         }
         if (extraData.stickerIds && stickerBypass) {
           extraData.stickerIds = extraData.stickerIds.map((stickerId, index) => {
-            const STICKER_PREFIX = 'https://media.discordapp.net/stickers/';
+            const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
             const sticker = StickersStore.getStickerById(stickerId);
             if (sticker.format_type == 3) return stickerId;
             let extension = StickerTypeToExtension[sticker.format_type];
@@ -4335,15 +4335,15 @@ var _sendMessage_default = {
         }
         let soundmojiUrls = [];
         if (soundmojiEnabled) {
-          const SOUNDBOARD_PREFIX = 'https://cdn.discordapp.com/soundboard-sounds/';
+          const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
           const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
           const soundmojiObjects = soundmojiStrings?.map?.((x2) =>
-            SoundboardStore.getSoundById(x2?.split?.(':')?.[2]?.slice?.(0, -1))
+            SoundboardStore.getSoundById(x2?.split?.(":")?.[2]?.slice?.(0, -1))
           );
           soundmojiObjects?.forEach?.((x2) =>
             soundmojiUrls.push({
               url: SOUNDBOARD_PREFIX + x2.soundId,
-              filename: x2.name + '.ogg',
+              filename: x2.name + ".ogg",
             })
           );
           for (let i2 = 0; i2 < soundmojiObjects?.length; i2++) {
@@ -4360,7 +4360,7 @@ var _sendMessage_default = {
               let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
               msg.content = msg.content.replace(
                 soundmojiString,
-                `( [${emoji?.name ?? 'someCustomEmoji'}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? 'webp' : 'png'}?size=32&animated=true) ${sound.name} ) `
+                `( [${emoji?.name ?? "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `
               );
             }
             !sound.emojiId &&
@@ -4369,7 +4369,7 @@ var _sendMessage_default = {
           }
         }
         if (
-          extraData?.location === 'instant_upload' &&
+          extraData?.location === "instant_upload" &&
           (zipClip || useClipBypass || useAudioClipBypass)
         ) {
           await Promise.all(
@@ -4392,20 +4392,20 @@ var _sendMessage_default = {
 };
 // src/patches/modules/unlockEmojis.ts
 var unlockEmojis_default = {
-  name: 'Unlock Emojis',
-  description: 'Fully unlocks emojis.',
-  waitFor: [BetterDiscord.Webpack.Filters.byKeys('isEmojiFilteredOrLocked')],
+  name: "Unlock Emojis",
+  description: "Fully unlocks emojis.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
   apply(finale, patcher) {
-    ['isEmojiFilteredOrLocked', 'isEmojiDisabled', 'isEmojiFiltered', 'isEmojiPremiumLocked'].map(
+    ["isEmojiFilteredOrLocked", "isEmojiDisabled", "isEmojiFiltered", "isEmojiPremiumLocked"].map(
       (x2) =>
         patcher.instead(finale.modules[0], x2, (_, args, callback) => {
-          const emojiBypassEnabled = SettingsStore_default.get('emojiBypass');
+          const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
           if (emojiBypassEnabled) return false;
           else return callback.apply(_, args);
         })
     );
-    patcher.instead(finale.modules[0], 'getEmojiUnavailableReason', (_, args, callback) => {
-      const emojiBypassEnabled = SettingsStore_default.get('emojiBypass');
+    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", (_, args, callback) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       if (emojiBypassEnabled) return;
       else return callback.apply(_, args);
     });
@@ -4413,13 +4413,13 @@ var unlockEmojis_default = {
 };
 // src/patches/modules/getUserBannerURL.ts
 var getUserBannerURL_default = {
-  name: 'getUserBannerURL',
-  description: 'Force animate the user banner URL',
+  name: "getUserBannerURL",
+  description: "Force animate the user banner URL",
   waitFor: [(x2) => x2.getEmojiURL],
   apply(finale, patcher) {
     const AvatarDefaults = finale.modules[0];
-    patcher.before(AvatarDefaults, 'getUserBannerURL', (_, args) => {
-      if (!SettingsStore_default.get('fakeProfileBanners')) return;
+    patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+      if (!SettingsStore_default.get("fakeProfileBanners")) return;
       args[0].canAnimate = true;
     });
   },
@@ -4428,32 +4428,32 @@ var getUserBannerURL_default = {
 var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } =
   BetterDiscord.Webpack.Stores;
 var appIcons_default = {
-  name: 'appIcons',
-  description: 'Lets user select app icon',
+  name: "appIcons",
+  description: "Lets user select app icon",
   apply(finale, patcher) {
-    const appIconsEnabled = SettingsStore_default.get('unlockAppIcons');
+    const appIconsEnabled = SettingsStore_default.get("unlockAppIcons");
     appIconsEnabled &&
       GlobalModules.Dispatcher.dispatch({
-        type: 'APP_ICON_UPDATED',
-        id: SettingsStore_default.get('appIcon'),
+        type: "APP_ICON_UPDATED",
+        id: SettingsStore_default.get("appIcon"),
       });
     const AppIcon = BetterDiscord.Webpack.getMangled(
-      BetterDiscord.Webpack.Filters.bySource('M19.73 4.87a18.2'),
+      BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"),
       {
         render: (x2) => x2,
       }
     );
-    const CustomAppIcon = BetterDiscord.Webpack.getByStrings('.iconSource,width:');
-    patcher.instead(AppIcon, 'render', (_, [args], callback) => {
-      const appIconsEnabled2 = SettingsStore_default.get('unlockAppIcons');
+    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
+    patcher.instead(AppIcon, "render", (_, [args], callback) => {
+      const appIconsEnabled2 = SettingsStore_default.get("unlockAppIcons");
       if (!appIconsEnabled2) return callback(args);
       const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-      if (desktopIcon == 'AppIcon' || SelectedGuildStore3.getGuildId() == undefined) {
+      if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
         return callback(args);
       } else {
         return /* @__PURE__ */ React.createElement(CustomAppIcon, {
           size: 40,
-          id: SettingsStore_default.get('appIcon'),
+          id: SettingsStore_default.get("appIcon"),
         });
       }
     });
@@ -4461,15 +4461,15 @@ var appIcons_default = {
 };
 // src/patches/modules/streamBypass.ts
 var streamBypass_default = {
-  name: 'streamBypass',
-  description: 'Custom Bitrates, FPS, Resolution',
+  name: "streamBypass",
+  description: "Custom Bitrates, FPS, Resolution",
   waitFor: [
-    BetterDiscord.Webpack.Filters.byPrototypeKeys('updateVideoQuality'),
-    BetterDiscord.Webpack.Filters.bySource('preset)&&', 'resolution&&', 'fps&&'),
+    BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"),
+    BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&"),
   ],
   apply(finale, patcher) {
     const _class = finale.modules[0];
-    patcher.before(_class.prototype, 'updateVideoQuality', (e) => {
+    patcher.before(_class.prototype, "updateVideoQuality", (e) => {
       const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } =
         SettingsStore_default.getAll();
       const vqm = e.videoQualityManager;
@@ -4483,7 +4483,7 @@ var streamBypass_default = {
       vqmOpt.videoBitrateFloor =
         CustomBitrateEnabled && minBitrate > 0 ? minBitrate * 1000 : 150000;
       vqm.setGoliveQuality(quality);
-      e.context == 'default' &&
+      e.context == "default" &&
         vqm.setQualityOverwrite({
           ...quality,
         });
@@ -4492,26 +4492,26 @@ var streamBypass_default = {
       finale.modules[1],
       Object.keys(finale.modules[1]).find(Boolean),
       (e, args, originalFunction) => {
-        return SettingsStore_default.get('screenSharing') ?? originalFunction.apply(e, args);
+        return SettingsStore_default.get("screenSharing") ?? originalFunction.apply(e, args);
       }
     );
   },
 };
 // src/patches/modules/gifPickerContext.tsx
-var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys('renderGIF', {
+var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", {
   searchExports: true,
 });
 var gifPickerContext_default = {
-  name: 'GIF Picker Context Menu',
-  description: 'Adds copy/open url context menu to GIFs in GIF Picker.',
+  name: "GIF Picker Context Menu",
+  description: "Adds copy/open url context menu to GIFs in GIF Picker.",
   ids: undefined,
   waitFor: [],
   apply(finale, patcher) {
-    patcher.after(GIFPickerRender.prototype, 'render', (instance, __, ret) => {
-      if (!SettingsStore_default.get('extraContextMenus')) return;
+    patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+      if (!SettingsStore_default.get("extraContextMenus")) return;
       ret.props.onContextMenu = (event) => {
         let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
-        url.startsWith('//') && (url = 'https:' + url);
+        url.startsWith("//") && (url = "https:" + url);
         function copyUrl() {
           copyToClipboard(url);
         }
@@ -4525,38 +4525,38 @@ var gifPickerContext_default = {
           },
           /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
             leadingAccessory: {
-              type: 'icon',
+              type: "icon",
               icon: () =>
                 /* @__PURE__ */ React.createElement(Icon, {
-                  width: '22',
-                  icon: 'mdi:content-copy',
+                  width: "22",
+                  icon: "mdi:content-copy",
                 }),
             },
             label: /* @__PURE__ */ React.createElement(
               ContextMenuWrapper,
               null,
               /* @__PURE__ */ React.createElement(ContextMenuLabel, null),
-              /* @__PURE__ */ React.createElement('span', null, 'Copy GIF URL')
+              /* @__PURE__ */ React.createElement("span", null, "Copy GIF URL")
             ),
-            id: 'yabd-copy-url-gif-picker',
+            id: "yabd-copy-url-gif-picker",
             action: copyUrl,
           }),
           /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
             leadingAccessory: {
-              type: 'icon',
+              type: "icon",
               icon: () =>
                 /* @__PURE__ */ React.createElement(Icon, {
-                  width: '22',
-                  icon: 'mdi:open-in-browser',
+                  width: "22",
+                  icon: "mdi:open-in-browser",
                 }),
             },
             label: /* @__PURE__ */ React.createElement(
               ContextMenuWrapper,
               null,
               /* @__PURE__ */ React.createElement(ContextMenuLabel, null),
-              /* @__PURE__ */ React.createElement('span', null, 'Open GIF URL')
+              /* @__PURE__ */ React.createElement("span", null, "Open GIF URL")
             ),
-            id: 'yabd-open-url-gif-picker',
+            id: "yabd-open-url-gif-picker",
             action: openUrl,
           })
         );
@@ -4567,19 +4567,19 @@ var gifPickerContext_default = {
 };
 // src/patches/modules/videoCodecs.ts
 var streamSettingsMod = BetterDiscord.Webpack.getMangled(
-  BetterDiscord.Webpack.Filters.bySource('getCodecOptions'),
+  BetterDiscord.Webpack.Filters.bySource("getCodecOptions"),
   {
     Connection: (x2) => x2?.prototype?.getCodecOptions,
   },
   { mapDeclarations: true }
 );
 var videoCodecs_default = {
-  name: 'Video Codec',
-  description: 'Applies chosen video codec.',
+  name: "Video Codec",
+  description: "Applies chosen video codec.",
   ids: undefined,
   apply(finale, patcher) {
-    patcher.after(streamSettingsMod?.Connection?.prototype, 'getCodecOptions', (_, __, ret) => {
-      const videoCodec = SettingsStore_default.get('videoCodec2');
+    patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, __, ret) => {
+      const videoCodec = SettingsStore_default.get("videoCodec2");
       videoCodec >= 0 && (ret.videoEncoder = ret.videoDecoders[videoCodec]);
     });
   },
@@ -4588,25 +4588,25 @@ var videoCodecs_default = {
 var MaxFileSizeMod = BetterDiscord.Webpack.getMangled(
   BetterDiscord.Webpack.Filters.bySource('klass:"photoshop"'),
   {
-    getMaxFileSize: (x2) => x2.toString().includes('getUserMaxFileSize'),
-    exceedsMessageSizeLimit: (x2) => x2.toString().includes('Array.from(', '.size>'),
+    getMaxFileSize: (x2) => x2.toString().includes("getUserMaxFileSize"),
+    exceedsMessageSizeLimit: (x2) => x2.toString().includes("Array.from(", ".size>"),
   }
 );
 var maxFileSize_default = {
-  name: 'File Size',
-  description: 'Disables the max file size popup (used for clips).',
+  name: "File Size",
+  description: "Disables the max file size popup (used for clips).",
   ids: undefined,
   apply(finale, patcher) {
-    patcher.instead(MaxFileSizeMod, 'getMaxFileSize', (_, [guildId], originalFunction) => {
-      const videoClipsEnabled = SettingsStore_default.get('useClipBypass');
-      const audioClipsEnabled = SettingsStore_default.get('useAudioClipBypass');
-      const zipClipsEnabled = SettingsStore_default.get('zipClip');
+    patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_, [guildId], originalFunction) => {
+      const videoClipsEnabled = SettingsStore_default.get("useClipBypass");
+      const audioClipsEnabled = SettingsStore_default.get("useAudioClipBypass");
+      const zipClipsEnabled = SettingsStore_default.get("zipClip");
       let normal = originalFunction(guildId);
       if (videoClipsEnabled || audioClipsEnabled || zipClipsEnabled)
         return Math.max(100 * 1024 * 1024, normal);
       else return normal;
     });
-    patcher.instead(MaxFileSizeMod, 'exceedsMessageSizeLimit', () => {
+    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
       return false;
     });
   },
@@ -4617,7 +4617,7 @@ function Sharpener({ userId }) {
   let ref = BetterDiscord.React.useRef(null);
   const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores(
     [SettingsStore_default],
-    () => SettingsStore_default.get('userSharpenPreferences')[userId] ?? 0
+    () => SettingsStore_default.get("userSharpenPreferences")[userId] ?? 0
   );
   const sharpness = sharpnessSetting / 100;
   const [size, setSize] = BetterDiscord.React.useState({
@@ -4643,57 +4643,57 @@ function Sharpener({ userId }) {
     }
   }, []);
   return /* @__PURE__ */ React2.createElement(
-    'svg',
+    "svg",
     {
       ref,
-      style: { width: '100%', height: '100%' },
+      style: { width: "100%", height: "100%" },
     },
     /* @__PURE__ */ React2.createElement(
-      'filter',
+      "filter",
       {
-        id: 'yabd-svgSharpen-' + userId,
-        colorInterpolationFilters: 'sRGB',
+        id: "yabd-svgSharpen-" + userId,
+        colorInterpolationFilters: "sRGB",
       },
-      /* @__PURE__ */ React2.createElement('feConvolveMatrix', {
-        order: '3',
-        kernelMatrix: '0 -1 0 -1 5 -1 0 -1 0',
-        result: 'sharpen',
+      /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
+        order: "3",
+        kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
+        result: "sharpen",
       }),
-      /* @__PURE__ */ React2.createElement('feComposite', {
-        in: 'SourceGraphic',
-        in2: 'sharpen',
-        operator: 'arithmetic',
-        result: 'userPreference',
-        k1: '0',
+      /* @__PURE__ */ React2.createElement("feComposite", {
+        in: "SourceGraphic",
+        in2: "sharpen",
+        operator: "arithmetic",
+        result: "userPreference",
+        k1: "0",
         k2: 1 - sharpness,
         k3: sharpness,
-        k4: '0',
+        k4: "0",
       }),
-      /* @__PURE__ */ React2.createElement('feComposite', {
+      /* @__PURE__ */ React2.createElement("feComposite", {
         id: `yabd-svgSharpen-${userId}-size`,
-        in: 'SourceGraphic',
-        in2: 'userPreference',
-        operator: 'arithmetic',
-        k1: '0',
+        in: "SourceGraphic",
+        in2: "userPreference",
+        operator: "arithmetic",
+        k1: "0",
         k2: 1 - filterIntensityFactoringScreen,
         k3: filterIntensityFactoringScreen,
-        k4: '0',
+        k4: "0",
       })
     )
   );
 }
 var sharpenStreams_default = {
-  name: 'Stream Sharpener',
-  description: 'Sharpens streams.',
+  name: "Stream Sharpener",
+  description: "Sharpens streams.",
   ids: undefined,
   waitFor: [
-    BetterDiscord.Webpack.Filters.bySource('VideoStream', 'videoComponent'),
-    BetterDiscord.Webpack.Filters.bySource('backgroundKey', 'onForceIdle'),
+    BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent"),
+    BetterDiscord.Webpack.Filters.bySource("backgroundKey", "onForceIdle"),
   ],
   apply(finale, patcher) {
     const mod = Object.values(finale.modules[0]).find((x2) => x2.type);
-    patcher.after(mod, 'type', (_, [args], ret) => {
-      if (!SettingsStore_default.get('sharpenStreams')) return;
+    patcher.after(mod, "type", (_, [args], ret) => {
+      if (!SettingsStore_default.get("sharpenStreams")) return;
       ret.props.children.push(
         /* @__PURE__ */ React2.createElement(Sharpener, {
           userId: args.userId,
@@ -4703,11 +4703,11 @@ var sharpenStreams_default = {
         (ret.props.children[0].props.style = { filter: `url(#yabd-svgSharpen-${args.userId})` });
     });
     const pipPlayerMod = getKey(finale.modules[1], (x2) =>
-      x2?.toString?.()?.includes?.('backgroundKey')
+      x2?.toString?.()?.includes?.("backgroundKey")
     );
     patcher.after(pipPlayerMod?.module, pipPlayerMod?.key, (_, [args], ret) => {
-      if (!SettingsStore_default.get('sharpenStreams')) return;
-      const userId = args?.backgroundKey?.split?.(':')?.[3];
+      if (!SettingsStore_default.get("sharpenStreams")) return;
+      const userId = args?.backgroundKey?.split?.(":")?.[3];
       if (!userId) return;
       ret.props.children.push(
         /* @__PURE__ */ React2.createElement(Sharpener, {
@@ -4721,25 +4721,25 @@ var sharpenStreams_default = {
 // src/patches/modules/unlockStickers.ts
 var stickerSendability = BetterDiscord.Webpack.getMangled(
   BetterDiscord.Webpack.Filters.bySource(
-    'SENDABLE_WITH_BOOSTED_GUILD',
-    'canUseCustomStickersEverywhere'
+    "SENDABLE_WITH_BOOSTED_GUILD",
+    "canUseCustomStickersEverywhere"
   ),
   {
-    getStickerSendability: (x2) => x2.toString().includes('canUseCustomStickersEverywhere'),
+    getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere"),
     isSendableSticker: (x2) =>
-      typeof x2 === 'function' && !x2.toString().includes('canUseCustomStickersEverywhere'),
+      typeof x2 === "function" && !x2.toString().includes("canUseCustomStickersEverywhere"),
   }
 );
 var unlockStickers_default = {
-  name: 'Unlock Stickers',
-  description: 'Fully unlocks stickers.',
+  name: "Unlock Stickers",
+  description: "Fully unlocks stickers.",
   apply(finale, patcher) {
-    patcher.instead(stickerSendability, 'getStickerSendability', (_, args, callback) => {
+    patcher.instead(stickerSendability, "getStickerSendability", (_, args, callback) => {
       const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
       if (!stickerBypass && !forceStickersUnlocked) return callback.apply(_, args);
       return 0;
     });
-    patcher.instead(stickerSendability, 'isSendableSticker', (_, args, callback) => {
+    patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
       const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
       if (!stickerBypass && !forceStickersUnlocked) return callback.apply(_, args);
       return true;
@@ -4749,19 +4749,19 @@ var unlockStickers_default = {
 // src/patches/modules/renderMessage.tsx
 var { React: React3 } = BetterDiscord;
 var MessageEmoji = BetterDiscord.Webpack.getByStrings(
-  ',nudgeAlignIntoViewport:!0,position:',
-  'jumboable?',
+  ",nudgeAlignIntoViewport:!0,position:",
+  "jumboable?",
   { searchExports: true }
 );
 var renderMessage_default = {
-  name: 'Render Message',
-  description: 'Replaces hyperlinked emojis with fakemoji.',
+  name: "Render Message",
+  description: "Replaces hyperlinked emojis with fakemoji.",
   ids: undefined,
-  waitFor: [BetterDiscord.Webpack.Filters.bySource('.SEND_FAILED,')],
+  waitFor: [BetterDiscord.Webpack.Filters.bySource(".SEND_FAILED,")],
   apply(finale, patcher) {
-    const mod = Object.values(finale.modules[0]).find((o) => typeof o === 'object');
-    patcher.before(mod, 'type', (_, [args]) => {
-      if (!SettingsStore_default.get('fakeInlineVencordEmotes')) return;
+    const mod = Object.values(finale.modules[0]).find((o) => typeof o === "object");
+    patcher.before(mod, "type", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes")) return;
       for (let i2 = 0; i2 < args.content.length; i2++) {
         let contentItem = args.content[i2];
         if (
@@ -4772,12 +4772,12 @@ var renderMessage_default = {
           continue;
         const emojiName = contentItem.props?.children[0]?.props?.children
           ? contentItem.props?.children[0]?.props?.children
-          : 'unknownEmoji';
+          : "unknownEmoji";
         const emojiElem = /* @__PURE__ */ React3.createElement(MessageEmoji, {
           node: {
             name: `:${emojiName}:`,
             src: contentItem.props.href,
-            type: 'emoji',
+            type: "emoji",
             emojiId: contentItem.props.href.match(EMOJI_ID_FROM_URL_REGEX).find(Boolean),
             animated: true,
             jumboable: false,
@@ -4795,16 +4795,16 @@ var renderMessage_default = {
 var EMOJI_HYPERLINK_REGEX =
   /\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/;
 var renderMessageEmbeds_default = {
-  name: 'Render Message Embeds',
-  description: 'Removes emoji link embeds for inline fakemoji.',
+  name: "Render Message Embeds",
+  description: "Removes emoji link embeds for inline fakemoji.",
   ids: undefined,
-  waitFor: [BetterDiscord.Webpack.Filters.bySource('renderEmbeds', 'renderSuppressEmbeds')],
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("renderEmbeds", "renderSuppressEmbeds")],
   mangled: {
-    renderEmbeds: (x2) => x2?.toString?.().includes?.('renderSuppressEmbeds'),
+    renderEmbeds: (x2) => x2?.toString?.().includes?.("renderSuppressEmbeds"),
   },
   apply(finale, patcher) {
-    patcher.before(finale.mangled, 'renderEmbeds', (_, [args]) => {
-      if (!SettingsStore_default.get('fakeInlineVencordEmotes')) return;
+    patcher.before(finale.mangled, "renderEmbeds", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes")) return;
       const message = args?.message;
       let embeds = message?.embeds;
       for (let i2 = 0; i2 < embeds?.length; i2++) {
@@ -4812,7 +4812,7 @@ var renderMessageEmbeds_default = {
         if (
           !embed?.url ||
           !embed?.url?.startsWith(EMOJI_PREFIX) ||
-          message.content.replace(EMOJI_HYPERLINK_REGEX, '').trim() == '' ||
+          message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "" ||
           !args.message.content.includes(`](${embed.url})`)
         )
           continue;
@@ -4825,22 +4825,22 @@ var renderMessageEmbeds_default = {
 // src/patches/modules/editMessage.ts
 var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
 var editMessage_default = {
-  name: 'Edit Message',
+  name: "Edit Message",
   description:
-    'Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.',
+    "Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.",
   ids: undefined,
   waitFor: [(x2) => x2._sendMessage],
   apply(finale, patcher) {
-    patcher.before(finale.modules[0], 'editMessage', (_, [channelId, msgId, msg]) => {
-      const emojiBypassEnabled = SettingsStore_default.get('emojiBypass');
+    patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
       if (!emojiBypassEnabled) return;
-      const emojiBypassType = SettingsStore_default.get('emojiBypassType');
-      const editMessageWithEmoji = SettingsStore_default.get('editMessageWithEmoji');
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
       if (!editMessageWithEmoji) return;
       let matches = msg.content.match(EMOJI_STRING_REGEX);
       for (let i2 = 0; i2 < matches?.length; i2++) {
         const emojiString = matches[i2];
-        let emojiId = emojiString.replace('<', '').replace('>', '').split(':')[2];
+        let emojiId = emojiString.replace("<", "").replace(">", "").split(":")[2];
         const emoji = EmojiStore2.getCustomEmojiById(emojiId);
         if (shouldSkipEmojiBypass(emoji, channelId)) continue;
         const emojiUrl = getEmojiUrl(emoji);
@@ -4857,8 +4857,8 @@ var editMessage_default = {
         }
       }
     });
-    patcher.before(finale.modules[0], 'startEditMessageRecord', (_, [channelId, msg]) => {
-      const editMessageWithEmoji = SettingsStore_default.get('editMessageWithEmoji');
+    patcher.before(finale.modules[0], "startEditMessageRecord", (_, [channelId, msg]) => {
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
       if (!msg?.content || !editMessageWithEmoji) return;
       function replaceMatchWithEmojiString(match) {
         const emoji = EmojiStore2.getCustomEmojiById(match.match(EMOJI_ID_FROM_URL_REGEX));
@@ -4873,19 +4873,19 @@ var editMessage_default = {
 // src/patches/modules/clientThemes.tsx
 var CustomUserThemeState = BetterDiscord.Webpack.getMangled(
   BetterDiscord.Webpack.Filters.bySource(
-    'setColors',
-    'setChassisMixAmount',
-    'setGradientAngle',
-    'setAll',
-    'colors:[],'
+    "setColors",
+    "setChassisMixAmount",
+    "setGradientAngle",
+    "setAll",
+    "colors:[],"
   ),
   {
     state: (x2) => x2?.setState,
   }
 );
 function applySavedClientTheme() {
-  const customUserThemeSettings = SettingsStore_default.get('customUserThemeSettings');
-  const gradientPresetId = SettingsStore_default.get('lastGradientSettingStore');
+  const customUserThemeSettings = SettingsStore_default.get("customUserThemeSettings");
+  const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
   if (customUserThemeSettings.custom) {
     CustomUserThemeState.state.getState().setAll({
       colors: customUserThemeSettings.custom?.colors,
@@ -4896,7 +4896,7 @@ function applySavedClientTheme() {
     CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
   }
   GlobalModules.Dispatcher.dispatch({
-    type: 'SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE',
+    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
     changes: {
       appearance: {
         shouldSync: false,
@@ -4914,31 +4914,31 @@ function applySavedClientTheme() {
   });
   if (gradientPresetId >= 0) {
     GlobalModules.Dispatcher.dispatch({
-      type: 'UPDATE_BACKGROUND_GRADIENT_PRESET',
+      type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
       presetId: gradientPresetId,
     });
   }
 }
 var clientThemes_default = {
-  name: 'clientThemes',
-  description: 'Saves and applies gradient client themes.',
+  name: "clientThemes",
+  description: "Saves and applies gradient client themes.",
   waitFor: [
-    BetterDiscord.Webpack.Filters.bySource('changes:{appearance:{settings:{clientThemeSettings:{'),
+    BetterDiscord.Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"),
   ],
   mangled: {
     saveClientTheme: (x2) =>
-      x2?.toString?.()?.includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),
+      x2?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE"),
   },
   apply(finale, patcher) {
-    SettingsStore_default.get('clientThemes') && applySavedClientTheme();
-    patcher.instead(finale.mangled, 'saveClientTheme', (_, [args], originalFunction) => {
-      if (!SettingsStore_default.get('clientThemes')) return originalFunction.apply(_, [args]);
-      SettingsStore_default.set('customUserThemeSettings', {
+    SettingsStore_default.get("clientThemes") && applySavedClientTheme();
+    patcher.instead(finale.mangled, "saveClientTheme", (_, [args], originalFunction) => {
+      if (!SettingsStore_default.get("clientThemes")) return originalFunction.apply(_, [args]);
+      SettingsStore_default.set("customUserThemeSettings", {
         custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
         theme: args.theme,
       });
       SettingsStore_default.set(
-        'lastGradientSettingStore',
+        "lastGradientSettingStore",
         args.backgroundGradientPresetId >= 0 ? args.backgroundGradientPresetId : -1
       );
       applySavedClientTheme();
@@ -4948,33 +4948,33 @@ var clientThemes_default = {
 // src/patches/modules/userCallTileBg.ts
 var { React: React4 } = BetterDiscord;
 var userCallTileBg_default = {
-  name: 'fakeBanners',
-  description: '3y3 banners',
+  name: "fakeBanners",
+  description: "3y3 banners",
   ids: undefined,
   waitFor: [
     BetterDiscord.Webpack.Filters.bySource(
-      'getSelectedParticipant',
-      'CHANNEL_CALL_POPOUT',
-      'avatarDecoration',
-      'backgroundSrc',
-      'getAvatarURL'
+      "getSelectedParticipant",
+      "CHANNEL_CALL_POPOUT",
+      "avatarDecoration",
+      "backgroundSrc",
+      "getAvatarURL"
     ),
   ],
   apply(finale, patcher) {
     const mod = getKey(finale.modules[0], (x2) =>
-      x2.toString?.().includes?.('getSelectedParticipant')
+      x2.toString?.().includes?.("getSelectedParticipant")
     );
     patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
       const bannerUrl = getBannerUrl(args.participant.id);
-      const callTileBackgroundEnabled = SettingsStore_default.get('voiceTileBannerBackground');
+      const callTileBackgroundEnabled = SettingsStore_default.get("voiceTileBannerBackground");
       if (!bannerUrl || !callTileBackgroundEnabled || !ret) return;
       ret.props.children &&
         (ret.props.children = React4.cloneElement(ret.props.children, {
           style: {
             backgroundImage: `url('${bannerUrl}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "cover",
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
           },
         }));
     });
@@ -4988,80 +4988,80 @@ var {
   UserStore: UserStore4,
 } = BetterDiscord.Webpack.Stores;
 var FooterColumn = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
 });
 var FooterRow = styled.div({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
 });
 var ModalBody = styled.div({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: '12px',
-  padding: '16px',
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "12px",
+  padding: "16px",
 });
 var FieldWrapper = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
 });
 var FieldLabel = styled.label({
-  fontSize: '12px',
+  fontSize: "12px",
   fontWeight: 600,
-  color: 'var(--text-muted)',
-  textTransform: 'uppercase',
+  color: "var(--text-muted)",
+  textTransform: "uppercase",
 });
 var ModeRow = styled.div({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
-  padding: '0 16px 16px 16px',
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px",
 });
 var ToggleRow = styled.div({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px',
-  padding: '0 16px 16px 16px',
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px",
 });
 var AdminIcon = () =>
   /* @__PURE__ */ React5.createElement(
-    'svg',
+    "svg",
     {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: '22px',
-      height: '22px',
-      viewBox: '0 0 24 24',
+      xmlns: "http://www.w3.org/2000/svg",
+      width: "22px",
+      height: "22px",
+      viewBox: "0 0 24 24",
     },
-    /* @__PURE__ */ React5.createElement('path', {
-      d: 'M0 0h24v24H0z',
-      fill: 'none',
+    /* @__PURE__ */ React5.createElement("path", {
+      d: "M0 0h24v24H0z",
+      fill: "none",
     }),
-    /* @__PURE__ */ React5.createElement('path', {
-      fill: 'currentColor',
-      d: 'M12 12h7c-.53 4.11-3.28 7.78-7 8.92zH5V6.3l7-3.11M12 1L3 5v6c0 5.55 3.84 10.73 9 12c5.16-1.27 9-6.45 9-12V5z',
+    /* @__PURE__ */ React5.createElement("path", {
+      fill: "currentColor",
+      d: "M12 12h7c-.53 4.11-3.28 7.78-7 8.92zH5V6.3l7-3.11M12 1L3 5v6c0 5.55 3.84 10.73 9 12c5.16-1.27 9-6.45 9-12V5z",
     })
   );
-var IconModule = wpGetByKeys(['Icon', 'ChannelIcon']);
-var ModalModule2 = wpGetByKeys(['Modal']);
+var IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
+var ModalModule2 = wpGetByKeys(["Modal"]);
 var MODES = [
   {
-    label: '4K Mode',
+    label: "4K Mode",
     patch: { CustomResolution: 2160, CustomFPS: 60 },
   },
   {
-    label: '2K Mode',
+    label: "2K Mode",
     patch: { CustomResolution: 1440, CustomFPS: 60 },
   },
   {
-    label: 'Deez Nutz Mode',
+    label: "Deez Nutz Mode",
     patch: { CustomResolution: 20, CustomFPS: 60 },
   },
   {
-    label: 'Screen Reader Mode',
+    label: "Screen Reader Mode",
     patch: { CustomResolution: 1440, CustomFPS: 15 },
   },
 ];
@@ -5074,24 +5074,24 @@ function ConfigModal({ props, onClose, forceQuality }) {
     setData((prev) => ({ ...prev, ...patch }));
   };
   const fields = [
-    { key: 'CustomFPS', label: 'FPS' },
-    { key: 'CustomResolution', label: 'Resolution' },
-    { key: 'maxBitrate', label: 'Max Bitrate' },
-    { key: 'minBitrate', label: 'Min Bitrate' },
-    { key: 'targetBitrate', label: 'Target Bitrate' },
-    { key: 'voiceBitrate', label: 'Voice Bitrate' },
+    { key: "CustomFPS", label: "FPS" },
+    { key: "CustomResolution", label: "Resolution" },
+    { key: "maxBitrate", label: "Max Bitrate" },
+    { key: "minBitrate", label: "Min Bitrate" },
+    { key: "targetBitrate", label: "Target Bitrate" },
+    { key: "voiceBitrate", label: "Voice Bitrate" },
   ];
   function onApply() {
-    forceQuality('set_resolution', { resolution: data.CustomResolution });
-    forceQuality('set_fps', { fps: data.CustomFPS });
-    forceQuality('set_min_bitrate', { minBitrate: data.minBitrate });
-    forceQuality('set_target_bitrate', { targetBitrate: data.targetBitrate });
-    forceQuality('set_max_bitrate', { maxBitrate: data.maxBitrate });
+    forceQuality("set_resolution", { resolution: data.CustomResolution });
+    forceQuality("set_fps", { fps: data.CustomFPS });
+    forceQuality("set_min_bitrate", { minBitrate: data.minBitrate });
+    forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
+    forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
     Object.entries(data).forEach(([key, value]) => SettingsStore_default.set(key, value));
     const connections = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.());
     const streamConnection = connections
       .filter?.(
-        (x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == 'stream'
+        (x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == "stream"
       )
       .find(Boolean);
     streamConnection && streamConnection?.updateVideoQuality?.apply?.(streamConnection, []);
@@ -5099,7 +5099,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
       .filter?.(
         (x2) =>
           x2?.userId == UserStore4.getCurrentUser().id &&
-          x2?.context == 'default' &&
+          x2?.context == "default" &&
           !x2?.streamUserId
       )
       .find(Boolean);
@@ -5110,18 +5110,18 @@ function ConfigModal({ props, onClose, forceQuality }) {
     ModalModule2.Modal,
     {
       actions: [
-        { text: 'Cancel', onClick: onClose, variant: 'secondary' },
-        { text: 'Apply', onClick: onApply },
+        { text: "Cancel", onClick: onClose, variant: "secondary" },
+        { text: "Apply", onClick: onApply },
       ],
       notice: {
-        type: 'warning',
+        type: "warning",
         message: GlobalModules.SimpleMarkdownWrapper.parse(
-          '**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**'
+          "**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**"
         ),
       },
       ...props,
       onClose,
-      title: 'Stream Settings Configuration',
+      title: "Stream Settings Configuration",
     },
     /* @__PURE__ */ React5.createElement(
       ModeRow,
@@ -5175,58 +5175,58 @@ function openConfigModal(forceQuality) {
   );
 }
 function CustomFooter() {
-  const StreamingModule = wpGet(wpFilter.bySource('GQgGHISKZ5aYqYeYhX9isDUHGw'), { raw: true });
+  const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
   const module2 = getKey(
     StreamingModule.declarations,
-    BetterDiscord.Webpack.Filters.byStrings('.useContext')
+    BetterDiscord.Webpack.Filters.byStrings(".useContext")
   );
   const [start, dispatch] = module2.module[module2.key]();
   const forceQuality = (type, value) => {
     dispatch({ type, ...value });
     const currentState = ApplicationStreamingSettingsStore.getState();
     ApplicationStreamingSettingsStore.initialize({
-      resolution: type == 'set_resolution' ? value.resolution : currentState.resolution,
-      fps: type == 'set_fps' ? value.fps : currentState.fps,
+      resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
+      fps: type == "set_fps" ? value.fps : currentState.fps,
       preset: 3,
       soundshareEnabled: currentState.soundshareEnabled,
     });
   };
   return /* @__PURE__ */ React5.createElement(
-    'div',
+    "div",
     {
       style: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 'var(--radius-sm)',
-        backgroundColor: 'var(--control-secondary-background-default)',
-        borderColor: 'var(--control-secondary-border-default)',
-        minHeight: '38px',
-        minWidth: '38px',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "var(--radius-sm)",
+        backgroundColor: "var(--control-secondary-background-default)",
+        borderColor: "var(--control-secondary-border-default)",
+        minHeight: "38px",
+        minWidth: "38px",
       },
     },
     /* @__PURE__ */ React5.createElement(IconModule.Icon, {
-      tooltip: 'Configure Stream Settings',
-      tooltipPosition: 'top',
+      tooltip: "Configure Stream Settings",
+      tooltipPosition: "top",
       onClick: () => openConfigModal(forceQuality),
-      key: 'balls-2',
+      key: "balls-2",
       icon: () => /* @__PURE__ */ React5.createElement(AdminIcon, null),
     })
   );
 }
 var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource(
-  'GO_LIVE_MODAL_V2',
-  'getUseSystemScreensharePicker',
-  'canStreamQuality'
+  "GO_LIVE_MODAL_V2",
+  "getUseSystemScreensharePicker",
+  "canStreamQuality"
 );
-var validatorMod = BetterDiscord.Webpack.getBySource('canStreamWithSettings', { raw: true });
+var validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 var goLiveModal_default = {
-  name: 'goLiveModal',
-  description: 'Streaming modal customization.',
+  name: "goLiveModal",
+  description: "Streaming modal customization.",
   ids: [
     async () =>
       await BetterDiscord.Webpack.waitForModule(
-        BetterDiscord.Webpack.Filters.bySource('allowOneClickGoLive:'),
+        BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"),
         { raw: true }
       ).then((x2) => x2.id),
   ],
@@ -5234,35 +5234,35 @@ var goLiveModal_default = {
   apply(finale, patcher) {
     const mod = getKey(
       validatorMod.declarations,
-      BetterDiscord.Webpack.Filters.byStrings('canStreamWithSettings')
+      BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings")
     );
     patcher.instead(mod?.module, mod?.key, () => true);
-    patcher.after(finale.modules[0], 'default', (_, [args], ret) => {
-      const removeScreenshareUpsell = SettingsStore_default.get('removeScreenshareUpsell');
+    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
       const footer = BetterDiscord.Utils.findInTree(ret, (x2) =>
-        String(x2?.className).startsWith('footer')
+        String(x2?.className).startsWith("footer")
       );
       if (!footer) return ret;
       const footerContent = BetterDiscord.Utils.findInTree(footer, (x2) =>
-        String(x2?.className).startsWith('footerContent')
+        String(x2?.className).startsWith("footerContent")
       );
       if (!footerContent) return ret;
       if (removeScreenshareUpsell) {
         footer.children = footer.children.filter(
-          (x2) => !x2?.props?.className.startsWith('upsell')
+          (x2) => !x2?.props?.className.startsWith("upsell")
         );
         footerContent.children[1].props.children = footerContent.children[1].props.children.filter(
-          (x2) => !x2?.type?.toString?.()?.includes('pill')
+          (x2) => !x2?.type?.toString?.()?.includes("pill")
         );
       }
-      if (SettingsStore_default.get('ResolutionSwapper')) {
+      if (SettingsStore_default.get("ResolutionSwapper")) {
         const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) =>
-          String(x2?.key).includes('gay')
+          String(x2?.key).includes("gay")
         );
         if (!doesExist)
           footerContent.children[1].props.children.push(
             /* @__PURE__ */ React5.createElement(CustomFooter, {
-              key: 'yabd-is-gay',
+              key: "yabd-is-gay",
             })
           );
         const originalChildren = footerContent.children;
@@ -5284,26 +5284,26 @@ function AccentColors() {
   const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
   const [primary, setPrimary] = React6.useState(
     currentUserProfile.themeColors
-      ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, '0')}`
-      : '#FFCFF8'
+      ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}`
+      : "#FFCFF8"
   );
   const [accent, setAccent] = React6.useState(
     currentUserProfile.themeColors
-      ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, '0')}`
-      : '#FFCFF8'
+      ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}`
+      : "#FFCFF8"
   );
   return /* @__PURE__ */ React6.createElement(
-    'div',
+    "div",
     null,
     /* @__PURE__ */ React6.createElement(
       Components2.Text,
       {
         style: {
-          fontSize: '14px',
-          fontWeight: 'var(--font-weight-bold)',
+          fontSize: "14px",
+          fontWeight: "var(--font-weight-bold)",
         },
       },
-      'Primary'
+      "Primary"
     ),
     /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
       value: primary,
@@ -5311,16 +5311,16 @@ function AccentColors() {
       disabled: false,
       onChange: (e) => setPrimary(e),
     }),
-    /* @__PURE__ */ React6.createElement('br', null),
+    /* @__PURE__ */ React6.createElement("br", null),
     /* @__PURE__ */ React6.createElement(
       Components2.Text,
       {
         style: {
-          fontSize: '14px',
-          fontWeight: 'var(--font-weight-bold)',
+          fontSize: "14px",
+          fontWeight: "var(--font-weight-bold)",
         },
       },
-      'Accent'
+      "Accent"
     ),
     /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
       value: accent,
@@ -5328,120 +5328,120 @@ function AccentColors() {
       disabled: false,
       onChange: (e) => setAccent(e),
     }),
-    /* @__PURE__ */ React6.createElement('br', null),
+    /* @__PURE__ */ React6.createElement("br", null),
     /* @__PURE__ */ React6.createElement(
       Components2.Button,
       {
-        className: 'yabd-generic-button',
+        className: "yabd-generic-button",
         style: {
-          height: '32px',
-          width: 'auto',
-          marginTop: '10px',
+          height: "32px",
+          width: "auto",
+          marginTop: "10px",
         },
         onClick: () => {
           copyToClipboard(
-            ' ' + secondsightifyEncodeOnly(`[${primary},${accent}]`),
-            '3y3 copied to clipboard!'
+            " " + secondsightifyEncodeOnly(`[${primary},${accent}]`),
+            "3y3 copied to clipboard!"
           );
         },
       },
-      'Copy Colors 3y3'
+      "Copy Colors 3y3"
     )
   );
 }
 // src/ui/CustomPFP.tsx
 var { React: React7, Components: Components3 } = BetterDiscord;
 function CustomPFP() {
-  const [url, setUrl] = React7.useState('');
+  const [url, setUrl] = React7.useState("");
   async function handleClick() {
-    if (!url.includes('imgur.com')) {
-      BetterDiscord.UI.showToast('Please use Imgur!', { type: 'warning' });
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
       return;
     }
     let hash = await getDirectImgurHash(url);
-    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), '3y3 copied to clipboard!');
+    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React7.createElement(
-    'div',
+    "div",
     null,
-    /* @__PURE__ */ React7.createElement('input', {
-      className: 'bd-text-input',
-      placeholder: 'PFP Imgur URL',
+    /* @__PURE__ */ React7.createElement("input", {
+      className: "bd-text-input",
+      placeholder: "PFP Imgur URL",
       onChange: (e) => setUrl(e.target.value),
       style: {
-        minWidth: '180px',
-        width: '180px',
-        maxWidth: '180px',
+        minWidth: "180px",
+        width: "180px",
+        maxWidth: "180px",
       },
     }),
     /* @__PURE__ */ React7.createElement(
       Components3.Button,
       {
         onClick: handleClick,
-        disabled: url == '',
+        disabled: url == "",
         style: {
-          marginTop: '10px',
+          marginTop: "10px",
         },
       },
-      'Copy PFP 3y3'
+      "Copy PFP 3y3"
     )
   );
 }
 // src/ui/CustomBanner.tsx
 var { React: React8, Components: Components4 } = BetterDiscord;
 function CustomBanner() {
-  const [url, setUrl] = React8.useState('');
+  const [url, setUrl] = React8.useState("");
   async function handleClick() {
-    if (!url.includes('imgur.com')) {
-      BetterDiscord.UI.showToast('Please use Imgur!', { type: 'warning' });
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
       return;
     }
     let hash = await getDirectImgurHash(url);
-    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`), '3y3 copied to clipboard!');
+    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`), "3y3 copied to clipboard!");
   }
   return /* @__PURE__ */ React8.createElement(
-    'div',
+    "div",
     null,
-    /* @__PURE__ */ React8.createElement('input', {
-      className: 'bd-text-input',
-      placeholder: 'Banner Imgur URL',
+    /* @__PURE__ */ React8.createElement("input", {
+      className: "bd-text-input",
+      placeholder: "Banner Imgur URL",
       onChange: (e) => setUrl(e.target.value),
       style: {
-        minWidth: '180px',
-        width: '180px',
-        maxWidth: '180px',
+        minWidth: "180px",
+        width: "180px",
+        maxWidth: "180px",
       },
     }),
     /* @__PURE__ */ React8.createElement(
       Components4.Button,
       {
         onClick: handleClick,
-        disabled: url == '',
+        disabled: url == "",
         style: {
-          marginTop: '10px',
+          marginTop: "10px",
         },
       },
-      'Copy Banner 3y3'
+      "Copy Banner 3y3"
     )
   );
 }
 // src/ui/DisplayNameStyle.tsx
 var { React: React9, Components: Components5 } = BetterDiscord;
-var EffectText = BetterDiscord.Webpack.getBySource('UserNameWithEffects').A;
+var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
-  { name: 'GG Sans', id: 11 },
-  { name: 'Tempo', id: 12 },
-  { name: 'Sakura', id: 3 },
-  { name: 'Jellybean', id: 4 },
-  { name: 'Modern', id: 6 },
-  { name: 'Medieval', id: 7 },
-  { name: '8Bit', id: 8 },
-  { name: 'Vampyre', id: 10 },
-  { name: 'Monkey Bars', id: 13 },
-  { name: 'Mainframe', id: 14 },
-  { name: 'Headbang', id: 15 },
-  { name: 'Journal', id: 16 },
+  { name: "GG Sans", id: 11 },
+  { name: "Tempo", id: 12 },
+  { name: "Sakura", id: 3 },
+  { name: "Jellybean", id: 4 },
+  { name: "Modern", id: 6 },
+  { name: "Medieval", id: 7 },
+  { name: "8Bit", id: 8 },
+  { name: "Vampyre", id: 10 },
+  { name: "Monkey Bars", id: 13 },
+  { name: "Mainframe", id: 14 },
+  { name: "Headbang", id: 15 },
+  { name: "Journal", id: 16 },
 ];
 var EFFECTS = {
   Solid: [15724529],
@@ -5456,11 +5456,11 @@ function FontButton({ onClick, selected, fontFamily: font }) {
     {
       style: {
         fontFamily: font.name,
-        color: 'var(--text-default)',
-        backgroundColor: 'var(--control-secondary-background-default)',
-        border: selected ? '1px solid white' : 'none',
-        margin: '0px 5px 5px 0px',
-        display: 'inline-block',
+        color: "var(--text-default)",
+        backgroundColor: "var(--control-secondary-background-default)",
+        border: selected ? "1px solid white" : "none",
+        margin: "0px 5px 5px 0px",
+        display: "inline-block",
       },
       onClick,
     },
@@ -5472,11 +5472,11 @@ function EffectButton({ onClick, selected, children, data, colors }) {
     Components5.Button,
     {
       style: {
-        backgroundColor: 'var(--control-secondary-background-default)',
-        color: 'var(--text-default)',
-        border: selected ? '1px solid white' : 'none',
-        margin: '0px 5px 5px 0px',
-        display: 'inline-block',
+        backgroundColor: "var(--control-secondary-background-default)",
+        color: "var(--text-default)",
+        border: selected ? "1px solid white" : "none",
+        margin: "0px 5px 5px 0px",
+        display: "inline-block",
       },
       onClick,
     },
@@ -5489,7 +5489,7 @@ function EffectButton({ onClick, selected, children, data, colors }) {
     })
   );
 }
-var ModalModule3 = wpGetByKeys(['Modal']);
+var ModalModule3 = wpGetByKeys(["Modal"]);
 function OpenDisplayNameStyleModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
@@ -5497,12 +5497,12 @@ function OpenDisplayNameStyleModalButton() {
         ModalModule3.Modal,
         {
           notice: {
-            type: 'warning',
+            type: "warning",
             message: GlobalModules.SimpleMarkdownWrapper.parse(
-              '`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies.'
+              "`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies."
             ),
           },
-          title: 'Change Display Name Style',
+          title: "Change Display Name Style",
           ...props,
         },
         /* @__PURE__ */ React9.createElement(DisplayNameStyle, null)
@@ -5514,26 +5514,26 @@ function OpenDisplayNameStyleModalButton() {
     {
       onClick: handleClick,
     },
-    'Change'
+    "Change"
   );
 }
 function DisplayNameStyle() {
-  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource('UserNameWithEffects'), {
-    declaration: (x2) => String(x2.type).includes('UserNameWithEffects'),
+  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource("UserNameWithEffects"), {
+    declaration: (x2) => String(x2.type).includes("UserNameWithEffects"),
   });
   const [fontId, setFontId] = React9.useState(11);
   const [effectId, setEffectId] = React9.useState(0);
   const [colors, setColors] = React9.useState({
-    primary: '#ffffff',
-    accent: '#000000',
+    primary: "#ffffff",
+    accent: "#000000",
   });
   return /* @__PURE__ */ React9.createElement(
-    'div',
+    "div",
     null,
     /* @__PURE__ */ React9.createElement(
-      'div',
+      "div",
       {
-        style: { fontSize: '25px', marginBottom: '10px' },
+        style: { fontSize: "25px", marginBottom: "10px" },
       },
       /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
         userName: UserStore6.getCurrentUser().globalName,
@@ -5544,13 +5544,13 @@ function DisplayNameStyle() {
         displayNameStyles: {
           colors: [colors.primary, colors.accent]
             .filter(Boolean)
-            .map((x2) => parseInt(x2.replace('#', '0x'), 16)),
+            .map((x2) => parseInt(x2.replace("#", "0x"), 16)),
           effectId: effectId + 1,
           fontId,
         },
       })
     ),
-    /* @__PURE__ */ React9.createElement(Components5.Text, null, 'Font'),
+    /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"),
     Object.values(FONTS).map((font) => {
       return /* @__PURE__ */ React9.createElement(FontButton, {
         fontFamily: font,
@@ -5558,9 +5558,9 @@ function DisplayNameStyle() {
         onClick: () => setFontId(font.id),
       });
     }),
-    /* @__PURE__ */ React9.createElement('br', null),
-    /* @__PURE__ */ React9.createElement('br', null),
-    /* @__PURE__ */ React9.createElement(Components5.Text, null, 'Effect'),
+    /* @__PURE__ */ React9.createElement("br", null),
+    /* @__PURE__ */ React9.createElement("br", null),
+    /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"),
     Object.entries(EFFECTS).map((effect, i2) => {
       const data = {
         effectName: effect[0],
@@ -5578,8 +5578,8 @@ function DisplayNameStyle() {
         data.effectName
       );
     }),
-    /* @__PURE__ */ React9.createElement('br', null),
-    /* @__PURE__ */ React9.createElement(Components5.Text, null, 'Primary Color'),
+    /* @__PURE__ */ React9.createElement("br", null),
+    /* @__PURE__ */ React9.createElement(Components5.Text, null, "Primary Color"),
     /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
       defaultValue: colors.primary,
       onChange: (e) => {
@@ -5588,10 +5588,10 @@ function DisplayNameStyle() {
     }),
     effectId === 1
       ? /* @__PURE__ */ React9.createElement(
-          'div',
+          "div",
           null,
-          /* @__PURE__ */ React9.createElement('br', null),
-          /* @__PURE__ */ React9.createElement(Components5.Text, null, 'Secondary Color'),
+          /* @__PURE__ */ React9.createElement("br", null),
+          /* @__PURE__ */ React9.createElement(Components5.Text, null, "Secondary Color"),
           /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
             defaultValue: colors.accent,
             onChange: (e) => {
@@ -5600,145 +5600,145 @@ function DisplayNameStyle() {
           })
         )
       : null,
-    /* @__PURE__ */ React9.createElement('br', null),
+    /* @__PURE__ */ React9.createElement("br", null),
     /* @__PURE__ */ React9.createElement(
       Components5.Button,
       {
         onClick: () => {
-          const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace('#', ''), 16);
-          const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace('#', ''), 16);
+          const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ""), 16);
+          const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ""), 16);
           const colorString =
             effectId === 1
               ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}`
               : PRIMARY_COLOR_DECIMAL;
           copyToClipboard(
             secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`),
-            '3y3 copied to clipboard!'
+            "3y3 copied to clipboard!"
           );
         },
       },
-      'Copy 3y3'
+      "Copy 3y3"
     )
   );
 }
 // src/global/quests/index.ts
 var invalid = [
   {
-    name: 'Uncategorized',
-    sku_id: '8',
+    name: "Uncategorized",
+    sku_id: "8",
     products: [
       {
-        name: '[Test] Cedric Collectible',
-        items: [{ label: 'A collectible test by Cedric', sku_id: '1491545171232559376', type: 0 }],
-        sku_id: '1491545171232559376',
+        name: "[Test] Cedric Collectible",
+        items: [{ label: "A collectible test by Cedric", sku_id: "1491545171232559376", type: 0 }],
+        sku_id: "1491545171232559376",
         type: 0,
       },
       {
-        name: '[TEST] Pls ignore',
-        items: [{ label: 'test', sku_id: '1491545387268571177', type: 0 }],
-        sku_id: '1491545387268571177',
+        name: "[TEST] Pls ignore",
+        items: [{ label: "test", sku_id: "1491545387268571177", type: 0 }],
+        sku_id: "1491545387268571177",
         type: 0,
       },
       {
-        name: '[TEST] Kevin McCollectible2',
+        name: "[TEST] Kevin McCollectible2",
         items: [
-          { label: 'This is a test collectible label2', sku_id: '1491544502937059340', type: 0 },
+          { label: "This is a test collectible label2", sku_id: "1491544502937059340", type: 0 },
         ],
-        sku_id: '1491544502937059340',
+        sku_id: "1491544502937059340",
         type: 0,
       },
     ],
   },
   {
-    name: 'Misc Profile Frames',
-    sku_id: '7',
+    name: "Misc Profile Frames",
+    sku_id: "7",
     products: [
       {
-        name: '[IGNORE - DUPLICATE] Lofi Skyline',
+        name: "[IGNORE - DUPLICATE] Lofi Skyline",
         items: [
           {
             inner_width: 1200,
             label:
-              'A glowing neon cityscape in purple, pink, and blue stretches across the top of the profile against a dark night sky',
+              "A glowing neon cityscape in purple, pink, and blue stretches across the top of the profile against a dark night sky",
             layers: [
               {
-                anchor: 'top',
-                id: '1511883747903934664',
-                order: 'back',
+                anchor: "top",
+                id: "1511883747903934664",
+                order: "back",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
             ],
             overflow_bottom: 0,
             overflow_horizontal: 0,
             overflow_top: 304,
-            sku_id: '1493976288711672008',
+            sku_id: "1493976288711672008",
             type: 3,
           },
         ],
-        sku_id: '1493976288711672008',
+        sku_id: "1493976288711672008",
         type: 3,
       },
       {
-        name: 'Do Not Use - Y2K',
+        name: "Do Not Use - Y2K",
         items: [
           {
             inner_width: 1200,
-            label: 'A chromatic border wraps around your profile',
+            label: "A chromatic border wraps around your profile",
             layers: [
               {
-                anchor: 'center',
-                id: '1511909030375981056',
-                order: 'front',
+                anchor: "center",
+                id: "1511909030375981056",
+                order: "front",
                 responsive: false,
-                type: 'border',
+                type: "border",
               },
               {
-                anchor: 'top',
-                id: '1511909034461102151',
-                order: 'front',
+                anchor: "top",
+                id: "1511909034461102151",
+                order: "front",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
               {
-                anchor: 'bottom',
-                id: '1511909040752431114',
-                order: 'front',
+                anchor: "bottom",
+                id: "1511909040752431114",
+                order: "front",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
             ],
             overflow_bottom: 207,
             overflow_horizontal: 56,
             overflow_top: 209,
-            sku_id: '1491912717454540830',
+            sku_id: "1491912717454540830",
             type: 3,
           },
         ],
-        sku_id: '1491912717454540830',
+        sku_id: "1491912717454540830",
         type: 3,
       },
       {
-        name: 'Shoujo',
+        name: "Shoujo",
         items: [
           {
             type: 3,
-            sku_id: '1491880600054005780',
+            sku_id: "1491880600054005780",
             label:
-              'Anime-style character design and vibrant colors frame your profile like a shoujo manga panel',
+              "Anime-style character design and vibrant colors frame your profile like a shoujo manga panel",
             layers: [
               {
-                id: '1511887478381088778',
-                type: 'staple',
-                order: 'front',
-                anchor: 'top',
+                id: "1511887478381088778",
+                type: "staple",
+                order: "front",
+                anchor: "top",
                 responsive: false,
               },
               {
-                id: '1511887481904300224',
-                type: 'staple',
-                order: 'front',
-                anchor: 'bottom',
+                id: "1511887481904300224",
+                type: "staple",
+                order: "front",
+                anchor: "bottom",
                 responsive: false,
               },
             ],
@@ -5748,414 +5748,414 @@ var invalid = [
             overflow_horizontal: 56,
           },
         ],
-        sku_id: '1491880600054005780',
+        sku_id: "1491880600054005780",
         type: 3,
       },
       {
-        name: 'Do Not Use - Astrology',
+        name: "Do Not Use - Astrology",
         items: [
           {
             inner_width: 1200,
             label:
-              'Astrological symbols and cosmic elements frame your profile like a zodiac chart',
+              "Astrological symbols and cosmic elements frame your profile like a zodiac chart",
             layers: [
               {
-                anchor: 'center',
-                id: '1511836597438648501',
-                order: 'front',
+                anchor: "center",
+                id: "1511836597438648501",
+                order: "front",
                 responsive: false,
-                type: 'border',
+                type: "border",
               },
               {
-                anchor: 'center',
-                id: '1511836603969179879',
-                order: 'front',
+                anchor: "center",
+                id: "1511836603969179879",
+                order: "front",
                 responsive: true,
-                type: 'rail',
+                type: "rail",
               },
               {
-                anchor: 'top',
-                id: '1511836607232344277',
-                order: 'front',
+                anchor: "top",
+                id: "1511836607232344277",
+                order: "front",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
               {
-                anchor: 'bottom',
-                id: '1511836611158216865',
-                order: 'front',
+                anchor: "bottom",
+                id: "1511836611158216865",
+                order: "front",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
             ],
             overflow_bottom: 127,
             overflow_horizontal: 56,
             overflow_top: 304,
-            sku_id: '1489397732144844902',
+            sku_id: "1489397732144844902",
             type: 3,
           },
         ],
-        sku_id: '1489397732144844902',
+        sku_id: "1489397732144844902",
         type: 3,
       },
       {
-        name: 'Do Not Use - Fantasy Galaxy',
+        name: "Do Not Use - Fantasy Galaxy",
         items: [
           {
             inner_width: 1200,
-            label: 'A swirl of stars and cosmic dust frames your profile like a pocket galaxy',
+            label: "A swirl of stars and cosmic dust frames your profile like a pocket galaxy",
             layers: [
               {
-                anchor: 'top',
-                id: '1512141939426984117',
-                order: 'front',
+                anchor: "top",
+                id: "1512141939426984117",
+                order: "front",
                 responsive: true,
-                type: 'rail',
+                type: "rail",
               },
               {
-                anchor: 'top',
-                id: '1511907713653801031',
-                order: 'front',
+                anchor: "top",
+                id: "1511907713653801031",
+                order: "front",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
               {
-                anchor: 'top',
-                id: '1511907717302849676',
-                order: 'back',
+                anchor: "top",
+                id: "1511907717302849676",
+                order: "back",
                 responsive: false,
-                type: 'staple',
+                type: "staple",
               },
             ],
             overflow_bottom: 0,
             overflow_horizontal: 56,
             overflow_top: 291,
-            sku_id: '1484726324592640052',
+            sku_id: "1484726324592640052",
             type: 3,
           },
         ],
-        sku_id: '1484726324592640052',
+        sku_id: "1484726324592640052",
         type: 3,
       },
     ],
   },
   {
-    name: '1478820291382743227',
-    sku_id: '1478820291382743227',
+    name: "1478820291382743227",
+    sku_id: "1478820291382743227",
     products: [
       {
-        name: 'Nitro Control',
+        name: "Nitro Control",
         items: [
           {
             type: 2,
-            sku_id: '1478820329936650464',
-            label: 'A chrome rocket ship sails through the galaxy.',
-            palette: 'cobalt',
+            sku_id: "1478820329936650464",
+            label: "A chrome rocket ship sails through the galaxy.",
+            palette: "cobalt",
           },
         ],
-        sku_id: '1478820329936650464',
+        sku_id: "1478820329936650464",
         type: 2,
       },
     ],
   },
   {
-    name: 'OOSLA',
-    sku_id: '1464327525974151412',
+    name: "OOSLA",
+    sku_id: "1464327525974151412",
     products: [
       {
-        name: 'Unicorns are Awesome',
-        items: [{ type: 0, sku_id: '1464327740780974167', label: 'labels are cool' }],
-        sku_id: '1464327740780974167',
+        name: "Unicorns are Awesome",
+        items: [{ type: 0, sku_id: "1464327740780974167", label: "labels are cool" }],
+        sku_id: "1464327740780974167",
         type: 0,
       },
       {
-        name: 'Bug Catcher Wumpus',
-        items: [{ type: 0, sku_id: '1487099062355361994', label: 'OOSLA Quest Deco' }],
-        sku_id: '1487099062355361994',
+        name: "Bug Catcher Wumpus",
+        items: [{ type: 0, sku_id: "1487099062355361994", label: "OOSLA Quest Deco" }],
+        sku_id: "1487099062355361994",
         type: 0,
       },
       {
-        name: 'Hakuna Bug-tata',
+        name: "Hakuna Bug-tata",
         items: [
-          { type: 2, sku_id: '1488553242555187391', label: 'OOSLA Quest Deco', palette: 'forest' },
+          { type: 2, sku_id: "1488553242555187391", label: "OOSLA Quest Deco", palette: "forest" },
         ],
-        sku_id: '1488553242555187391',
+        sku_id: "1488553242555187391",
         type: 2,
       },
     ],
   },
-  { name: 'Holidays', sku_id: '1349486948942745691', products: [] },
+  { name: "Holidays", sku_id: "1349486948942745691", products: [] },
   {
-    name: 'Nameplate Test',
-    sku_id: '1344802365307621427',
+    name: "Nameplate Test",
+    sku_id: "1344802365307621427",
     products: [
       {
-        name: 'Angel',
+        name: "Angel",
         items: [
           {
             type: 2,
-            sku_id: '1344802364934062152',
+            sku_id: "1344802364934062152",
             label: "It's angel time",
-            palette: 'bubble_gum',
+            palette: "bubble_gum",
           },
         ],
-        sku_id: '1344802364934062152',
+        sku_id: "1344802364934062152",
         type: 2,
       },
       {
-        name: 'Aurora',
+        name: "Aurora",
         items: [
-          { type: 2, sku_id: '1344802364971946054', label: "It's aurora time", palette: 'teal' },
+          { type: 2, sku_id: "1344802364971946054", label: "It's aurora time", palette: "teal" },
         ],
-        sku_id: '1344802364971946054',
+        sku_id: "1344802364971946054",
         type: 2,
       },
       {
-        name: 'Cherry Blossom',
+        name: "Cherry Blossom",
         items: [
           {
             type: 2,
-            sku_id: '1344802364992782366',
+            sku_id: "1344802364992782366",
             label: "It's cherry blossom time",
-            palette: 'berry',
+            palette: "berry",
           },
         ],
-        sku_id: '1344802364992782366',
+        sku_id: "1344802364992782366",
         type: 2,
       },
       {
-        name: 'Dark Fantasy',
+        name: "Dark Fantasy",
         items: [
           {
             type: 2,
-            sku_id: '1344802365013753962',
+            sku_id: "1344802365013753962",
             label: "It's dark fantasy time",
-            palette: 'violet',
+            palette: "violet",
           },
         ],
-        sku_id: '1344802365013753962',
+        sku_id: "1344802365013753962",
         type: 2,
       },
       {
-        name: 'Dreamy',
+        name: "Dreamy",
         items: [
           {
             type: 2,
-            sku_id: '1344802365038919680',
+            sku_id: "1344802365038919680",
             label: "It's dreamy time",
-            palette: 'bubble_gum',
+            palette: "bubble_gum",
           },
         ],
-        sku_id: '1344802365038919680',
+        sku_id: "1344802365038919680",
         type: 2,
       },
       {
-        name: 'Fairy Dust',
+        name: "Fairy Dust",
         items: [
           {
             type: 2,
-            sku_id: '1344802365068279839',
+            sku_id: "1344802365068279839",
             label: "It's fairy dust time",
-            palette: 'bubble_gum',
+            palette: "bubble_gum",
           },
         ],
-        sku_id: '1344802365068279839',
+        sku_id: "1344802365068279839",
         type: 2,
       },
       {
-        name: 'Galaxy',
+        name: "Galaxy",
         items: [
-          { type: 2, sku_id: '1344802365089251429', label: "It's galaxy time", palette: 'cobalt' },
+          { type: 2, sku_id: "1344802365089251429", label: "It's galaxy time", palette: "cobalt" },
         ],
-        sku_id: '1344802365089251429',
+        sku_id: "1344802365089251429",
         type: 2,
       },
       {
-        name: 'Glitch',
+        name: "Glitch",
         items: [
-          { type: 2, sku_id: '1344802365114417202', label: "It's glitch time", palette: 'cobalt' },
+          { type: 2, sku_id: "1344802365114417202", label: "It's glitch time", palette: "cobalt" },
         ],
-        sku_id: '1344802365114417202',
+        sku_id: "1344802365114417202",
         type: 2,
       },
       {
-        name: 'Heart Bloom',
+        name: "Heart Bloom",
         items: [
           {
             type: 2,
-            sku_id: '1344802365135524007',
+            sku_id: "1344802365135524007",
             label: "It's heart bloom time",
-            palette: 'bubble_gum',
+            palette: "bubble_gum",
           },
         ],
-        sku_id: '1344802365135524007',
+        sku_id: "1344802365135524007",
         type: 2,
       },
       {
-        name: 'Kawaii Gaming',
+        name: "Kawaii Gaming",
         items: [
           {
             type: 2,
-            sku_id: '1344802365160689685',
+            sku_id: "1344802365160689685",
             label: "It's kawaii gaming time",
-            palette: 'sky',
+            palette: "sky",
           },
         ],
-        sku_id: '1344802365160689685',
+        sku_id: "1344802365160689685",
         type: 2,
       },
       {
-        name: 'Kitsune',
+        name: "Kitsune",
         items: [
-          { type: 2, sku_id: '1344802365177331822', label: "It's Kitsune time", palette: 'cobalt' },
+          { type: 2, sku_id: "1344802365177331822", label: "It's Kitsune time", palette: "cobalt" },
         ],
-        sku_id: '1344802365177331822',
+        sku_id: "1344802365177331822",
         type: 2,
       },
       {
-        name: 'Koi Pond',
+        name: "Koi Pond",
         items: [
-          { type: 2, sku_id: '1344802365198303314', label: "It's koi pond time", palette: 'sky' },
+          { type: 2, sku_id: "1344802365198303314", label: "It's koi pond time", palette: "sky" },
         ],
-        sku_id: '1344802365198303314',
+        sku_id: "1344802365198303314",
         type: 2,
       },
       {
-        name: 'Lofi',
+        name: "Lofi",
         items: [
-          { type: 2, sku_id: '1344802365223469066', label: "It's lofi time", palette: 'berry' },
+          { type: 2, sku_id: "1344802365223469066", label: "It's lofi time", palette: "berry" },
         ],
-        sku_id: '1344802365223469066',
+        sku_id: "1344802365223469066",
         type: 2,
       },
       {
-        name: 'Lofi Cat',
+        name: "Lofi Cat",
         items: [
-          { type: 2, sku_id: '1344802365244440606', label: "It's lofi cat time", palette: 'berry' },
+          { type: 2, sku_id: "1344802365244440606", label: "It's lofi cat time", palette: "berry" },
         ],
-        sku_id: '1344802365244440606',
+        sku_id: "1344802365244440606",
         type: 2,
       },
       {
-        name: 'Moon and Sun',
+        name: "Moon and Sun",
         items: [
           {
             type: 2,
-            sku_id: '1344802365265412119',
+            sku_id: "1344802365265412119",
             label: "It's moon and sun time",
-            palette: 'cobalt',
+            palette: "cobalt",
           },
         ],
-        sku_id: '1344802365265412119',
+        sku_id: "1344802365265412119",
         type: 2,
       },
     ],
   },
   {
-    name: 'Special Events 2',
-    sku_id: '1309309974266118144',
+    name: "Special Events 2",
+    sku_id: "1309309974266118144",
     products: [
       {
-        name: 'New Year',
+        name: "New Year",
         items: [
           {
             type: 0,
-            sku_id: '1174459415924064376',
+            sku_id: "1174459415924064376",
             label:
-              'Cheers to 2023, and we hope you have a wonderful new year in 2024! Gold 2024 balloons sit ontop of the avatar.',
+              "Cheers to 2023, and we hope you have a wonderful new year in 2024! Gold 2024 balloons sit ontop of the avatar.",
           },
         ],
-        sku_id: '1174459415924064376',
+        sku_id: "1174459415924064376",
         type: 0,
       },
       {
-        name: 'Rift Butterfly',
+        name: "Rift Butterfly",
         items: [
           {
             type: 0,
-            sku_id: '1308169595055771749',
+            sku_id: "1308169595055771749",
             label:
-              'A rift butterfly shines in the center of the avatar, flutters its wings, and returns to the top of the avatar.',
+              "A rift butterfly shines in the center of the avatar, flutters its wings, and returns to the top of the avatar.",
           },
         ],
-        sku_id: '1308169595055771749',
+        sku_id: "1308169595055771749",
         type: 0,
       },
       {
-        name: 'Batarang',
+        name: "Batarang",
         items: [
           {
             type: 0,
-            sku_id: '1309270800099971122',
+            sku_id: "1309270800099971122",
             label:
-              'A spinning, bat-shaped metallic projectile hurtles into and impacts the screen, leaving a massive crack.',
+              "A spinning, bat-shaped metallic projectile hurtles into and impacts the screen, leaving a massive crack.",
           },
         ],
-        sku_id: '1309270800099971122',
+        sku_id: "1309270800099971122",
         type: 0,
       },
       {
-        name: 'Bush Camper',
+        name: "Bush Camper",
         items: [
           {
             type: 0,
-            sku_id: '1313309630851448833',
+            sku_id: "1313309630851448833",
             label:
-              'A bush encircles the avatar, with leaves gently rustling and swaying in a circular motion.',
+              "A bush encircles the avatar, with leaves gently rustling and swaying in a circular motion.",
           },
         ],
-        sku_id: '1313309630851448833',
+        sku_id: "1313309630851448833",
         type: 0,
       },
       {
-        name: 'Shield Potion',
+        name: "Shield Potion",
         items: [
           {
             type: 0,
-            sku_id: '1315750531330736211',
+            sku_id: "1315750531330736211",
             label:
-              'A potion bottle is uncorked, its contents emptied, and a pixelated aura swipes over the avatar from bottom to top.',
+              "A potion bottle is uncorked, its contents emptied, and a pixelated aura swipes over the avatar from bottom to top.",
           },
         ],
-        sku_id: '1315750531330736211',
+        sku_id: "1315750531330736211",
         type: 0,
       },
       {
-        name: 'TGA Controller',
+        name: "TGA Controller",
         items: [
           {
             type: 0,
-            sku_id: '1315853682235019326',
+            sku_id: "1315853682235019326",
             label:
-              'Two joysticks and keypads control a target that moves in all directions around the profile picture.',
+              "Two joysticks and keypads control a target that moves in all directions around the profile picture.",
           },
         ],
-        sku_id: '1315853682235019326',
+        sku_id: "1315853682235019326",
         type: 0,
       },
       {
-        name: 'Shadow',
+        name: "Shadow",
         items: [
           {
             type: 0,
-            sku_id: '1316597786862419988',
+            sku_id: "1316597786862419988",
             label:
-              'Shadow teleports around multiple times, leaving a red and orange trail while striking various dynamic poses.',
+              "Shadow teleports around multiple times, leaving a red and orange trail while striking various dynamic poses.",
           },
         ],
-        sku_id: '1316597786862419988',
+        sku_id: "1316597786862419988",
         type: 0,
       },
       {
-        name: 'Rec Room Lightning',
+        name: "Rec Room Lightning",
         items: [
           {
             type: 0,
-            sku_id: '1319423712474435655',
-            label: 'A streak of orange lightning surrounds the avatar.',
+            sku_id: "1319423712474435655",
+            label: "A streak of orange lightning surrounds the avatar.",
           },
         ],
-        sku_id: '1319423712474435655',
+        sku_id: "1319423712474435655",
         type: 0,
       },
       {
@@ -6163,658 +6163,658 @@ var invalid = [
         items: [
           {
             type: 0,
-            sku_id: '1325880072972013670',
+            sku_id: "1325880072972013670",
             label:
               "VALORANT Agent Gekko's cute yellow creature happily bounces on top of your avatar",
           },
         ],
-        sku_id: '1325880072972013670',
+        sku_id: "1325880072972013670",
         type: 0,
       },
       {
-        name: 'Heart-to-Heart',
+        name: "Heart-to-Heart",
         items: [
           {
             type: 0,
-            sku_id: '1326347611069874277',
+            sku_id: "1326347611069874277",
             label:
-              'A flurry of pink and red hearts surround around your avatar, swirling with a gentle touch before settling into a snug, cheek-to-cheek cuddle.',
+              "A flurry of pink and red hearts surround around your avatar, swirling with a gentle touch before settling into a snug, cheek-to-cheek cuddle.",
           },
         ],
-        sku_id: '1326347611069874277',
+        sku_id: "1326347611069874277",
         type: 0,
       },
       {
-        name: 'Jeff the Land Shark',
+        name: "Jeff the Land Shark",
         items: [
           {
             type: 0,
-            sku_id: '1326718812279799809',
+            sku_id: "1326718812279799809",
             label:
-              'Jeff the Land Shark is an absolutely adorable, chonky cartoon shark who looks like it just discovered its love for snacks and hugs. It’s rocking a stylish pink collar with a shiny gold tag, like it’s ready to be your best aquatic buddy. Its big toothy grin says, “I’m cute, but I could still chomp if needed!”.',
+              "Jeff the Land Shark is an absolutely adorable, chonky cartoon shark who looks like it just discovered its love for snacks and hugs. It’s rocking a stylish pink collar with a shiny gold tag, like it’s ready to be your best aquatic buddy. Its big toothy grin says, “I’m cute, but I could still chomp if needed!”.",
           },
         ],
-        sku_id: '1326718812279799809',
+        sku_id: "1326718812279799809",
         type: 0,
       },
       {
-        name: 'Fuchsia Agent',
+        name: "Fuchsia Agent",
         items: [
           {
             type: 0,
-            sku_id: '1329309467619229797',
+            sku_id: "1329309467619229797",
             label:
               "A Fuchsia Agent character with a red shark swimming around the character's gray headband.",
           },
         ],
-        sku_id: '1329309467619229797',
+        sku_id: "1329309467619229797",
         type: 0,
       },
       {
-        name: 'Fortnite Boogie Bomb',
+        name: "Fortnite Boogie Bomb",
         items: [
           {
             type: 0,
-            sku_id: '1334270711790833776',
+            sku_id: "1334270711790833776",
             label:
-              'A Boogie Bomb explodes, lowering a disco ball causing a festive disco light show',
+              "A Boogie Bomb explodes, lowering a disco ball causing a festive disco light show",
           },
         ],
-        sku_id: '1334270711790833776',
+        sku_id: "1334270711790833776",
         type: 0,
       },
       {
-        name: 'Scout',
+        name: "Scout",
         items: [
           {
             type: 0,
-            sku_id: '1336439189041975316',
+            sku_id: "1336439189041975316",
             label:
-              'An older man wearing a green cape and gray feathered hat holds a wooden staff and looks into the distance while shielding his eyes to scout ahead. Next to him, his sitting dog companion stands up and looks in the same direction.',
+              "An older man wearing a green cape and gray feathered hat holds a wooden staff and looks into the distance while shielding his eyes to scout ahead. Next to him, his sitting dog companion stands up and looks in the same direction.",
           },
         ],
-        sku_id: '1336439189041975316',
+        sku_id: "1336439189041975316",
         type: 0,
       },
       {
-        name: 'Hoppy Day',
+        name: "Hoppy Day",
         items: [
           {
             type: 0,
-            sku_id: '1336506386296864839',
+            sku_id: "1336506386296864839",
             label:
-              'Your avatar has found a friend in the shape of a little brown bunny. It hops in delight when it sees you.',
+              "Your avatar has found a friend in the shape of a little brown bunny. It hops in delight when it sees you.",
           },
         ],
-        sku_id: '1336506386296864839',
+        sku_id: "1336506386296864839",
         type: 0,
       },
       {
-        name: 'Afternoon Breeze',
+        name: "Afternoon Breeze",
         items: [
           {
             type: 0,
-            sku_id: '1336506386296864842',
+            sku_id: "1336506386296864842",
             label:
-              'Your avatar stands in a dreamy meadow, where pink and orange flowers sway to nature’s rhythm, sending petals twirling through the soft breeze.',
+              "Your avatar stands in a dreamy meadow, where pink and orange flowers sway to nature’s rhythm, sending petals twirling through the soft breeze.",
           },
         ],
-        sku_id: '1336506386296864842',
+        sku_id: "1336506386296864842",
         type: 0,
       },
       {
-        name: 'Shower Stroll',
+        name: "Shower Stroll",
         items: [
           {
             type: 0,
-            sku_id: '1336506386296864845',
+            sku_id: "1336506386296864845",
             label:
-              'A soft rain drapes over your avatar, leaving a shimmering rainbow glow that whispers a touch of magic into the misty air.',
+              "A soft rain drapes over your avatar, leaving a shimmering rainbow glow that whispers a touch of magic into the misty air.",
           },
         ],
-        sku_id: '1336506386296864845',
+        sku_id: "1336506386296864845",
         type: 0,
       },
       {
-        name: 'Exoborne',
+        name: "Exoborne",
         items: [
           {
             type: 0,
-            sku_id: '1338927497860878466',
+            sku_id: "1338927497860878466",
             label:
-              'Metallic armor surrounds the avatar with pieces shifting into place and yellow indicator lights turning on.',
+              "Metallic armor surrounds the avatar with pieces shifting into place and yellow indicator lights turning on.",
           },
         ],
-        sku_id: '1338927497860878466',
+        sku_id: "1338927497860878466",
         type: 0,
       },
       {
-        name: 'Big Dill Chain',
+        name: "Big Dill Chain",
         items: [
           {
             type: 0,
-            sku_id: '1341522018197311519',
+            sku_id: "1341522018197311519",
             label:
-              'A gold chain holding a gold medallion with a D that has two vertical slashes through it surrounds a green cap.',
+              "A gold chain holding a gold medallion with a D that has two vertical slashes through it surrounds a green cap.",
           },
         ],
-        sku_id: '1341522018197311519',
+        sku_id: "1341522018197311519",
         type: 0,
       },
       {
-        name: 'Pathojen',
+        name: "Pathojen",
         items: [
           {
             type: 0,
-            sku_id: '1346915187243876474',
+            sku_id: "1346915187243876474",
             label:
-              'This avatar decoration features a vibrant, neon-colored circular flame effect with an energetic, cartoonish character at the bottom left.',
+              "This avatar decoration features a vibrant, neon-colored circular flame effect with an energetic, cartoonish character at the bottom left.",
           },
         ],
-        sku_id: '1346915187243876474',
+        sku_id: "1346915187243876474",
         type: 0,
       },
       {
-        name: 'Split Avatar Decoration',
+        name: "Split Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1346987105028407307',
+            sku_id: "1346987105028407307",
             label:
-              'A circular energy effect split in two: the left side glows purple, the right golden-orange. A diagonal crystal-like fracture runs across it, with shimmering shards and sparks, creating a high-tech, futuristic, battle-worn look.',
+              "A circular energy effect split in two: the left side glows purple, the right golden-orange. A diagonal crystal-like fracture runs across it, with shimmering shards and sparks, creating a high-tech, futuristic, battle-worn look.",
           },
         ],
-        sku_id: '1346987105028407307',
+        sku_id: "1346987105028407307",
         type: 0,
       },
       {
-        name: 'Khazan Avatar Decoration',
+        name: "Khazan Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1347624589571788951',
+            sku_id: "1347624589571788951",
             label:
-              'This Discord avatar decoration features a menacing, metallic circular frame composed of jagged, dark gray spikes with glowing blue crystal-like accents embedded throughout. The design gives off a sharp, armored aesthetic, reminiscent of a magical or futuristic battle-worn artifact.',
+              "This Discord avatar decoration features a menacing, metallic circular frame composed of jagged, dark gray spikes with glowing blue crystal-like accents embedded throughout. The design gives off a sharp, armored aesthetic, reminiscent of a magical or futuristic battle-worn artifact.",
           },
         ],
-        sku_id: '1347624589571788951',
+        sku_id: "1347624589571788951",
         type: 0,
       },
       {
-        name: 'Gallica Avatar Decoration',
+        name: "Gallica Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1349045865188294719',
-            label: 'A fairy is floating while flipping through pages in a book',
+            sku_id: "1349045865188294719",
+            label: "A fairy is floating while flipping through pages in a book",
           },
         ],
-        sku_id: '1349045865188294719',
+        sku_id: "1349045865188294719",
         type: 0,
       },
       {
-        name: 'Supply Llama',
+        name: "Supply Llama",
         items: [
           {
             type: 0,
-            sku_id: '1352347590917882008',
+            sku_id: "1352347590917882008",
             label:
-              'A purple and blue llama body surrounds the frame, with a llama head on the top left.',
+              "A purple and blue llama body surrounds the frame, with a llama head on the top left.",
           },
         ],
-        sku_id: '1352347590917882008',
+        sku_id: "1352347590917882008",
         type: 0,
       },
       {
-        name: 'Clicker Avatar Decoration',
+        name: "Clicker Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1357852406079291593',
+            sku_id: "1357852406079291593",
             label:
               "Mushroom-shaped elements in orange-red and mint green colors surround the user's avatar. The organic, flowing fungal shapes have a natural, slightly oceanic aesthetic with a hand-drawn illustration style.",
           },
         ],
-        sku_id: '1357852406079291593',
+        sku_id: "1357852406079291593",
         type: 0,
       },
       {
-        name: 'Face of Corruption Avatar Decoration',
+        name: "Face of Corruption Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1359328540104986636',
+            sku_id: "1359328540104986636",
             label:
-              'This avatar decoration features two intense, screaming red stone faces split dramatically down the middle.',
+              "This avatar decoration features two intense, screaming red stone faces split dramatically down the middle.",
           },
         ],
-        sku_id: '1359328540104986636',
+        sku_id: "1359328540104986636",
         type: 0,
       },
       {
-        name: 'Emma Frost Avatar Decoration',
+        name: "Emma Frost Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1359953429778137322',
+            sku_id: "1359953429778137322",
             label:
-              'This avatar decoration features a confident, stylishly armored woman standing tall with a shimmering crystal levitating above her hand. The transparent center lets your avatar shine while being blessed by the aura of power, elegance, and just a dash of sass.',
+              "This avatar decoration features a confident, stylishly armored woman standing tall with a shimmering crystal levitating above her hand. The transparent center lets your avatar shine while being blessed by the aura of power, elegance, and just a dash of sass.",
           },
         ],
-        sku_id: '1359953429778137322',
+        sku_id: "1359953429778137322",
         type: 0,
       },
       {
-        name: 'Signal from Tau Ceti Avatar Decoration',
+        name: "Signal from Tau Ceti Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1360316550313283748',
+            sku_id: "1360316550313283748",
             label:
               "Neon yellow-green overlays surround the user's avatar. The animated overlays show hazard stripes, exclamation marks, directional arrows, and letters and numbers that flicker.",
           },
         ],
-        sku_id: '1360316550313283748',
+        sku_id: "1360316550313283748",
         type: 0,
       },
       {
-        name: 'Slurp Barrel Avatar Decoration',
+        name: "Slurp Barrel Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1360353397865447707',
+            sku_id: "1360353397865447707",
             label:
               "A metallic barrel with the label 'Slurp co.' expands on top of the user's avatar and explodes into blue and white liquid.",
           },
         ],
-        sku_id: '1360353397865447707',
+        sku_id: "1360353397865447707",
         type: 0,
       },
       {
-        name: 'Hackclaw',
+        name: "Hackclaw",
         items: [
           {
             type: 0,
-            sku_id: '1362863977222115430',
+            sku_id: "1362863977222115430",
             label:
-              'Stylized avatar showing a white-haired character with turquoise highlights, with only the hair and hands visible. The hands appear to be wearing dark gloves with pink highlights, positioned on a keyboard.',
+              "Stylized avatar showing a white-haired character with turquoise highlights, with only the hair and hands visible. The hands appear to be wearing dark gloves with pink highlights, positioned on a keyboard.",
           },
         ],
-        sku_id: '1362863977222115430',
+        sku_id: "1362863977222115430",
         type: 0,
       },
       {
-        name: 'Friend of Dex',
+        name: "Friend of Dex",
         items: [
           {
             type: 0,
-            sku_id: '1366429159961919569',
-            label: 'A vibrant yellow fox energetically frames a circular pink energy border.',
+            sku_id: "1366429159961919569",
+            label: "A vibrant yellow fox energetically frames a circular pink energy border.",
           },
         ],
-        sku_id: '1366429159961919569',
+        sku_id: "1366429159961919569",
         type: 0,
       },
       {
-        name: 'Shield Saw',
+        name: "Shield Saw",
         items: [
           {
             type: 0,
-            sku_id: '1362863977222115433',
+            sku_id: "1362863977222115433",
             label:
-              'Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element.',
+              "Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element.",
           },
         ],
-        sku_id: '1362863977222115433',
+        sku_id: "1362863977222115433",
         type: 0,
       },
       {
-        name: 'Fortnite Galactic Battle',
+        name: "Fortnite Galactic Battle",
         items: [
           {
             type: 0,
-            sku_id: '1369388182927442022',
+            sku_id: "1369388182927442022",
             label:
               "Circular frame with two curved lines framing where a user's avatar would appear. The top curve is blue with a small circular emblem, while the bottom curve is red with a wheel-like symbol.",
           },
         ],
-        sku_id: '1369388182927442022',
+        sku_id: "1369388182927442022",
         type: 0,
       },
       {
-        name: 'Freshly Picked',
+        name: "Freshly Picked",
         items: [
           {
             type: 0,
-            sku_id: '1369404111484751873',
+            sku_id: "1369404111484751873",
             label:
-              'Beautiful, juicy strawberries, blueberries, and oranges, still wet from being washed, circle the outside of your avatar and remind you that summer is here.',
+              "Beautiful, juicy strawberries, blueberries, and oranges, still wet from being washed, circle the outside of your avatar and remind you that summer is here.",
           },
         ],
-        sku_id: '1369404111484751873',
+        sku_id: "1369404111484751873",
         type: 0,
       },
       {
-        name: 'Shield Saw',
+        name: "Shield Saw",
         items: [
           {
             type: 0,
-            sku_id: '1371943141321609357',
+            sku_id: "1371943141321609357",
             label:
-              'Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element.',
+              "Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element.",
           },
         ],
-        sku_id: '1371943141321609357',
+        sku_id: "1371943141321609357",
         type: 0,
       },
       {
-        name: 'The Bad Guys 2 Trailer',
+        name: "The Bad Guys 2 Trailer",
         items: [
           {
             type: 0,
-            sku_id: '1371949732066234571',
+            sku_id: "1371949732066234571",
             label:
-              'A bright, orange comet-like streak curves around the top-left of the frame, fading into sparks and glowing embers. The effect gives the avatar a sense of fiery motion.',
+              "A bright, orange comet-like streak curves around the top-left of the frame, fading into sparks and glowing embers. The effect gives the avatar a sense of fiery motion.",
           },
         ],
-        sku_id: '1371949732066234571',
+        sku_id: "1371949732066234571",
         type: 0,
       },
       {
-        name: 'Mission: Impossible',
+        name: "Mission: Impossible",
         items: [
           {
             type: 0,
-            sku_id: '1373682603621744720',
-            label: 'Person running around in circles upside down',
+            sku_id: "1373682603621744720",
+            label: "Person running around in circles upside down",
           },
         ],
-        sku_id: '1373682603621744720',
+        sku_id: "1373682603621744720",
         type: 0,
       },
       {
-        name: 'Jurassic World Rebirth Trailer',
+        name: "Jurassic World Rebirth Trailer",
         items: [
           {
             type: 0,
-            sku_id: '1374170804769652797',
-            label: 'Dinosaur roaring then fading away into the Jurassic World logo',
+            sku_id: "1374170804769652797",
+            label: "Dinosaur roaring then fading away into the Jurassic World logo",
           },
         ],
-        sku_id: '1374170804769652797',
+        sku_id: "1374170804769652797",
         type: 0,
       },
       {
-        name: 'Open Beta',
+        name: "Open Beta",
         items: [
           {
             type: 0,
-            sku_id: '1374394443997642803',
+            sku_id: "1374394443997642803",
             label:
-              'A circular cyan-blue ring with a faint light blue design in the center that resembles a stylized logo or emblem.',
+              "A circular cyan-blue ring with a faint light blue design in the center that resembles a stylized logo or emblem.",
           },
         ],
-        sku_id: '1374394443997642803',
+        sku_id: "1374394443997642803",
         type: 0,
       },
       {
-        name: 'Ballerina',
+        name: "Ballerina",
         items: [
           {
             type: 0,
-            sku_id: '1377740268366991562',
+            sku_id: "1377740268366991562",
             label:
-              'Pink rays emit from the center of the decoration like a halo and two blue fluffy ends of a fur coat show on the sides.',
+              "Pink rays emit from the center of the decoration like a halo and two blue fluffy ends of a fur coat show on the sides.",
           },
         ],
-        sku_id: '1377740268366991562',
+        sku_id: "1377740268366991562",
         type: 0,
       },
       {
-        name: 'Ultron',
+        name: "Ultron",
         items: [
           {
             type: 0,
-            sku_id: '1377856108282253333',
+            sku_id: "1377856108282253333",
             label:
-              'Metallic claws drag open a red swirling portal. The metallic claws disappear and Ultron appears through the portal.',
+              "Metallic claws drag open a red swirling portal. The metallic claws disappear and Ultron appears through the portal.",
           },
         ],
-        sku_id: '1377856108282253333',
+        sku_id: "1377856108282253333",
         type: 0,
       },
       {
-        name: 'Marvel Snap Venom',
+        name: "Marvel Snap Venom",
         items: [
           {
             type: 0,
-            sku_id: '1379222146274033798',
+            sku_id: "1379222146274033798",
             label:
               "A glowing cube in the bottom left becomes enveloped by black organic material and disappears. The organic material circulates around the avatar and transforms into Venom's face. The face takes a large bite and transforms back into a large glowing cube.",
           },
         ],
-        sku_id: '1379222146274033798',
+        sku_id: "1379222146274033798",
         type: 0,
       },
       {
-        name: 'How to Train Your Dragon',
+        name: "How to Train Your Dragon",
         items: [
           {
             type: 0,
-            sku_id: '1379879504629207180',
-            label: 'Ornate circular frame with a Dragon and a weathered metallic finish',
+            sku_id: "1379879504629207180",
+            label: "Ornate circular frame with a Dragon and a weathered metallic finish",
           },
         ],
-        sku_id: '1379879504629207180',
+        sku_id: "1379879504629207180",
         type: 0,
       },
       {
-        name: 'Starlight Revolver',
+        name: "Starlight Revolver",
         items: [
           {
             type: 0,
-            sku_id: '1380276497209622529',
+            sku_id: "1380276497209622529",
             label:
-              'A circular purple gradient border with decorative four-pointed stars in pink, cyan, purple, and orange scattered around the outside edge.',
+              "A circular purple gradient border with decorative four-pointed stars in pink, cyan, purple, and orange scattered around the outside edge.",
           },
         ],
-        sku_id: '1380276497209622529',
+        sku_id: "1380276497209622529",
         type: 0,
       },
       {
-        name: 'R6 Siege X Avatar',
+        name: "R6 Siege X Avatar",
         items: [
           {
             type: 0,
-            sku_id: '1380688086941302906',
+            sku_id: "1380688086941302906",
             label:
-              'A metallic sledge hammer twirls before smashing a wooden panel with a large green X painted on the center of it.',
+              "A metallic sledge hammer twirls before smashing a wooden panel with a large green X painted on the center of it.",
           },
         ],
-        sku_id: '1380688086941302906',
+        sku_id: "1380688086941302906",
         type: 0,
       },
       {
-        name: 'Towerborne Play',
+        name: "Towerborne Play",
         items: [
           {
             type: 0,
-            sku_id: '1382044334890680442',
+            sku_id: "1382044334890680442",
             label:
-              'A white and red fox mask turns to face the viewer. Streams of light emanate from its eyes before it returns to the upper left portion of the frame.',
+              "A white and red fox mask turns to face the viewer. Streams of light emanate from its eyes before it returns to the upper left portion of the frame.",
           },
         ],
-        sku_id: '1382044334890680442',
+        sku_id: "1382044334890680442",
         type: 0,
       },
       {
-        name: '28 Years Later',
+        name: "28 Years Later",
         items: [
           {
             type: 0,
-            sku_id: '1383123340142841949',
+            sku_id: "1383123340142841949",
             label:
-              'Animated avatar decoration depicting a pile of skulls stacked on the ground in the bottom left corner, with dark, jagged bones or spikes protruding from the back.',
+              "Animated avatar decoration depicting a pile of skulls stacked on the ground in the bottom left corner, with dark, jagged bones or spikes protruding from the back.",
           },
         ],
-        sku_id: '1383123340142841949',
+        sku_id: "1383123340142841949",
         type: 0,
       },
       {
-        name: 'M3GAN 2.0',
+        name: "M3GAN 2.0",
         items: [
           {
             type: 0,
-            sku_id: '1383136910435811430',
+            sku_id: "1383136910435811430",
             label:
-              'Animated M3GAN avatar frame with a dark spinning ring and M3GAN standing in a tan dress.',
+              "Animated M3GAN avatar frame with a dark spinning ring and M3GAN standing in a tan dress.",
           },
         ],
-        sku_id: '1383136910435811430',
+        sku_id: "1383136910435811430",
         type: 0,
       },
       {
-        name: 'LEGO® Fortnite',
+        name: "LEGO® Fortnite",
         items: [
           {
             type: 0,
-            sku_id: '1384216812488757359',
+            sku_id: "1384216812488757359",
             label:
-              'Circular LEGO® Fortnite avatar frame with fire, ice, and tech-themed emblems in red, blue, and green.',
+              "Circular LEGO® Fortnite avatar frame with fire, ice, and tech-themed emblems in red, blue, and green.",
           },
         ],
-        sku_id: '1384216812488757359',
+        sku_id: "1384216812488757359",
         type: 0,
       },
       {
-        name: 'I Love R.E.P.O.',
+        name: "I Love R.E.P.O.",
         items: [
           {
             type: 0,
-            sku_id: '1384247972107386911',
+            sku_id: "1384247972107386911",
             label:
-              'A goofy yellow head with large, wide-set cartoon eyes and a huge open mouth, forming a playful ring around the avatar.',
+              "A goofy yellow head with large, wide-set cartoon eyes and a huge open mouth, forming a playful ring around the avatar.",
           },
         ],
-        sku_id: '1384247972107386911',
+        sku_id: "1384247972107386911",
         type: 0,
       },
       {
-        name: 'SuperCell',
+        name: "SuperCell",
         items: [
           {
             type: 0,
-            sku_id: '1385015130466680995',
+            sku_id: "1385015130466680995",
             label:
-              'Animated green cactus character with red flowers waving next to a decorative circular frame with small leaves',
+              "Animated green cactus character with red flowers waving next to a decorative circular frame with small leaves",
           },
         ],
-        sku_id: '1385015130466680995',
+        sku_id: "1385015130466680995",
         type: 0,
       },
       {
-        name: 'Palia',
+        name: "Palia",
         items: [
           {
             type: 0,
-            sku_id: '1386849676875141292',
+            sku_id: "1386849676875141292",
             label:
-              'Animated cute fox peeking out from a circular woodland frame decorated with branches, green leaves, and small white flowers.',
+              "Animated cute fox peeking out from a circular woodland frame decorated with branches, green leaves, and small white flowers.",
           },
         ],
-        sku_id: '1386849676875141292',
+        sku_id: "1386849676875141292",
         type: 0,
       },
       {
-        name: 'VALORANT Summer Kickoff',
+        name: "VALORANT Summer Kickoff",
         items: [
           {
             type: 0,
-            sku_id: '1386838941801382010',
+            sku_id: "1386838941801382010",
             label:
-              'Animated carnival mask with colorful feathers and ribbons in purple, blue, and yellow.',
+              "Animated carnival mask with colorful feathers and ribbons in purple, blue, and yellow.",
           },
         ],
-        sku_id: '1386838941801382010',
+        sku_id: "1386838941801382010",
         type: 0,
       },
       {
-        name: 'Dilophosaurus',
+        name: "Dilophosaurus",
         items: [
           {
             type: 0,
-            sku_id: '1388206477491175517',
+            sku_id: "1388206477491175517",
             label:
-              'Circular frame with gold and black border featuring an animated Dilophosaurus that emerges from the left side. The Dilophosaurus moves its head around the frame edge, and as the animation concludes, its colorful neck frill extends to partially cover the circular white space designed for a profile picture.',
+              "Circular frame with gold and black border featuring an animated Dilophosaurus that emerges from the left side. The Dilophosaurus moves its head around the frame edge, and as the animation concludes, its colorful neck frill extends to partially cover the circular white space designed for a profile picture.",
           },
         ],
-        sku_id: '1388206477491175517',
+        sku_id: "1388206477491175517",
         type: 0,
       },
       {
-        name: 'Moomoo Hood',
+        name: "Moomoo Hood",
         items: [
           {
             type: 0,
-            sku_id: '1387485784419995649',
+            sku_id: "1387485784419995649",
             label:
               "Cartoon cow frame with pink ears, black spots on white fur, and gold bell at bottom. Circular opening centers where user's profile picture appears.",
           },
         ],
-        sku_id: '1387485784419995649',
+        sku_id: "1387485784419995649",
         type: 0,
       },
       {
-        name: 'Mecha BREAK',
+        name: "Mecha BREAK",
         items: [
           {
             type: 0,
-            sku_id: '1390436532988674091',
+            sku_id: "1390436532988674091",
             label:
-              'A futuristic metallic helmet encloses the avatar. The eyes shine with a blue light before the helmet opens up again.',
+              "A futuristic metallic helmet encloses the avatar. The eyes shine with a blue light before the helmet opens up again.",
           },
         ],
-        sku_id: '1390436532988674091',
+        sku_id: "1390436532988674091",
         type: 0,
       },
       {
-        name: 'THPS Half Pipe',
+        name: "THPS Half Pipe",
         items: [
           {
             type: 0,
-            sku_id: '1391785327613706301',
+            sku_id: "1391785327613706301",
             label:
-              'An aeriel view of a retro style half pipe with graffiti art flanks the frame. An orange skateboard drops in and performs a spinning trick, then returns to the bottom left of the frame.',
+              "An aeriel view of a retro style half pipe with graffiti art flanks the frame. An orange skateboard drops in and performs a spinning trick, then returns to the bottom left of the frame.",
           },
         ],
-        sku_id: '1391785327613706301',
+        sku_id: "1391785327613706301",
         type: 0,
       },
       {
-        name: 'Jet Ring',
-        items: [{ type: 0, sku_id: '1409978159255785652', label: 'Give your avatar a new look.' }],
-        sku_id: '1409978159255785652',
+        name: "Jet Ring",
+        items: [{ type: 0, sku_id: "1409978159255785652", label: "Give your avatar a new look." }],
+        sku_id: "1409978159255785652",
         type: 0,
       },
       {
-        name: 'Blast Off',
+        name: "Blast Off",
         items: [
           {
             type: 1,
-            sku_id: '1409978969670815795',
-            title: 'Blast Off',
-            description: 'Show this effect when others view your profile.',
-            accessibilityLabel: 'Show this effect when others view your profile.',
+            sku_id: "1409978969670815795",
+            title: "Blast Off",
+            description: "Show this effect when others view your profile.",
+            accessibilityLabel: "Show this effect when others view your profile.",
             animationType: 1,
             staticFrameSrc:
-              'https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1',
+              "https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1",
             thumbnailPreviewSrc:
-              'https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00',
+              "https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00",
             reducedMotionSrc:
-              'https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198',
+              "https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198",
             effects: [
               {
-                src: 'https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186',
+                src: "https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186",
                 loop: false,
                 height: 880,
                 width: 450,
@@ -6826,7 +6826,7 @@ var invalid = [
                 randomizedSources: [],
               },
               {
-                src: 'https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532',
+                src: "https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532",
                 loop: true,
                 height: 880,
                 width: 450,
@@ -6840,42 +6840,42 @@ var invalid = [
             ],
           },
         ],
-        sku_id: '1409978969670815795',
+        sku_id: "1409978969670815795",
         type: 1,
       },
       {
-        name: 'Jet Stream',
+        name: "Jet Stream",
         items: [
           {
             type: 2,
-            sku_id: '1409983105577783410',
-            label: 'Make your name stand out in servers and chats.',
-            palette: 'violet',
+            sku_id: "1409983105577783410",
+            label: "Make your name stand out in servers and chats.",
+            palette: "violet",
           },
         ],
-        sku_id: '1409983105577783410',
+        sku_id: "1409983105577783410",
         type: 2,
       },
       {
-        name: 'Nitro Jet Fuel',
+        name: "Nitro Jet Fuel",
         items: [
-          { type: 0, sku_id: '1409978159255785652', label: 'Give your avatar a new look.' },
+          { type: 0, sku_id: "1409978159255785652", label: "Give your avatar a new look." },
           {
             type: 1,
-            sku_id: '1409978969670815795',
-            title: 'Blast Off',
-            description: 'Show this effect when others view your profile.',
-            accessibilityLabel: 'Show this effect when others view your profile.',
+            sku_id: "1409978969670815795",
+            title: "Blast Off",
+            description: "Show this effect when others view your profile.",
+            accessibilityLabel: "Show this effect when others view your profile.",
             animationType: 1,
             staticFrameSrc:
-              'https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1',
+              "https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1",
             thumbnailPreviewSrc:
-              'https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00',
+              "https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00",
             reducedMotionSrc:
-              'https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198',
+              "https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198",
             effects: [
               {
-                src: 'https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186',
+                src: "https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186",
                 loop: false,
                 height: 880,
                 width: 450,
@@ -6887,7 +6887,7 @@ var invalid = [
                 randomizedSources: [],
               },
               {
-                src: 'https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532',
+                src: "https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532",
                 loop: true,
                 height: 880,
                 width: 450,
@@ -6902,133 +6902,133 @@ var invalid = [
           },
           {
             type: 2,
-            sku_id: '1409983105577783410',
-            label: 'Make your name stand out in servers and chats.',
-            palette: 'violet',
+            sku_id: "1409983105577783410",
+            label: "Make your name stand out in servers and chats.",
+            palette: "violet",
           },
         ],
-        sku_id: '1410030846337093672',
+        sku_id: "1410030846337093672",
         type: 1000,
       },
       {
-        name: 'Bonsai - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853949', label: 'A bonsai avatar decoration.' }],
-        sku_id: '1440174638930853949',
+        name: "Bonsai - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853949", label: "A bonsai avatar decoration." }],
+        sku_id: "1440174638930853949",
         type: 0,
       },
       {
-        name: 'Donut - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853950', label: 'A donut avatar decoration.' }],
-        sku_id: '1440174638930853950',
+        name: "Donut - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853950", label: "A donut avatar decoration." }],
+        sku_id: "1440174638930853950",
         type: 0,
       },
       {
-        name: 'Capybara - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853951', label: 'A capybara avatar decoration.' }],
-        sku_id: '1440174638930853951',
+        name: "Capybara - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853951", label: "A capybara avatar decoration." }],
+        sku_id: "1440174638930853951",
         type: 0,
       },
       {
-        name: 'Disco - Checkpoint 2025',
+        name: "Disco - Checkpoint 2025",
         items: [
-          { type: 0, sku_id: '1440174638930853952', label: 'A disco ball avatar decoration.' },
+          { type: 0, sku_id: "1440174638930853952", label: "A disco ball avatar decoration." },
         ],
-        sku_id: '1440174638930853952',
+        sku_id: "1440174638930853952",
         type: 0,
       },
       {
-        name: 'Origami - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853953', label: 'An origami avatar decoration.' }],
-        sku_id: '1440174638930853953',
+        name: "Origami - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853953", label: "An origami avatar decoration." }],
+        sku_id: "1440174638930853953",
         type: 0,
       },
       {
-        name: 'Snail - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853954', label: 'A snail avatar decoration.' }],
-        sku_id: '1440174638930853954',
+        name: "Snail - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853954", label: "A snail avatar decoration." }],
+        sku_id: "1440174638930853954",
         type: 0,
       },
       {
-        name: 'Duck - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853955', label: 'A duck avatar decoration.' }],
-        sku_id: '1440174638930853955',
+        name: "Duck - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853955", label: "A duck avatar decoration." }],
+        sku_id: "1440174638930853955",
         type: 0,
       },
       {
-        name: 'Banana - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853956', label: 'A banana avatar decoration.' }],
-        sku_id: '1440174638930853956',
+        name: "Banana - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853956", label: "A banana avatar decoration." }],
+        sku_id: "1440174638930853956",
         type: 0,
       },
       {
-        name: 'Cat - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853957', label: 'A cat avatar decoration.' }],
-        sku_id: '1440174638930853957',
+        name: "Cat - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853957", label: "A cat avatar decoration." }],
+        sku_id: "1440174638930853957",
         type: 0,
       },
       {
-        name: 'Cassette - Checkpoint 2025',
-        items: [{ type: 0, sku_id: '1440174638930853958', label: 'A cassette avatar decoration.' }],
-        sku_id: '1440174638930853958',
+        name: "Cassette - Checkpoint 2025",
+        items: [{ type: 0, sku_id: "1440174638930853958", label: "A cassette avatar decoration." }],
+        sku_id: "1440174638930853958",
         type: 0,
       },
       {
-        name: 'Full HP',
+        name: "Full HP",
         items: [
           {
             type: 0,
-            sku_id: '1464006538304684063',
+            sku_id: "1464006538304684063",
             label:
-              'Three pixel-style red hearts appear above the user’s avatar. Each heart gradually fills from empty to full in a loop, mimicking a video game health bar animation.',
+              "Three pixel-style red hearts appear above the user’s avatar. Each heart gradually fills from empty to full in a loop, mimicking a video game health bar animation.",
           },
         ],
-        sku_id: '1464006538304684063',
+        sku_id: "1464006538304684063",
         type: 0,
       },
       {
-        name: 'Full Heart',
+        name: "Full Heart",
         items: [
           {
             type: 2,
-            sku_id: '1464017397081047081',
+            sku_id: "1464017397081047081",
             label:
-              'A red pixel-style heart is displayed to the right of the user’s name. The heart slowly fills from empty to full in a repeating animation.',
-            palette: 'crimson',
+              "A red pixel-style heart is displayed to the right of the user’s name. The heart slowly fills from empty to full in a repeating animation.",
+            palette: "crimson",
           },
         ],
-        sku_id: '1464017397081047081',
+        sku_id: "1464017397081047081",
         type: 2,
       },
     ],
   },
   {
-    name: 'Special Events',
-    sku_id: '1217175518781243583',
+    name: "Special Events",
+    sku_id: "1217175518781243583",
     products: [
       {
-        name: 'Ghosts',
+        name: "Ghosts",
         items: [
           {
             type: 0,
-            sku_id: '1157411685687115858',
+            sku_id: "1157411685687115858",
             label:
-              'You notice two spooky ghosts twirling around each other in an eternal dance. Are they friend or foe?',
+              "You notice two spooky ghosts twirling around each other in an eternal dance. Are they friend or foe?",
           },
         ],
-        sku_id: '1157411685687115858',
+        sku_id: "1157411685687115858",
         type: 0,
       },
       {
-        name: 'Graveyard Cat',
+        name: "Graveyard Cat",
         items: [
           {
             type: 0,
-            sku_id: '1157411984371880118',
+            sku_id: "1157411984371880118",
             label:
               "Bathed in the glow of a full moon, a mysterious black cat is perched upon a tombstone, playfully pawing the tomb's exterior.",
           },
         ],
-        sku_id: '1157411984371880118',
+        sku_id: "1157411984371880118",
         type: 0,
       },
       {
@@ -7036,25 +7036,25 @@ var invalid = [
         items: [
           {
             type: 0,
-            sku_id: '1157412388509864068',
+            sku_id: "1157412388509864068",
             label:
               "A gleeful jack-o'-lantern cackles atop a dark, twisted branch, with bats swirling above to join in on the spooky shenanigans.",
           },
         ],
-        sku_id: '1157412388509864068',
+        sku_id: "1157412388509864068",
         type: 0,
       },
       {
-        name: 'Minions',
+        name: "Minions",
         items: [
           {
             type: 0,
-            sku_id: '1157412779335090267',
+            sku_id: "1157412779335090267",
             label:
               "A one-eyed magic cauldron hovers in the air, bubbling with a strange, green brew. Its winged jack-o'-lantern companion flaps nearby. What mischief are they brewing?",
           },
         ],
-        sku_id: '1157412779335090267',
+        sku_id: "1157412779335090267",
         type: 0,
       },
       {
@@ -7062,319 +7062,319 @@ var invalid = [
         items: [
           {
             type: 0,
-            sku_id: '1216908559548289084',
+            sku_id: "1216908559548289084",
             label:
-              'An avatar wears a vibrant ensemble of colorful clown hair, bowtie, and a striking red nose that balloons and pops.',
+              "An avatar wears a vibrant ensemble of colorful clown hair, bowtie, and a striking red nose that balloons and pops.",
           },
         ],
-        sku_id: '1216908559548289084',
+        sku_id: "1216908559548289084",
         type: 0,
       },
       {
-        name: 'Gyoiko Sakura',
+        name: "Gyoiko Sakura",
         items: [
           {
             type: 0,
-            sku_id: '1225876188074082374',
+            sku_id: "1225876188074082374",
             label:
-              'The petals of three lovely, green cherry blossoms drift softly across the avatar.',
+              "The petals of three lovely, green cherry blossoms drift softly across the avatar.",
           },
         ],
-        sku_id: '1225876188074082374',
+        sku_id: "1225876188074082374",
         type: 0,
       },
       {
-        name: 'Mokoko',
+        name: "Mokoko",
         items: [
           {
             type: 0,
-            sku_id: '1226939756617793606',
+            sku_id: "1226939756617793606",
             label:
-              'An affectionate Mokoko hugs the avatar then slides down and climbs back up to hug the avatar again.',
+              "An affectionate Mokoko hugs the avatar then slides down and climbs back up to hug the avatar again.",
           },
         ],
-        sku_id: '1226939756617793606',
+        sku_id: "1226939756617793606",
         type: 0,
       },
       {
-        name: 'Warp Helmet',
+        name: "Warp Helmet",
         items: [
           {
             type: 0,
-            sku_id: '1251324401459265537',
-            label: 'Futuristic Helmet, Blue with Green Warp Speed Light, Animated',
+            sku_id: "1251324401459265537",
+            label: "Futuristic Helmet, Blue with Green Warp Speed Light, Animated",
           },
         ],
-        sku_id: '1251324401459265537',
+        sku_id: "1251324401459265537",
         type: 0,
       },
       {
-        name: 'Fortnite Victory Crown',
+        name: "Fortnite Victory Crown",
         items: [
           {
             type: 0,
-            sku_id: '1252353273256480818',
+            sku_id: "1252353273256480818",
             label:
-              'A gold, sparkly crown with a llama adornment tilts up and down. The avatar sparkles and glows with a golden aura.',
+              "A gold, sparkly crown with a llama adornment tilts up and down. The avatar sparkles and glows with a golden aura.",
           },
         ],
-        sku_id: '1252353273256480818',
+        sku_id: "1252353273256480818",
         type: 0,
       },
       {
-        name: 'Freezer Bunny Lovebug',
+        name: "Freezer Bunny Lovebug",
         items: [
           {
             type: 0,
-            sku_id: '1262457693965258874',
+            sku_id: "1262457693965258874",
             label:
-              'An adorable Freezer Bunny. It bounces upward into frame and throws hearts into the sky around the avatar.',
+              "An adorable Freezer Bunny. It bounces upward into frame and throws hearts into the sky around the avatar.",
           },
         ],
-        sku_id: '1262457693965258874',
+        sku_id: "1262457693965258874",
         type: 0,
       },
       {
-        name: 'Wingman Boba',
+        name: "Wingman Boba",
         items: [
           {
             type: 0,
-            sku_id: '1262473048876122112',
+            sku_id: "1262473048876122112",
             label:
               "VALORANT Agent Gekko's cute yellow creature presents you with a boba tea and happily floats beside your avatar, creating a delightful and playful atmosphere.",
           },
         ],
-        sku_id: '1262473048876122112',
+        sku_id: "1262473048876122112",
         type: 0,
       },
       {
-        name: 'Los Santos',
+        name: "Los Santos",
         items: [
           {
             type: 0,
-            sku_id: '1262518692248420434',
+            sku_id: "1262518692248420434",
             label:
               'Reads "City of Los Santos, Founded 1781", and shows a helicopter with a searchlight flying into the frame.',
           },
         ],
-        sku_id: '1262518692248420434',
+        sku_id: "1262518692248420434",
         type: 0,
       },
       {
-        name: 'Test Collectible Quest Reward',
+        name: "Test Collectible Quest Reward",
         items: [
           {
             type: 0,
-            sku_id: '1272728337848074271',
+            sku_id: "1272728337848074271",
             label:
-              'The petals of three lovely, green cherry blossoms drift softly across the avatar.',
+              "The petals of three lovely, green cherry blossoms drift softly across the avatar.",
           },
         ],
-        sku_id: '1272728337848074271',
+        sku_id: "1272728337848074271",
         type: 0,
       },
       {
-        name: 'Hailey',
+        name: "Hailey",
         items: [
           {
             type: 0,
-            sku_id: '1278392092258734091',
+            sku_id: "1278392092258734091",
             label:
-              'A white fur coat hood that pulls a cover over the mouth as snow falls around the decoration',
+              "A white fur coat hood that pulls a cover over the mouth as snow falls around the decoration",
           },
         ],
-        sku_id: '1278392092258734091',
+        sku_id: "1278392092258734091",
         type: 0,
       },
       {
-        name: 'Torgal Puppy',
+        name: "Torgal Puppy",
         items: [
           {
             type: 0,
-            sku_id: '1280648686736638003',
-            label: 'Torgal the Puppy chasing a firefly but not catching it.',
+            sku_id: "1280648686736638003",
+            label: "Torgal the Puppy chasing a firefly but not catching it.",
           },
         ],
-        sku_id: '1280648686736638003',
+        sku_id: "1280648686736638003",
         type: 0,
       },
       {
-        name: 'Street Fighter 6 Battle Field Avatar Decoration',
+        name: "Street Fighter 6 Battle Field Avatar Decoration",
         items: [
           {
             type: 0,
-            sku_id: '1280648686749352003',
+            sku_id: "1280648686749352003",
             label:
-              'Shows two health bars, a timer, fireballs moving between the two health bars, and the word FIGHT!',
+              "Shows two health bars, a timer, fireballs moving between the two health bars, and the word FIGHT!",
           },
         ],
-        sku_id: '1280648686749352003',
+        sku_id: "1280648686749352003",
         type: 0,
       },
       {
-        name: 'Bunny',
+        name: "Bunny",
         items: [
           {
             type: 0,
-            sku_id: '1280648686749352007',
-            label: 'A futuristic headpiece with glowing ears that crackle with electric energy.',
+            sku_id: "1280648686749352007",
+            label: "A futuristic headpiece with glowing ears that crackle with electric energy.",
           },
         ],
-        sku_id: '1280648686749352007',
+        sku_id: "1280648686749352007",
         type: 0,
       },
       {
-        name: 'Wolf Morph',
+        name: "Wolf Morph",
         items: [
           {
             type: 0,
-            sku_id: '1286046055498252319',
-            label: 'Wolf Morph appears, shakes their head, then disappears',
+            sku_id: "1286046055498252319",
+            label: "Wolf Morph appears, shakes their head, then disappears",
           },
         ],
-        sku_id: '1286046055498252319',
+        sku_id: "1286046055498252319",
         type: 0,
       },
       {
-        name: '2025 Balloons',
+        name: "2025 Balloons",
         items: [
           {
             type: 0,
-            sku_id: '1301993378484850769',
-            label: 'Gold, metallic, balloon-style numbers arranged to spell 2025.',
+            sku_id: "1301993378484850769",
+            label: "Gold, metallic, balloon-style numbers arranged to spell 2025.",
           },
         ],
-        sku_id: '1301993378484850769',
+        sku_id: "1301993378484850769",
         type: 0,
       },
       {
-        name: 'Holiday Cat Ears',
+        name: "Holiday Cat Ears",
         items: [
           {
             type: 0,
-            sku_id: '1301993378484850771',
+            sku_id: "1301993378484850771",
             label:
-              'A Santa hat with a red, pointed top and fluffy white trim, designed with two prominent cat ears that stick up on either side',
+              "A Santa hat with a red, pointed top and fluffy white trim, designed with two prominent cat ears that stick up on either side",
           },
         ],
-        sku_id: '1301993378484850771',
+        sku_id: "1301993378484850771",
         type: 0,
       },
       {
-        name: 'Snowfall',
+        name: "Snowfall",
         items: [
           {
             type: 0,
-            sku_id: '1301993378484850773',
-            label: 'Snowflakes fall gently around the avatar, creating a winter wonderland.',
+            sku_id: "1301993378484850773",
+            label: "Snowflakes fall gently around the avatar, creating a winter wonderland.",
           },
         ],
-        sku_id: '1301993378484850773',
+        sku_id: "1301993378484850773",
         type: 0,
       },
       {
-        name: 'Gear Spin',
+        name: "Gear Spin",
         items: [
           {
             type: 0,
-            sku_id: '1304519765917696011',
+            sku_id: "1304519765917696011",
             label:
-              'A pink and purple gear spins rapidly around your avatar, putting off neon green sparks. Careful with that.',
+              "A pink and purple gear spins rapidly around your avatar, putting off neon green sparks. Careful with that.",
           },
         ],
-        sku_id: '1304519765917696011',
+        sku_id: "1304519765917696011",
         type: 0,
       },
       {
-        name: 'Wallach IX Spaceport',
+        name: "Wallach IX Spaceport",
         items: [
           {
             type: 0,
-            sku_id: '1305905202578325535',
+            sku_id: "1305905202578325535",
             label:
-              'A spacecraft flies by two pillars at the Wallach IX Spaceport past a glowing crescent ring and disappears.',
+              "A spacecraft flies by two pillars at the Wallach IX Spaceport past a glowing crescent ring and disappears.",
           },
         ],
-        sku_id: '1305905202578325535',
+        sku_id: "1305905202578325535",
         type: 0,
       },
     ],
   },
   {
-    name: 'Breakfast',
-    sku_id: '1144054000099012659',
+    name: "Breakfast",
+    sku_id: "1144054000099012659",
     products: [
       {
-        name: 'Toast',
+        name: "Toast",
         items: [
           {
             type: 0,
-            id: '1144056139584127059',
-            sku_id: '1144056139584127058',
-            label: 'Toast Being Eaten, Animated',
+            id: "1144056139584127059",
+            sku_id: "1144056139584127058",
+            label: "Toast Being Eaten, Animated",
           },
         ],
-        sku_id: '1144056139584127058',
+        sku_id: "1144056139584127058",
       },
       {
-        name: 'Morning Coffee',
+        name: "Morning Coffee",
         items: [
           {
             type: 0,
-            id: '1144056631374647459',
-            sku_id: '1144056631374647458',
-            label: 'Coffee with Milk Steaming from Blue Mug with Smiley Face, Animated',
+            id: "1144056631374647459",
+            sku_id: "1144056631374647458",
+            label: "Coffee with Milk Steaming from Blue Mug with Smiley Face, Animated",
           },
         ],
-        sku_id: '1144056631374647458',
+        sku_id: "1144056631374647458",
       },
       {
-        name: 'Fried Egg',
+        name: "Fried Egg",
         items: [
           {
             type: 0,
-            id: '1144057023726628946',
-            sku_id: '1144057023726628945',
-            label: 'Runny Egg Yolk, Animated',
+            id: "1144057023726628946",
+            sku_id: "1144057023726628945",
+            label: "Runny Egg Yolk, Animated",
           },
         ],
-        sku_id: '1144057023726628945',
+        sku_id: "1144057023726628945",
       },
       {
-        name: 'Blueberry Jam',
+        name: "Blueberry Jam",
         items: [
           {
             type: 0,
-            id: '1144057249392771146',
-            sku_id: '1144057249392771145',
-            label: 'Blueberry Jam Spelling the Letters ‘mmmm’, Animated',
+            id: "1144057249392771146",
+            sku_id: "1144057249392771145",
+            label: "Blueberry Jam Spelling the Letters ‘mmmm’, Animated",
           },
         ],
-        sku_id: '1144057249392771145',
+        sku_id: "1144057249392771145",
       },
       {
-        name: 'Doughnut',
+        name: "Doughnut",
         items: [
           {
             type: 0,
-            id: '1144057486203158561',
-            sku_id: '1144057486203158560',
-            label: 'Doughnut with Pink Glaze and Sprinkles, Animated',
+            id: "1144057486203158561",
+            sku_id: "1144057486203158560",
+            label: "Doughnut with Pink Glaze and Sprinkles, Animated",
           },
         ],
-        sku_id: '1144057486203158560',
+        sku_id: "1144057486203158560",
       },
       {
-        name: 'Pancakes',
+        name: "Pancakes",
         items: [
           {
             type: 0,
-            id: '1144057737475534890',
-            sku_id: '1144057737475534889',
-            label: 'Stack of Pancakes with Butter and Syrup, Animated',
+            id: "1144057737475534890",
+            sku_id: "1144057737475534889",
+            label: "Stack of Pancakes with Butter and Syrup, Animated",
           },
         ],
-        sku_id: '1144057737475534889',
+        sku_id: "1144057737475534889",
       },
     ],
   },
@@ -7401,10 +7401,10 @@ var ShopCollectiblesStore_default = new (class ShopCollectiblesStore
   async fetch() {
     const [collections, quests] = await Promise.all([
       BetterDiscord.Net.fetch(
-        'https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json'
+        "https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json"
       ).then((r) => r.json()),
       BetterDiscord.Net.fetch(
-        'https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json'
+        "https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json"
       ).then((r) => r.json()),
     ]);
     this.collections = collections;
@@ -7491,14 +7491,14 @@ var ShopCollectiblesStore_default = new (class ShopCollectiblesStore
 // src/ui/ProfileEffects.tsx
 var { Components: Components6, React: React10 } = BetterDiscord;
 var { useState: useState2 } = React10;
-var ModalModule4 = wpGetByKeys(['Modal']);
+var ModalModule4 = wpGetByKeys(["Modal"]);
 function OpenProfileEffectModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
       return /* @__PURE__ */ React10.createElement(
         ModalModule4.Modal,
         {
-          title: 'Change Profile Effect',
+          title: "Change Profile Effect",
           ...props,
         },
         /* @__PURE__ */ React10.createElement(ProfileEffects, null)
@@ -7510,28 +7510,28 @@ function OpenProfileEffectModalButton() {
     {
       onClick: handleClick,
     },
-    'Change'
+    "Change"
   );
 }
 function CustomSkuTextInput({ skuId, setSkuId }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState2('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState2("");
   function onChange(e) {
     setCustomSkuTextBox(e);
   }
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter') return copyProfileEffect3y3(skuId ?? customSkuTextBox);
+    if (e.keyCode == 13 || e.key == "Enter") return copyProfileEffect3y3(skuId ?? customSkuTextBox);
     else {
       setCustomSkuTextBox(skuId ?? customSkuTextBox);
       setSkuId(null);
     }
   }
   return /* @__PURE__ */ React10.createElement(
-    'div',
+    "div",
     {
-      style: { marginBottom: '8px' },
+      style: { marginBottom: "8px" },
     },
     /* @__PURE__ */ React10.createElement(Components6.TextInput, {
-      placeholder: 'Custom SKU ID... (enter to copy)',
+      placeholder: "Custom SKU ID... (enter to copy)",
       defaultValue: skuId ?? customSkuTextBox,
       value: skuId ?? customSkuTextBox,
       onKeyDown,
@@ -7540,13 +7540,13 @@ function CustomSkuTextInput({ skuId, setSkuId }) {
   );
 }
 function copyProfileEffect3y3(skuId) {
-  copyToClipboard(' ' + secondsightifyEncodeOnly('fx' + skuId), '3y3 copied to clipboard!');
+  copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
 }
 function ProfileEffect({ product, setSkuId }) {
   const skuId = product.sku_id;
   const src = product.thumbnailPreviewSrc;
   const title = product.title;
-  return /* @__PURE__ */ React10.createElement('img', {
+  return /* @__PURE__ */ React10.createElement("img", {
     onClick: () => {
       setSkuId(skuId);
       copyProfileEffect3y3(skuId);
@@ -7554,12 +7554,12 @@ function ProfileEffect({ product, setSkuId }) {
     src,
     title,
     style: {
-      width: '22.5%',
-      cursor: 'pointer',
-      marginBottom: '0.5em',
-      marginLeft: '0.5em',
-      backgroundColor: 'var(--background-base-lower)',
-      display: 'inline-block',
+      width: "22.5%",
+      cursor: "pointer",
+      marginBottom: "0.5em",
+      marginLeft: "0.5em",
+      backgroundColor: "var(--background-base-lower)",
+      display: "inline-block",
     },
   });
 }
@@ -7572,20 +7572,20 @@ function Category({ skuId, query, setSkuId }) {
       product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase())
   );
   return /* @__PURE__ */ React10.createElement(
-    'div',
+    "div",
     {
       style: {
-        display: 'inline-block',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
+        display: "inline-block",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
       },
     },
     filteredProducts?.length
       ? /* @__PURE__ */ React10.createElement(
           Components6.Text,
           {
-            style: { fontSize: '16px', fontWeight: 'bold', margin: '10px 8px' },
+            style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" },
           },
           category?.name
         )
@@ -7599,14 +7599,14 @@ function Category({ skuId, query, setSkuId }) {
   );
 }
 function ProfileEffects() {
-  const [query, setQuery] = useState2('');
-  const [skuId, setSkuId] = useState2('');
+  const [query, setQuery] = useState2("");
+  const [skuId, setSkuId] = useState2("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () =>
     ShopCollectiblesStore_default.getCategories()
   );
-  const advancedProfileCustomization = SettingsStore_default.get('advancedProfileCustomization');
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   return /* @__PURE__ */ React10.createElement(
-    'div',
+    "div",
     null,
     advancedProfileCustomization
       ? /* @__PURE__ */ React10.createElement(CustomSkuTextInput, {
@@ -7616,7 +7616,7 @@ function ProfileEffects() {
       : null,
     /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
       defaultValue: query,
-      placeholder: 'Search...',
+      placeholder: "Search...",
       onChange: (e) => setQuery(e),
       style: {
         backgroundColor: `var(--control-secondary-background-default)`,
@@ -7635,9 +7635,9 @@ function ProfileEffects() {
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
 var { useState: useState3, useMemo: useMemo2, useCallback: useCallback2 } = React11;
 var { UserStore: UserStore7 } = Webpack2.Stores;
-var ModalModule5 = wpGetByKeys(['Modal']);
+var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(
-  Webpack2.Filters.byStrings('),{avatarDecorationSrc:', ',avatarSrcOverride:'),
+  Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"),
   { searchExports: true }
 );
 function OpenAvatarDecorationModalButton() {
@@ -7646,7 +7646,7 @@ function OpenAvatarDecorationModalButton() {
       return /* @__PURE__ */ React11.createElement(
         ModalModule5.Modal,
         {
-          title: 'Change Avatar Decorations',
+          title: "Change Avatar Decorations",
           ...props,
         },
         /* @__PURE__ */ React11.createElement(AvatarDecorations, null)
@@ -7658,11 +7658,11 @@ function OpenAvatarDecorationModalButton() {
     {
       onClick: handleClick,
     },
-    'Change'
+    "Change"
   );
 }
 function copyAvatarDecoration3y3(skuId) {
-  copyToClipboard(' ' + secondsightifyEncodeOnly('/a' + skuId), '3y3 copied to clipboard!');
+  copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
 }
 function AvatarDecoration({ product, setSkuId }) {
   const [hovered, setHovered] = useState3(false);
@@ -7673,19 +7673,19 @@ function AvatarDecoration({ product, setSkuId }) {
     copyAvatarDecoration3y3(skuId);
   }
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
       onMouseOver: () => setHovered(true),
       onMouseLeave: () => setHovered(false),
       onClick: handleClick,
       title: product.productName,
-      style: { cursor: 'pointer' },
+      style: { cursor: "pointer" },
     },
     /* @__PURE__ */ React11.createElement(ProductDisplayer, {
       isHighlighted: hovered,
       item: decorationItem,
       user: UserStore7.getCurrentUser(),
-      avatarSize: 'SIZE_72',
+      avatarSize: "SIZE_72",
     })
   );
 }
@@ -7694,16 +7694,16 @@ function InvalidProductDisplay({ product, setSkuId }) {
   const skuId = product.sku_id;
   const decorationItem = { ...product, skuId: product.sku_id };
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
       onMouseOver: () => setHovered(true),
       onMouseLeave: () => setHovered(false),
       onClick: () => copyAvatarDecoration3y3(skuId),
       title: product.name,
-      style: { cursor: 'pointer' },
+      style: { cursor: "pointer" },
     },
     /* @__PURE__ */ React11.createElement(ProductDisplayer, {
-      avatarSize: 'SIZE_72',
+      avatarSize: "SIZE_72",
       isHighlighted: hovered,
       item: decorationItem,
       user: UserStore7.getCurrentUser(),
@@ -7722,35 +7722,35 @@ function Category2({ skuId, query, setSkuId }) {
   }, [products, query]);
   if (!filteredProducts.length) return null;
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
       style: {
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       },
     },
     /* @__PURE__ */ React11.createElement(
       Components7.Text,
       {
         style: {
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         },
       },
       category?.name
     ),
     /* @__PURE__ */ React11.createElement(
-      'div',
+      "div",
       {
         style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         },
       },
       filteredProducts.map((x2) =>
@@ -7773,35 +7773,35 @@ function QuestCategory({ questDecorations, query, setSkuId }) {
   }, [questDecorations, query]);
   if (!filteredProducts.length) return null;
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
       style: {
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       },
     },
     /* @__PURE__ */ React11.createElement(
       Components7.Text,
       {
         style: {
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         },
       },
-      'Quests'
+      "Quests"
     ),
     /* @__PURE__ */ React11.createElement(
-      'div',
+      "div",
       {
         style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         },
       },
       filteredProducts.map((x2) =>
@@ -7824,36 +7824,36 @@ function InvalidCategory({ category, query, setSkuId }) {
   }, [category, query]);
   if (!filteredProducts.length) return null;
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
       style: {
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       },
     },
     /* @__PURE__ */ React11.createElement(
       Components7.Text,
       {
         style: {
-          fontSize: '16px',
-          fontWeight: 'bold',
-          margin: '0 0 8px 0',
+          fontSize: "16px",
+          fontWeight: "bold",
+          margin: "0 0 8px 0",
         },
       },
       category?.name,
-      ' (Offsale)'
+      " (Offsale)"
     ),
     /* @__PURE__ */ React11.createElement(
-      'div',
+      "div",
       {
         style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
-          gap: '8px',
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+          gap: "8px",
         },
       },
       filteredProducts.map((product) =>
@@ -7874,7 +7874,7 @@ function Invalid({ query, setSkuId }) {
   );
   if (!categories?.length) return null;
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     null,
     categories.map((x2) =>
       /* @__PURE__ */ React11.createElement(InvalidCategory, {
@@ -7887,12 +7887,12 @@ function Invalid({ query, setSkuId }) {
   );
 }
 function CustomSkuTextInput2({ skuId, setSkuId }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState3('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState3("");
   function onChange(e) {
     setCustomSkuTextBox(e);
   }
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter')
+    if (e.keyCode == 13 || e.key == "Enter")
       return copyAvatarDecoration3y3(skuId ?? customSkuTextBox);
     else {
       setCustomSkuTextBox(skuId ?? customSkuTextBox);
@@ -7900,12 +7900,12 @@ function CustomSkuTextInput2({ skuId, setSkuId }) {
     }
   }
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     {
-      style: { marginBottom: '8px' },
+      style: { marginBottom: "8px" },
     },
     /* @__PURE__ */ React11.createElement(Components7.TextInput, {
-      placeholder: 'Custom SKU ID... (enter to copy)',
+      placeholder: "Custom SKU ID... (enter to copy)",
       defaultValue: skuId ?? customSkuTextBox,
       value: skuId ?? customSkuTextBox,
       onKeyDown,
@@ -7914,9 +7914,9 @@ function CustomSkuTextInput2({ skuId, setSkuId }) {
   );
 }
 function AvatarDecorations() {
-  const [query, setQuery] = useState3('');
-  const [skuId, setSkuId] = useState3('');
-  const advancedProfileCustomization = SettingsStore_default.get('advancedProfileCustomization');
+  const [query, setQuery] = useState3("");
+  const [skuId, setSkuId] = useState3("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () =>
     ShopCollectiblesStore_default.getCategories()
   );
@@ -7925,7 +7925,7 @@ function AvatarDecorations() {
     () => ShopCollectiblesStore_default.getQuestAvatarDecorations()
   );
   return /* @__PURE__ */ React11.createElement(
-    'div',
+    "div",
     null,
     advancedProfileCustomization
       ? /* @__PURE__ */ React11.createElement(CustomSkuTextInput2, {
@@ -7935,11 +7935,11 @@ function AvatarDecorations() {
       : null,
     /* @__PURE__ */ React11.createElement(Components7.SearchInput, {
       value: query,
-      defaultValue: '',
-      placeholder: 'Search decorations...',
+      defaultValue: "",
+      placeholder: "Search decorations...",
       onChange: (e) => setQuery(e),
       style: {
-        backgroundColor: 'var(--control-secondary-background-default)',
+        backgroundColor: "var(--control-secondary-background-default)",
       },
     }),
     Collections?.map((id) =>
@@ -7965,11 +7965,11 @@ function AvatarDecorations() {
 var { React: React12, Components: Components8 } = BetterDiscord;
 var { Suspense: Suspense2 } = React12;
 var { useMemo: useMemo3, useState: useState4 } = React12;
-var ModalModule6 = wpGetByKeys(['Modal']);
+var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({
-  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource('.x5CoXR),className:'), {
+  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {
     timeout: 1e4,
-    declaration: (x2) => String(x2).includes('.x5CoXR),className:'),
+    declaration: (x2) => String(x2).includes(".x5CoXR),className:"),
   }),
 }));
 var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
@@ -7979,7 +7979,7 @@ function OpenNameplateModalButton() {
       return /* @__PURE__ */ React12.createElement(
         ModalModule6.Modal,
         {
-          title: 'Change Nameplate',
+          title: "Change Nameplate",
           ...props,
         },
         /* @__PURE__ */ React12.createElement(Nameplates, null)
@@ -7991,20 +7991,20 @@ function OpenNameplateModalButton() {
     {
       onClick: handleClick,
     },
-    'Change'
+    "Change"
   );
 }
 function copyNameplate3y3({ skuId, palette }) {
   copyToClipboard(
-    ' ' + secondsightifyEncodeOnly(`n{${skuId},${palette}}`),
-    '3y3 copied to clipboard!'
+    " " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`),
+    "3y3 copied to clipboard!"
   );
 }
 function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState4('');
-  const [customPaletteTextBox, setCustomPaletteTextBox] = useState4('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState4("");
+  const [customPaletteTextBox, setCustomPaletteTextBox] = useState4("");
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter')
+    if (e.keyCode == 13 || e.key == "Enter")
       return copyNameplate3y3({
         skuId: skuId ?? customSkuTextBox,
         palette: palette ?? customPaletteTextBox,
@@ -8017,19 +8017,19 @@ function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
     }
   }
   return /* @__PURE__ */ React12.createElement(
-    'div',
+    "div",
     {
-      style: { marginBottom: '8px' },
+      style: { marginBottom: "8px" },
     },
     /* @__PURE__ */ React12.createElement(Components8.TextInput, {
-      placeholder: 'Custom SKU ID... (enter to copy)',
+      placeholder: "Custom SKU ID... (enter to copy)",
       defaultValue: skuId ?? customSkuTextBox,
       value: skuId ?? customSkuTextBox,
       onKeyDown,
       onChange: (e) => setCustomSkuTextBox(e),
     }),
     /* @__PURE__ */ React12.createElement(Components8.TextInput, {
-      placeholder: 'Palette... (enter to copy)',
+      placeholder: "Palette... (enter to copy)",
       defaultValue: palette ?? customPaletteTextBox,
       value: palette ?? customPaletteTextBox,
       onKeyDown,
@@ -8040,7 +8040,7 @@ function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
 function Nameplate3y3({ product, setPalette, setSkuId }) {
   const [hovered, setHovered] = React12.useState(false);
   return /* @__PURE__ */ React12.createElement(
-    'div',
+    "div",
     {
       onMouseEnter: () => setHovered(true),
       onMouseLeave: () => setHovered(false),
@@ -8050,12 +8050,12 @@ function Nameplate3y3({ product, setPalette, setSkuId }) {
         copyNameplate3y3({ skuId: product.sku_id, palette: product.palette });
       },
       style: {
-        marginBottom: '10px',
+        marginBottom: "10px",
       },
       title: product.productName,
     },
     /* @__PURE__ */ React12.createElement(Nameplate, {
-      section: 'purchase',
+      section: "purchase",
       currentUser: UserStore8.getCurrentUser(),
       nameplate: {
         skuId: product.sku_id,
@@ -8081,15 +8081,15 @@ function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
   }, [products, query]);
   return filteredProducts.length
     ? /* @__PURE__ */ React12.createElement(
-        'div',
+        "div",
         {
           style: {
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'var(--background-base-lower)',
-            borderRadius: '10px',
-            margin: '5px 0px',
-            padding: '8px',
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--background-base-lower)",
+            borderRadius: "10px",
+            margin: "5px 0px",
+            padding: "8px",
           },
         },
         filteredProducts.length
@@ -8106,10 +8106,10 @@ function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
     : null;
 }
 function Nameplates() {
-  const [query, setQuery] = useState4('');
-  const [skuId, setSkuId] = useState4('');
-  const [palette, setPalette] = useState4('');
-  const advancedProfileCustomization = SettingsStore_default.get('advancedProfileCustomization');
+  const [query, setQuery] = useState4("");
+  const [skuId, setSkuId] = useState4("");
+  const [palette, setPalette] = useState4("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () =>
     ShopCollectiblesStore_default.getCategories()
   );
@@ -8117,9 +8117,9 @@ function Nameplates() {
     Suspense2,
     {
       fallback: /* @__PURE__ */ React12.createElement(
-        'div',
+        "div",
         null,
-        'This could be infinite loading situation, Please load the normal profile effects button'
+        "This could be infinite loading situation, Please load the normal profile effects button"
       ),
     },
     advancedProfileCustomization
@@ -8131,7 +8131,7 @@ function Nameplates() {
         })
       : null,
     /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
-      placeholder: 'Search nameplates...',
+      placeholder: "Search nameplates...",
       defaultValue: query,
       onChange: (e) => setQuery(e),
     }),
@@ -8149,11 +8149,11 @@ function Nameplates() {
 var { React: React13, Components: Components9 } = BetterDiscord;
 var { Suspense: Suspense3 } = React13;
 var { useMemo: useMemo4, useState: useState5 } = React13;
-var ModalModule7 = wpGetByKeys(['Modal']);
+var ModalModule7 = wpGetByKeys(["Modal"]);
 var ProfileFrameElem = React13.lazy(async () => ({
-  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource('let{profileFrame:'), {
+  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), {
     timeout: 1e4,
-    declaration: (x2) => String(x2).includes('let{profileFrame:'),
+    declaration: (x2) => String(x2).includes("let{profileFrame:"),
   }),
 }));
 function OpenProfileFramesModalButton() {
@@ -8162,8 +8162,8 @@ function OpenProfileFramesModalButton() {
       return /* @__PURE__ */ React13.createElement(
         ModalModule7.Modal,
         {
-          title: 'Change Profile Frame',
-          size: 'lg',
+          title: "Change Profile Frame",
+          size: "lg",
           ...props,
         },
         /* @__PURE__ */ React13.createElement(ProfileFrames, null)
@@ -8175,19 +8175,19 @@ function OpenProfileFramesModalButton() {
     {
       onClick: handleClick,
     },
-    'Change'
+    "Change"
   );
 }
 function copyProfileFrame3y3({ skuId }) {
-  copyToClipboard(' ' + secondsightifyEncodeOnly(`pf${skuId}`), '3y3 copied to clipboard!');
+  copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
 }
 function CustomSkuTextInput3({ skuId, setSkuId }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState5('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState5("");
   function onChange(e) {
     setCustomSkuTextBox(e);
   }
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter')
+    if (e.keyCode == 13 || e.key == "Enter")
       return copyProfileFrame3y3({ skuId: skuId ?? customSkuTextBox });
     else {
       setCustomSkuTextBox(skuId ?? customSkuTextBox);
@@ -8195,12 +8195,12 @@ function CustomSkuTextInput3({ skuId, setSkuId }) {
     }
   }
   return /* @__PURE__ */ React13.createElement(
-    'div',
+    "div",
     {
-      style: { marginBottom: '8px' },
+      style: { marginBottom: "8px" },
     },
     /* @__PURE__ */ React13.createElement(Components9.TextInput, {
-      placeholder: 'Custom SKU ID... (enter to copy)',
+      placeholder: "Custom SKU ID... (enter to copy)",
       defaultValue: skuId ?? customSkuTextBox,
       value: skuId ?? customSkuTextBox,
       onKeyDown,
@@ -8211,7 +8211,7 @@ function CustomSkuTextInput3({ skuId, setSkuId }) {
 function ProfileFrame({ product, setSkuId }) {
   const [hovered, setHovered] = React13.useState(false);
   return /* @__PURE__ */ React13.createElement(
-    'div',
+    "div",
     {
       onMouseOver: () => setHovered(true),
       onMouseOut: () => setHovered(false),
@@ -8230,13 +8230,13 @@ function ProfileFrame({ product, setSkuId }) {
         innerWidth: product.inner_width,
         skuId: product.sku_id,
       },
-      section: 'purchase',
+      section: "purchase",
       isSelected: hovered,
       canUsePremiumCollectibles: true,
       style: {
-        height: '175px',
-        width: '175px',
-        cursor: 'pointer',
+        height: "175px",
+        width: "175px",
+        cursor: "pointer",
       },
     })
   );
@@ -8254,27 +8254,27 @@ function ProfileFrameCategory({ skuId, query, setSkuId }) {
   }, [products, query]);
   return filteredProducts.length
     ? /* @__PURE__ */ React13.createElement(
-        'div',
+        "div",
         {
           style: {
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'var(--background-base-lower)',
-            borderRadius: '10px',
-            margin: '5px 0px',
-            padding: '8px',
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--background-base-lower)",
+            borderRadius: "10px",
+            margin: "5px 0px",
+            padding: "8px",
           },
         },
         filteredProducts.length
           ? /* @__PURE__ */ React13.createElement(Components9.Text, null, category.name)
           : null,
         /* @__PURE__ */ React13.createElement(
-          'div',
+          "div",
           {
             style: {
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))',
-              gap: '8px',
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
+              gap: "8px",
             },
           },
           filteredProducts.map((x2) =>
@@ -8288,19 +8288,19 @@ function ProfileFrameCategory({ skuId, query, setSkuId }) {
     : null;
 }
 function ProfileFrames() {
-  const [query, setQuery] = useState5('');
-  const [skuId, setSkuId] = useState5('');
+  const [query, setQuery] = useState5("");
+  const [skuId, setSkuId] = useState5("");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () =>
     ShopCollectiblesStore_default.getCategories()
   );
-  const advancedProfileCustomization = SettingsStore_default.get('advancedProfileCustomization');
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
   return /* @__PURE__ */ React13.createElement(
     Suspense3,
     {
       fallback: /* @__PURE__ */ React13.createElement(
-        'div',
+        "div",
         null,
-        'This could be infinite loading situation, Please load the normal profile effects button'
+        "This could be infinite loading situation, Please load the normal profile effects button"
       ),
     },
     advancedProfileCustomization
@@ -8310,7 +8310,7 @@ function ProfileFrames() {
         })
       : null,
     /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
-      placeholder: 'Search nameplates...',
+      placeholder: "Search nameplates...",
       defaultValue: query,
       onChange: (e) => setQuery(e),
     }),
@@ -8326,45 +8326,45 @@ function ProfileFrames() {
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
-var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource('.RP.ACTIVITY?(0,');
+var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
 var Scroller = styled.div({
-  overflowY: 'scroll',
-  scrollbarWidth: 'none',
-  maxWidth: '400px',
+  overflowY: "scroll",
+  scrollbarWidth: "none",
+  maxWidth: "400px",
 });
 var Grid = styled.div({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '8px',
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: "8px",
 });
 var Card = styled.div({
-  padding: '12px 12px 12px 0px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
-  gap: '8px',
+  padding: "12px 12px 12px 0px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "8px",
   minWidth: 0,
-  overflow: 'hidden',
+  overflow: "hidden",
 });
 var CardTop = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'stretch',
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
   minWidth: 0,
-  overflow: 'hidden',
-  marginTop: '8px',
+  overflow: "hidden",
+  marginTop: "8px",
 });
 var CardLabel = styled.div({
-  fontSize: '12px',
-  fontWeight: 'var(--font-weight-bold)',
-  color: 'var(--text-default)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.02em',
+  fontSize: "12px",
+  fontWeight: "var(--font-weight-bold)",
+  color: "var(--text-default)",
+  textTransform: "uppercase",
+  letterSpacing: "0.02em",
 });
 function CustomSettingsTab() {
   const isDeveloper = BadgesStore_default.isImportant(UserStore9.getCurrentUser().id);
-  const advancedProfileCustomization = SettingsStore_default.get('advancedProfileCustomization');
-  const [devText, setDevText] = React14.useState('');
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  const [devText, setDevText] = React14.useState("");
   return /* @__PURE__ */ React14.createElement(
     Scroller,
     null,
@@ -8374,66 +8374,66 @@ function CustomSettingsTab() {
       /* @__PURE__ */ React14.createElement(
         CardTop,
         {
-          style: { gridColumn: 'span 2' },
+          style: { gridColumn: "span 2" },
         },
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Theme Colors'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"),
         /* @__PURE__ */ React14.createElement(AccentColors, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Custom PFP'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"),
         /* @__PURE__ */ React14.createElement(CustomPFP, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Custom Banner'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"),
         /* @__PURE__ */ React14.createElement(CustomBanner, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Display Name Style'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"),
         /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Profile Effect'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"),
         /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Avatar Decoration'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"),
         /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         null,
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Nameplate'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"),
         /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)
       ),
       /* @__PURE__ */ React14.createElement(
         Card,
         {
-          style: { gridColumn: 'span 2' },
+          style: { gridColumn: "span 2" },
         },
-        /* @__PURE__ */ React14.createElement(CardLabel, null, 'Profile Frame'),
+        /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"),
         /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)
       ),
       isDeveloper || advancedProfileCustomization
         ? /* @__PURE__ */ React14.createElement(
             Card,
             {
-              style: { gridColumn: 'span 2' },
+              style: { gridColumn: "span 2" },
             },
-            /* @__PURE__ */ React14.createElement(CardLabel, null, 'Developer'),
+            /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"),
             /* @__PURE__ */ React14.createElement(
-              'div',
+              "div",
               {
-                style: { display: 'flex', gap: '8px', width: '100%' },
+                style: { display: "flex", gap: "8px", width: "100%" },
               },
               /* @__PURE__ */ React14.createElement(Components10.TextInput, {
                 value: devText,
@@ -8446,11 +8446,11 @@ function CustomSettingsTab() {
                   onClick: () => {
                     copyToClipboard(
                       secondsightifyEncodeOnly(devText),
-                      'Copied encoded text to clipboard!'
+                      "Copied encoded text to clipboard!"
                     );
                   },
                 },
-                'Encode'
+                "Encode"
               )
             )
           )
@@ -8459,15 +8459,15 @@ function CustomSettingsTab() {
   );
 }
 var UserProfileV2_default = {
-  name: 'User Profile V2',
-  description: 'skibidi toilet',
+  name: "User Profile V2",
+  description: "skibidi toilet",
   ids: [
     async () =>
-      await wpWait(BetterDiscord.Webpack.Filters.bySource('speakingWhilePTTInactive'), {
+      await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
         raw: true,
       }).then((x2) => x2.id),
     async () =>
-      await wpWait(BetterDiscord.Webpack.Filters.bySource('StageChannelCall'), { raw: true }).then(
+      await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), { raw: true }).then(
         (x2) => x2.id
       ),
     async () =>
@@ -8489,36 +8489,36 @@ var UserProfileV2_default = {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(
       TabBarInjectLocation,
-      BetterDiscord.Webpack.Filters.byStrings('.RP.ACTIVITY?(0,')
+      BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,")
     );
     const tabSectionReturn = getKey(
       TabBarInjectLocation,
-      BetterDiscord.Webpack.Filters.byStrings('.section===')
+      BetterDiscord.Webpack.Filters.byStrings(".section===")
     );
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource(
-      'profile-editing-nameplate-error',
+      "profile-editing-nameplate-error",
       { raw: true }
     );
     const upsell = getKey(
       GoLiveModalV2UpsellMod.declarations,
-      BetterDiscord.Webpack.Filters.byStrings('nitro-pink')
+      BetterDiscord.Webpack.Filters.byStrings("nitro-pink")
     );
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
-      if (args.section == 'YABDP4Nitro') {
+      if (args.section == "YABDP4Nitro") {
         return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
       if (args?.displayProfile?.userId != UserStore9.getCurrentUser().id) return res;
-      if (args?.items && args.items.find((x2) => x2.text.includes('YABD'))) return;
+      if (args?.items && args.items.find((x2) => x2.text.includes("YABD"))) return;
       args.items.push({
-        text: 'YABDP4Nitro',
-        section: 'YABDP4Nitro',
+        text: "YABDP4Nitro",
+        section: "YABDP4Nitro",
       });
     });
     patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
-      const upsellRemovalEnabled = SettingsStore_default.get('removeProfileUpsell');
+      const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
       if (upsellRemovalEnabled) return null;
       return originalFunction.apply(args);
     });
@@ -8528,12 +8528,12 @@ var UserProfileV2_default = {
 // src/patches/modules/getAvatarURL.ts
 var UserClass = wpGet((x2) => x2.prototype?.getAvatarURL, { searchExports: true });
 var getAvatarURL_default = {
-  name: 'getAvatarURL',
+  name: "getAvatarURL",
   apply(finale, patcher) {
-    patcher.instead(UserClass.prototype, 'getAvatarURL', (thisContext, args, originalFunction) => {
+    patcher.instead(UserClass.prototype, "getAvatarURL", (thisContext, args, originalFunction) => {
       if (
-        !SettingsStore_default.get('customPFPs') ||
-        !SettingsStore_default.get('userPfpIntegration')
+        !SettingsStore_default.get("customPFPs") ||
+        !SettingsStore_default.get("userPfpIntegration")
       ) {
         return originalFunction.apply(thisContext, args);
       }
@@ -8543,8 +8543,8 @@ var getAvatarURL_default = {
       if (!foundPFP) return originalFunction.apply(thisContext, args);
       const matches = foundPFP
         .match(regexReveals_default.PROFILE_PICTURE)?.[0]
-        .replace('P{', '')
-        .replace('}', '');
+        .replace("P{", "")
+        .replace("}", "");
       if (!matches) return originalFunction.apply(thisContext, args);
       return `https://i.imgur.com/${matches}.gif`;
     });
@@ -8552,24 +8552,24 @@ var getAvatarURL_default = {
 };
 // src/patches/modules/canUserUse.ts
 var bypassMap = {
-  emojisEverywhere: 'emojiBypass',
-  animatedEmojis: 'emojiBypass',
-  appIcons: 'unlockAppIcons',
-  clientThemes: 'clientThemes',
-  soundboardEverywhere: 'soundmojiEnabled',
+  emojisEverywhere: "emojiBypass",
+  animatedEmojis: "emojiBypass",
+  appIcons: "unlockAppIcons",
+  clientThemes: "clientThemes",
+  soundboardEverywhere: "soundmojiEnabled",
 };
 var canUserUse = BetterDiscord.Webpack.getMangled(
-  BetterDiscord.Webpack.Filters.bySource('.getFeatureValue(', 'isPremium'),
+  BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"),
   {
-    canUserUse: (x2) => typeof x2 === 'function' && x2.toString?.().includes?.('.getFeatureValue('),
+    canUserUse: (x2) => typeof x2 === "function" && x2.toString?.().includes?.(".getFeatureValue("),
   },
   { mapDeclarations: true }
 );
 var canUserUse_default = {
-  name: 'canUserUse',
-  description: 'Unlocks nitro-locked features based on settings.',
+  name: "canUserUse",
+  description: "Unlocks nitro-locked features based on settings.",
   apply(finale, patcher) {
-    patcher.instead(canUserUse, 'canUserUse', (_, [feature, user], originalFunction) => {
+    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
       const settingKey = bypassMap[feature.name];
       if (settingKey && SettingsStore_default.get(settingKey)) return true;
       return originalFunction(feature, user);
@@ -8579,30 +8579,30 @@ var canUserUse_default = {
 // src/patches/modules/customClientThemes.tsx
 var { React: React15, Components: Components11 } = BetterDiscord;
 var CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(
-  BetterDiscord.Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'),
+  BetterDiscord.Webpack.Filters.bySource("CLIENT_THEMES_EDITOR", "activePanel", "SHARE_MESSAGE"),
   {
     state: (x2) => x2?.setState,
   }
 );
 var customClientThemes_default = {
-  name: 'customClientThemes',
-  description: 'Adds an apply button to the custom client theme panel.',
-  waitFor: [BetterDiscord.Webpack.Filters.byKeys('openUserSettings')],
+  name: "customClientThemes",
+  description: "Adds an apply button to the custom client theme panel.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
   apply(finale, patcher) {
     wpWait(
       BetterDiscord.Webpack.Filters.bySource(
-        'onSaveTheme',
-        'CUSTOM_THEMES_EDITOR',
-        'CUSTOM_THEME_COACHMARK'
+        "onSaveTheme",
+        "CUSTOM_THEMES_EDITOR",
+        "CUSTOM_THEME_COACHMARK"
       )
     ).then((mod) => {
-      patcher.after(mod, 'default', (_, [args], ret) => {
-        const clientThemesEnabled = SettingsStore_default.get('clientThemes');
+      patcher.after(mod, "default", (_, [args], ret) => {
+        const clientThemesEnabled = SettingsStore_default.get("clientThemes");
         if (!clientThemesEnabled) return;
         const ShareThemeButton = wpGet(
           BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),
           {
-            declaration: BetterDiscord.Webpack.Filters.byStrings('CustomThemesShareModalWrapper'),
+            declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
             raw: true,
           }
         );
@@ -8611,13 +8611,13 @@ var customClientThemes_default = {
           (x2) => x2?.onSaveTheme
         ).onSaveTheme;
         ret.props.children[1] = /* @__PURE__ */ React15.createElement(
-          'div',
+          "div",
           {
             style: {
-              display: 'flex',
-              gap: '10px',
-              padding: '16px 15px',
-              borderTop: '1px solid var(--border-subtle)',
+              display: "flex",
+              gap: "10px",
+              padding: "16px 15px",
+              borderTop: "1px solid var(--border-subtle)",
             },
           },
           /* @__PURE__ */ React15.createElement(ShareThemeButton, null),
@@ -8628,21 +8628,21 @@ var customClientThemes_default = {
                 CustomClientThemePanelState.state.setState(
                   CustomClientThemePanelState.state.getInitialState()
                 );
-                finale.modules[0].openUserSettings('appearance_panel');
+                finale.modules[0].openUserSettings("appearance_panel");
               },
               style: {
-                backgroundColor: 'var(--control-secondary-background-default)',
+                backgroundColor: "var(--control-secondary-background-default)",
               },
             },
             /* @__PURE__ */ React15.createElement(
               Components11.Text,
               {
                 style: {
-                  fontSize: '16px',
-                  fontWeight: '500',
+                  fontSize: "16px",
+                  fontWeight: "500",
                 },
               },
-              'Back'
+              "Back"
             )
           ),
           /* @__PURE__ */ React15.createElement(
@@ -8654,11 +8654,11 @@ var customClientThemes_default = {
               Components11.Text,
               {
                 style: {
-                  fontSize: '16px',
-                  fontWeight: '500',
+                  fontSize: "16px",
+                  fontWeight: "500",
                 },
               },
-              'Apply'
+              "Apply"
             )
           )
         );
@@ -8669,11 +8669,11 @@ var customClientThemes_default = {
 // src/patches/modules/premiumType.ts
 var { OverridePremiumTypeStore } = BetterDiscord.Webpack.Stores;
 var premiumType_default = {
-  name: 'premiumType',
-  description: 'Makes sure the premium type is always what you want',
+  name: "premiumType",
+  description: "Makes sure the premium type is always what you want",
   apply(finale, patcher) {
-    patcher.instead(OverridePremiumTypeStore, 'getPremiumTypeActual', (_, __, callback) => {
-      const info = SettingsStore_default.get('changePremiumType2');
+    patcher.instead(OverridePremiumTypeStore, "getPremiumTypeActual", (_, __, callback) => {
+      const info = SettingsStore_default.get("changePremiumType2");
       if (info == -1) return callback();
       return info;
     });
@@ -8681,15 +8681,15 @@ var premiumType_default = {
 };
 // src/global/shared/cameraBackground.ts
 var MediaFilterModule = BetterDiscord.Webpack.getModule(
-  (m) => typeof m.wq === 'function' && typeof m.Oo === 'function'
+  (m) => typeof m.wq === "function" && typeof m.Oo === "function"
 )?.wq
-  ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === 'function' && typeof m.Oo === 'function')
+  ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function")
   : null;
 var BackgroundEnums = BetterDiscord.Webpack.getModule(
   (m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE
 );
 var PresetModule = BetterDiscord.Webpack.getBySource(
-  '52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661'
+  "52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661"
 );
 var Enums = {
   filterType: {
@@ -8725,46 +8725,46 @@ async function fetchAsImageData(link) {
     img.onerror = rej;
     img.src = blobUrl;
   });
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = TARGET_WIDTH;
   canvas.height = TARGET_HEIGHT;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, TARGET_WIDTH, TARGET_HEIGHT);
   const { data } = ctx.getImageData(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
   URL.revokeObjectURL(blobUrl);
-  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: 'rgba' };
+  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: "rgba" };
 }
 var customCameraBackground_default = {
-  name: 'cameraPreviewBypass',
+  name: "cameraPreviewBypass",
   apply(finale, patcher) {
-    patcher.after(PresetModule, 'A', (thisObj, args, result) => {
-      const enabled = SettingsStore_default.get('customVideoFilterEnabled');
+    patcher.after(PresetModule, "A", (thisObj, args, result) => {
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
       if (!enabled) return;
-      const filter = SettingsStore_default.get('customVideoFilter');
+      const filter = SettingsStore_default.get("customVideoFilter");
       if (filter?.link) {
         result[CUSTOM_ID] = {
           id: CUSTOM_ID,
-          name: 'My Custom Background',
+          name: "My Custom Background",
           source: filter.link,
-          isVideo: filter.type === 'mp4',
+          isVideo: filter.type === "mp4",
         };
       }
       return result;
     });
-    const mod = BetterDiscord.Webpack.getBySource('.gO.BACKGROUND_BLUR);if', { raw: true });
+    const mod = BetterDiscord.Webpack.getBySource(".gO.BACKGROUND_BLUR);if", { raw: true });
     const { declarations } = mod;
     const [, pKey] = BetterDiscord.Webpack.getWithKey(
-      BetterDiscord.Webpack.Filters.byStrings('BACKGROUND_REPLACEMENT'),
+      BetterDiscord.Webpack.Filters.byStrings("BACKGROUND_REPLACEMENT"),
       { target: declarations }
     );
     patcher.instead(declarations, pKey, (thisObj, args, original) => {
-      const enabled = SettingsStore_default.get('customVideoFilterEnabled');
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
       if (!enabled) return original.apply(thisObj, args);
       const [type, target, option] = args;
       if (option !== CUSTOM_ID) return original.apply(thisObj, args);
-      const filter = SettingsStore_default.get('customVideoFilter');
+      const filter = SettingsStore_default.get("customVideoFilter");
       if (!filter?.link) return original.apply(thisObj, args);
-      const isVideo = filter.type === 'mp4';
+      const isVideo = filter.type === "mp4";
       const apply = async () => {
         const payload = isVideo
           ? { blob: await fetchAsBytes(filter.link) }
@@ -8783,28 +8783,28 @@ var customCameraBackground_default = {
 };
 // src/patches/modules/blockedUserContext.tsx
 var { SelectedChannelStore, ChannelStore: ChannelStore2 } = BetterDiscord.Webpack.Stores;
-var USER_SETTINGS_FILTER = BetterDiscord.Webpack.Filters.bySource('unblockUser', 'USER_SETTINGS');
+var USER_SETTINGS_FILTER = BetterDiscord.Webpack.Filters.bySource("unblockUser", "USER_SETTINGS");
 var blockedUserContext_default = {
-  name: 'Blocked/Ignored User Context Menu',
-  description: 'Allows opening a user context menu in the blocked/ignored user list.',
+  name: "Blocked/Ignored User Context Menu",
+  description: "Allows opening a user context menu in the blocked/ignored user list.",
   ids: undefined,
   waitFor: [
     USER_SETTINGS_FILTER,
-    BetterDiscord.Webpack.Filters.bySource('isGroupDM', 'targetIsUser'),
+    BetterDiscord.Webpack.Filters.bySource("isGroupDM", "targetIsUser"),
   ],
   apply(finale, patcher) {
     const SettingsModule = BetterDiscord.Webpack.getModule(USER_SETTINGS_FILTER, { raw: true });
     const mod = getKey(
       SettingsModule.declarations,
-      BdApi.Webpack.Filters.byStrings('unblockUser', 'USER_SETTINGS')
+      BdApi.Webpack.Filters.byStrings("unblockUser", "USER_SETTINGS")
     );
     const mod2 = getKey(finale.modules[1], (x2) =>
-      x2?.toString?.().includes?.('targetIsUser', 'showMute')
+      x2?.toString?.().includes?.("targetIsUser", "showMute")
     );
     const openUserContextMenu = mod2?.module[mod2?.key];
     patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
       const pfp = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.size, {
-        walkable: ['props', 'children'],
+        walkable: ["props", "children"],
       });
       const channel = SelectedChannelStore.getLastSelectedChannelId()
         ? ChannelStore2.getChannel(SelectedChannelStore.getLastSelectedChannelId())
@@ -8820,24 +8820,24 @@ var blockedUserContext_default = {
 var React16 = BetterDiscord.React;
 var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
 var dev_default = {
-  name: 'dev',
+  name: "dev",
   apply(finale, patcher) {
-    const module2 = BetterDiscord.Webpack.getBySource('.SENT_BY_SOCIAL_LAYER_INTEGRATION)?');
-    patcher.after(module2.Ay, 'type', (_, args, res) => {
+    const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+    patcher.after(module2.Ay, "type", (_, args, res) => {
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id)) return res;
       const user = args[0]?.message?.author;
       if (!user) return res;
       if (
-        !res.props.badges.find((x2) => x2.key.includes('yabd')) &&
+        !res.props.badges.find((x2) => x2.key.includes("yabd")) &&
         (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))
       ) {
         const badges = BadgesStore_default.findBadgesForUser(user.id);
         res.props.badges.push(
           ...badges.map((x2) =>
-            /* @__PURE__ */ React16.createElement('img', {
+            /* @__PURE__ */ React16.createElement("img", {
               key: `yabd-${x2.id}`,
-              height: '16px',
-              width: '16px',
+              height: "16px",
+              width: "16px",
               src: x2.iconSrc,
             })
           )
@@ -8846,8 +8846,8 @@ var dev_default = {
       return res;
     });
     const title = getKey(
-      BetterDiscord.Webpack.getBySource('.NOT_STAFF_WARNING})', { raw: true }).declarations,
-      (x2) => String(x2).includes('.NOT_STAFF_WARNING})')
+      BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations,
+      (x2) => String(x2).includes(".NOT_STAFF_WARNING})")
     );
     patcher.instead(title.module, title.key, () => null);
   },
@@ -8862,27 +8862,27 @@ __export(exports_contextMenus, {
 
 // src/patches/contextMenus/message.tsx
 var { React: React17 } = BetterDiscord;
-var DiscordNativeModule = BetterDiscord.Webpack.getByKeys('purgeMemory');
+var DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
 var message_default = {
-  id: 'message',
+  id: "message",
   callback(res, props) {
-    const enabled = SettingsStore_default.get('extraContextMenus');
+    const enabled = SettingsStore_default.get("extraContextMenus");
     if (!enabled) return;
     const attachmentsLmao = [
       ...props.message.attachments,
       ...(props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []),
     ];
     async function startDownload() {
-      BetterDiscord.UI.showToast('Downloading attachments...');
+      BetterDiscord.UI.showToast("Downloading attachments...");
       const attachments = attachmentsLmao.filter(Boolean);
       if (!attachments.length) {
-        BetterDiscord.UI.showToast('No attachments found?');
+        BetterDiscord.UI.showToast("No attachments found?");
         return;
       }
       let files = await Promise.all(
         attachments.map(async (attachment) => ({
           blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
-          fileName: attachment.filename.replace('.zip.mp4', '.zip').replace('.7z.mp4', '.7z'),
+          fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z"),
         }))
       );
       const zipped = {};
@@ -8890,9 +8890,9 @@ var message_default = {
         zipped[file.fileName] = new Uint8Array(file.blob);
       }
       const zippedInt = zipSync(zipped, { level: 6 });
-      const blob = new Blob([zippedInt], { type: 'application/zip' });
+      const blob = new Blob([zippedInt], { type: "application/zip" });
       const url = URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
+      const a = window.document.createElement("a");
       a.href = url;
       a.download = `${props.message.id}.zip`;
       a.click();
@@ -8906,20 +8906,20 @@ var message_default = {
       onClose: CloseAllContextMenus,
       action: startDownload,
       leadingAccessory: {
-        type: 'icon',
+        type: "icon",
         icon: () =>
           /* @__PURE__ */ React17.createElement(Icon, {
-            width: '22',
-            icon: 'mdi:download',
+            width: "22",
+            icon: "mdi:download",
           }),
       },
       label: /* @__PURE__ */ React17.createElement(
         ContextMenuWrapper,
         null,
         /* @__PURE__ */ React17.createElement(ContextMenuLabel, null),
-        /* @__PURE__ */ React17.createElement('span', null, 'Download Attachment(s)')
+        /* @__PURE__ */ React17.createElement("span", null, "Download Attachment(s)")
       ),
-      id: 'yabdp4nitro-download-attachments',
+      id: "yabdp4nitro-download-attachments",
     });
     const Sep = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Separator, null);
     attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
@@ -8928,9 +8928,9 @@ var message_default = {
 // src/patches/contextMenus/expressionPicker.tsx
 var { EmojiStore: EmojiStore3 } = BetterDiscord.Webpack.Stores;
 var expressionPicker_default = {
-  id: 'expression-picker',
+  id: "expression-picker",
   callback(res, props) {
-    const enabled = SettingsStore_default.get('extraContextMenus');
+    const enabled = SettingsStore_default.get("extraContextMenus");
     if (!enabled) return;
     let src = props?.target?.src ?? props?.target?.firstChild?.src;
     if (!src) return;
@@ -8940,7 +8940,7 @@ var expressionPicker_default = {
       emoji && (src = getEmojiUrl(emoji, 4096));
     } else {
       let url = new URL(src);
-      url.searchParams.set('size', 4096);
+      url.searchParams.set("size", 4096);
       src = url.toString();
     }
     function openUrl() {
@@ -8949,11 +8949,11 @@ var expressionPicker_default = {
     const MenuItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
       leadingAccessory: {
-        type: 'icon',
+        type: "icon",
         icon: () =>
           /* @__PURE__ */ React.createElement(Icon, {
-            width: '22',
-            icon: 'mdi:external-link',
+            width: "22",
+            icon: "mdi:external-link",
           }),
       },
       label: /* @__PURE__ */ React.createElement(
@@ -8961,14 +8961,14 @@ var expressionPicker_default = {
         null,
         /* @__PURE__ */ React.createElement(ContextMenuLabel, null),
         /* @__PURE__ */ React.createElement(
-          'span',
+          "span",
           null,
-          'Open ',
-          emojiId ? 'Emoji' : 'Sticker',
-          ' URL'
+          "Open ",
+          emojiId ? "Emoji" : "Sticker",
+          " URL"
         )
       ),
-      id: 'yabd-open-url-expression-picker',
+      id: "yabd-open-url-expression-picker",
       action: openUrl,
     });
     res.props.children.props.children.push(MenuItem);
@@ -8976,18 +8976,18 @@ var expressionPicker_default = {
 };
 // src/patches/contextMenus/streamContext.tsx
 var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
-var Slider = BetterDiscord.Webpack.getByStrings('initialValue', 'label', 'sortedMarkers', {
+var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", {
   searchExports: true,
 });
 var streamContext_default = {
-  id: 'stream-context',
+  id: "stream-context",
   callback(res, props) {
-    const sharpenStreamsEnabled = SettingsStore_default.get('sharpenStreams');
+    const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
     const currentUserId = UserStore11.getCurrentUser().id;
     const streamingUserId = props?.stream?.ownerId;
     const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores(
       [SettingsStore_default],
-      () => SettingsStore_default.get('userSharpenPreferences')
+      () => SettingsStore_default.get("userSharpenPreferences")
     );
     const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
     if (
@@ -8997,14 +8997,14 @@ var streamContext_default = {
     )
       return;
     function handleChange(percentSharpness) {
-      SettingsStore_default.set('userSharpenPreferences', {
-        ...SettingsStore_default.get('userSharpenPreferences'),
+      SettingsStore_default.set("userSharpenPreferences", {
+        ...SettingsStore_default.get("userSharpenPreferences"),
         [streamingUserId]: percentSharpness,
       });
     }
     const ContextMenuSlider = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
-      id: 'yabd-sharpness-slider',
+      id: "yabd-sharpness-slider",
       label: /* @__PURE__ */ React.createElement(Slider, {
         initialValue: streamSharpnessPreference,
         label: /* @__PURE__ */ React.createElement(
@@ -9015,11 +9015,11 @@ var streamContext_default = {
             BetterDiscord.Components.Text,
             {
               style: {
-                fontSize: '14px',
-                fontWeight: 'var(--font-weight-medium)',
+                fontSize: "14px",
+                fontWeight: "var(--font-weight-medium)",
               },
             },
-            'Sharpness',
+            "Sharpness",
             `                                     `
           )
         ),
@@ -9034,15 +9034,15 @@ var streamContext_default = {
   },
 };
 // src/patches/index.ts
-var PatcherAPI = new BdApi('Patcher');
+var PatcherAPI = new BdApi("Patcher");
 var moduleCache = new Map();
 var idCache = new Map();
 async function resolveIds(ids) {
   if (!ids) return [];
-  const entries = typeof ids === 'function' ? await ids() : ids;
+  const entries = typeof ids === "function" ? await ids() : ids;
   const results = await Promise.allSettled(
     entries.map(async (entry) => {
-      const id = typeof entry === 'function' ? await entry() : entry;
+      const id = typeof entry === "function" ? await entry() : entry;
       const cacheKey = id.toString();
       if (idCache.has(cacheKey)) {
         return idCache.get(cacheKey);
@@ -9054,7 +9054,7 @@ async function resolveIds(ids) {
   );
   const resolved = [];
   results.forEach((r, i2) => {
-    if (r.status === 'fulfilled') {
+    if (r.status === "fulfilled") {
       resolved.push(r.value);
     } else {
       BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i2}`, r.reason);
@@ -9069,7 +9069,7 @@ function withTimeout(p, ms, label) {
   ]);
 }
 async function getCachedModule(filter, patchName) {
-  const cacheKey = typeof filter === 'function' ? filter : JSON.stringify(filter);
+  const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
   if (moduleCache.has(cacheKey)) {
     return moduleCache.get(cacheKey);
   }
@@ -9158,47 +9158,47 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
-  '7.0.0': [
+  "7.0.0": [
     {
-      banner: 'https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg',
+      banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
       changes: [
         {
-          title: 'YABDP4Nitro Huge Revamp',
-          type: 'improved',
+          title: "YABDP4Nitro Huge Revamp",
+          type: "improved",
           items: [
-            'Fully rewritten internals from the ground up.',
-            'Improved performance and stability.',
-            'Cleaner, more maintainable codebase for future updates.',
-            'Improved UI.',
-            'Moved 3y3 profile editing to a YABDP4Nitro tab in the profile editor.',
-            'Removed some redundant/unnecessary settings.',
-            'Removed data json - you can now delete it.',
-            'Limited edition, quest-only, and off-sale collectibles are now consistently included in the 3y3 UI.',
-            'Download All Attachments button now zips the files before downloading.',
-            'Experiment override options (Clips, Soundmoji experiments) no longer put you into staff mode.',
-            'You no longer need to refresh to remove staff/experiments.',
-            'Changing min, target, max, or audio bitrate in the Quick Swapper now applies to the active stream / audio connection instantly upon pressing Apply.',
-            'Contributor badge is now red instead of being identical to the developer badge.',
-            'Fixed a bug with the Audio Clips bypass where the audio could sometimes end too early or too late by up to 10 seconds.',
-            'All kinds of Imgur URLs should now work.',
+            "Fully rewritten internals from the ground up.",
+            "Improved performance and stability.",
+            "Cleaner, more maintainable codebase for future updates.",
+            "Improved UI.",
+            "Moved 3y3 profile editing to a YABDP4Nitro tab in the profile editor.",
+            "Removed some redundant/unnecessary settings.",
+            "Removed data json - you can now delete it.",
+            "Limited edition, quest-only, and off-sale collectibles are now consistently included in the 3y3 UI.",
+            "Download All Attachments button now zips the files before downloading.",
+            "Experiment override options (Clips, Soundmoji experiments) no longer put you into staff mode.",
+            "You no longer need to refresh to remove staff/experiments.",
+            "Changing min, target, max, or audio bitrate in the Quick Swapper now applies to the active stream / audio connection instantly upon pressing Apply.",
+            "Contributor badge is now red instead of being identical to the developer badge.",
+            "Fixed a bug with the Audio Clips bypass where the audio could sometimes end too early or too late by up to 10 seconds.",
+            "All kinds of Imgur URLs should now work.",
           ],
         },
         {
-          title: 'Known Bugs/Issues',
-          type: 'progress',
+          title: "Known Bugs/Issues",
+          type: "progress",
           items: [
-            'Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.',
-            'Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.',
+            "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
+            "Disabling and re-enabling the plugin too quickly can break the UI. Refresh to fix it.",
             '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...',
           ],
         },
         {
-          title: 'Extra',
-          type: 'added',
+          title: "Extra",
+          type: "added",
           items: [
-            'Added 3y3 Profile Frames.',
-            'You can now set a custom camera background 🥳🎉🎉🎉!!',
-            '<@917630027477159986> joins the team for future development of the plugin!',
+            "Added 3y3 Profile Frames.",
+            "You can now set a custom camera background 🥳🎉🎉🎉!!",
+            "<@917630027477159986> joins the team for future development of the plugin!",
           ],
         },
       ],
@@ -9207,42 +9207,42 @@ var changelog_default = {
 };
 // package.json
 var package_default = {
-  name: 'YABDP4Nitro',
-  module: 'src/index.tsx',
-  type: 'module',
-  version: '7.0.0',
+  name: "YABDP4Nitro",
+  module: "src/index.tsx",
+  type: "module",
+  version: "7.0.0",
   private: true,
   devDependencies: {
-    '@types/bun': 'latest',
+    "@types/bun": "latest",
   },
   scripts: {
-    prod: 'bun run ./build/build.ts',
+    prod: "bun run ./build/build.ts",
   },
   peerDependencies: {
-    typescript: '^5',
+    typescript: "^5",
   },
   resolve: {
     alias: {
-      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
-      'react/jsx-runtime': 'react/jsx-runtime.js',
+      "react/jsx-dev-runtime": "react/jsx-dev-runtime.js",
+      "react/jsx-runtime": "react/jsx-runtime.js",
     },
   },
   dependencies: {
-    '@iconify/react': '^6.0.2',
-    '@types/react': '^19.2.18',
-    fflate: '^0.8.3',
+    "@iconify/react": "^6.0.2",
+    "@types/react": "^19.2.18",
+    fflate: "^0.8.3",
   },
 };
 
 // src/global/changelog/index.tsx
 var Meta = package_default;
 function normalizeVersion(v) {
-  const parts = v.split('.');
-  while (parts.length < 3) parts.push('0');
-  return parts.join('.');
+  const parts = v.split(".");
+  while (parts.length < 3) parts.push("0");
+  return parts.join(".");
 }
 function startChangelog(sourceVersion) {
-  const lastSeen = normalizeVersion(SettingsStore_default.get('lastChangelogVersion') ?? '0.0.0');
+  const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion") ?? "0.0.0");
   const currentVersion = sourceVersion ?? normalizeVersion(Meta.version);
   if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0) return;
   const entry = changelog_default?.[currentVersion]?.[0];
@@ -9252,7 +9252,7 @@ function startChangelog(sourceVersion) {
     subtitle: `v${currentVersion}`,
     ...entry,
   });
-  SettingsStore_default.set('lastChangelogVersion', currentVersion);
+  SettingsStore_default.set("lastChangelogVersion", currentVersion);
 }
 
 // src/index.tsx
@@ -9266,423 +9266,423 @@ var {
 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
-    key: 'screenSharing',
-    label: 'High Quality Screensharing',
-    note: '1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.',
-    category: 'Screen Share Features',
-    type: 'boolean',
+    key: "screenSharing",
+    label: "High Quality Screensharing",
+    note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.",
+    category: "Screen Share Features",
+    type: "boolean",
   },
   {
-    key: 'ResolutionSwapper',
-    label: 'Custom Stream Settings & Settings Quick Swapper',
-    note: 'Lets you customize your resolution and FPS, and change it quickly in the stream settings modal!',
-    category: 'Screen Share Features',
-    type: 'boolean',
+    key: "ResolutionSwapper",
+    label: "Custom Stream Settings & Settings Quick Swapper",
+    note: "Lets you customize your resolution and FPS, and change it quickly in the stream settings modal!",
+    category: "Screen Share Features",
+    type: "boolean",
   },
   {
-    key: 'CustomResolution',
-    label: 'Resolution',
-    note: 'The custom resolution you want (in pixels)',
-    category: 'Screen Share Features',
-    type: 'number',
+    key: "CustomResolution",
+    label: "Resolution",
+    note: "The custom resolution you want (in pixels)",
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'CustomFPS',
-    label: 'FPS',
-    note: 'The custom FPS you want to stream at.',
-    category: 'Screen Share Features',
-    type: 'number',
+    key: "CustomFPS",
+    label: "FPS",
+    note: "The custom FPS you want to stream at.",
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'CustomBitrateEnabled',
-    label: 'Custom Bitrate',
-    note: 'Choose the bitrate for your streams!',
-    category: 'Screen Share Features',
-    type: 'boolean',
+    key: "CustomBitrateEnabled",
+    label: "Custom Bitrate",
+    note: "Choose the bitrate for your streams!",
+    category: "Screen Share Features",
+    type: "boolean",
   },
   {
-    key: 'minBitrate',
-    label: 'Minimum Bitrate',
-    note: 'The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.',
-    category: 'Screen Share Features',
-    type: 'number',
+    key: "minBitrate",
+    label: "Minimum Bitrate",
+    note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'targetBitrate',
-    label: 'Target Bitrate',
-    note: 'The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.',
-    category: 'Screen Share Features',
-    type: 'number',
+    key: "targetBitrate",
+    label: "Target Bitrate",
+    note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'maxBitrate',
-    label: 'Maximum Bitrate',
+    key: "maxBitrate",
+    label: "Maximum Bitrate",
     note: `The maximum bitrate (in kbps). If this is set to zero or a negative number, the default for your quality choices is used. 
                     The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025.`,
-    category: 'Screen Share Features',
-    type: 'number',
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'voiceBitrate',
-    label: 'Voice Audio Bitrate',
+    key: "voiceBitrate",
+    label: "Voice Audio Bitrate",
     note: `
                     Allows you to change the voice bitrate to whatever you want. 
                     Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. 
                     Bitrate in kbps. Disabled if this is set to -1.`,
-    category: 'Screen Share Features',
-    type: 'number',
+    category: "Screen Share Features",
+    type: "number",
   },
   {
-    key: 'sharpenStreams',
-    label: 'Stream Sharpness',
+    key: "sharpenStreams",
+    label: "Stream Sharpness",
     note: "Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!",
-    category: 'Screen Share Features',
-    type: 'boolean',
+    category: "Screen Share Features",
+    type: "boolean",
   },
   {
-    key: 'videoCodec2',
-    label: 'Force Video Codec (Advanced Users Only)',
+    key: "videoCodec2",
+    label: "Force Video Codec (Advanced Users Only)",
     note: `
                     Allows you to force a specified video codec to be used. Normally, Discord would automatically 
                     choose this based on your hardware, options in Voice & Video, and the viewers watching.
                     Mobile and Web clients can only view H.264 and VP8 streams.
                     If a client does not support the codec you choose, the stream will infinitely load for them!`,
-    category: 'Screen Share Features',
-    type: 'select',
+    category: "Screen Share Features",
+    type: "select",
     options: [
-      { label: 'Default (recommended, automatic)', value: -1 },
-      { label: 'AV1', value: 0 },
-      { label: 'H265', value: 1 },
-      { label: 'H264', value: 2 },
-      { label: 'VP8', value: 3 },
+      { label: "Default (recommended, automatic)", value: -1 },
+      { label: "AV1", value: 0 },
+      { label: "H265", value: 1 },
+      { label: "H264", value: 2 },
+      { label: "VP8", value: 3 },
     ],
   },
   {
-    key: 'emojiBypass',
-    label: 'Nitro Emotes Bypass',
-    note: 'Enable or disable using the emoji bypass.',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "emojiBypass",
+    label: "Nitro Emotes Bypass",
+    note: "Enable or disable using the emoji bypass.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'emojiSize',
-    label: 'Size',
-    note: 'The size of the emoji in pixels.',
-    category: 'Emojis',
-    type: 'select',
+    key: "emojiSize",
+    label: "Size",
+    note: "The size of the emoji in pixels.",
+    category: "Emojis",
+    type: "select",
     options: [
-      { label: '32px (Default small/inline)', value: 32 },
-      { label: '48px (Recommended, default large)', value: 48 },
-      { label: '16px', value: 16 },
-      { label: '24px', value: 24 },
-      { label: '40px', value: 40 },
-      { label: '56px', value: 56 },
-      { label: '64px', value: 64 },
-      { label: '80px', value: 80 },
-      { label: '96px', value: 96 },
-      { label: '128px (Max emoji size)', value: 128 },
-      { label: '256px (Max GIF emoji size)', value: 256 },
+      { label: "32px (Default small/inline)", value: 32 },
+      { label: "48px (Recommended, default large)", value: 48 },
+      { label: "16px", value: 16 },
+      { label: "24px", value: 24 },
+      { label: "40px", value: 40 },
+      { label: "56px", value: 56 },
+      { label: "64px", value: 64 },
+      { label: "80px", value: 80 },
+      { label: "96px", value: 96 },
+      { label: "128px (Max emoji size)", value: 128 },
+      { label: "256px (Max GIF emoji size)", value: 256 },
     ],
   },
   {
-    key: 'emojiBypassType',
-    label: 'Emoji Bypass Method',
-    note: 'The method of bypass to use.',
-    category: 'Emojis',
-    type: 'select',
+    key: "emojiBypassType",
+    label: "Emoji Bypass Method",
+    note: "The method of bypass to use.",
+    category: "Emojis",
+    type: "select",
     options: [
-      { label: 'Upload Emojis', value: 0 },
-      { label: 'Hyperlink/Vencord-Like Mode', value: 3 },
-      { label: 'Classic Mode', value: 2 },
+      { label: "Upload Emojis", value: 0 },
+      { label: "Hyperlink/Vencord-Like Mode", value: 3 },
+      { label: "Classic Mode", value: 2 },
     ],
   },
   {
-    key: 'editMessageWithEmoji',
-    label: 'Replace Fakemoji When Editing Message',
-    note: 'Replaces text-based fakemoji with their emoji when editing a message.',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "editMessageWithEmoji",
+    label: "Replace Fakemoji When Editing Message",
+    note: "Replaces text-based fakemoji with their emoji when editing a message.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'emojiBypassForValidEmoji',
+    key: "emojiBypassForValidEmoji",
     label: "Don't Use Emote Bypass if Emote is Unlocked",
-    note: 'Disable to use emoji bypass even if bypass is not required for that emoji.',
-    category: 'Emojis',
-    type: 'boolean',
+    note: "Disable to use emoji bypass even if bypass is not required for that emoji.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'PNGemote',
-    label: 'Use PNG instead of WEBP',
-    note: 'Use the PNG version of static emoji for higher quality!',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "PNGemote",
+    label: "Use PNG instead of WEBP",
+    note: "Use the PNG version of static emoji for higher quality!",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'stickerBypass',
-    label: 'Sticker Bypass',
-    note: 'Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "stickerBypass",
+    label: "Sticker Bypass",
+    note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'forceStickersUnlocked',
-    label: 'Force Stickers Unlocked',
-    note: 'Enable to cause Stickers to be unlocked.',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "forceStickersUnlocked",
+    label: "Force Stickers Unlocked",
+    note: "Enable to cause Stickers to be unlocked.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'fakeInlineVencordEmotes',
-    label: 'Fake Inline Hyperlink Emotes',
-    note: 'Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.',
-    category: 'Emojis',
-    type: 'boolean',
+    key: "fakeInlineVencordEmotes",
+    label: "Fake Inline Hyperlink Emotes",
+    note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.",
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'soundmojiEnabled',
-    label: 'Soundmoji Bypass',
+    key: "soundmojiEnabled",
+    label: "Soundmoji Bypass",
     note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with an OGG upload and some text representing the soundmoji.',
-    category: 'Emojis',
-    type: 'boolean',
+    category: "Emojis",
+    type: "boolean",
   },
   {
-    key: 'profileV2',
-    label: 'Profile Accents',
-    note: 'When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "profileV2",
+    label: "Profile Accents",
+    note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'fakeProfileThemes',
-    label: 'Fake Profile Themes',
-    note: 'Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "fakeProfileThemes",
+    label: "Fake Profile Themes",
+    note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'fakeProfileBanners',
-    label: 'Fake Profile Banners',
-    note: 'Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "fakeProfileBanners",
+    label: "Fake Profile Banners",
+    note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'userBgIntegration',
-    label: 'UsrBG Integration',
-    note: 'Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "userBgIntegration",
+    label: "UsrBG Integration",
+    note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'voiceTileBannerBackground',
-    label: 'Call Tile Background',
-    note: 'Uses fake banners as the background for call tiles.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "voiceTileBannerBackground",
+    label: "Call Tile Background",
+    note: "Uses fake banners as the background for call tiles.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'fakeAvatarDecorations',
-    label: 'Fake Avatar Decorations',
-    note: 'Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "fakeAvatarDecorations",
+    label: "Fake Avatar Decorations",
+    note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'profileEffects',
-    label: 'Fake Profile Effects',
-    note: 'Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "profileEffects",
+    label: "Fake Profile Effects",
+    note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'killProfileEffects',
-    label: 'Kill Profile Effects',
+    key: "killProfileEffects",
+    label: "Kill Profile Effects",
     note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.",
-    category: 'Profile',
-    type: 'boolean',
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'customPFPs',
-    label: 'Fake Profile Pictures',
-    note: 'Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "customPFPs",
+    label: "Fake Profile Pictures",
+    note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'userPfpIntegration',
-    label: 'UserPFP Integration',
+    key: "userPfpIntegration",
+    label: "UserPFP Integration",
     note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.",
-    category: 'Profile',
-    type: 'boolean',
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'disableUserBadge',
-    label: 'Disable User Badge',
-    note: 'Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)',
-    category: 'Profile',
-    type: 'boolean',
+    key: "disableUserBadge",
+    label: "Disable User Badge",
+    note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'nameplatesEnabled',
-    label: 'Fake Nameplates',
-    note: 'Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "nameplatesEnabled",
+    label: "Fake Nameplates",
+    note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'displayNameStyles',
-    label: 'Fake Display Name Styles',
-    note: 'Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "displayNameStyles",
+    label: "Fake Display Name Styles",
+    note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'profileFrames',
-    label: 'Fake Profile Frames',
-    note: 'Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio. Please paste the 3y3 information in your bio.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "profileFrames",
+    label: "Fake Profile Frames",
+    note: "Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'advancedProfileCustomization',
-    label: 'Advanced Profile Editing',
-    note: 'Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.',
-    category: 'Profile',
-    type: 'boolean',
+    key: "advancedProfileCustomization",
+    label: "Advanced Profile Editing",
+    note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.",
+    category: "Profile",
+    type: "boolean",
   },
   {
-    key: 'useClipBypass',
-    label: 'Use Clips Bypass',
-    note: 'Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.',
-    category: 'Clips',
-    type: 'boolean',
+    key: "useClipBypass",
+    label: "Use Clips Bypass",
+    note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.",
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'clipTimestamp',
-    label: 'Timestamp',
-    note: 'This option lets you choose how the plugin determines the timestamp to put on the generated clip.',
-    category: 'Clips',
-    type: 'select',
+    key: "clipTimestamp",
+    label: "Timestamp",
+    note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.",
+    category: "Clips",
+    type: "select",
     options: [
-      { label: 'Zero (January 1st, 2015)', value: 0 },
-      { label: 'Current Date/Time', value: 1 },
-      { label: 'Last Modified Date/Time of File', value: 2 },
+      { label: "Zero (January 1st, 2015)", value: 0 },
+      { label: "Current Date/Time", value: 1 },
+      { label: "Last Modified Date/Time of File", value: 2 },
     ],
   },
   {
-    key: 'forceClip',
-    label: 'Force Clip',
-    note: 'Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.',
-    category: 'Clips',
-    type: 'boolean',
+    key: "forceClip",
+    label: "Force Clip",
+    note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'useAudioClipBypass',
-    label: 'Audio Clips Bypass',
-    note: 'Identical to the Clips Bypass for videos, except it works with audio files.',
-    category: 'Clips',
-    type: 'boolean',
+    key: "useAudioClipBypass",
+    label: "Audio Clips Bypass",
+    note: "Identical to the Clips Bypass for videos, except it works with audio files.",
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'forceAudioClip',
-    label: 'Force Audio Clip',
-    note: 'Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.',
-    category: 'Clips',
-    type: 'boolean',
+    key: "forceAudioClip",
+    label: "Force Audio Clip",
+    note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'zipClip',
-    label: 'ZipClip',
+    key: "zipClip",
+    label: "ZipClip",
     note: `Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit "Open Inside", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.`,
-    category: 'Clips',
-    type: 'boolean',
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'enableClipsExperiment',
-    label: 'Enable Clips Experiments',
-    note: 'Whether or not Clips-related experiments should be enabled.',
-    category: 'Clips',
-    type: 'boolean',
+    key: "enableClipsExperiment",
+    label: "Enable Clips Experiments",
+    note: "Whether or not Clips-related experiments should be enabled.",
+    category: "Clips",
+    type: "boolean",
   },
   {
-    key: 'changePremiumType2',
-    label: 'Change Premium Type',
+    key: "changePremiumType2",
+    label: "Change Premium Type",
     note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED.",
-    category: 'Miscellaneous',
-    type: 'select',
+    category: "Miscellaneous",
+    type: "select",
     options: [
-      { label: 'Disabled (Actual Nitro Status)', value: -1 },
-      { label: 'Free User', value: null },
-      { label: 'Nitro Basic', value: 3 },
-      { label: 'Nitro Classic', value: 1 },
-      { label: 'Nitro', value: 2 },
+      { label: "Disabled (Actual Nitro Status)", value: -1 },
+      { label: "Free User", value: null },
+      { label: "Nitro Basic", value: 3 },
+      { label: "Nitro Classic", value: 1 },
+      { label: "Nitro", value: 2 },
     ],
   },
   {
-    key: 'clientThemes',
-    label: 'Gradient Client Themes',
-    note: 'Allows you to use Nitro-exclusive Client Themes.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "clientThemes",
+    label: "Gradient Client Themes",
+    note: "Allows you to use Nitro-exclusive Client Themes.",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'removeProfileUpsell',
-    label: 'Remove Profile Customization Upsell',
+    key: "removeProfileUpsell",
+    label: "Remove Profile Customization Upsell",
     note: 'Removes the "Get Nitro" upsell in the profile editing modal.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'removeScreenshareUpsell',
-    label: 'Remove Screen Share Nitro Upsell',
-    note: 'Removes the Nitro upsell in the Go Live modal screen.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "removeScreenshareUpsell",
+    label: "Remove Screen Share Nitro Upsell",
+    note: "Removes the Nitro upsell in the Go Live modal screen.",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'unlockAppIcons',
-    label: 'App Icons',
-    note: 'Unlocks app icons.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "unlockAppIcons",
+    label: "App Icons",
+    note: "Unlocks app icons.",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'extraContextMenus',
-    label: 'Extra Context Menus and Options',
-    note: 'Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars in the blocked/ignored list, and a context menu on messages with attachments that lets you download all attachments.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "extraContextMenus",
+    label: "Extra Context Menus and Options",
+    note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars in the blocked/ignored list, and a context menu on messages with attachments that lets you download all attachments.",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'experiments',
-    label: 'Experiments',
-    note: 'Unlocks experiments.',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "experiments",
+    label: "Experiments",
+    note: "Unlocks experiments.",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'checkForUpdates',
-    label: 'Check for Updates',
-    note: 'Should the plugin check for updates on startup?',
-    category: 'Miscellaneous',
-    type: 'boolean',
+    key: "checkForUpdates",
+    label: "Check for Updates",
+    note: "Should the plugin check for updates on startup?",
+    category: "Miscellaneous",
+    type: "boolean",
   },
   {
-    key: 'customVideoFilterEnabled',
-    label: 'Video Filter',
-    note: 'Allows you to use a Custom Video preset background.',
-    type: 'boolean',
-    category: 'Miscellaneous',
+    key: "customVideoFilterEnabled",
+    label: "Video Filter",
+    note: "Allows you to use a Custom Video preset background.",
+    type: "boolean",
+    category: "Miscellaneous",
   },
   {
-    key: 'customVideoFilter',
-    label: 'Custom Camera Background Source',
-    note: 'Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.',
-    type: 'custom',
-    category: 'Miscellaneous',
+    key: "customVideoFilter",
+    label: "Custom Camera Background Source",
+    note: "Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.",
+    type: "custom",
+    category: "Miscellaneous",
     Custom: ({ value, onChange }) => {
-      const link = value?.link ?? '';
-      const type = value?.type ?? 'png';
+      const link = value?.link ?? "";
+      const type = value?.type ?? "png";
       const update = (patch) => {
         onChange({ link, type, ...patch });
       };
@@ -9691,14 +9691,14 @@ var SettingsSchema = [
         null,
         /* @__PURE__ */ React18.createElement(Components12.TextInput, {
           value: link,
-          placeholder: 'https://cdn.discordapp.com/attachments/...',
+          placeholder: "https://cdn.discordapp.com/attachments/...",
           onChange: (v) => update({ link: v }),
         }),
         /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
           value: type,
           options: [
-            { label: 'Image', value: 'png' },
-            { label: 'Video (MP4)', value: 'mp4' },
+            { label: "Image", value: "png" },
+            { label: "Video (MP4)", value: "mp4" },
           ],
           onChange: (v) => update({ type: v }),
         })
@@ -9707,26 +9707,26 @@ var SettingsSchema = [
   },
 ];
 function normalizeVersion2(v) {
-  const parts = v.split('.');
-  while (parts.length < 3) parts.push('0');
-  return parts.join('.');
+  const parts = v.split(".");
+  while (parts.length < 3) parts.push("0");
+  return parts.join(".");
 }
 var Electron = () => eval('require("electron")');
 var _path = () => (init_path(), __toCommonJS(exports_path));
 var fs = () => eval('require("fs")');
 var unpatchDevMode = null;
 function startSet() {
-  const { declarations: decls } = BetterDiscord.Webpack.getBySource('discord_dev_testing', {
+  const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", {
     raw: true,
   });
   const [, key] = BetterDiscord.Webpack.getWithKey(
-    BetterDiscord.Webpack.Filters.byStrings('getCurrentUser'),
+    BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"),
     { target: decls }
   );
-  decls.c = SettingsStore_default.get('experiments');
+  decls.c = SettingsStore_default.get("experiments");
   if (unpatchDevMode) return;
   unpatchDevMode = BetterDiscord.Patcher.instead(decls, key, () => {
-    decls.c = SettingsStore_default.get('experiments');
+    decls.c = SettingsStore_default.get("experiments");
   });
 }
 function overrideVariant(experimentName, variantId) {
@@ -9736,20 +9736,20 @@ function overrideVariant(experimentName, variantId) {
 
 class Plugin {
   unpatch = loadContextMenus();
-  source = '';
+  source = "";
   async start() {
     this.checkChangelog();
     startSet();
-    const soundmojiEnabled = SettingsStore_default.get('soundmojiEnabled');
-    overrideVariant('2026-03-soundmoji-rendering', soundmojiEnabled ? 1 : 0);
-    overrideVariant('2026-03-soundmoji-sending', soundmojiEnabled ? 2 : 0);
-    const checkForUpdatesEnabled = SettingsStore_default.get('checkForUpdates');
+    const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
+    overrideVariant("2026-03-soundmoji-rendering", soundmojiEnabled ? 1 : 0);
+    overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
+    const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && (await this.checkUpdate());
-    GlobalModules.Dispatcher.subscribe('APP_ICON_UPDATED', ({ id }) =>
-      SettingsStore_default.set('appIcon', id)
+    GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) =>
+      SettingsStore_default.set("appIcon", id)
     );
     if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
-      BetterDiscord.Logger.log('Welcome back, Developer.');
+      BetterDiscord.Logger.log("Welcome back, Developer.");
       window.YABD_DEBUG = {
         ShopCollectiblesStore: ShopCollectiblesStore_default,
         BadgesStore: BadgesStore_default,
@@ -9767,48 +9767,48 @@ class Plugin {
   };
   async checkUpdate() {
     const res = await BetterDiscord.Net.fetch(
-      'https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js'
+      "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js"
     );
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion =
-      SettingsStore_default.get('installedVersion') ?? package_default.version ?? '0.0.0';
+      SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";
     if (!sourceVersion) return;
     if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
-      BetterDiscord.Logger.log('New update version found!');
+      BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
-        title: 'YABDP4Nitro Update Available',
+        title: "YABDP4Nitro Update Available",
         icon: () =>
           /* @__PURE__ */ React18.createElement(Icon, {
-            icon: 'mdi:update',
-            width: '20',
+            icon: "mdi:update",
+            width: "20",
           }),
         content: `Update ${sourceVersion} is now downloadable, Would you like to update?`,
         duration: Infinity,
         actions: [
           {
-            label: 'Update',
+            label: "Update",
             onClick: () => {
-              const bd_path = Electron().ipcRenderer.sendSync('bd-get-path', 'appData');
+              const bd_path = Electron().ipcRenderer.sendSync("bd-get-path", "appData");
               const path = _path().join(
                 bd_path,
-                'BetterDiscord',
-                'plugins',
-                'YABDP4Nitro.plugin.js'
+                "BetterDiscord",
+                "plugins",
+                "YABDP4Nitro.plugin.js"
               );
               fs().writeFile(path, this.source, (err2) => {
                 if (err2) {
-                  BetterDiscord.UI.showToast('Failed to update, Please update manually.');
+                  BetterDiscord.UI.showToast("Failed to update, Please update manually.");
                 } else {
-                  BetterDiscord.UI.showToast('Update was successful!');
-                  SettingsStore_default.set('installedVersion', sourceVersion);
+                  BetterDiscord.UI.showToast("Update was successful!");
+                  SettingsStore_default.set("installedVersion", sourceVersion);
                   startChangelog(sourceVersion);
                 }
               });
             },
           },
           {
-            label: 'Hell Nah',
+            label: "Hell Nah",
             onClick: () => {
               this.notification.close();
             },
@@ -9820,17 +9820,17 @@ class Plugin {
   }
   checkChangelog() {
     const currentVersion = package_default.version;
-    const lastSeenVersion = SettingsStore_default.get('installedVersion');
+    const lastSeenVersion = SettingsStore_default.get("installedVersion");
     if (lastSeenVersion && lastSeenVersion !== currentVersion) {
       startChangelog(currentVersion);
     }
     if (lastSeenVersion !== currentVersion) {
-      SettingsStore_default.set('installedVersion', currentVersion);
+      SettingsStore_default.set("installedVersion", currentVersion);
     }
   }
   stop() {
     this.unpatch();
-    new BdApi('Patcher').Patcher.unpatchAll();
+    new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore_default.unload();
     UserBackgroundStore_default.unload();
     UserProfilePictureStore_default.unload();
@@ -9842,41 +9842,41 @@ class Plugin {
   renderControl(def, value) {
     const onChange = (v) => {
       SettingsStore_default.set(def.key, v);
-      if (def.key == 'changePremiumType2' && v != -1)
+      if (def.key == "changePremiumType2" && v != -1)
         UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
-      if (def.key == 'experiments') startSet();
-      if (def.key == 'enableClipsExperiment') {
-        SettingsStore_default.set('enableClipsExperiment', v);
-        overrideVariant('2026-03-clips-experiment', v ? 2 : 0);
+      if (def.key == "experiments") startSet();
+      if (def.key == "enableClipsExperiment") {
+        SettingsStore_default.set("enableClipsExperiment", v);
+        overrideVariant("2026-03-clips-experiment", v ? 2 : 0);
       }
-      if (def.key == 'soundmojiEnabled') {
-        overrideVariant('2026-03-soundmoji-rendering', v ? 1 : 0);
-        overrideVariant('2026-03-soundmoji-sending', v ? 2 : 0);
+      if (def.key == "soundmojiEnabled") {
+        overrideVariant("2026-03-soundmoji-rendering", v ? 1 : 0);
+        overrideVariant("2026-03-soundmoji-sending", v ? 2 : 0);
       }
     };
     switch (def.type) {
-      case 'custom':
+      case "custom":
         return /* @__PURE__ */ React18.createElement(def.Custom, {
           value,
           options: def.options,
           onChange,
         });
-      case 'boolean':
+      case "boolean":
         return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
           value,
           onChange,
         });
-      case 'number':
+      case "number":
         return /* @__PURE__ */ React18.createElement(Components12.NumberInput, {
           value,
           onChange,
         });
-      case 'string':
+      case "string":
         return /* @__PURE__ */ React18.createElement(Components12.TextInput, {
           value,
           onChange,
         });
-      case 'select':
+      case "select":
         return /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
@@ -9923,23 +9923,23 @@ class Plugin {
           )
         ),
         /* @__PURE__ */ React18.createElement(
-          'div',
+          "div",
           {
-            style: { padding: '5px', justifyContent: 'space-between' },
+            style: { padding: "5px", justifyContent: "space-between" },
           },
           /* @__PURE__ */ React18.createElement(
-            'div',
+            "div",
             {
-              style: { width: '24px' },
+              style: { width: "24px" },
             },
             /* @__PURE__ */ React18.createElement(
               Components12.Tooltip,
               {
-                text: 'Check recent changelog',
+                text: "Check recent changelog",
               },
               (props) => {
                 return /* @__PURE__ */ React18.createElement(
-                  'div',
+                  "div",
                   {
                     ...props,
                   },
@@ -9954,7 +9954,7 @@ class Plugin {
                       });
                     },
                     width: 24,
-                    icon: 'material-symbols:update',
+                    icon: "material-symbols:update",
                   })
                 );
               }

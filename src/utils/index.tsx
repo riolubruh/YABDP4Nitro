@@ -1,17 +1,17 @@
-import { BetterDiscord } from '@shared/';
-import CustomUserProfileStore from '../global/stores/CustomUserProfileStore.ts';
-import SettingsStore from '../global/stores/SettingsStore.ts';
-import UserBackgroundStore from '../global/stores/UserBackgroundStore.ts';
-import BadgesStore from '../global/stores/BadgesStore.tsx';
+import { BetterDiscord } from "@shared/";
+import CustomUserProfileStore from "../global/stores/CustomUserProfileStore.ts";
+import SettingsStore from "../global/stores/SettingsStore.ts";
+import UserBackgroundStore from "../global/stores/UserBackgroundStore.ts";
+import BadgesStore from "../global/stores/BadgesStore.tsx";
 
 const { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } =
   BetterDiscord.Webpack.Stores;
 const DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings(
-  'await window.navigator.clipboard.writeText',
+  "await window.navigator.clipboard.writeText",
   { searchExports: true }
 );
 
-export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = '') {
+export function getRevealedTextPerServer(userId: string | undefined, shouldInclude = "") {
   const guildId = SelectedGuildStore.getGuildId();
   if (!guildId) return;
 
@@ -19,7 +19,7 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
 
   // avoid calling getMemberUserProfile inside itself. so we store it and grab it once this is called.
   // this is called once the profile is opened anyway.
-  userGuildProfile && Object.defineProperty(userGuildProfile, 'guildId', { value: guildId });
+  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
   userGuildProfile && CustomUserProfileStore.cacheMember(userGuildProfile);
 
   if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
@@ -64,7 +64,7 @@ export function getRevealedTextPerServer(userId: string | undefined, shouldInclu
 //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
 //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
 //if shouldInclude is blank, always return the revealed text if there is revealed text
-export function getRevealedText(userId: string, shouldInclude = ''): string | undefined {
+export function getRevealedText(userId: string, shouldInclude = ""): string | undefined {
   const perServer = getRevealedTextPerServer(userId, shouldInclude);
   if (perServer) return perServer;
 
@@ -99,10 +99,10 @@ function getRevealedTextFromCustomStatus(
 
   try {
     customStatusActivity = PresenceStore.getActivities(userId).find(
-      (activity) => activity.name === 'Custom Status' || activity.id === 'custom'
+      (activity) => activity.name === "Custom Status" || activity.id === "custom"
     );
   } catch (err) {
-    BetterDiscord.Logger.error('Something went wrong getting custom status, oh god oh shit!', err);
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
     return undefined;
   }
 
@@ -122,7 +122,7 @@ export function secondsightifyRevealOnly(t: string) {
             ? String.fromCodePoint(x.codePointAt(0) - 0xe0000)
             : x
         )
-        .join(''))(t);
+        .join(""))(t);
   } else {
     // no encoded text found, returning
     return;
@@ -142,7 +142,7 @@ export function secondsightifyEncodeOnly(t: string) {
             ? String.fromCodePoint(x.codePointAt(0) + 0xe0000)
             : x
         )
-        .join(''))(t);
+        .join(""))(t);
   }
 }
 
@@ -150,12 +150,12 @@ export function secondsightifyEncodeOnly(t: string) {
 // true = skip bypass
 // false = perform bypass
 export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string) {
-  const shouldAlwaysUseEmojiBypass = SettingsStore.get('emojiBypassForValidEmoji');
+  const shouldAlwaysUseEmojiBypass = SettingsStore.get("emojiBypassForValidEmoji");
   //If emoji is from current guild, not animated, and we are actually in a guild channel,
   //and emoji is "available" (could be unavailable due to Server Boost level dropping)
   // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration), cancel emoji bypass
   return (
-    emoji.type === 'UNICODE' ||
+    emoji.type === "UNICODE" ||
     !emoji.guildId ||
     !emoji.id ||
     emoji.useSpriteSheet ||
@@ -170,18 +170,18 @@ export function shouldSkipEmojiBypass(emoji: any, currentChannelId: string) {
 }
 
 export function getEmojiExtension(emoji: any) {
-  const pngEmote = SettingsStore.get('PNGemote');
-  return `${emoji.animated ? '.webp' : pngEmote ? '.png' : '.webp'}`;
+  const pngEmote = SettingsStore.get("PNGemote");
+  return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
 }
 
-export const EMOJI_PREFIX = 'https://cdn.discordapp.com/emojis/';
+export const EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
 
-export function getEmojiUrl(emoji: any, emojiSize: number = SettingsStore.get('emojiSize')) {
+export function getEmojiUrl(emoji: any, emojiSize: number = SettingsStore.get("emojiSize")) {
   return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
 }
 
 export function getEmojiString(emoji: any) {
-  return `<${emoji.animated ? 'a:' : ':'}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
+  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
 }
 
 export const styled = new Proxy(styledBase, {
@@ -192,8 +192,8 @@ export const styled = new Proxy(styledBase, {
 }) as typeof styledBase & {
   [key in keyof React.JSX.IntrinsicElements]: (
     css:
-      | React.JSX.IntrinsicElements[key]['style']
-      | ((props: any) => React.JSX.IntrinsicElements[key]['style'])
+      | React.JSX.IntrinsicElements[key]["style"]
+      | ((props: any) => React.JSX.IntrinsicElements[key]["style"])
   ) => React.ComponentType<React.JSX.IntrinsicElements[key]>;
 };
 
@@ -202,30 +202,30 @@ export function styledBase<T extends keyof React.JSX.IntrinsicElements>(
   cssOrFn: CSSProperties | ((props: any) => CSSProperties) | undefined
 ): React.ComponentType<React.JSX.IntrinsicElements[T]> {
   return (props: any) => {
-    const style = typeof cssOrFn === 'function' ? cssOrFn(props) : cssOrFn;
+    const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
     return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
   };
 }
 
 export const ContextMenuWrapper = styled.div({
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
 });
 
 export const ContextMenuLabel = () => (
-  <span style={{ fontSize: '14px', opacity: 0.6 }}>YABDP4Nitro</span>
+  <span style={{ fontSize: "14px", opacity: 0.6 }}>YABDP4Nitro</span>
 );
 
 export function copyToClipboard(
   string: string,
   successMessage = undefined,
-  errorMessage = 'Failed to copy to clipboard!'
+  errorMessage = "Failed to copy to clipboard!"
 ) {
   try {
     DiscordCopyToClipboardFn(string);
-    if (successMessage) BetterDiscord.UI.showToast(successMessage, { type: 'info' });
+    if (successMessage) BetterDiscord.UI.showToast(successMessage, { type: "info" });
   } catch (err) {
-    BetterDiscord.UI.showToast(errorMessage, { type: 'error', forceShow: true });
+    BetterDiscord.UI.showToast(errorMessage, { type: "error", forceShow: true });
     BetterDiscord.Logger.error(err);
   }
 }
@@ -263,5 +263,5 @@ function hasTagChars(s: string | undefined): boolean {
     const cp = s.codePointAt(i);
     if (cp && cp > 0xdb40 && cp < 0xdb41) continue;
   }
-  return s.includes('\uDB40');
+  return s.includes("\uDB40");
 }

@@ -10,7 +10,7 @@
  *   /// <reference path="./bdapi.d.ts" />
  * or add this file to your `include`/`typeRoots` in index.ts.
  */
-import type { FluxStore } from 'discord-types/stores';
+import type { FluxStore } from "discord-types/stores";
 
 declare global {
   // ---------------------------------------------------------------------
@@ -99,7 +99,7 @@ declare global {
 
     // -- Patcher ------------------------------------------------------------
 
-    type PatchType = 'before' | 'instead' | 'after';
+    type PatchType = "before" | "instead" | "after";
 
     interface PatchChild {
       caller: string;
@@ -308,12 +308,12 @@ declare global {
 
     // -- ContextMenu --------------------------------------------------------
 
-    type MenuColor = 'default' | 'brand' | 'danger' | 'premium' | 'premium-gradient' | 'success';
+    type MenuColor = "default" | "brand" | "danger" | "premium" | "premium-gradient" | "success";
 
     type MenuBadge = string | { type: string; [key: string]: any };
 
     interface MenuIconAccessory {
-      type: 'icon';
+      type: "icon";
       icon: React.ComponentType<any>;
       color?: string;
       className?: string;
@@ -321,36 +321,36 @@ declare global {
     }
 
     interface MenuEmojiAccessory {
-      type: 'emoji';
+      type: "emoji";
       emojiId?: string;
       src?: string;
       animated?: boolean;
     }
 
     interface MenuImageAccessory {
-      type: 'image';
+      type: "image";
       src: string;
     }
 
     interface MenuAvatarAccessory {
-      type: 'avatar';
+      type: "avatar";
       src: string;
     }
 
     interface MenuRoleDotAccessory {
-      type: 'roleDot';
-      variant: 'dot' | 'pill';
+      type: "roleDot";
+      variant: "dot" | "pill";
       color: string;
       colors?: string[] | null;
     }
 
     interface MenuStatusAccessory {
-      type: 'status';
+      type: "status";
       status: string;
     }
 
     interface MenuGuildTagAccessory {
-      type: 'guildTag';
+      type: "guildTag";
       element: React.ReactNode;
     }
 
@@ -440,7 +440,7 @@ declare global {
       onChange: (event: any) => void;
       placeholder?: string;
       maxLength?: number;
-      'aria-label'?: string;
+      "aria-label"?: string;
     }
 
     interface ContextMenuControlRenderArgs {
@@ -466,25 +466,25 @@ declare global {
     }
 
     interface ContextMenuGroupItem {
-      type: 'group';
+      type: "group";
       label?: string;
       color?: MenuColor;
       items: ContextMenuItemSetup[];
     }
 
     interface ContextMenuSeparatorItem {
-      type: 'separator';
+      type: "separator";
     }
 
     /** Setup shape accepted by `buildItem`/`buildMenuChildren`/`buildMenu`. `type` defaults to `"text"`. */
     type ContextMenuItemSetup =
-      | ({ type?: 'text' } & ContextMenuItemProps)
-      | ({ type: 'toggle' } & ContextMenuCheckboxItemProps)
-      | ({ type: 'radio' } & ContextMenuRadioItemProps)
-      | ({ type: 'switch' } & ContextMenuSwitchItemProps)
-      | ({ type: 'textinput' } & ContextMenuTextInputItemProps)
-      | ({ type: 'control' } & ContextMenuControlItemProps)
-      | ({ type: 'customitem' } & ContextMenuCustomItemProps)
+      | ({ type?: "text" } & ContextMenuItemProps)
+      | ({ type: "toggle" } & ContextMenuCheckboxItemProps)
+      | ({ type: "radio" } & ContextMenuRadioItemProps)
+      | ({ type: "switch" } & ContextMenuSwitchItemProps)
+      | ({ type: "textinput" } & ContextMenuTextInputItemProps)
+      | ({ type: "control" } & ContextMenuControlItemProps)
+      | ({ type: "customitem" } & ContextMenuCustomItemProps)
       | ContextMenuGroupItem
       | ContextMenuSeparatorItem;
 
@@ -576,23 +576,23 @@ declare global {
         PLACEHOLDER: 4;
       };
       readonly MessageEmbedTypes: {
-        IMAGE: 'image';
-        VIDEO: 'video';
-        LINK: 'link';
-        ARTICLE: 'article';
-        TWEET: 'tweet';
-        RICH: 'rich';
-        GIFV: 'gifv';
-        APPLICATION_NEWS: 'application_news';
-        AUTO_MODERATION_MESSAGE: 'auto_moderation_message';
-        AUTO_MODERATION_NOTIFICATION: 'auto_moderation_notification';
-        TEXT: 'text';
-        POST_PREVIEW: 'post_preview';
-        GIFT: 'gift';
-        SAFETY_POLICY_NOTICE: 'safety_policy_notice';
-        SAFETY_SYSTEM_NOTIFICATION: 'safety_system_notification';
-        VOICE_CHANNEL: 'voice_channel';
-        GAMING_PROFILE: 'gaming_profile';
+        IMAGE: "image";
+        VIDEO: "video";
+        LINK: "link";
+        ARTICLE: "article";
+        TWEET: "tweet";
+        RICH: "rich";
+        GIFV: "gifv";
+        APPLICATION_NEWS: "application_news";
+        AUTO_MODERATION_MESSAGE: "auto_moderation_message";
+        AUTO_MODERATION_NOTIFICATION: "auto_moderation_notification";
+        TEXT: "text";
+        POST_PREVIEW: "post_preview";
+        GIFT: "gift";
+        SAFETY_POLICY_NOTICE: "safety_policy_notice";
+        SAFETY_SYSTEM_NOTIFICATION: "safety_system_notification";
+        VOICE_CHANNEL: "voice_channel";
+        GAMING_PROFILE: "gaming_profile";
       };
     }
 
@@ -748,7 +748,7 @@ declare global {
 
     interface ChangelogEntry {
       title: string;
-      type: 'fixed' | 'added' | 'progress' | 'improved';
+      type: "fixed" | "added" | "progress" | "improved";
       items: string[];
       blurb?: string;
     }
@@ -765,7 +765,7 @@ declare global {
     }
 
     interface ToastOptions {
-      type?: 'default' | 'info' | 'success' | 'warning' | 'error';
+      type?: "default" | "info" | "success" | "warning" | "error";
       icon?: boolean;
       timeout?: number;
       forceShow?: boolean;
@@ -777,7 +777,7 @@ declare global {
     }
 
     interface NoticeOptions {
-      type?: 'info' | 'warning' | 'error' | 'success';
+      type?: "info" | "warning" | "error" | "success";
       buttons?: NoticeButton[];
       timeout?: number;
       onClose?: () => void;
@@ -796,7 +796,7 @@ declare global {
       id?: string;
       title?: string;
       content?: React.ReactNode;
-      type?: 'info' | 'success' | 'warning' | 'error';
+      type?: "info" | "success" | "warning" | "error";
       duration?: number;
       icon?: React.ComponentType<any>;
       actions?: NotificationAction[];
@@ -810,14 +810,14 @@ declare global {
     }
 
     interface TooltipOptions {
-      style?: 'primary' | 'info' | 'success' | 'warn' | 'danger';
-      side?: 'top' | 'right' | 'bottom' | 'left';
+      style?: "primary" | "info" | "success" | "warn" | "danger";
+      side?: "top" | "right" | "bottom" | "left";
       preventFlip?: boolean;
       disabled?: boolean;
     }
 
     interface OpenDialogOptions {
-      mode?: 'open' | 'save';
+      mode?: "open" | "save";
       title?: string;
       defaultPath?: string;
       filters?: Array<{ name: string; extensions: string[] }>;
@@ -833,7 +833,7 @@ declare global {
     }
 
     type SettingItemUnion =
-      | ({ type: 'category'; id: string } & Record<string, any>)
+      | ({ type: "category"; id: string } & Record<string, any>)
       | ({ type: string; id: string } & Record<string, any>);
 
     interface BuildSettingsPanelOptions {
@@ -953,8 +953,8 @@ declare global {
     constructor(pluginName?: string);
 
     /** The React module being used inside Discord. */
-    static readonly React: typeof import('react');
-    readonly React: typeof import('react');
+    static readonly React: typeof import("react");
+    readonly React: typeof import("react");
 
     /** The ReactDOM module being used inside Discord. */
     static readonly ReactDOM: any;

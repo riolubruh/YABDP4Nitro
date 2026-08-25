@@ -1,9 +1,9 @@
 ---
 name: Bug Report
 about: Use this template when creating bug reports.
-title: ''
+title: ""
 labels: bug, unconfirmed
-assignees: ''
+assignees: ""
 ---
 
 DELETE this template when you go to submit it, just follow these guidelines:

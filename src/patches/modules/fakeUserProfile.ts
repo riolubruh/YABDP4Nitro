@@ -1,14 +1,14 @@
-import type { Patch } from '../../types/patches';
-import { BetterDiscord } from '@shared/';
-import { getRevealedTextPerServer, secondsightifyRevealOnly } from '@utils/*';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
-import BadgesStore from '../../global/stores/BadgesStore.tsx';
+import type { Patch } from "../../types/patches";
+import { BetterDiscord } from "@shared/";
+import { getRevealedTextPerServer, secondsightifyRevealOnly } from "@utils/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
+import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import {
   extractProfileEffects,
   extractProfileFrame,
   containsProfileEffects,
-} from '../../global/shared/regexHelpers.ts';
-import regexReveals from '../../global/shared/regexReveals.ts';
+} from "../../global/shared/regexHelpers.ts";
+import regexReveals from "../../global/shared/regexReveals.ts";
 
 const { UserProfileStore, SelectedGuildStore } = BetterDiscord.Webpack.Stores;
 
@@ -22,21 +22,21 @@ function extractProfileColors(string: string) {
 }
 
 export default {
-  name: 'User Profile',
-  description: 'Performs fake profile stuffs.',
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
   ids: undefined,
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
     patcher.after(
       UserProfileStore,
-      'getUserProfile',
+      "getUserProfile",
       (_: any, [userId]: [string], ret: UserProfile) => {
-        const killProfileEffects = SettingsStore.get('killProfileEffects');
-        const profileEffectsEnabled = SettingsStore.get('profileEffects');
-        const shouldProfileV2 = SettingsStore.get('profileV2');
-        const disableUserBadge = SettingsStore.get('disableUserBadge');
-        const profileThemesEnabled = SettingsStore.get('fakeProfileThemes');
-        const profileFramesEnabled = SettingsStore.get('profileFrames');
+        const killProfileEffects = SettingsStore.get("killProfileEffects");
+        const profileEffectsEnabled = SettingsStore.get("profileEffects");
+        const shouldProfileV2 = SettingsStore.get("profileV2");
+        const disableUserBadge = SettingsStore.get("disableUserBadge");
+        const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
+        const profileFramesEnabled = SettingsStore.get("profileFrames");
 
         if (!ret) return;
 
@@ -87,7 +87,7 @@ export default {
         }
 
         const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) =>
-          x?.id?.startsWith('yabdp')
+          x?.id?.startsWith("yabdp")
         );
 
         if (!disableUserBadge && noBadgeFound && BadgesStore.check(ret?.userId)) {

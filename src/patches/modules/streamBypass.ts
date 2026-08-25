@@ -1,17 +1,17 @@
-import type { Patch } from '../../types/patches';
-import { BetterDiscord } from '@shared/';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+import type { Patch } from "../../types/patches";
+import { BetterDiscord } from "@shared/";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 export default {
-  name: 'streamBypass',
-  description: 'Custom Bitrates, FPS, Resolution',
+  name: "streamBypass",
+  description: "Custom Bitrates, FPS, Resolution",
   waitFor: [
-    BetterDiscord.Webpack.Filters.byPrototypeKeys('updateVideoQuality'),
-    BetterDiscord.Webpack.Filters.bySource('preset)&&', 'resolution&&', 'fps&&'),
+    BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"),
+    BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&"),
   ],
   apply(finale: any, patcher: any) {
     const _class = finale.modules[0];
-    patcher.before(_class.prototype, 'updateVideoQuality', (e: any) => {
+    patcher.before(_class.prototype, "updateVideoQuality", (e: any) => {
       const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } =
         SettingsStore.getAll();
 
@@ -33,7 +33,7 @@ export default {
       vqm.setGoliveQuality(quality);
 
       //Camera bitrate
-      e.context == 'default' &&
+      e.context == "default" &&
         vqm.setQualityOverwrite({
           ...quality,
         });
@@ -44,7 +44,7 @@ export default {
       finale.modules[1],
       Object.keys(finale.modules[1]).find(Boolean),
       (e, args, originalFunction) => {
-        return SettingsStore.get('screenSharing') ?? originalFunction.apply(e, args);
+        return SettingsStore.get("screenSharing") ?? originalFunction.apply(e, args);
       }
     );
   },

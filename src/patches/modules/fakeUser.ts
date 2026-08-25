@@ -1,12 +1,12 @@
-import type { Patch } from '../../types/patches';
-import { BetterDiscord } from '@shared/';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
-import { getRevealedText } from '@utils/*';
+import type { Patch } from "../../types/patches";
+import { BetterDiscord } from "@shared/";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
+import { getRevealedText } from "@utils/*";
 import {
   extractDisplayNameStyles,
   extractDecoration,
   extractNameplate,
-} from '../../global/shared/regexHelpers.ts';
+} from "../../global/shared/regexHelpers.ts";
 
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
@@ -29,15 +29,15 @@ function getStyleData(surrogate: string[]) {
 }
 
 export default {
-  name: 'User Profile',
-  description: 'Performs fake profile stuffs.',
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
   ids: undefined,
   waitFor: [(x) => x.getUser],
   apply(finale, patcher) {
-    patcher.after(UserStore, 'getUser', (_: any, [userId]: string, ret: User) => {
-      const dnsEnabled = SettingsStore.get('displayNameStyles');
-      const decorEnabled = SettingsStore.get('fakeAvatarDecorations');
-      const nameplatesEnabled = SettingsStore.get('nameplatesEnabled');
+    patcher.after(UserStore, "getUser", (_: any, [userId]: string, ret: User) => {
+      const dnsEnabled = SettingsStore.get("displayNameStyles");
+      const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
+      const nameplatesEnabled = SettingsStore.get("nameplatesEnabled");
 
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
@@ -46,7 +46,7 @@ export default {
           const styleData = getStyleData(match);
 
           styleData &&
-            Object.defineProperty(ret, 'displayNameStyles', {
+            Object.defineProperty(ret, "displayNameStyles", {
               value: {
                 fontId: styleData.fontId,
                 effectId: styleData.effectId,

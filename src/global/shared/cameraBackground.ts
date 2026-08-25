@@ -1,16 +1,16 @@
-import { BetterDiscord } from './index.tsx';
+import { BetterDiscord } from "./index.tsx";
 
 export const MediaFilterModule = BetterDiscord.Webpack.getModule(
-  (m) => typeof m.wq === 'function' && typeof m.Oo === 'function'
+  (m) => typeof m.wq === "function" && typeof m.Oo === "function"
 )?.wq
-  ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === 'function' && typeof m.Oo === 'function')
+  ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function")
   : null;
 
 const BackgroundEnums = BetterDiscord.Webpack.getModule(
   (m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE
 );
 export const PresetModule = BetterDiscord.Webpack.getBySource(
-  '52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661'
+  "52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661"
 );
 
 export const Enums = {

@@ -1,4 +1,4 @@
-import { BetterDiscord } from '@shared/';
+import { BetterDiscord } from "@shared/";
 
 const { Utils, Data } = BetterDiscord;
 
@@ -56,16 +56,16 @@ export const defaultSettings = {
   displayNameStyles: true,
   customUserThemeSettings: {
     custom: false,
-    theme: 'dark',
+    theme: "dark",
   },
-  appIcon: 'AppIcon',
+  appIcon: "AppIcon",
   voiceTileBannerBackground: false,
   advancedProfileCustomization: false,
-  lastChangelogVersion: '6.10.7',
-  installedVersion: '6.10.7',
+  lastChangelogVersion: "6.10.7",
+  installedVersion: "6.10.7",
   customVideoFilter: {
-    link: 'https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&', // use a CDN
-    type: 'mp4',
+    link: "https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&", // use a CDN
+    type: "mp4",
   },
   customVideoFilterEnabled: false,
 } as const satisfies Record<string, unknown>;
@@ -78,7 +78,7 @@ type Listener<K extends SettingsKey> = (value: SettingsResult[K]) => void;
 export default new (class SettingsStore extends Utils.Store {
   private settings: SettingsResult = {
     ...defaultSettings,
-    ...((Data.load('settings') as Partial<SettingsResult>) ?? {}),
+    ...((Data.load("settings") as Partial<SettingsResult>) ?? {}),
   };
 
   private listeners = new Map<SettingsKey, Set<Listener<any>>>();
@@ -89,14 +89,14 @@ export default new (class SettingsStore extends Utils.Store {
 
   set<K extends SettingsKey>(id: K, value: SettingsResult[K]) {
     this.settings = { ...this.settings, [id]: value };
-    Data.save('settings', this.settings);
+    Data.save("settings", this.settings);
     this.emitChange();
     this.notify(id, value);
   }
 
   del<K extends SettingsKey>(id: K) {
     this.settings = { ...this.settings, [id]: defaultSettings[id] };
-    Data.save('settings', this.settings);
+    Data.save("settings", this.settings);
     this.emitChange();
     this.notify(id, this.settings[id]);
   }

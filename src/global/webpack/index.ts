@@ -1,7 +1,7 @@
 const { Webpack } = BdApi;
 
 type ModuleFilter = (m: any) => boolean;
-type PatchType = 'before' | 'after' | 'instead';
+type PatchType = "before" | "after" | "instead";
 
 interface GetOptions extends WebpackOptions {
   raw?: boolean;
@@ -53,9 +53,9 @@ interface PatchOnceConfig<M extends object, K extends Extract<keyof M, string>> 
   filter: ModuleFilter;
   key: K;
   callback:
-    | Parameters<PatcherAPI['before']>[2]
-    | Parameters<PatcherAPI['after']>[2]
-    | Parameters<PatcherAPI['instead']>[2];
+    | Parameters<PatcherAPI["before"]>[2]
+    | Parameters<PatcherAPI["after"]>[2]
+    | Parameters<PatcherAPI["instead"]>[2];
   waitOptions?: WaitOptions;
 }
 
@@ -66,9 +66,9 @@ interface PatchQueryConfig<M extends object, K extends Extract<keyof M, string>>
   query: WaitQuery;
   key: K;
   callback:
-    | Parameters<PatcherAPI['before']>[2]
-    | Parameters<PatcherAPI['after']>[2]
-    | Parameters<PatcherAPI['instead']>[2];
+    | Parameters<PatcherAPI["before"]>[2]
+    | Parameters<PatcherAPI["after"]>[2]
+    | Parameters<PatcherAPI["instead"]>[2];
 }
 
 interface ForceLoadExportEntry {
@@ -91,14 +91,14 @@ type ForceLoadResult<T extends ForceLoadExportMap> = {
 };
 
 function queryToFilter(query: Query | WaitQuery): ModuleFilter {
-  if ('filter' in query) return query.filter;
-  if ('keys' in query) return Webpack.Filters.byKeys(...query.keys) as any;
-  if ('prototypeKeys' in query)
+  if ("filter" in query) return query.filter;
+  if ("keys" in query) return Webpack.Filters.byKeys(...query.keys) as any;
+  if ("prototypeKeys" in query)
     return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys) as any;
-  if ('strings' in query) return Webpack.Filters.byStrings(...query.strings) as any;
-  if ('source' in query) return Webpack.Filters.bySource(...query.source) as any;
-  if ('regex' in query) return Webpack.Filters.byRegex(query.regex) as any;
-  if ('displayName' in query) return Webpack.Filters.byDisplayName(query.displayName) as any;
+  if ("strings" in query) return Webpack.Filters.byStrings(...query.strings) as any;
+  if ("source" in query) return Webpack.Filters.bySource(...query.source) as any;
+  if ("regex" in query) return Webpack.Filters.byRegex(query.regex) as any;
+  if ("displayName" in query) return Webpack.Filters.byDisplayName(query.displayName) as any;
   return Webpack.Filters.byStoreName(query.storeName) as any;
 }
 
@@ -131,7 +131,7 @@ async function resolveModuleAsync<T = any>(
 }
 
 function resolveQuery(query: Query): any {
-  if ('map' in (query as any)) {
+  if ("map" in (query as any)) {
     const q = query as any;
     const newModule: Record<string, any> = {};
     const foundModule = Webpack.getModule(q.filter as any);
@@ -167,7 +167,7 @@ function runPatch<M extends object, K extends Extract<keyof M, string>>(
   type: PatchType,
   mod: M,
   key: K,
-  callback: PatchOnceConfig<M, K>['callback']
+  callback: PatchOnceConfig<M, K>["callback"]
 ): (() => void) | null {
   return patcher[type](pluginName, mod, key, callback);
 }
@@ -236,7 +236,7 @@ export function wpGetWithKey<T = any>(
 } | null {
   let foundKey: string | undefined;
   const mod = Webpack.getModule((exports: any) => {
-    if (!exports || (typeof exports !== 'object' && typeof exports !== 'function')) return false;
+    if (!exports || (typeof exports !== "object" && typeof exports !== "function")) return false;
     if (filter(exports)) {
       foundKey = undefined;
       return true;
@@ -291,7 +291,7 @@ export async function forceLoadWithExports<T extends ForceLoadExportMap>(
   await (BdApi.Utils as any).forceLoad(id);
   const result: Record<string, any> = {};
   for (const [key, entry] of Object.entries(map)) {
-    if ('map' in entry && entry.declarations) {
+    if ("map" in entry && entry.declarations) {
       const e = entry as ForceLoadExportMangledEntry<any>;
       result[key] = Webpack.getMangled(e.filter as any, e.map as any, {
         ...(e.options ?? {}),
@@ -396,7 +396,7 @@ export async function wpWaitMangled<T extends Record<string, any>>(
   options?: WaitOptions
 ): Promise<T> {
   const filter =
-    typeof locator === 'function'
+    typeof locator === "function"
       ? (locator as any)
       : (Webpack.Filters.bySource(locator as any) as any);
   await Webpack.waitForModule(filter, options ?? {});
@@ -432,7 +432,7 @@ export async function wpPatchOnce<M extends object, K extends Extract<keyof M, s
   return runPatch(
     config.patcher,
     config.pluginName,
-    config.type ?? 'after',
+    config.type ?? "after",
     mod,
     config.key,
     config.callback
@@ -447,7 +447,7 @@ export async function wpPatchOnceByQuery<M extends object, K extends Extract<key
   return runPatch(
     config.patcher,
     config.pluginName,
-    config.type ?? 'after',
+    config.type ?? "after",
     mod,
     config.key,
     config.callback
@@ -459,7 +459,7 @@ export async function wpPatchMany<M extends object, K extends Extract<keyof M, s
   pluginName: string,
   type: PatchType,
   key: K,
-  callback: PatchOnceConfig<M, K>['callback'],
+  callback: PatchOnceConfig<M, K>["callback"],
   ...queries: WaitQuery[]
 ): Promise<Array<(() => void) | null>> {
   const modules = await wpWaitBulk(...queries);
@@ -507,20 +507,20 @@ export async function wpWaitGetBulkKeyed<T extends Record<string, WaitQueryWithT
 type PathSegment = string | symbol;
 
 const PASSTHROUGH_PROPS = new Set<PathSegment>([
-  'then',
-  'toJSON',
-  'valueOf',
-  'toString',
+  "then",
+  "toJSON",
+  "valueOf",
+  "toString",
   Symbol.toPrimitive,
   Symbol.toStringTag,
   Symbol.iterator,
 ]);
 
 const IDENTITY_PROPS = new Set<PathSegment>([
-  'prototype',
-  'contextType',
-  'defaultProps',
-  '$$typeof',
+  "prototype",
+  "contextType",
+  "defaultProps",
+  "$$typeof",
 ]);
 
 function resolveLive(
@@ -549,7 +549,7 @@ function createLiveProxy(
         const val = resolveLive(filter, options, path);
         if (val == null) return undefined;
         const member = (val as any)[prop as any];
-        return typeof member === 'function' ? member.bind(val) : member;
+        return typeof member === "function" ? member.bind(val) : member;
       }
       return createLiveProxy(filter, options, [...path, prop]);
     },
@@ -562,8 +562,8 @@ function createLiveProxy(
 
     construct(_t, args, _newTarget) {
       const ctor = resolveLive(filter, options, path);
-      if (typeof ctor !== 'function') {
-        throw new TypeError(`${String(path[path.length - 1] ?? 'target')} is not a constructor`);
+      if (typeof ctor !== "function") {
+        throw new TypeError(`${String(path[path.length - 1] ?? "target")} is not a constructor`);
       }
       return Reflect.construct(ctor, args, ctor); // always use the real ctor as newTarget
     },
@@ -585,12 +585,12 @@ function createLiveProxy(
       const keys = val ? Reflect.ownKeys(val) : [];
       // 'prototype' is a non-configurable own key on the target function,
       // so the invariant requires it to always appear in the trap result.
-      if (!keys.includes('prototype')) keys.push('prototype');
+      if (!keys.includes("prototype")) keys.push("prototype");
       return keys;
     },
 
     getOwnPropertyDescriptor(_t, prop) {
-      if (prop === 'prototype') {
+      if (prop === "prototype") {
         // Must exactly match the target's real (non-configurable) descriptor,
         // can't fabricate one for this key without violating the invariant.
         return Reflect.getOwnPropertyDescriptor(_t, prop);

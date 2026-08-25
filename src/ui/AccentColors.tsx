@@ -1,5 +1,5 @@
-import { BetterDiscord } from '@shared/';
-import { copyToClipboard, secondsightifyEncodeOnly } from '@utils/*';
+import { BetterDiscord } from "@shared/";
+import { copyToClipboard, secondsightifyEncodeOnly } from "@utils/*";
 const { UserProfileStore, UserStore } = BetterDiscord.Webpack.Stores;
 const { React, Components } = BetterDiscord;
 
@@ -9,21 +9,21 @@ export default function AccentColors() {
 
   const [primary, setPrimary] = React.useState(
     currentUserProfile.themeColors
-      ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, '0')}`
-      : '#FFCFF8'
+      ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}`
+      : "#FFCFF8"
   );
   const [accent, setAccent] = React.useState(
     currentUserProfile.themeColors
-      ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, '0')}`
-      : '#FFCFF8'
+      ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}`
+      : "#FFCFF8"
   ); // waifu color of zero two.
 
   return (
     <div>
       <Components.Text
         style={{
-          fontSize: '14px',
-          fontWeight: 'var(--font-weight-bold)',
+          fontSize: "14px",
+          fontWeight: "var(--font-weight-bold)",
         }}
       >
         Primary
@@ -37,8 +37,8 @@ export default function AccentColors() {
       <br />
       <Components.Text
         style={{
-          fontSize: '14px',
-          fontWeight: 'var(--font-weight-bold)',
+          fontSize: "14px",
+          fontWeight: "var(--font-weight-bold)",
         }}
       >
         Accent
@@ -51,16 +51,16 @@ export default function AccentColors() {
       />
       <br />
       <Components.Button
-        className={'yabd-generic-button'}
+        className={"yabd-generic-button"}
         style={{
-          height: '32px',
-          width: 'auto',
-          marginTop: '10px',
+          height: "32px",
+          width: "auto",
+          marginTop: "10px",
         }}
         onClick={() => {
           copyToClipboard(
-            ' ' + secondsightifyEncodeOnly(`[${primary},${accent}]`),
-            '3y3 copied to clipboard!'
+            " " + secondsightifyEncodeOnly(`[${primary},${accent}]`),
+            "3y3 copied to clipboard!"
           );
         }}
       >

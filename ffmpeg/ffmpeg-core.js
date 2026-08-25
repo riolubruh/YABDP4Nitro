@@ -1,123 +1,123 @@
 var createFFmpegCore = (() => {
   var _scriptDir =
-    typeof document !== 'undefined' && document.currentScript
+    typeof document !== "undefined" && document.currentScript
       ? document.currentScript.src
       : undefined;
 
   return function (createFFmpegCore = {}) {
-    var Module = typeof createFFmpegCore != 'undefined' ? createFFmpegCore : {};
+    var Module = typeof createFFmpegCore != "undefined" ? createFFmpegCore : {};
     var readyPromiseResolve, readyPromiseReject;
-    Module['ready'] = new Promise((resolve, reject) => {
+    Module["ready"] = new Promise((resolve, reject) => {
       readyPromiseResolve = resolve;
       readyPromiseReject = reject;
     });
     const NULL = 0;
     const SIZE_I32 = Uint32Array.BYTES_PER_ELEMENT;
-    const DEFAULT_ARGS = ['./ffmpeg', '-nostdin', '-y'];
-    const DEFAULT_ARGS_FFPROBE = ['./ffprobe'];
-    Module['NULL'] = NULL;
-    Module['SIZE_I32'] = SIZE_I32;
-    Module['DEFAULT_ARGS'] = DEFAULT_ARGS;
-    Module['DEFAULT_ARGS_FFPROBE'] = DEFAULT_ARGS_FFPROBE;
-    Module['ret'] = -1;
-    Module['timeout'] = -1;
-    Module['logger'] = () => {};
-    Module['progress'] = () => {};
+    const DEFAULT_ARGS = ["./ffmpeg", "-nostdin", "-y"];
+    const DEFAULT_ARGS_FFPROBE = ["./ffprobe"];
+    Module["NULL"] = NULL;
+    Module["SIZE_I32"] = SIZE_I32;
+    Module["DEFAULT_ARGS"] = DEFAULT_ARGS;
+    Module["DEFAULT_ARGS_FFPROBE"] = DEFAULT_ARGS_FFPROBE;
+    Module["ret"] = -1;
+    Module["timeout"] = -1;
+    Module["logger"] = () => {};
+    Module["progress"] = () => {};
     function stringToPtr(str) {
-      const len = Module['lengthBytesUTF8'](str) + 1;
-      const ptr = Module['_malloc'](len);
-      Module['stringToUTF8'](str, ptr, len);
+      const len = Module["lengthBytesUTF8"](str) + 1;
+      const ptr = Module["_malloc"](len);
+      Module["stringToUTF8"](str, ptr, len);
       return ptr;
     }
     function stringsToPtr(strs) {
       const len = strs.length;
-      const ptr = Module['_malloc'](len * SIZE_I32);
+      const ptr = Module["_malloc"](len * SIZE_I32);
       for (let i = 0; i < len; i++) {
-        Module['setValue'](ptr + SIZE_I32 * i, stringToPtr(strs[i]), 'i32');
+        Module["setValue"](ptr + SIZE_I32 * i, stringToPtr(strs[i]), "i32");
       }
       return ptr;
     }
     function print(message) {
-      Module['logger']({ type: 'stdout', message: message });
+      Module["logger"]({ type: "stdout", message: message });
     }
     function printErr(message) {
-      if (!message.startsWith('Aborted(native code called abort())'))
-        Module['logger']({ type: 'stderr', message: message });
+      if (!message.startsWith("Aborted(native code called abort())"))
+        Module["logger"]({ type: "stderr", message: message });
     }
     function exec(..._args) {
-      const args = [...Module['DEFAULT_ARGS'], ..._args];
+      const args = [...Module["DEFAULT_ARGS"], ..._args];
       try {
-        Module['_ffmpeg'](args.length, stringsToPtr(args));
+        Module["_ffmpeg"](args.length, stringsToPtr(args));
       } catch (e) {
-        if (!e.message.startsWith('Aborted')) {
+        if (!e.message.startsWith("Aborted")) {
           throw e;
         }
       }
-      return Module['ret'];
+      return Module["ret"];
     }
     function ffprobe(..._args) {
-      const args = [...Module['DEFAULT_ARGS_FFPROBE'], ..._args];
+      const args = [...Module["DEFAULT_ARGS_FFPROBE"], ..._args];
       try {
-        Module['_ffprobe'](args.length, stringsToPtr(args));
+        Module["_ffprobe"](args.length, stringsToPtr(args));
       } catch (e) {
-        if (!e.message.startsWith('Aborted')) {
+        if (!e.message.startsWith("Aborted")) {
           throw e;
         }
       }
-      return Module['ret'];
+      return Module["ret"];
     }
     function setLogger(logger) {
-      Module['logger'] = logger;
+      Module["logger"] = logger;
     }
     function setTimeout(timeout) {
-      Module['timeout'] = timeout;
+      Module["timeout"] = timeout;
     }
     function setProgress(handler) {
-      Module['progress'] = handler;
+      Module["progress"] = handler;
     }
     function receiveProgress(progress, time) {
-      Module['progress']({ progress: progress, time: time });
+      Module["progress"]({ progress: progress, time: time });
     }
     function reset() {
-      Module['ret'] = -1;
-      Module['timeout'] = -1;
+      Module["ret"] = -1;
+      Module["timeout"] = -1;
     }
     function _locateFile(path, prefix) {
-      const mainScriptUrlOrBlob = Module['mainScriptUrlOrBlob'];
+      const mainScriptUrlOrBlob = Module["mainScriptUrlOrBlob"];
       if (mainScriptUrlOrBlob) {
         const { wasmURL: wasmURL, workerURL: workerURL } = JSON.parse(
-          atob(mainScriptUrlOrBlob.slice(mainScriptUrlOrBlob.lastIndexOf('#') + 1))
+          atob(mainScriptUrlOrBlob.slice(mainScriptUrlOrBlob.lastIndexOf("#") + 1))
         );
-        if (path.endsWith('.wasm')) return wasmURL;
-        if (path.endsWith('.worker.js')) return workerURL;
+        if (path.endsWith(".wasm")) return wasmURL;
+        if (path.endsWith(".worker.js")) return workerURL;
       }
       return prefix + path;
     }
-    Module['stringToPtr'] = stringToPtr;
-    Module['stringsToPtr'] = stringsToPtr;
-    Module['print'] = print;
-    Module['printErr'] = printErr;
-    Module['locateFile'] = _locateFile;
-    Module['exec'] = exec;
-    Module['ffprobe'] = ffprobe;
-    Module['setLogger'] = setLogger;
-    Module['setTimeout'] = setTimeout;
-    Module['setProgress'] = setProgress;
-    Module['reset'] = reset;
-    Module['receiveProgress'] = receiveProgress;
+    Module["stringToPtr"] = stringToPtr;
+    Module["stringsToPtr"] = stringsToPtr;
+    Module["print"] = print;
+    Module["printErr"] = printErr;
+    Module["locateFile"] = _locateFile;
+    Module["exec"] = exec;
+    Module["ffprobe"] = ffprobe;
+    Module["setLogger"] = setLogger;
+    Module["setTimeout"] = setTimeout;
+    Module["setProgress"] = setProgress;
+    Module["reset"] = reset;
+    Module["receiveProgress"] = receiveProgress;
     var moduleOverrides = Object.assign({}, Module);
     var arguments_ = [];
-    var thisProgram = './this.program';
+    var thisProgram = "./this.program";
     var quit_ = (status, toThrow) => {
       throw toThrow;
     };
     var ENVIRONMENT_IS_WEB = false;
     var ENVIRONMENT_IS_WORKER = true;
     var ENVIRONMENT_IS_NODE = false;
-    var scriptDirectory = '';
+    var scriptDirectory = "";
     function locateFile(path) {
-      if (Module['locateFile']) {
-        return Module['locateFile'](path, scriptDirectory);
+      if (Module["locateFile"]) {
+        return Module["locateFile"](path, scriptDirectory);
       }
       return scriptDirectory + path;
     }
@@ -125,40 +125,40 @@ var createFFmpegCore = (() => {
     if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
       if (ENVIRONMENT_IS_WORKER) {
         scriptDirectory = self.location.href;
-      } else if (typeof document != 'undefined' && document.currentScript) {
+      } else if (typeof document != "undefined" && document.currentScript) {
         scriptDirectory = document.currentScript.src;
       }
       if (_scriptDir) {
         scriptDirectory = _scriptDir;
       }
-      if (scriptDirectory.indexOf('blob:') !== 0) {
+      if (scriptDirectory.indexOf("blob:") !== 0) {
         scriptDirectory = scriptDirectory.substr(
           0,
-          scriptDirectory.replace(/[?#].*/, '').lastIndexOf('/') + 1
+          scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1
         );
       } else {
-        scriptDirectory = '';
+        scriptDirectory = "";
       }
       {
         read_ = (url) => {
           var xhr = new XMLHttpRequest();
-          xhr.open('GET', url, false);
+          xhr.open("GET", url, false);
           xhr.send(null);
           return xhr.responseText;
         };
         if (ENVIRONMENT_IS_WORKER) {
           readBinary = (url) => {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            xhr.responseType = 'arraybuffer';
+            xhr.open("GET", url, false);
+            xhr.responseType = "arraybuffer";
             xhr.send(null);
             return new Uint8Array(xhr.response);
           };
         }
         readAsync = (url, onload, onerror) => {
           var xhr = new XMLHttpRequest();
-          xhr.open('GET', url, true);
-          xhr.responseType = 'arraybuffer';
+          xhr.open("GET", url, true);
+          xhr.responseType = "arraybuffer";
           xhr.onload = () => {
             if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) {
               onload(xhr.response);
@@ -173,18 +173,18 @@ var createFFmpegCore = (() => {
       setWindowTitle = (title) => (document.title = title);
     } else {
     }
-    var out = Module['print'] || console.log.bind(console);
-    var err = Module['printErr'] || console.error.bind(console);
+    var out = Module["print"] || console.log.bind(console);
+    var err = Module["printErr"] || console.error.bind(console);
     Object.assign(Module, moduleOverrides);
     moduleOverrides = null;
-    if (Module['arguments']) arguments_ = Module['arguments'];
-    if (Module['thisProgram']) thisProgram = Module['thisProgram'];
-    if (Module['quit']) quit_ = Module['quit'];
+    if (Module["arguments"]) arguments_ = Module["arguments"];
+    if (Module["thisProgram"]) thisProgram = Module["thisProgram"];
+    if (Module["quit"]) quit_ = Module["quit"];
     var wasmBinary;
-    if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
-    var noExitRuntime = Module['noExitRuntime'] || true;
-    if (typeof WebAssembly != 'object') {
-      abort('no native wasm support detected');
+    if (Module["wasmBinary"]) wasmBinary = Module["wasmBinary"];
+    var noExitRuntime = Module["noExitRuntime"] || true;
+    if (typeof WebAssembly != "object") {
+      abort("no native wasm support detected");
     }
     var wasmMemory;
     var ABORT = false;
@@ -197,16 +197,16 @@ var createFFmpegCore = (() => {
     var HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAP64, HEAPU64, HEAPF64;
     function updateMemoryViews() {
       var b = wasmMemory.buffer;
-      Module['HEAP8'] = HEAP8 = new Int8Array(b);
-      Module['HEAP16'] = HEAP16 = new Int16Array(b);
-      Module['HEAP32'] = HEAP32 = new Int32Array(b);
-      Module['HEAPU8'] = HEAPU8 = new Uint8Array(b);
-      Module['HEAPU16'] = HEAPU16 = new Uint16Array(b);
-      Module['HEAPU32'] = HEAPU32 = new Uint32Array(b);
-      Module['HEAPF32'] = HEAPF32 = new Float32Array(b);
-      Module['HEAPF64'] = HEAPF64 = new Float64Array(b);
-      Module['HEAP64'] = HEAP64 = new BigInt64Array(b);
-      Module['HEAPU64'] = HEAPU64 = new BigUint64Array(b);
+      Module["HEAP8"] = HEAP8 = new Int8Array(b);
+      Module["HEAP16"] = HEAP16 = new Int16Array(b);
+      Module["HEAP32"] = HEAP32 = new Int32Array(b);
+      Module["HEAPU8"] = HEAPU8 = new Uint8Array(b);
+      Module["HEAPU16"] = HEAPU16 = new Uint16Array(b);
+      Module["HEAPU32"] = HEAPU32 = new Uint32Array(b);
+      Module["HEAPF32"] = HEAPF32 = new Float32Array(b);
+      Module["HEAPF64"] = HEAPF64 = new Float64Array(b);
+      Module["HEAP64"] = HEAP64 = new BigInt64Array(b);
+      Module["HEAPU64"] = HEAPU64 = new BigUint64Array(b);
     }
     var wasmTable;
     var __ATPRERUN__ = [];
@@ -218,27 +218,27 @@ var createFFmpegCore = (() => {
       return noExitRuntime || runtimeKeepaliveCounter > 0;
     }
     function preRun() {
-      if (Module['preRun']) {
-        if (typeof Module['preRun'] == 'function') Module['preRun'] = [Module['preRun']];
-        while (Module['preRun'].length) {
-          addOnPreRun(Module['preRun'].shift());
+      if (Module["preRun"]) {
+        if (typeof Module["preRun"] == "function") Module["preRun"] = [Module["preRun"]];
+        while (Module["preRun"].length) {
+          addOnPreRun(Module["preRun"].shift());
         }
       }
       callRuntimeCallbacks(__ATPRERUN__);
     }
     function initRuntime() {
       runtimeInitialized = true;
-      if (!Module['noFSInit'] && !FS.init.initialized) FS.init();
+      if (!Module["noFSInit"] && !FS.init.initialized) FS.init();
       FS.ignorePermissions = false;
       TTY.init();
       SOCKFS.root = FS.mount(SOCKFS, {}, null);
       callRuntimeCallbacks(__ATINIT__);
     }
     function postRun() {
-      if (Module['postRun']) {
-        if (typeof Module['postRun'] == 'function') Module['postRun'] = [Module['postRun']];
-        while (Module['postRun'].length) {
-          addOnPostRun(Module['postRun'].shift());
+      if (Module["postRun"]) {
+        if (typeof Module["postRun"] == "function") Module["postRun"] = [Module["postRun"]];
+        while (Module["postRun"].length) {
+          addOnPostRun(Module["postRun"].shift());
         }
       }
       callRuntimeCallbacks(__ATPOSTRUN__);
@@ -260,14 +260,14 @@ var createFFmpegCore = (() => {
     }
     function addRunDependency(id) {
       runDependencies++;
-      if (Module['monitorRunDependencies']) {
-        Module['monitorRunDependencies'](runDependencies);
+      if (Module["monitorRunDependencies"]) {
+        Module["monitorRunDependencies"](runDependencies);
       }
     }
     function removeRunDependency(id) {
       runDependencies--;
-      if (Module['monitorRunDependencies']) {
-        Module['monitorRunDependencies'](runDependencies);
+      if (Module["monitorRunDependencies"]) {
+        Module["monitorRunDependencies"](runDependencies);
       }
       if (runDependencies == 0) {
         if (runDependencyWatcher !== null) {
@@ -282,24 +282,24 @@ var createFFmpegCore = (() => {
       }
     }
     function abort(what) {
-      if (Module['onAbort']) {
-        Module['onAbort'](what);
+      if (Module["onAbort"]) {
+        Module["onAbort"](what);
       }
-      what = 'Aborted(' + what + ')';
+      what = "Aborted(" + what + ")";
       err(what);
       ABORT = true;
       EXITSTATUS = 1;
-      what += '. Build with -sASSERTIONS for more info.';
+      what += ". Build with -sASSERTIONS for more info.";
       var e = new WebAssembly.RuntimeError(what);
       readyPromiseReject(e);
       throw e;
     }
-    var dataURIPrefix = 'data:application/octet-stream;base64,';
+    var dataURIPrefix = "data:application/octet-stream;base64,";
     function isDataURI(filename) {
       return filename.startsWith(dataURIPrefix);
     }
     var wasmBinaryFile;
-    wasmBinaryFile = 'ffmpeg-core.wasm';
+    wasmBinaryFile = "ffmpeg-core.wasm";
     if (!isDataURI(wasmBinaryFile)) {
       wasmBinaryFile = locateFile(wasmBinaryFile);
     }
@@ -311,20 +311,20 @@ var createFFmpegCore = (() => {
         if (readBinary) {
           return readBinary(file);
         }
-        throw 'both async and sync fetching of the wasm failed';
+        throw "both async and sync fetching of the wasm failed";
       } catch (err) {
         abort(err);
       }
     }
     function getBinaryPromise(binaryFile) {
       if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
-        if (typeof fetch == 'function') {
-          return fetch(binaryFile, { credentials: 'same-origin' })
+        if (typeof fetch == "function") {
+          return fetch(binaryFile, { credentials: "same-origin" })
             .then((response) => {
-              if (!response['ok']) {
+              if (!response["ok"]) {
                 throw "failed to load wasm binary file at '" + binaryFile + "'";
               }
-              return response['arrayBuffer']();
+              return response["arrayBuffer"]();
             })
             .catch(() => getBinary(binaryFile));
         }
@@ -340,22 +340,22 @@ var createFFmpegCore = (() => {
           return instance;
         })
         .then(receiver, (reason) => {
-          err('failed to asynchronously prepare wasm: ' + reason);
+          err("failed to asynchronously prepare wasm: " + reason);
           abort(reason);
         });
     }
     function instantiateAsync(binary, binaryFile, imports, callback) {
       if (
         !binary &&
-        typeof WebAssembly.instantiateStreaming == 'function' &&
+        typeof WebAssembly.instantiateStreaming == "function" &&
         !isDataURI(binaryFile) &&
-        typeof fetch == 'function'
+        typeof fetch == "function"
       ) {
-        return fetch(binaryFile, { credentials: 'same-origin' }).then((response) => {
+        return fetch(binaryFile, { credentials: "same-origin" }).then((response) => {
           var result = WebAssembly.instantiateStreaming(response, imports);
           return result.then(callback, function (reason) {
-            err('wasm streaming compile failed: ' + reason);
-            err('falling back to ArrayBuffer instantiation');
+            err("wasm streaming compile failed: " + reason);
+            err("falling back to ArrayBuffer instantiation");
             return instantiateArrayBuffer(binaryFile, imports, callback);
           });
         });
@@ -367,23 +367,23 @@ var createFFmpegCore = (() => {
       var info = { a: wasmImports };
       function receiveInstance(instance, module) {
         var exports = instance.exports;
-        Module['asm'] = exports;
-        wasmMemory = Module['asm']['ra'];
+        Module["asm"] = exports;
+        wasmMemory = Module["asm"]["ra"];
         updateMemoryViews();
-        wasmTable = Module['asm']['ua'];
-        addOnInit(Module['asm']['sa']);
-        removeRunDependency('wasm-instantiate');
+        wasmTable = Module["asm"]["ua"];
+        addOnInit(Module["asm"]["sa"]);
+        removeRunDependency("wasm-instantiate");
         return exports;
       }
-      addRunDependency('wasm-instantiate');
+      addRunDependency("wasm-instantiate");
       function receiveInstantiationResult(result) {
-        receiveInstance(result['instance']);
+        receiveInstance(result["instance"]);
       }
-      if (Module['instantiateWasm']) {
+      if (Module["instantiateWasm"]) {
         try {
-          return Module['instantiateWasm'](info, receiveInstance);
+          return Module["instantiateWasm"](info, receiveInstance);
         } catch (e) {
-          err('Module.instantiateWasm callback failed with error: ' + e);
+          err("Module.instantiateWasm callback failed with error: " + e);
           readyPromiseReject(e);
         }
       }
@@ -407,7 +407,7 @@ var createFFmpegCore = (() => {
       }
     }
     function ExitStatus(status) {
-      this.name = 'ExitStatus';
+      this.name = "ExitStatus";
       this.message = `Program terminated with exit(${status})`;
       this.status = status;
     }
@@ -425,61 +425,61 @@ var createFFmpegCore = (() => {
       }
       return func;
     }
-    function getValue(ptr, type = 'i8') {
-      if (type.endsWith('*')) type = '*';
+    function getValue(ptr, type = "i8") {
+      if (type.endsWith("*")) type = "*";
       switch (type) {
-        case 'i1':
+        case "i1":
           return HEAP8[ptr >> 0];
-        case 'i8':
+        case "i8":
           return HEAP8[ptr >> 0];
-        case 'i16':
+        case "i16":
           return HEAP16[ptr >> 1];
-        case 'i32':
+        case "i32":
           return HEAP32[ptr >> 2];
-        case 'i64':
+        case "i64":
           return HEAP64[ptr >> 3];
-        case 'float':
+        case "float":
           return HEAPF32[ptr >> 2];
-        case 'double':
+        case "double":
           return HEAPF64[ptr >> 3];
-        case '*':
+        case "*":
           return HEAPU32[ptr >> 2];
         default:
           abort(`invalid type for getValue: ${type}`);
       }
     }
-    function setValue(ptr, value, type = 'i8') {
-      if (type.endsWith('*')) type = '*';
+    function setValue(ptr, value, type = "i8") {
+      if (type.endsWith("*")) type = "*";
       switch (type) {
-        case 'i1':
+        case "i1":
           HEAP8[ptr >> 0] = value;
           break;
-        case 'i8':
+        case "i8":
           HEAP8[ptr >> 0] = value;
           break;
-        case 'i16':
+        case "i16":
           HEAP16[ptr >> 1] = value;
           break;
-        case 'i32':
+        case "i32":
           HEAP32[ptr >> 2] = value;
           break;
-        case 'i64':
+        case "i64":
           HEAP64[ptr >> 3] = BigInt(value);
           break;
-        case 'float':
+        case "float":
           HEAPF32[ptr >> 2] = value;
           break;
-        case 'double':
+        case "double":
           HEAPF64[ptr >> 3] = value;
           break;
-        case '*':
+        case "*":
           HEAPU32[ptr >> 2] = value;
           break;
         default:
           abort(`invalid type for setValue: ${type}`);
       }
     }
-    var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
+    var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder("utf8") : undefined;
     function UTF8ArrayToString(heapOrArray, idx, maxBytesToRead) {
       var endIdx = idx + maxBytesToRead;
       var endPtr = idx;
@@ -487,7 +487,7 @@ var createFFmpegCore = (() => {
       if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
       }
-      var str = '';
+      var str = "";
       while (idx < endPtr) {
         var u0 = heapOrArray[idx++];
         if (!(u0 & 128)) {
@@ -515,15 +515,15 @@ var createFFmpegCore = (() => {
       return str;
     }
     function UTF8ToString(ptr, maxBytesToRead) {
-      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
+      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : "";
     }
     function ___assert_fail(condition, filename, line, func) {
       abort(
         `Assertion failed: ${UTF8ToString(condition)}, at: ` +
           [
-            filename ? UTF8ToString(filename) : 'unknown filename',
+            filename ? UTF8ToString(filename) : "unknown filename",
             line,
-            func ? UTF8ToString(func) : 'unknown function',
+            func ? UTF8ToString(func) : "unknown function",
           ]
       );
     }
@@ -587,12 +587,12 @@ var createFFmpegCore = (() => {
       throw exceptionLast;
     }
     var dlopenMissingError =
-      'To use dlopen, you need enable dynamic linking, see https://emscripten.org/docs/compiling/Dynamic-Linking.html';
+      "To use dlopen, you need enable dynamic linking, see https://emscripten.org/docs/compiling/Dynamic-Linking.html";
     function ___dlsym(handle, symbol) {
       abort(dlopenMissingError);
     }
     var PATH = {
-      isAbs: (path) => path.charAt(0) === '/',
+      isAbs: (path) => path.charAt(0) === "/",
       splitPath: (filename) => {
         var splitPathRe = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
         return splitPathRe.exec(filename).slice(1);
@@ -601,9 +601,9 @@ var createFFmpegCore = (() => {
         var up = 0;
         for (var i = parts.length - 1; i >= 0; i--) {
           var last = parts[i];
-          if (last === '.') {
+          if (last === ".") {
             parts.splice(i, 1);
-          } else if (last === '..') {
+          } else if (last === "..") {
             parts.splice(i, 1);
             up++;
           } else if (up) {
@@ -613,32 +613,32 @@ var createFFmpegCore = (() => {
         }
         if (allowAboveRoot) {
           for (; up; up--) {
-            parts.unshift('..');
+            parts.unshift("..");
           }
         }
         return parts;
       },
       normalize: (path) => {
         var isAbsolute = PATH.isAbs(path),
-          trailingSlash = path.substr(-1) === '/';
+          trailingSlash = path.substr(-1) === "/";
         path = PATH.normalizeArray(
-          path.split('/').filter((p) => !!p),
+          path.split("/").filter((p) => !!p),
           !isAbsolute
-        ).join('/');
+        ).join("/");
         if (!path && !isAbsolute) {
-          path = '.';
+          path = ".";
         }
         if (path && trailingSlash) {
-          path += '/';
+          path += "/";
         }
-        return (isAbsolute ? '/' : '') + path;
+        return (isAbsolute ? "/" : "") + path;
       },
       dirname: (path) => {
         var result = PATH.splitPath(path),
           root = result[0],
           dir = result[1];
         if (!root && !dir) {
-          return '.';
+          return ".";
         }
         if (dir) {
           dir = dir.substr(0, dir.length - 1);
@@ -646,48 +646,48 @@ var createFFmpegCore = (() => {
         return root + dir;
       },
       basename: (path) => {
-        if (path === '/') return '/';
+        if (path === "/") return "/";
         path = PATH.normalize(path);
-        path = path.replace(/\/$/, '');
-        var lastSlash = path.lastIndexOf('/');
+        path = path.replace(/\/$/, "");
+        var lastSlash = path.lastIndexOf("/");
         if (lastSlash === -1) return path;
         return path.substr(lastSlash + 1);
       },
       join: function () {
         var paths = Array.prototype.slice.call(arguments);
-        return PATH.normalize(paths.join('/'));
+        return PATH.normalize(paths.join("/"));
       },
       join2: (l, r) => {
-        return PATH.normalize(l + '/' + r);
+        return PATH.normalize(l + "/" + r);
       },
     };
     function initRandomFill() {
-      if (typeof crypto == 'object' && typeof crypto['getRandomValues'] == 'function') {
+      if (typeof crypto == "object" && typeof crypto["getRandomValues"] == "function") {
         return (view) => crypto.getRandomValues(view);
-      } else abort('initRandomDevice');
+      } else abort("initRandomDevice");
     }
     function randomFill(view) {
       return (randomFill = initRandomFill())(view);
     }
     var PATH_FS = {
       resolve: function () {
-        var resolvedPath = '',
+        var resolvedPath = "",
           resolvedAbsolute = false;
         for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
           var path = i >= 0 ? arguments[i] : FS.cwd();
-          if (typeof path != 'string') {
-            throw new TypeError('Arguments to path.resolve must be strings');
+          if (typeof path != "string") {
+            throw new TypeError("Arguments to path.resolve must be strings");
           } else if (!path) {
-            return '';
+            return "";
           }
-          resolvedPath = path + '/' + resolvedPath;
+          resolvedPath = path + "/" + resolvedPath;
           resolvedAbsolute = PATH.isAbs(path);
         }
         resolvedPath = PATH.normalizeArray(
-          resolvedPath.split('/').filter((p) => !!p),
+          resolvedPath.split("/").filter((p) => !!p),
           !resolvedAbsolute
-        ).join('/');
-        return (resolvedAbsolute ? '/' : '') + resolvedPath || '.';
+        ).join("/");
+        return (resolvedAbsolute ? "/" : "") + resolvedPath || ".";
       },
       relative: (from, to) => {
         from = PATH_FS.resolve(from).substr(1);
@@ -695,17 +695,17 @@ var createFFmpegCore = (() => {
         function trim(arr) {
           var start = 0;
           for (; start < arr.length; start++) {
-            if (arr[start] !== '') break;
+            if (arr[start] !== "") break;
           }
           var end = arr.length - 1;
           for (; end >= 0; end--) {
-            if (arr[end] !== '') break;
+            if (arr[end] !== "") break;
           }
           if (start > end) return [];
           return arr.slice(start, end - start + 1);
         }
-        var fromParts = trim(from.split('/'));
-        var toParts = trim(to.split('/'));
+        var fromParts = trim(from.split("/"));
+        var toParts = trim(to.split("/"));
         var length = Math.min(fromParts.length, toParts.length);
         var samePartsLength = length;
         for (var i = 0; i < length; i++) {
@@ -716,10 +716,10 @@ var createFFmpegCore = (() => {
         }
         var outputParts = [];
         for (var i = samePartsLength; i < fromParts.length; i++) {
-          outputParts.push('..');
+          outputParts.push("..");
         }
         outputParts = outputParts.concat(toParts.slice(samePartsLength));
-        return outputParts.join('/');
+        return outputParts.join("/");
       },
     };
     function lengthBytesUTF8(str) {
@@ -847,15 +847,15 @@ var createFFmpegCore = (() => {
         get_char: function (tty) {
           if (!tty.input.length) {
             var result = null;
-            if (typeof window != 'undefined' && typeof window.prompt == 'function') {
-              result = window.prompt('Input: ');
+            if (typeof window != "undefined" && typeof window.prompt == "function") {
+              result = window.prompt("Input: ");
               if (result !== null) {
-                result += '\n';
+                result += "\n";
               }
-            } else if (typeof readline == 'function') {
+            } else if (typeof readline == "function") {
               result = readline();
               if (result !== null) {
-                result += '\n';
+                result += "\n";
               }
             }
             if (!result) {
@@ -913,7 +913,7 @@ var createFFmpegCore = (() => {
     var MEMFS = {
       ops_table: null,
       mount: function (mount) {
-        return MEMFS.createNode(null, '/', 16384 | 511, 0);
+        return MEMFS.createNode(null, "/", 16384 | 511, 0);
       },
       createNode: function (parent, name, mode, dev) {
         if (FS.isBlkdev(mode) || FS.isFIFO(mode)) {
@@ -1091,7 +1091,7 @@ var createFFmpegCore = (() => {
           parent.timestamp = Date.now();
         },
         readdir: function (node) {
-          var entries = ['.', '..'];
+          var entries = [".", ".."];
           for (var key in node.contents) {
             if (!node.contents.hasOwnProperty(key)) {
               continue;
@@ -1208,7 +1208,7 @@ var createFFmpegCore = (() => {
       },
     };
     function asyncLoad(url, onload, onerror, noRunDep) {
-      var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : '';
+      var dep = !noRunDep ? getUniqueRunDependency(`al ${url}`) : "";
       readAsync(
         url,
         (arrayBuffer) => {
@@ -1226,14 +1226,14 @@ var createFFmpegCore = (() => {
       );
       if (dep) addRunDependency(dep);
     }
-    var preloadPlugins = Module['preloadPlugins'] || [];
+    var preloadPlugins = Module["preloadPlugins"] || [];
     function FS_handledByPreloadPlugin(byteArray, fullname, finish, onerror) {
-      if (typeof Browser != 'undefined') Browser.init();
+      if (typeof Browser != "undefined") Browser.init();
       var handled = false;
       preloadPlugins.forEach(function (plugin) {
         if (handled) return;
-        if (plugin['canHandle'](fullname)) {
-          plugin['handle'](byteArray, fullname, finish, onerror);
+        if (plugin["canHandle"](fullname)) {
+          plugin["handle"](byteArray, fullname, finish, onerror);
           handled = true;
         }
       });
@@ -1273,7 +1273,7 @@ var createFFmpegCore = (() => {
         finish(byteArray);
       }
       addRunDependency(dep);
-      if (typeof url == 'string') {
+      if (typeof url == "string") {
         asyncLoad(url, (byteArray) => processData(byteArray), onerror);
       } else {
         processData(url);
@@ -1282,14 +1282,14 @@ var createFFmpegCore = (() => {
     function FS_modeStringToFlags(str) {
       var flagModes = {
         r: 0,
-        'r+': 2,
+        "r+": 2,
         w: 512 | 64 | 1,
-        'w+': 512 | 64 | 2,
+        "w+": 512 | 64 | 2,
         a: 1024 | 64 | 1,
-        'a+': 1024 | 64 | 2,
+        "a+": 1024 | 64 | 2,
       };
       var flags = flagModes[str];
-      if (typeof flags == 'undefined') {
+      if (typeof flags == "undefined") {
         throw new Error(`Unknown file open mode: ${str}`);
       }
       return flags;
@@ -1307,13 +1307,13 @@ var createFFmpegCore = (() => {
       mount: function (mount) {
         assert(ENVIRONMENT_IS_WORKER);
         if (!WORKERFS.reader) WORKERFS.reader = new FileReaderSync();
-        var root = WORKERFS.createNode(null, '/', WORKERFS.DIR_MODE, 0);
+        var root = WORKERFS.createNode(null, "/", WORKERFS.DIR_MODE, 0);
         var createdParents = {};
         function ensureParent(path) {
-          var parts = path.split('/');
+          var parts = path.split("/");
           var parent = root;
           for (var i = 0; i < parts.length - 1; i++) {
-            var curr = parts.slice(0, i + 1).join('/');
+            var curr = parts.slice(0, i + 1).join("/");
             if (!createdParents[curr]) {
               createdParents[curr] = WORKERFS.createNode(parent, parts[i], WORKERFS.DIR_MODE, 0);
             }
@@ -1322,10 +1322,10 @@ var createFFmpegCore = (() => {
           return parent;
         }
         function base(path) {
-          var parts = path.split('/');
+          var parts = path.split("/");
           return parts[parts.length - 1];
         }
-        Array.prototype.forEach.call(mount.opts['files'] || [], function (file) {
+        Array.prototype.forEach.call(mount.opts["files"] || [], function (file) {
           WORKERFS.createNode(
             ensureParent(file.name),
             base(file.name),
@@ -1335,24 +1335,24 @@ var createFFmpegCore = (() => {
             file.lastModifiedDate
           );
         });
-        (mount.opts['blobs'] || []).forEach(function (obj) {
+        (mount.opts["blobs"] || []).forEach(function (obj) {
           WORKERFS.createNode(
-            ensureParent(obj['name']),
-            base(obj['name']),
+            ensureParent(obj["name"]),
+            base(obj["name"]),
             WORKERFS.FILE_MODE,
             0,
-            obj['data']
+            obj["data"]
           );
         });
-        (mount.opts['packages'] || []).forEach(function (pack) {
-          pack['metadata'].files.forEach(function (file) {
+        (mount.opts["packages"] || []).forEach(function (pack) {
+          pack["metadata"].files.forEach(function (file) {
             var name = file.filename.substr(1);
             WORKERFS.createNode(
               ensureParent(name),
               base(name),
               WORKERFS.FILE_MODE,
               0,
-              pack['blob'].slice(file.start, file.end)
+              pack["blob"].slice(file.start, file.end)
             );
           });
         });
@@ -1419,7 +1419,7 @@ var createFFmpegCore = (() => {
           throw new FS.ErrnoError(63);
         },
         readdir: function (node) {
-          var entries = ['.', '..'];
+          var entries = [".", ".."];
           for (var key in node.contents) {
             if (!node.contents.hasOwnProperty(key)) {
               continue;
@@ -1466,7 +1466,7 @@ var createFFmpegCore = (() => {
       streams: [],
       nextInode: 1,
       nameTable: null,
-      currentPath: '/',
+      currentPath: "/",
       initialized: false,
       ignorePermissions: true,
       ErrnoError: null,
@@ -1475,15 +1475,15 @@ var createFFmpegCore = (() => {
       syncFSRequests: 0,
       lookupPath: (path, opts = {}) => {
         path = PATH_FS.resolve(path);
-        if (!path) return { path: '', node: null };
+        if (!path) return { path: "", node: null };
         var defaults = { follow_mount: true, recurse_count: 0 };
         opts = Object.assign(defaults, opts);
         if (opts.recurse_count > 8) {
           throw new FS.ErrnoError(32);
         }
-        var parts = path.split('/').filter((p) => !!p);
+        var parts = path.split("/").filter((p) => !!p);
         var current = FS.root;
-        var current_path = '/';
+        var current_path = "/";
         for (var i = 0; i < parts.length; i++) {
           var islast = i === parts.length - 1;
           if (islast && opts.parent) {
@@ -1517,7 +1517,7 @@ var createFFmpegCore = (() => {
           if (FS.isRoot(node)) {
             var mount = node.mount.mountpoint;
             if (!path) return mount;
-            return mount[mount.length - 1] !== '/' ? `${mount}/${path}` : mount + path;
+            return mount[mount.length - 1] !== "/" ? `${mount}/${path}` : mount + path;
           }
           path = path ? `${node.name}/${path}` : node.name;
           node = node.parent;
@@ -1600,9 +1600,9 @@ var createFFmpegCore = (() => {
         return (mode & 49152) === 49152;
       },
       flagsToPermissionString: (flag) => {
-        var perms = ['r', 'w', 'rw'][flag & 3];
+        var perms = ["r", "w", "rw"][flag & 3];
         if (flag & 512) {
-          perms += 'w';
+          perms += "w";
         }
         return perms;
       },
@@ -1610,17 +1610,17 @@ var createFFmpegCore = (() => {
         if (FS.ignorePermissions) {
           return 0;
         }
-        if (perms.includes('r') && !(node.mode & 292)) {
+        if (perms.includes("r") && !(node.mode & 292)) {
           return 2;
-        } else if (perms.includes('w') && !(node.mode & 146)) {
+        } else if (perms.includes("w") && !(node.mode & 146)) {
           return 2;
-        } else if (perms.includes('x') && !(node.mode & 73)) {
+        } else if (perms.includes("x") && !(node.mode & 73)) {
           return 2;
         }
         return 0;
       },
       mayLookup: (dir) => {
-        var errCode = FS.nodePermissions(dir, 'x');
+        var errCode = FS.nodePermissions(dir, "x");
         if (errCode) return errCode;
         if (!dir.node_ops.lookup) return 2;
         return 0;
@@ -1630,7 +1630,7 @@ var createFFmpegCore = (() => {
           var node = FS.lookupNode(dir, name);
           return 20;
         } catch (e) {}
-        return FS.nodePermissions(dir, 'wx');
+        return FS.nodePermissions(dir, "wx");
       },
       mayDelete: (dir, name, isdir) => {
         var node;
@@ -1639,7 +1639,7 @@ var createFFmpegCore = (() => {
         } catch (e) {
           return e.errno;
         }
-        var errCode = FS.nodePermissions(dir, 'wx');
+        var errCode = FS.nodePermissions(dir, "wx");
         if (errCode) {
           return errCode;
         }
@@ -1664,7 +1664,7 @@ var createFFmpegCore = (() => {
         if (FS.isLink(node.mode)) {
           return 32;
         } else if (FS.isDir(node.mode)) {
-          if (FS.flagsToPermissionString(flags) !== 'r' || flags & 512) {
+          if (FS.flagsToPermissionString(flags) !== "r" || flags & 512) {
             return 31;
           }
         }
@@ -1769,7 +1769,7 @@ var createFFmpegCore = (() => {
         return mounts;
       },
       syncfs: (populate, callback) => {
-        if (typeof populate == 'function') {
+        if (typeof populate == "function") {
           callback = populate;
           populate = false;
         }
@@ -1805,7 +1805,7 @@ var createFFmpegCore = (() => {
         });
       },
       mount: (type, opts, mountpoint) => {
-        var root = mountpoint === '/';
+        var root = mountpoint === "/";
         var pseudo = !mountpoint;
         var node;
         if (root && FS.root) {
@@ -1864,7 +1864,7 @@ var createFFmpegCore = (() => {
         var lookup = FS.lookupPath(path, { parent: true });
         var parent = lookup.node;
         var name = PATH.basename(path);
-        if (!name || name === '.' || name === '..') {
+        if (!name || name === "." || name === "..") {
           throw new FS.ErrnoError(28);
         }
         var errCode = FS.mayCreate(parent, name);
@@ -1889,11 +1889,11 @@ var createFFmpegCore = (() => {
         return FS.mknod(path, mode, 0);
       },
       mkdirTree: (path, mode) => {
-        var dirs = path.split('/');
-        var d = '';
+        var dirs = path.split("/");
+        var d = "";
         for (var i = 0; i < dirs.length; ++i) {
           if (!dirs[i]) continue;
-          d += '/' + dirs[i];
+          d += "/" + dirs[i];
           try {
             FS.mkdir(d, mode);
           } catch (e) {
@@ -1902,7 +1902,7 @@ var createFFmpegCore = (() => {
         }
       },
       mkdev: (path, mode, dev) => {
-        if (typeof dev == 'undefined') {
+        if (typeof dev == "undefined") {
           dev = mode;
           mode = 438;
         }
@@ -1944,11 +1944,11 @@ var createFFmpegCore = (() => {
         }
         var old_node = FS.lookupNode(old_dir, old_name);
         var relative = PATH_FS.relative(old_path, new_dirname);
-        if (relative.charAt(0) !== '.') {
+        if (relative.charAt(0) !== ".") {
           throw new FS.ErrnoError(28);
         }
         relative = PATH_FS.relative(new_path, old_dirname);
-        if (relative.charAt(0) !== '.') {
+        if (relative.charAt(0) !== ".") {
           throw new FS.ErrnoError(55);
         }
         var new_node;
@@ -1976,7 +1976,7 @@ var createFFmpegCore = (() => {
           throw new FS.ErrnoError(10);
         }
         if (new_dir !== old_dir) {
-          errCode = FS.nodePermissions(old_dir, 'w');
+          errCode = FS.nodePermissions(old_dir, "w");
           if (errCode) {
             throw new FS.ErrnoError(errCode);
           }
@@ -2064,7 +2064,7 @@ var createFFmpegCore = (() => {
       },
       chmod: (path, mode, dontFollow) => {
         var node;
-        if (typeof path == 'string') {
+        if (typeof path == "string") {
           var lookup = FS.lookupPath(path, { follow: !dontFollow });
           node = lookup.node;
         } else {
@@ -2090,7 +2090,7 @@ var createFFmpegCore = (() => {
       },
       chown: (path, uid, gid, dontFollow) => {
         var node;
-        if (typeof path == 'string') {
+        if (typeof path == "string") {
           var lookup = FS.lookupPath(path, { follow: !dontFollow });
           node = lookup.node;
         } else {
@@ -2116,7 +2116,7 @@ var createFFmpegCore = (() => {
           throw new FS.ErrnoError(28);
         }
         var node;
-        if (typeof path == 'string') {
+        if (typeof path == "string") {
           var lookup = FS.lookupPath(path, { follow: true });
           node = lookup.node;
         } else {
@@ -2131,7 +2131,7 @@ var createFFmpegCore = (() => {
         if (!FS.isFile(node.mode)) {
           throw new FS.ErrnoError(28);
         }
-        var errCode = FS.nodePermissions(node, 'w');
+        var errCode = FS.nodePermissions(node, "w");
         if (errCode) {
           throw new FS.ErrnoError(errCode);
         }
@@ -2153,18 +2153,18 @@ var createFFmpegCore = (() => {
         node.node_ops.setattr(node, { timestamp: Math.max(atime, mtime) });
       },
       open: (path, flags, mode) => {
-        if (path === '') {
+        if (path === "") {
           throw new FS.ErrnoError(44);
         }
-        flags = typeof flags == 'string' ? FS_modeStringToFlags(flags) : flags;
-        mode = typeof mode == 'undefined' ? 438 : mode;
+        flags = typeof flags == "string" ? FS_modeStringToFlags(flags) : flags;
+        mode = typeof mode == "undefined" ? 438 : mode;
         if (flags & 64) {
           mode = (mode & 4095) | 32768;
         } else {
           mode = 0;
         }
         var node;
-        if (typeof path == 'object') {
+        if (typeof path == "object") {
           node = path;
         } else {
           path = PATH.normalize(path);
@@ -2216,7 +2216,7 @@ var createFFmpegCore = (() => {
         if (stream.stream_ops.open) {
           stream.stream_ops.open(stream);
         }
-        if (Module['logReadFiles'] && !(flags & 1)) {
+        if (Module["logReadFiles"] && !(flags & 1)) {
           if (!FS.readFiles) FS.readFiles = {};
           if (!(path in FS.readFiles)) {
             FS.readFiles[path] = 1;
@@ -2273,7 +2273,7 @@ var createFFmpegCore = (() => {
         if (!stream.stream_ops.read) {
           throw new FS.ErrnoError(28);
         }
-        var seeking = typeof position != 'undefined';
+        var seeking = typeof position != "undefined";
         if (!seeking) {
           position = stream.position;
         } else if (!stream.seekable) {
@@ -2302,7 +2302,7 @@ var createFFmpegCore = (() => {
         if (stream.seekable && stream.flags & 1024) {
           FS.llseek(stream, 0, 2);
         }
-        var seeking = typeof position != 'undefined';
+        var seeking = typeof position != "undefined";
         if (!seeking) {
           position = stream.position;
         } else if (!stream.seekable) {
@@ -2364,8 +2364,8 @@ var createFFmpegCore = (() => {
       },
       readFile: (path, opts = {}) => {
         opts.flags = opts.flags || 0;
-        opts.encoding = opts.encoding || 'binary';
-        if (opts.encoding !== 'utf8' && opts.encoding !== 'binary') {
+        opts.encoding = opts.encoding || "binary";
+        if (opts.encoding !== "utf8" && opts.encoding !== "binary") {
           throw new Error(`Invalid encoding type "${opts.encoding}"`);
         }
         var ret;
@@ -2374,9 +2374,9 @@ var createFFmpegCore = (() => {
         var length = stat.size;
         var buf = new Uint8Array(length);
         FS.read(stream, buf, 0, length, 0);
-        if (opts.encoding === 'utf8') {
+        if (opts.encoding === "utf8") {
           ret = UTF8ArrayToString(buf, 0);
-        } else if (opts.encoding === 'binary') {
+        } else if (opts.encoding === "binary") {
           ret = buf;
         }
         FS.close(stream);
@@ -2385,14 +2385,14 @@ var createFFmpegCore = (() => {
       writeFile: (path, data, opts = {}) => {
         opts.flags = opts.flags || 577;
         var stream = FS.open(path, opts.flags, opts.mode);
-        if (typeof data == 'string') {
+        if (typeof data == "string") {
           var buf = new Uint8Array(lengthBytesUTF8(data) + 1);
           var actualNumBytes = stringToUTF8Array(data, buf, 0, buf.length);
           FS.write(stream, buf, 0, actualNumBytes, undefined, opts.canOwn);
         } else if (ArrayBuffer.isView(data)) {
           FS.write(stream, data, 0, data.byteLength, undefined, opts.canOwn);
         } else {
-          throw new Error('Unsupported data type');
+          throw new Error("Unsupported data type");
         }
         FS.close(stream);
       },
@@ -2405,28 +2405,28 @@ var createFFmpegCore = (() => {
         if (!FS.isDir(lookup.node.mode)) {
           throw new FS.ErrnoError(54);
         }
-        var errCode = FS.nodePermissions(lookup.node, 'x');
+        var errCode = FS.nodePermissions(lookup.node, "x");
         if (errCode) {
           throw new FS.ErrnoError(errCode);
         }
         FS.currentPath = lookup.path;
       },
       createDefaultDirectories: () => {
-        FS.mkdir('/tmp');
-        FS.mkdir('/home');
-        FS.mkdir('/home/web_user');
+        FS.mkdir("/tmp");
+        FS.mkdir("/home");
+        FS.mkdir("/home/web_user");
       },
       createDefaultDevices: () => {
-        FS.mkdir('/dev');
+        FS.mkdir("/dev");
         FS.registerDevice(FS.makedev(1, 3), {
           read: () => 0,
           write: (stream, buffer, offset, length, pos) => length,
         });
-        FS.mkdev('/dev/null', FS.makedev(1, 3));
+        FS.mkdev("/dev/null", FS.makedev(1, 3));
         TTY.register(FS.makedev(5, 0), TTY.default_tty_ops);
         TTY.register(FS.makedev(6, 0), TTY.default_tty1_ops);
-        FS.mkdev('/dev/tty', FS.makedev(5, 0));
-        FS.mkdev('/dev/tty1', FS.makedev(6, 0));
+        FS.mkdev("/dev/tty", FS.makedev(5, 0));
+        FS.mkdev("/dev/tty1", FS.makedev(6, 0));
         var randomBuffer = new Uint8Array(1024),
           randomLeft = 0;
         var randomByte = () => {
@@ -2435,19 +2435,19 @@ var createFFmpegCore = (() => {
           }
           return randomBuffer[--randomLeft];
         };
-        FS.createDevice('/dev', 'random', randomByte);
-        FS.createDevice('/dev', 'urandom', randomByte);
-        FS.mkdir('/dev/shm');
-        FS.mkdir('/dev/shm/tmp');
+        FS.createDevice("/dev", "random", randomByte);
+        FS.createDevice("/dev", "urandom", randomByte);
+        FS.mkdir("/dev/shm");
+        FS.mkdir("/dev/shm/tmp");
       },
       createSpecialDirectories: () => {
-        FS.mkdir('/proc');
-        var proc_self = FS.mkdir('/proc/self');
-        FS.mkdir('/proc/self/fd');
+        FS.mkdir("/proc");
+        var proc_self = FS.mkdir("/proc/self");
+        FS.mkdir("/proc/self/fd");
         FS.mount(
           {
             mount: () => {
-              var node = FS.createNode(proc_self, 'fd', 16384 | 511, 73);
+              var node = FS.createNode(proc_self, "fd", 16384 | 511, 73);
               node.node_ops = {
                 lookup: (parent, name) => {
                   var fd = +name;
@@ -2455,7 +2455,7 @@ var createFFmpegCore = (() => {
                   if (!stream) throw new FS.ErrnoError(8);
                   var ret = {
                     parent: null,
-                    mount: { mountpoint: 'fake' },
+                    mount: { mountpoint: "fake" },
                     node_ops: { readlink: () => stream.path },
                   };
                   ret.parent = ret;
@@ -2466,51 +2466,51 @@ var createFFmpegCore = (() => {
             },
           },
           {},
-          '/proc/self/fd'
+          "/proc/self/fd"
         );
       },
       createStandardStreams: () => {
-        if (Module['stdin']) {
-          FS.createDevice('/dev', 'stdin', Module['stdin']);
+        if (Module["stdin"]) {
+          FS.createDevice("/dev", "stdin", Module["stdin"]);
         } else {
-          FS.symlink('/dev/tty', '/dev/stdin');
+          FS.symlink("/dev/tty", "/dev/stdin");
         }
-        if (Module['stdout']) {
-          FS.createDevice('/dev', 'stdout', null, Module['stdout']);
+        if (Module["stdout"]) {
+          FS.createDevice("/dev", "stdout", null, Module["stdout"]);
         } else {
-          FS.symlink('/dev/tty', '/dev/stdout');
+          FS.symlink("/dev/tty", "/dev/stdout");
         }
-        if (Module['stderr']) {
-          FS.createDevice('/dev', 'stderr', null, Module['stderr']);
+        if (Module["stderr"]) {
+          FS.createDevice("/dev", "stderr", null, Module["stderr"]);
         } else {
-          FS.symlink('/dev/tty1', '/dev/stderr');
+          FS.symlink("/dev/tty1", "/dev/stderr");
         }
-        var stdin = FS.open('/dev/stdin', 0);
-        var stdout = FS.open('/dev/stdout', 1);
-        var stderr = FS.open('/dev/stderr', 1);
+        var stdin = FS.open("/dev/stdin", 0);
+        var stdout = FS.open("/dev/stdout", 1);
+        var stderr = FS.open("/dev/stderr", 1);
       },
       ensureErrnoError: () => {
         if (FS.ErrnoError) return;
         FS.ErrnoError = function ErrnoError(errno, node) {
-          this.name = 'ErrnoError';
+          this.name = "ErrnoError";
           this.node = node;
           this.setErrno = function (errno) {
             this.errno = errno;
           };
           this.setErrno(errno);
-          this.message = 'FS error';
+          this.message = "FS error";
         };
         FS.ErrnoError.prototype = new Error();
         FS.ErrnoError.prototype.constructor = FS.ErrnoError;
         [44].forEach((code) => {
           FS.genericErrors[code] = new FS.ErrnoError(code);
-          FS.genericErrors[code].stack = '<generic error, no stack>';
+          FS.genericErrors[code].stack = "<generic error, no stack>";
         });
       },
       staticInit: () => {
         FS.ensureErrnoError();
         FS.nameTable = new Array(4096);
-        FS.mount(MEMFS, {}, '/');
+        FS.mount(MEMFS, {}, "/");
         FS.createDefaultDirectories();
         FS.createDefaultDevices();
         FS.createSpecialDirectories();
@@ -2519,9 +2519,9 @@ var createFFmpegCore = (() => {
       init: (input, output, error) => {
         FS.init.initialized = true;
         FS.ensureErrnoError();
-        Module['stdin'] = input || Module['stdin'];
-        Module['stdout'] = output || Module['stdout'];
-        Module['stderr'] = error || Module['stderr'];
+        Module["stdin"] = input || Module["stdin"];
+        Module["stdout"] = output || Module["stdout"];
+        Module["stderr"] = error || Module["stderr"];
         FS.createStandardStreams();
       },
       quit: () => {
@@ -2568,15 +2568,15 @@ var createFFmpegCore = (() => {
           ret.path = lookup.path;
           ret.object = lookup.node;
           ret.name = lookup.node.name;
-          ret.isRoot = lookup.path === '/';
+          ret.isRoot = lookup.path === "/";
         } catch (e) {
           ret.error = e.errno;
         }
         return ret;
       },
       createPath: (parent, path, canRead, canWrite) => {
-        parent = typeof parent == 'string' ? parent : FS.getPath(parent);
-        var parts = path.split('/').reverse();
+        parent = typeof parent == "string" ? parent : FS.getPath(parent);
+        var parts = path.split("/").reverse();
         while (parts.length) {
           var part = parts.pop();
           if (!part) continue;
@@ -2589,20 +2589,20 @@ var createFFmpegCore = (() => {
         return current;
       },
       createFile: (parent, name, properties, canRead, canWrite) => {
-        var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
+        var path = PATH.join2(typeof parent == "string" ? parent : FS.getPath(parent), name);
         var mode = FS_getMode(canRead, canWrite);
         return FS.create(path, mode);
       },
       createDataFile: (parent, name, data, canRead, canWrite, canOwn) => {
         var path = name;
         if (parent) {
-          parent = typeof parent == 'string' ? parent : FS.getPath(parent);
+          parent = typeof parent == "string" ? parent : FS.getPath(parent);
           path = name ? PATH.join2(parent, name) : parent;
         }
         var mode = FS_getMode(canRead, canWrite);
         var node = FS.create(path, mode);
         if (data) {
-          if (typeof data == 'string') {
+          if (typeof data == "string") {
             var arr = new Array(data.length);
             for (var i = 0, len = data.length; i < len; ++i) arr[i] = data.charCodeAt(i);
             data = arr;
@@ -2616,7 +2616,7 @@ var createFFmpegCore = (() => {
         return node;
       },
       createDevice: (parent, name, input, output) => {
-        var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
+        var path = PATH.join2(typeof parent == "string" ? parent : FS.getPath(parent), name);
         var mode = FS_getMode(!!input, !!output);
         if (!FS.createDevice.major) FS.createDevice.major = 64;
         var dev = FS.makedev(FS.createDevice.major++, 0);
@@ -2668,9 +2668,9 @@ var createFFmpegCore = (() => {
       },
       forceLoadFile: (obj) => {
         if (obj.isDevice || obj.isFolder || obj.link || obj.contents) return true;
-        if (typeof XMLHttpRequest != 'undefined') {
+        if (typeof XMLHttpRequest != "undefined") {
           throw new Error(
-            'Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.'
+            "Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread."
           );
         } else if (read_) {
           try {
@@ -2680,7 +2680,7 @@ var createFFmpegCore = (() => {
             throw new FS.ErrnoError(29);
           }
         } else {
-          throw new Error('Cannot load without read() or XMLHttpRequest.');
+          throw new Error("Cannot load without read() or XMLHttpRequest.");
         }
       },
       createLazyFile: (parent, name, url, canRead, canWrite) => {
@@ -2701,61 +2701,61 @@ var createFFmpegCore = (() => {
         };
         LazyUint8Array.prototype.cacheLength = function LazyUint8Array_cacheLength() {
           var xhr = new XMLHttpRequest();
-          xhr.open('HEAD', url, false);
+          xhr.open("HEAD", url, false);
           xhr.send(null);
           if (!((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304))
-            throw new Error("Couldn't load " + url + '. Status: ' + xhr.status);
-          var datalength = Number(xhr.getResponseHeader('Content-length'));
+            throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
+          var datalength = Number(xhr.getResponseHeader("Content-length"));
           var header;
           var hasByteServing =
-            (header = xhr.getResponseHeader('Accept-Ranges')) && header === 'bytes';
-          var usesGzip = (header = xhr.getResponseHeader('Content-Encoding')) && header === 'gzip';
+            (header = xhr.getResponseHeader("Accept-Ranges")) && header === "bytes";
+          var usesGzip = (header = xhr.getResponseHeader("Content-Encoding")) && header === "gzip";
           var chunkSize = 1024 * 1024;
           if (!hasByteServing) chunkSize = datalength;
           var doXHR = (from, to) => {
             if (from > to)
-              throw new Error('invalid range (' + from + ', ' + to + ') or no bytes requested!');
+              throw new Error("invalid range (" + from + ", " + to + ") or no bytes requested!");
             if (to > datalength - 1)
-              throw new Error('only ' + datalength + ' bytes available! programmer error!');
+              throw new Error("only " + datalength + " bytes available! programmer error!");
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            if (datalength !== chunkSize) xhr.setRequestHeader('Range', 'bytes=' + from + '-' + to);
-            xhr.responseType = 'arraybuffer';
+            xhr.open("GET", url, false);
+            if (datalength !== chunkSize) xhr.setRequestHeader("Range", "bytes=" + from + "-" + to);
+            xhr.responseType = "arraybuffer";
             if (xhr.overrideMimeType) {
-              xhr.overrideMimeType('text/plain; charset=x-user-defined');
+              xhr.overrideMimeType("text/plain; charset=x-user-defined");
             }
             xhr.send(null);
             if (!((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304))
-              throw new Error("Couldn't load " + url + '. Status: ' + xhr.status);
+              throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
             if (xhr.response !== undefined) {
               return new Uint8Array(xhr.response || []);
             }
-            return intArrayFromString(xhr.responseText || '', true);
+            return intArrayFromString(xhr.responseText || "", true);
           };
           var lazyArray = this;
           lazyArray.setDataGetter((chunkNum) => {
             var start = chunkNum * chunkSize;
             var end = (chunkNum + 1) * chunkSize - 1;
             end = Math.min(end, datalength - 1);
-            if (typeof lazyArray.chunks[chunkNum] == 'undefined') {
+            if (typeof lazyArray.chunks[chunkNum] == "undefined") {
               lazyArray.chunks[chunkNum] = doXHR(start, end);
             }
-            if (typeof lazyArray.chunks[chunkNum] == 'undefined') throw new Error('doXHR failed!');
+            if (typeof lazyArray.chunks[chunkNum] == "undefined") throw new Error("doXHR failed!");
             return lazyArray.chunks[chunkNum];
           });
           if (usesGzip || !datalength) {
             chunkSize = datalength = 1;
             datalength = this.getter(0).length;
             chunkSize = datalength;
-            out('LazyFiles on gzip forces download of the whole file when length is accessed');
+            out("LazyFiles on gzip forces download of the whole file when length is accessed");
           }
           this._length = datalength;
           this._chunkSize = chunkSize;
           this.lengthKnown = true;
         };
-        if (typeof XMLHttpRequest != 'undefined') {
+        if (typeof XMLHttpRequest != "undefined") {
           if (!ENVIRONMENT_IS_WORKER)
-            throw 'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc';
+            throw "Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc";
           var lazyArray = new LazyUint8Array();
           Object.defineProperties(lazyArray, {
             length: {
@@ -2975,27 +2975,27 @@ var createFFmpegCore = (() => {
         }
         return total;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
     var SOCKFS = {
       mount: function (mount) {
-        Module['websocket'] =
-          Module['websocket'] && 'object' === typeof Module['websocket'] ? Module['websocket'] : {};
-        Module['websocket']._callbacks = {};
-        Module['websocket']['on'] = function (event, callback) {
-          if ('function' === typeof callback) {
+        Module["websocket"] =
+          Module["websocket"] && "object" === typeof Module["websocket"] ? Module["websocket"] : {};
+        Module["websocket"]._callbacks = {};
+        Module["websocket"]["on"] = function (event, callback) {
+          if ("function" === typeof callback) {
             this._callbacks[event] = callback;
           }
           return this;
         };
-        Module['websocket'].emit = function (event, param) {
-          if ('function' === typeof this._callbacks[event]) {
+        Module["websocket"].emit = function (event, param) {
+          if ("function" === typeof this._callbacks[event]) {
             this._callbacks[event].call(this, param);
           }
         };
-        return FS.createNode(null, '/', 16384 | 511, 0);
+        return FS.createNode(null, "/", 16384 | 511, 0);
       },
       createSocket: function (family, type, protocol) {
         type &= ~526336;
@@ -3065,12 +3065,12 @@ var createFFmpegCore = (() => {
         if (!SOCKFS.nextname.current) {
           SOCKFS.nextname.current = 0;
         }
-        return 'socket[' + SOCKFS.nextname.current++ + ']';
+        return "socket[" + SOCKFS.nextname.current++ + "]";
       },
       websocket_sock_ops: {
         createPeer: function (sock, addr, port) {
           var ws;
-          if (typeof addr == 'object') {
+          if (typeof addr == "object") {
             ws = addr;
             addr = null;
             port = null;
@@ -3082,37 +3082,37 @@ var createFFmpegCore = (() => {
             } else {
               var result = /ws[s]?:\/\/([^:]+):(\d+)/.exec(ws.url);
               if (!result) {
-                throw new Error('WebSocket URL must be in the format ws(s)://address:port');
+                throw new Error("WebSocket URL must be in the format ws(s)://address:port");
               }
               addr = result[1];
               port = parseInt(result[2], 10);
             }
           } else {
             try {
-              var runtimeConfig = Module['websocket'] && 'object' === typeof Module['websocket'];
-              var url = 'ws:#'.replace('#', '//');
+              var runtimeConfig = Module["websocket"] && "object" === typeof Module["websocket"];
+              var url = "ws:#".replace("#", "//");
               if (runtimeConfig) {
-                if ('string' === typeof Module['websocket']['url']) {
-                  url = Module['websocket']['url'];
+                if ("string" === typeof Module["websocket"]["url"]) {
+                  url = Module["websocket"]["url"];
                 }
               }
-              if (url === 'ws://' || url === 'wss://') {
-                var parts = addr.split('/');
-                url = url + parts[0] + ':' + port + '/' + parts.slice(1).join('/');
+              if (url === "ws://" || url === "wss://") {
+                var parts = addr.split("/");
+                url = url + parts[0] + ":" + port + "/" + parts.slice(1).join("/");
               }
-              var subProtocols = 'binary';
+              var subProtocols = "binary";
               if (runtimeConfig) {
-                if ('string' === typeof Module['websocket']['subprotocol']) {
-                  subProtocols = Module['websocket']['subprotocol'];
+                if ("string" === typeof Module["websocket"]["subprotocol"]) {
+                  subProtocols = Module["websocket"]["subprotocol"];
                 }
               }
               var opts = undefined;
-              if (subProtocols !== 'null') {
-                subProtocols = subProtocols.replace(/^ +| +$/g, '').split(/ *, */);
+              if (subProtocols !== "null") {
+                subProtocols = subProtocols.replace(/^ +| +$/g, "").split(/ *, */);
                 opts = subProtocols;
               }
-              if (runtimeConfig && null === Module['websocket']['subprotocol']) {
-                subProtocols = 'null';
+              if (runtimeConfig && null === Module["websocket"]["subprotocol"]) {
+                subProtocols = "null";
                 opts = undefined;
               }
               var WebSocketConstructor;
@@ -3120,7 +3120,7 @@ var createFFmpegCore = (() => {
                 WebSocketConstructor = WebSocket;
               }
               ws = new WebSocketConstructor(url, opts);
-              ws.binaryType = 'arraybuffer';
+              ws.binaryType = "arraybuffer";
             } catch (e) {
               throw new FS.ErrnoError(23);
             }
@@ -3128,17 +3128,17 @@ var createFFmpegCore = (() => {
           var peer = { addr: addr, port: port, socket: ws, dgram_send_queue: [] };
           SOCKFS.websocket_sock_ops.addPeer(sock, peer);
           SOCKFS.websocket_sock_ops.handlePeerEvents(sock, peer);
-          if (sock.type === 2 && typeof sock.sport != 'undefined') {
+          if (sock.type === 2 && typeof sock.sport != "undefined") {
             peer.dgram_send_queue.push(
               new Uint8Array([
                 255,
                 255,
                 255,
                 255,
-                'p'.charCodeAt(0),
-                'o'.charCodeAt(0),
-                'r'.charCodeAt(0),
-                't'.charCodeAt(0),
+                "p".charCodeAt(0),
+                "o".charCodeAt(0),
+                "r".charCodeAt(0),
+                "t".charCodeAt(0),
                 (sock.sport & 65280) >> 8,
                 sock.sport & 255,
               ])
@@ -3147,18 +3147,18 @@ var createFFmpegCore = (() => {
           return peer;
         },
         getPeer: function (sock, addr, port) {
-          return sock.peers[addr + ':' + port];
+          return sock.peers[addr + ":" + port];
         },
         addPeer: function (sock, peer) {
-          sock.peers[peer.addr + ':' + peer.port] = peer;
+          sock.peers[peer.addr + ":" + peer.port] = peer;
         },
         removePeer: function (sock, peer) {
-          delete sock.peers[peer.addr + ':' + peer.port];
+          delete sock.peers[peer.addr + ":" + peer.port];
         },
         handlePeerEvents: function (sock, peer) {
           var first = true;
           var handleOpen = function () {
-            Module['websocket'].emit('open', sock.stream.fd);
+            Module["websocket"].emit("open", sock.stream.fd);
             try {
               var queued = peer.dgram_send_queue.shift();
               while (queued) {
@@ -3170,7 +3170,7 @@ var createFFmpegCore = (() => {
             }
           };
           function handleMessage(data) {
-            if (typeof data == 'string') {
+            if (typeof data == "string") {
               var encoder = new TextEncoder();
               data = encoder.encode(data);
             } else {
@@ -3189,10 +3189,10 @@ var createFFmpegCore = (() => {
               data[1] === 255 &&
               data[2] === 255 &&
               data[3] === 255 &&
-              data[4] === 'p'.charCodeAt(0) &&
-              data[5] === 'o'.charCodeAt(0) &&
-              data[6] === 'r'.charCodeAt(0) &&
-              data[7] === 't'.charCodeAt(0)
+              data[4] === "p".charCodeAt(0) &&
+              data[5] === "o".charCodeAt(0) &&
+              data[6] === "r".charCodeAt(0) &&
+              data[7] === "t".charCodeAt(0)
             ) {
               var newport = (data[8] << 8) | data[9];
               SOCKFS.websocket_sock_ops.removePeer(sock, peer);
@@ -3201,41 +3201,41 @@ var createFFmpegCore = (() => {
               return;
             }
             sock.recv_queue.push({ addr: peer.addr, port: peer.port, data: data });
-            Module['websocket'].emit('message', sock.stream.fd);
+            Module["websocket"].emit("message", sock.stream.fd);
           }
           if (ENVIRONMENT_IS_NODE) {
-            peer.socket.on('open', handleOpen);
-            peer.socket.on('message', function (data, isBinary) {
+            peer.socket.on("open", handleOpen);
+            peer.socket.on("message", function (data, isBinary) {
               if (!isBinary) {
                 return;
               }
               handleMessage(new Uint8Array(data).buffer);
             });
-            peer.socket.on('close', function () {
-              Module['websocket'].emit('close', sock.stream.fd);
+            peer.socket.on("close", function () {
+              Module["websocket"].emit("close", sock.stream.fd);
             });
-            peer.socket.on('error', function (error) {
+            peer.socket.on("error", function (error) {
               sock.error = 14;
-              Module['websocket'].emit('error', [
+              Module["websocket"].emit("error", [
                 sock.stream.fd,
                 sock.error,
-                'ECONNREFUSED: Connection refused',
+                "ECONNREFUSED: Connection refused",
               ]);
             });
           } else {
             peer.socket.onopen = handleOpen;
             peer.socket.onclose = function () {
-              Module['websocket'].emit('close', sock.stream.fd);
+              Module["websocket"].emit("close", sock.stream.fd);
             };
             peer.socket.onmessage = function peer_socket_onmessage(event) {
               handleMessage(event.data);
             };
             peer.socket.onerror = function (error) {
               sock.error = 14;
-              Module['websocket'].emit('error', [
+              Module["websocket"].emit("error", [
                 sock.stream.fd,
                 sock.error,
-                'ECONNREFUSED: Connection refused',
+                "ECONNREFUSED: Connection refused",
               ]);
             };
           }
@@ -3299,7 +3299,7 @@ var createFFmpegCore = (() => {
           return 0;
         },
         bind: function (sock, addr, port) {
-          if (typeof sock.saddr != 'undefined' || typeof sock.sport != 'undefined') {
+          if (typeof sock.saddr != "undefined" || typeof sock.sport != "undefined") {
             throw new FS.ErrnoError(28);
           }
           sock.saddr = addr;
@@ -3312,7 +3312,7 @@ var createFFmpegCore = (() => {
             try {
               sock.sock_ops.listen(sock, 0);
             } catch (e) {
-              if (!(e.name === 'ErrnoError')) throw e;
+              if (!(e.name === "ErrnoError")) throw e;
               if (e.errno !== 138) throw e;
             }
           }
@@ -3321,7 +3321,7 @@ var createFFmpegCore = (() => {
           if (sock.server) {
             throw new FS.ErrnoError(138);
           }
-          if (typeof sock.daddr != 'undefined' && typeof sock.dport != 'undefined') {
+          if (typeof sock.daddr != "undefined" && typeof sock.dport != "undefined") {
             var dest = SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport);
             if (dest) {
               if (dest.socket.readyState === dest.socket.CONNECTING) {
@@ -3463,7 +3463,7 @@ var createFFmpegCore = (() => {
       return value;
     }
     function inetPton4(str) {
-      var b = str.split('.');
+      var b = str.split(".");
       for (var i = 0; i < 4; i++) {
         var tmp = Number(b[i]);
         if (isNaN(tmp)) return null;
@@ -3483,30 +3483,30 @@ var createFFmpegCore = (() => {
       if (!valid6regx.test(str)) {
         return null;
       }
-      if (str === '::') {
+      if (str === "::") {
         return [0, 0, 0, 0, 0, 0, 0, 0];
       }
-      if (str.startsWith('::')) {
-        str = str.replace('::', 'Z:');
+      if (str.startsWith("::")) {
+        str = str.replace("::", "Z:");
       } else {
-        str = str.replace('::', ':Z:');
+        str = str.replace("::", ":Z:");
       }
-      if (str.indexOf('.') > 0) {
-        str = str.replace(new RegExp('[.]', 'g'), ':');
-        words = str.split(':');
+      if (str.indexOf(".") > 0) {
+        str = str.replace(new RegExp("[.]", "g"), ":");
+        words = str.split(":");
         words[words.length - 4] =
           jstoi_q(words[words.length - 4]) + jstoi_q(words[words.length - 3]) * 256;
         words[words.length - 3] =
           jstoi_q(words[words.length - 2]) + jstoi_q(words[words.length - 1]) * 256;
         words = words.slice(0, words.length - 2);
       } else {
-        words = str.split(':');
+        words = str.split(":");
       }
       offset = 0;
       z = 0;
       for (w = 0; w < words.length; w++) {
-        if (typeof words[w] == 'string') {
-          if (words[w] === 'Z') {
+        if (typeof words[w] == "string") {
+          if (words[w] === "Z") {
             for (z = 0; z < 8 - words.length + 1; z++) {
               parts[w + z] = 0;
             }
@@ -3571,8 +3571,8 @@ var createFFmpegCore = (() => {
           addr = DNS.address_map.addrs[name];
         } else {
           var id = DNS.address_map.id++;
-          assert(id < 65535, 'exceeded max address mappings of 65535');
-          addr = '172.29.' + (id & 255) + '.' + (id & 65280);
+          assert(id < 65535, "exceeded max address mappings of 65535");
+          addr = "172.29." + (id & 255) + "." + (id & 65280);
           DNS.address_map.names[addr] = name;
           DNS.address_map.addrs[name] = addr;
         }
@@ -3600,23 +3600,23 @@ var createFFmpegCore = (() => {
         }
         return newsock.stream.fd;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
     function inetNtop4(addr) {
       return (
         (addr & 255) +
-        '.' +
+        "." +
         ((addr >> 8) & 255) +
-        '.' +
+        "." +
         ((addr >> 16) & 255) +
-        '.' +
+        "." +
         ((addr >> 24) & 255)
       );
     }
     function inetNtop6(ints) {
-      var str = '';
+      var str = "";
       var word = 0;
       var longest = 0;
       var lastzero = 0;
@@ -3634,7 +3634,7 @@ var createFFmpegCore = (() => {
         ints[3] >> 16,
       ];
       var hasipv4 = true;
-      var v4part = '';
+      var v4part = "";
       for (i = 0; i < 5; i++) {
         if (parts[i] !== 0) {
           hasipv4 = false;
@@ -3644,14 +3644,14 @@ var createFFmpegCore = (() => {
       if (hasipv4) {
         v4part = inetNtop4(parts[6] | (parts[7] << 16));
         if (parts[5] === -1) {
-          str = '::ffff:';
+          str = "::ffff:";
           str += v4part;
           return str;
         }
         if (parts[5] === 0) {
-          str = '::';
-          if (v4part === '0.0.0.0') v4part = '';
-          if (v4part === '0.0.0.1') v4part = '1';
+          str = "::";
+          if (v4part === "0.0.0.0") v4part = "";
+          if (v4part === "0.0.0.1") v4part = "1";
           str += v4part;
           return str;
         }
@@ -3673,14 +3673,14 @@ var createFFmpegCore = (() => {
         if (longest > 1) {
           if (parts[word] === 0 && word >= zstart && word < zstart + longest) {
             if (word === zstart) {
-              str += ':';
-              if (zstart === 0) str += ':';
+              str += ":";
+              if (zstart === 0) str += ":";
             }
             continue;
           }
         }
         str += Number(_ntohs(parts[word] & 65535)).toString(16);
-        str += word < 7 ? ':' : '';
+        str += word < 7 ? ":" : "";
       }
       return str;
     }
@@ -3727,7 +3727,7 @@ var createFFmpegCore = (() => {
         sock.sock_ops.bind(sock, info.addr, info.port);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3738,7 +3738,7 @@ var createFFmpegCore = (() => {
         sock.sock_ops.connect(sock, info.addr, info.port);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3754,16 +3754,16 @@ var createFFmpegCore = (() => {
         if (!node) {
           return -44;
         }
-        var perms = '';
-        if (amode & 4) perms += 'r';
-        if (amode & 2) perms += 'w';
-        if (amode & 1) perms += 'x';
+        var perms = "";
+        if (amode & 4) perms += "r";
+        if (amode & 2) perms += "w";
+        if (amode & 1) perms += "x";
         if (perms && FS.nodePermissions(node, perms)) {
           return -2;
         }
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3811,7 +3811,7 @@ var createFFmpegCore = (() => {
           }
         }
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3820,7 +3820,7 @@ var createFFmpegCore = (() => {
         var stream = SYSCALLS.getStreamFromFD(fd);
         return SYSCALLS.doStat(FS.stat, stream.path, buf);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3841,10 +3841,10 @@ var createFFmpegCore = (() => {
           var id;
           var type;
           var name = stream.getdents[idx];
-          if (name === '.') {
+          if (name === ".") {
             id = stream.node.id;
             type = 4;
-          } else if (name === '..') {
+          } else if (name === "..") {
             var lookup = FS.lookupPath(stream.path, { parent: true });
             id = lookup.node.id;
             type = 4;
@@ -3870,7 +3870,7 @@ var createFFmpegCore = (() => {
         FS.llseek(stream, idx * struct_size, 0);
         return pos;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3889,7 +3889,7 @@ var createFFmpegCore = (() => {
         );
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3899,13 +3899,13 @@ var createFFmpegCore = (() => {
         var errno = writeSockaddr(
           addr,
           sock.family,
-          DNS.lookup_name(sock.saddr || '0.0.0.0'),
+          DNS.lookup_name(sock.saddr || "0.0.0.0"),
           sock.sport,
           addrlen
         );
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3922,7 +3922,7 @@ var createFFmpegCore = (() => {
         }
         return -50;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3971,7 +3971,7 @@ var createFFmpegCore = (() => {
             return -28;
         }
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3981,7 +3981,7 @@ var createFFmpegCore = (() => {
         sock.sock_ops.listen(sock, backlog);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3990,7 +3990,7 @@ var createFFmpegCore = (() => {
         path = SYSCALLS.getStr(path);
         return SYSCALLS.doStat(FS.lstat, path, buf);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -3999,11 +3999,11 @@ var createFFmpegCore = (() => {
         path = SYSCALLS.getStr(path);
         path = SYSCALLS.calculateAt(dirfd, path);
         path = PATH.normalize(path);
-        if (path[path.length - 1] === '/') path = path.substr(0, path.length - 1);
+        if (path[path.length - 1] === "/") path = path.substr(0, path.length - 1);
         FS.mkdir(path, mode, 0);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4016,7 +4016,7 @@ var createFFmpegCore = (() => {
         path = SYSCALLS.calculateAt(dirfd, path, allowEmpty);
         return SYSCALLS.doStat(nofollow ? FS.lstat : FS.stat, path, buf);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4028,7 +4028,7 @@ var createFFmpegCore = (() => {
         var mode = varargs ? SYSCALLS.get() : 0;
         return FS.open(path, flags, mode).fd;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4053,7 +4053,7 @@ var createFFmpegCore = (() => {
         }
         return nonzero;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4074,7 +4074,7 @@ var createFFmpegCore = (() => {
         HEAPU8.set(msg.buffer, buf);
         return msg.buffer.byteLength;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4087,7 +4087,7 @@ var createFFmpegCore = (() => {
         FS.rename(oldpath, newpath);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4097,7 +4097,7 @@ var createFFmpegCore = (() => {
         FS.rmdir(path);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4110,7 +4110,7 @@ var createFFmpegCore = (() => {
         }
         return sock.sock_ops.sendmsg(sock, HEAP8, message, length, dest.addr, dest.port);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4119,7 +4119,7 @@ var createFFmpegCore = (() => {
         var sock = SOCKFS.createSocket(domain, type, protocol);
         return sock.stream.fd;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4128,7 +4128,7 @@ var createFFmpegCore = (() => {
         path = SYSCALLS.getStr(path);
         return SYSCALLS.doStat(FS.stat, path, buf);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4141,11 +4141,11 @@ var createFFmpegCore = (() => {
         } else if (flags === 512) {
           FS.rmdir(path);
         } else {
-          abort('Invalid flags passed to unlinkat');
+          abort("Invalid flags passed to unlinkat");
         }
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4248,7 +4248,7 @@ var createFFmpegCore = (() => {
         HEAPU32[addr >> 2] = ptr;
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4260,7 +4260,7 @@ var createFFmpegCore = (() => {
         }
         FS.munmap(stream);
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return -e.errno;
       }
     }
@@ -4281,7 +4281,7 @@ var createFFmpegCore = (() => {
       HEAP32[daylight >> 2] = Number(winterOffset != summerOffset);
       function extractZone(date) {
         var match = date.toTimeString().match(/\(([A-Za-z ]+)\)$/);
-        return match ? match[1] : 'GMT';
+        return match ? match[1] : "GMT";
       }
       var winterName = extractZone(winter);
       var summerName = extractZone(summer);
@@ -4296,9 +4296,9 @@ var createFFmpegCore = (() => {
       }
     }
     function _abort() {
-      abort('');
+      abort("");
     }
-    Module['_abort'] = _abort;
+    Module["_abort"] = _abort;
     function _dlopen(handle) {
       abort(dlopenMissingError);
     }
@@ -4369,21 +4369,21 @@ var createFFmpegCore = (() => {
     }
     var ENV = {};
     function getExecutableName() {
-      return thisProgram || './this.program';
+      return thisProgram || "./this.program";
     }
     function getEnvStrings() {
       if (!getEnvStrings.strings) {
         var lang =
           (
-            (typeof navigator == 'object' && navigator.languages && navigator.languages[0]) ||
-            'C'
-          ).replace('-', '_') + '.UTF-8';
+            (typeof navigator == "object" && navigator.languages && navigator.languages[0]) ||
+            "C"
+          ).replace("-", "_") + ".UTF-8";
         var env = {
-          USER: 'web_user',
-          LOGNAME: 'web_user',
-          PATH: '/',
-          PWD: '/',
-          HOME: '/home/web_user',
+          USER: "web_user",
+          LOGNAME: "web_user",
+          PATH: "/",
+          PWD: "/",
+          HOME: "/home/web_user",
           LANG: lang,
           _: getExecutableName(),
         };
@@ -4428,7 +4428,7 @@ var createFFmpegCore = (() => {
     function _proc_exit(code) {
       EXITSTATUS = code;
       if (!keepRuntimeAlive()) {
-        if (Module['onExit']) Module['onExit'](code);
+        if (Module["onExit"]) Module["onExit"](code);
         ABORT = true;
       }
       quit_(code, new ExitStatus(code));
@@ -4444,7 +4444,7 @@ var createFFmpegCore = (() => {
         FS.close(stream);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
     }
@@ -4463,7 +4463,7 @@ var createFFmpegCore = (() => {
         HEAP64[(pbuf + 16) >> 3] = BigInt(rightsInheriting);
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
     }
@@ -4477,7 +4477,7 @@ var createFFmpegCore = (() => {
         if (curr < 0) return -1;
         ret += curr;
         if (curr < len) break;
-        if (typeof offset !== 'undefined') {
+        if (typeof offset !== "undefined") {
           offset += curr;
         }
       }
@@ -4490,7 +4490,7 @@ var createFFmpegCore = (() => {
         HEAPU32[pnum >> 2] = num;
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
     }
@@ -4509,7 +4509,7 @@ var createFFmpegCore = (() => {
         if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null;
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
     }
@@ -4522,7 +4522,7 @@ var createFFmpegCore = (() => {
         var curr = FS.write(stream, HEAP8, ptr, len, offset);
         if (curr < 0) return -1;
         ret += curr;
-        if (typeof offset !== 'undefined') {
+        if (typeof offset !== "undefined") {
           offset += curr;
         }
       }
@@ -4535,7 +4535,7 @@ var createFFmpegCore = (() => {
         HEAPU32[pnum >> 2] = num;
         return 0;
       } catch (e) {
-        if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+        if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
         return e.errno;
       }
     }
@@ -4693,7 +4693,7 @@ var createFFmpegCore = (() => {
         }
       }
       if (serv && servlen) {
-        port = '' + port;
+        port = "" + port;
         var numBytesWrittenExclNull = stringToUTF8(port, serv, servlen);
         if (numBytesWrittenExclNull + 1 >= servlen) {
           overflowed = true;
@@ -4749,66 +4749,66 @@ var createFFmpegCore = (() => {
         tm_yday: HEAP32[(tm + 28) >> 2],
         tm_isdst: HEAP32[(tm + 32) >> 2],
         tm_gmtoff: HEAP32[(tm + 36) >> 2],
-        tm_zone: tm_zone ? UTF8ToString(tm_zone) : '',
+        tm_zone: tm_zone ? UTF8ToString(tm_zone) : "",
       };
       var pattern = UTF8ToString(format);
       var EXPANSION_RULES_1 = {
-        '%c': '%a %b %d %H:%M:%S %Y',
-        '%D': '%m/%d/%y',
-        '%F': '%Y-%m-%d',
-        '%h': '%b',
-        '%r': '%I:%M:%S %p',
-        '%R': '%H:%M',
-        '%T': '%H:%M:%S',
-        '%x': '%m/%d/%y',
-        '%X': '%H:%M:%S',
-        '%Ec': '%c',
-        '%EC': '%C',
-        '%Ex': '%m/%d/%y',
-        '%EX': '%H:%M:%S',
-        '%Ey': '%y',
-        '%EY': '%Y',
-        '%Od': '%d',
-        '%Oe': '%e',
-        '%OH': '%H',
-        '%OI': '%I',
-        '%Om': '%m',
-        '%OM': '%M',
-        '%OS': '%S',
-        '%Ou': '%u',
-        '%OU': '%U',
-        '%OV': '%V',
-        '%Ow': '%w',
-        '%OW': '%W',
-        '%Oy': '%y',
+        "%c": "%a %b %d %H:%M:%S %Y",
+        "%D": "%m/%d/%y",
+        "%F": "%Y-%m-%d",
+        "%h": "%b",
+        "%r": "%I:%M:%S %p",
+        "%R": "%H:%M",
+        "%T": "%H:%M:%S",
+        "%x": "%m/%d/%y",
+        "%X": "%H:%M:%S",
+        "%Ec": "%c",
+        "%EC": "%C",
+        "%Ex": "%m/%d/%y",
+        "%EX": "%H:%M:%S",
+        "%Ey": "%y",
+        "%EY": "%Y",
+        "%Od": "%d",
+        "%Oe": "%e",
+        "%OH": "%H",
+        "%OI": "%I",
+        "%Om": "%m",
+        "%OM": "%M",
+        "%OS": "%S",
+        "%Ou": "%u",
+        "%OU": "%U",
+        "%OV": "%V",
+        "%Ow": "%w",
+        "%OW": "%W",
+        "%Oy": "%y",
       };
       for (var rule in EXPANSION_RULES_1) {
-        pattern = pattern.replace(new RegExp(rule, 'g'), EXPANSION_RULES_1[rule]);
+        pattern = pattern.replace(new RegExp(rule, "g"), EXPANSION_RULES_1[rule]);
       }
-      var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      var WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       var MONTHS = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
       ];
       function leadingSomething(value, digits, character) {
-        var str = typeof value == 'number' ? value.toString() : value || '';
+        var str = typeof value == "number" ? value.toString() : value || "";
         while (str.length < digits) {
           str = character[0] + str;
         }
         return str;
       }
       function leadingNulls(value, digits) {
-        return leadingSomething(value, digits, '0');
+        return leadingSomething(value, digits, "0");
       }
       function compareByDay(date1, date2) {
         function sgn(value) {
@@ -4855,44 +4855,44 @@ var createFFmpegCore = (() => {
         return thisDate.getFullYear() - 1;
       }
       var EXPANSION_RULES_2 = {
-        '%a': function (date) {
+        "%a": function (date) {
           return WEEKDAYS[date.tm_wday].substring(0, 3);
         },
-        '%A': function (date) {
+        "%A": function (date) {
           return WEEKDAYS[date.tm_wday];
         },
-        '%b': function (date) {
+        "%b": function (date) {
           return MONTHS[date.tm_mon].substring(0, 3);
         },
-        '%B': function (date) {
+        "%B": function (date) {
           return MONTHS[date.tm_mon];
         },
-        '%C': function (date) {
+        "%C": function (date) {
           var year = date.tm_year + 1900;
           return leadingNulls((year / 100) | 0, 2);
         },
-        '%d': function (date) {
+        "%d": function (date) {
           return leadingNulls(date.tm_mday, 2);
         },
-        '%e': function (date) {
-          return leadingSomething(date.tm_mday, 2, ' ');
+        "%e": function (date) {
+          return leadingSomething(date.tm_mday, 2, " ");
         },
-        '%g': function (date) {
+        "%g": function (date) {
           return getWeekBasedYear(date).toString().substring(2);
         },
-        '%G': function (date) {
+        "%G": function (date) {
           return getWeekBasedYear(date);
         },
-        '%H': function (date) {
+        "%H": function (date) {
           return leadingNulls(date.tm_hour, 2);
         },
-        '%I': function (date) {
+        "%I": function (date) {
           var twelveHour = date.tm_hour;
           if (twelveHour == 0) twelveHour = 12;
           else if (twelveHour > 12) twelveHour -= 12;
           return leadingNulls(twelveHour, 2);
         },
-        '%j': function (date) {
+        "%j": function (date) {
           return leadingNulls(
             date.tm_mday +
               arraySum(
@@ -4902,35 +4902,35 @@ var createFFmpegCore = (() => {
             3
           );
         },
-        '%m': function (date) {
+        "%m": function (date) {
           return leadingNulls(date.tm_mon + 1, 2);
         },
-        '%M': function (date) {
+        "%M": function (date) {
           return leadingNulls(date.tm_min, 2);
         },
-        '%n': function () {
-          return '\n';
+        "%n": function () {
+          return "\n";
         },
-        '%p': function (date) {
+        "%p": function (date) {
           if (date.tm_hour >= 0 && date.tm_hour < 12) {
-            return 'AM';
+            return "AM";
           }
-          return 'PM';
+          return "PM";
         },
-        '%S': function (date) {
+        "%S": function (date) {
           return leadingNulls(date.tm_sec, 2);
         },
-        '%t': function () {
-          return '\t';
+        "%t": function () {
+          return "\t";
         },
-        '%u': function (date) {
+        "%u": function (date) {
           return date.tm_wday || 7;
         },
-        '%U': function (date) {
+        "%U": function (date) {
           var days = date.tm_yday + 7 - date.tm_wday;
           return leadingNulls(Math.floor(days / 7), 2);
         },
-        '%V': function (date) {
+        "%V": function (date) {
           var val = Math.floor((date.tm_yday + 7 - ((date.tm_wday + 6) % 7)) / 7);
           if ((date.tm_wday + 371 - date.tm_yday - 2) % 7 <= 2) {
             val++;
@@ -4947,40 +4947,40 @@ var createFFmpegCore = (() => {
           }
           return leadingNulls(val, 2);
         },
-        '%w': function (date) {
+        "%w": function (date) {
           return date.tm_wday;
         },
-        '%W': function (date) {
+        "%W": function (date) {
           var days = date.tm_yday + 7 - ((date.tm_wday + 6) % 7);
           return leadingNulls(Math.floor(days / 7), 2);
         },
-        '%y': function (date) {
+        "%y": function (date) {
           return (date.tm_year + 1900).toString().substring(2);
         },
-        '%Y': function (date) {
+        "%Y": function (date) {
           return date.tm_year + 1900;
         },
-        '%z': function (date) {
+        "%z": function (date) {
           var off = date.tm_gmtoff;
           var ahead = off >= 0;
           off = Math.abs(off) / 60;
           off = (off / 60) * 100 + (off % 60);
-          return (ahead ? '+' : '-') + String('0000' + off).slice(-4);
+          return (ahead ? "+" : "-") + String("0000" + off).slice(-4);
         },
-        '%Z': function (date) {
+        "%Z": function (date) {
           return date.tm_zone;
         },
-        '%%': function () {
-          return '%';
+        "%%": function () {
+          return "%";
         },
       };
-      pattern = pattern.replace(/%%/g, '\0\0');
+      pattern = pattern.replace(/%%/g, "\0\0");
       for (var rule in EXPANSION_RULES_2) {
         if (pattern.includes(rule)) {
-          pattern = pattern.replace(new RegExp(rule, 'g'), EXPANSION_RULES_2[rule](date));
+          pattern = pattern.replace(new RegExp(rule, "g"), EXPANSION_RULES_2[rule](date));
         }
       }
-      pattern = pattern.replace(/\0\0/g, '%');
+      pattern = pattern.replace(/\0\0/g, "%");
       var bytes = intArrayFromString(pattern, false);
       if (bytes.length > maxsize) {
         return 0;
@@ -5110,47 +5110,47 @@ var createFFmpegCore = (() => {
     };
     var asm = createWasm();
     var ___wasm_call_ctors = function () {
-      return (___wasm_call_ctors = Module['asm']['sa']).apply(null, arguments);
+      return (___wasm_call_ctors = Module["asm"]["sa"]).apply(null, arguments);
     };
-    var _malloc = (Module['_malloc'] = function () {
-      return (_malloc = Module['_malloc'] = Module['asm']['ta']).apply(null, arguments);
+    var _malloc = (Module["_malloc"] = function () {
+      return (_malloc = Module["_malloc"] = Module["asm"]["ta"]).apply(null, arguments);
     });
     var ___errno_location = function () {
-      return (___errno_location = Module['asm']['va']).apply(null, arguments);
+      return (___errno_location = Module["asm"]["va"]).apply(null, arguments);
     };
     var _ntohs = function () {
-      return (_ntohs = Module['asm']['wa']).apply(null, arguments);
+      return (_ntohs = Module["asm"]["wa"]).apply(null, arguments);
     };
     var _htons = function () {
-      return (_htons = Module['asm']['xa']).apply(null, arguments);
+      return (_htons = Module["asm"]["xa"]).apply(null, arguments);
     };
-    var _ffmpeg = (Module['_ffmpeg'] = function () {
-      return (_ffmpeg = Module['_ffmpeg'] = Module['asm']['ya']).apply(null, arguments);
+    var _ffmpeg = (Module["_ffmpeg"] = function () {
+      return (_ffmpeg = Module["_ffmpeg"] = Module["asm"]["ya"]).apply(null, arguments);
     });
-    var _ffprobe = (Module['_ffprobe'] = function () {
-      return (_ffprobe = Module['_ffprobe'] = Module['asm']['za']).apply(null, arguments);
+    var _ffprobe = (Module["_ffprobe"] = function () {
+      return (_ffprobe = Module["_ffprobe"] = Module["asm"]["za"]).apply(null, arguments);
     });
     var _htonl = function () {
-      return (_htonl = Module['asm']['Aa']).apply(null, arguments);
+      return (_htonl = Module["asm"]["Aa"]).apply(null, arguments);
     };
     var _emscripten_builtin_memalign = function () {
-      return (_emscripten_builtin_memalign = Module['asm']['Ba']).apply(null, arguments);
+      return (_emscripten_builtin_memalign = Module["asm"]["Ba"]).apply(null, arguments);
     };
     var _setThrew = function () {
-      return (_setThrew = Module['asm']['Ca']).apply(null, arguments);
+      return (_setThrew = Module["asm"]["Ca"]).apply(null, arguments);
     };
     var stackSave = function () {
-      return (stackSave = Module['asm']['Da']).apply(null, arguments);
+      return (stackSave = Module["asm"]["Da"]).apply(null, arguments);
     };
     var stackRestore = function () {
-      return (stackRestore = Module['asm']['Ea']).apply(null, arguments);
+      return (stackRestore = Module["asm"]["Ea"]).apply(null, arguments);
     };
     var ___cxa_is_pointer_type = function () {
-      return (___cxa_is_pointer_type = Module['asm']['Fa']).apply(null, arguments);
+      return (___cxa_is_pointer_type = Module["asm"]["Fa"]).apply(null, arguments);
     };
-    var _ff_h264_cabac_tables = (Module['_ff_h264_cabac_tables'] = 1546732);
-    var ___start_em_js = (Module['___start_em_js'] = 6077485);
-    var ___stop_em_js = (Module['___stop_em_js'] = 6077662);
+    var _ff_h264_cabac_tables = (Module["_ff_h264_cabac_tables"] = 1546732);
+    var ___start_em_js = (Module["___start_em_js"] = 6077485);
+    var ___stop_em_js = (Module["___stop_em_js"] = 6077662);
     function invoke_iiiii(index, a1, a2, a3, a4) {
       var sp = stackSave();
       try {
@@ -5291,12 +5291,12 @@ var createFFmpegCore = (() => {
         _setThrew(1, 0);
       }
     }
-    Module['setValue'] = setValue;
-    Module['getValue'] = getValue;
-    Module['UTF8ToString'] = UTF8ToString;
-    Module['stringToUTF8'] = stringToUTF8;
-    Module['lengthBytesUTF8'] = lengthBytesUTF8;
-    Module['FS'] = FS;
+    Module["setValue"] = setValue;
+    Module["getValue"] = getValue;
+    Module["UTF8ToString"] = UTF8ToString;
+    Module["stringToUTF8"] = stringToUTF8;
+    Module["lengthBytesUTF8"] = lengthBytesUTF8;
+    Module["FS"] = FS;
     var calledRun;
     dependenciesFulfilled = function runCaller() {
       if (!calledRun) run();
@@ -5313,18 +5313,18 @@ var createFFmpegCore = (() => {
       function doRun() {
         if (calledRun) return;
         calledRun = true;
-        Module['calledRun'] = true;
+        Module["calledRun"] = true;
         if (ABORT) return;
         initRuntime();
         readyPromiseResolve(Module);
-        if (Module['onRuntimeInitialized']) Module['onRuntimeInitialized']();
+        if (Module["onRuntimeInitialized"]) Module["onRuntimeInitialized"]();
         postRun();
       }
-      if (Module['setStatus']) {
-        Module['setStatus']('Running...');
+      if (Module["setStatus"]) {
+        Module["setStatus"]("Running...");
         setTimeout(function () {
           setTimeout(function () {
-            Module['setStatus']('');
+            Module["setStatus"]("");
           }, 1);
           doRun();
         }, 1);
@@ -5332,10 +5332,10 @@ var createFFmpegCore = (() => {
         doRun();
       }
     }
-    if (Module['preInit']) {
-      if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
-      while (Module['preInit'].length > 0) {
-        Module['preInit'].pop()();
+    if (Module["preInit"]) {
+      if (typeof Module["preInit"] == "function") Module["preInit"] = [Module["preInit"]];
+      while (Module["preInit"].length > 0) {
+        Module["preInit"].pop()();
       }
     }
     run();
@@ -5343,9 +5343,9 @@ var createFFmpegCore = (() => {
     return createFFmpegCore.ready;
   };
 })();
-if (typeof exports === 'object' && typeof module === 'object') module.exports = createFFmpegCore;
-else if (typeof define === 'function' && define['amd'])
+if (typeof exports === "object" && typeof module === "object") module.exports = createFFmpegCore;
+else if (typeof define === "function" && define["amd"])
   define([], function () {
     return createFFmpegCore;
   });
-else if (typeof exports === 'object') exports['createFFmpegCore'] = createFFmpegCore;
+else if (typeof exports === "object") exports["createFFmpegCore"] = createFFmpegCore;

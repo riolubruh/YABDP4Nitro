@@ -77,7 +77,7 @@ interface PersonalWidget {
 }
 
 interface ClipEntry {
-  status: 'saved';
+  status: "saved";
   id: string;
   fileId: string;
   gameId: Snowflake;

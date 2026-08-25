@@ -1,7 +1,7 @@
-import type { Patch } from '../../types/patches';
-import { BetterDiscord } from '@shared/*';
-import { Enums, MediaFilterModule, PresetModule } from '../../global/shared/cameraBackground.ts';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
+import type { Patch } from "../../types/patches";
+import { BetterDiscord } from "@shared/*";
+import { Enums, MediaFilterModule, PresetModule } from "../../global/shared/cameraBackground.ts";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const CUSTOM_ID = 69;
 const TARGET_WIDTH = 1280;
@@ -24,53 +24,53 @@ async function fetchAsImageData(link: string) {
     img.src = blobUrl;
   });
 
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = TARGET_WIDTH;
   canvas.height = TARGET_HEIGHT;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext("2d")!;
   ctx.drawImage(img, 0, 0, TARGET_WIDTH, TARGET_HEIGHT);
   const { data } = ctx.getImageData(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
 
   URL.revokeObjectURL(blobUrl);
-  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: 'rgba' };
+  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: "rgba" };
 }
 
 export default {
-  name: 'cameraPreviewBypass',
+  name: "cameraPreviewBypass",
   apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
-    patcher.after(PresetModule, 'A', (thisObj, args, result) => {
-      const enabled = SettingsStore.get('customVideoFilterEnabled');
+    patcher.after(PresetModule, "A", (thisObj, args, result) => {
+      const enabled = SettingsStore.get("customVideoFilterEnabled");
       if (!enabled) return;
-      const filter = SettingsStore.get('customVideoFilter');
+      const filter = SettingsStore.get("customVideoFilter");
       if (filter?.link) {
         result[CUSTOM_ID] = {
           id: CUSTOM_ID,
-          name: 'My Custom Background',
+          name: "My Custom Background",
           source: filter.link,
-          isVideo: filter.type === 'mp4',
+          isVideo: filter.type === "mp4",
         };
       }
       return result;
     });
 
-    const mod = BetterDiscord.Webpack.getBySource('.gO.BACKGROUND_BLUR);if', { raw: true });
+    const mod = BetterDiscord.Webpack.getBySource(".gO.BACKGROUND_BLUR);if", { raw: true });
     const { declarations } = mod;
     const [, pKey] = BetterDiscord.Webpack.getWithKey(
-      BetterDiscord.Webpack.Filters.byStrings('BACKGROUND_REPLACEMENT'),
+      BetterDiscord.Webpack.Filters.byStrings("BACKGROUND_REPLACEMENT"),
       { target: declarations }
     );
 
     patcher.instead(declarations, pKey, (thisObj, args, original) => {
-      const enabled = SettingsStore.get('customVideoFilterEnabled');
+      const enabled = SettingsStore.get("customVideoFilterEnabled");
       if (!enabled) return original.apply(thisObj, args);
 
       const [type, target, option] = args;
       if (option !== CUSTOM_ID) return original.apply(thisObj, args);
 
-      const filter = SettingsStore.get('customVideoFilter');
+      const filter = SettingsStore.get("customVideoFilter");
       if (!filter?.link) return original.apply(thisObj, args);
 
-      const isVideo = filter.type === 'mp4';
+      const isVideo = filter.type === "mp4";
 
       const apply = async () => {
         const payload = isVideo

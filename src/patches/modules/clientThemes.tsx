@@ -1,14 +1,14 @@
-import { BetterDiscord } from '@shared/*';
-import SettingsStore from '../../global/stores/SettingsStore.ts';
-import { GlobalModules } from '@global/*';
+import { BetterDiscord } from "@shared/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
+import { GlobalModules } from "@global/*";
 
 const CustomUserThemeState = BetterDiscord.Webpack.getMangled(
   BetterDiscord.Webpack.Filters.bySource(
-    'setColors',
-    'setChassisMixAmount',
-    'setGradientAngle',
-    'setAll',
-    'colors:[],'
+    "setColors",
+    "setChassisMixAmount",
+    "setGradientAngle",
+    "setAll",
+    "colors:[],"
   ),
   {
     //CustomUserThemeState
@@ -19,8 +19,8 @@ const CustomUserThemeState = BetterDiscord.Webpack.getMangled(
 // const {ClientThemesBackgroundStore} = BetterDiscord.Webpack.Stores;
 
 function applySavedClientTheme() {
-  const customUserThemeSettings: any = SettingsStore.get('customUserThemeSettings');
-  const gradientPresetId: number = SettingsStore.get('lastGradientSettingStore');
+  const customUserThemeSettings: any = SettingsStore.get("customUserThemeSettings");
+  const gradientPresetId: number = SettingsStore.get("lastGradientSettingStore");
 
   if (customUserThemeSettings.custom) {
     CustomUserThemeState.state.getState().setAll({
@@ -33,7 +33,7 @@ function applySavedClientTheme() {
   }
 
   GlobalModules.Dispatcher.dispatch({
-    type: 'SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE',
+    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
     changes: {
       appearance: {
         shouldSync: false,
@@ -52,33 +52,33 @@ function applySavedClientTheme() {
 
   if (gradientPresetId >= 0) {
     GlobalModules.Dispatcher.dispatch({
-      type: 'UPDATE_BACKGROUND_GRADIENT_PRESET',
+      type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
       presetId: gradientPresetId,
     });
   }
 }
 
 export default {
-  name: 'clientThemes',
-  description: 'Saves and applies gradient client themes.',
+  name: "clientThemes",
+  description: "Saves and applies gradient client themes.",
   waitFor: [
-    BetterDiscord.Webpack.Filters.bySource('changes:{appearance:{settings:{clientThemeSettings:{'),
+    BetterDiscord.Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"),
   ],
   mangled: {
-    saveClientTheme: (x) => x?.toString?.()?.includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),
+    saveClientTheme: (x) => x?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE"),
   },
   apply(finale: any, patcher: any) {
-    SettingsStore.get('clientThemes') && applySavedClientTheme();
+    SettingsStore.get("clientThemes") && applySavedClientTheme();
 
-    patcher.instead(finale.mangled, 'saveClientTheme', (_: any, [args]: any, originalFunction) => {
-      if (!SettingsStore.get('clientThemes')) return originalFunction.apply(_, [args]);
+    patcher.instead(finale.mangled, "saveClientTheme", (_: any, [args]: any, originalFunction) => {
+      if (!SettingsStore.get("clientThemes")) return originalFunction.apply(_, [args]);
 
-      SettingsStore.set('customUserThemeSettings', {
+      SettingsStore.set("customUserThemeSettings", {
         custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
         theme: args.theme,
       });
       SettingsStore.set(
-        'lastGradientSettingStore',
+        "lastGradientSettingStore",
         args.backgroundGradientPresetId >= 0 ? args.backgroundGradientPresetId : -1
       );
 

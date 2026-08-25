@@ -1,20 +1,20 @@
-import { GlobalModules } from '@global/*';
-import { wpGetByKeys, wpWaitWithTimeout } from '../global/webpack';
-import { BetterDiscord } from '@shared/*';
-import ShopCollectiblesStore from '../global/stores/ShopCollectiblesStore.tsx';
-import { copyToClipboard, secondsightifyEncodeOnly } from '@utils/*';
-import SettingsStore from '../global/stores/SettingsStore.ts';
+import { GlobalModules } from "@global/*";
+import { wpGetByKeys, wpWaitWithTimeout } from "../global/webpack";
+import { BetterDiscord } from "@shared/*";
+import ShopCollectiblesStore from "../global/stores/ShopCollectiblesStore.tsx";
+import { copyToClipboard, secondsightifyEncodeOnly } from "@utils/*";
+import SettingsStore from "../global/stores/SettingsStore.ts";
 
 const { React, Components } = BetterDiscord;
 const { Suspense } = React;
 const { useMemo, useState } = React;
 
-const ModalModule = wpGetByKeys(['Modal']);
+const ModalModule = wpGetByKeys(["Modal"]);
 
 const Nameplate = React.lazy(async () => ({
-  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource('.x5CoXR),className:'), {
+  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {
     timeout: 10000,
-    declaration: (x) => String(x).includes('.x5CoXR),className:'),
+    declaration: (x) => String(x).includes(".x5CoXR),className:"),
   }),
 }));
 
@@ -24,7 +24,7 @@ export default function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
       return (
-        <ModalModule.Modal title={'Change Nameplate'} {...props}>
+        <ModalModule.Modal title={"Change Nameplate"} {...props}>
           <Nameplates />
         </ModalModule.Modal>
       );
@@ -36,17 +36,17 @@ export default function OpenNameplateModalButton() {
 
 function copyNameplate3y3({ skuId, palette }) {
   copyToClipboard(
-    ' ' + secondsightifyEncodeOnly(`n{${skuId},${palette}}`),
-    '3y3 copied to clipboard!'
+    " " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`),
+    "3y3 copied to clipboard!"
   );
 }
 
 function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState('');
-  const [customPaletteTextBox, setCustomPaletteTextBox] = useState('');
+  const [customSkuTextBox, setCustomSkuTextBox] = useState("");
+  const [customPaletteTextBox, setCustomPaletteTextBox] = useState("");
 
   function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == 'Enter')
+    if (e.keyCode == 13 || e.key == "Enter")
       return copyNameplate3y3({
         skuId: skuId ?? customSkuTextBox,
         palette: palette ?? customPaletteTextBox,
@@ -60,16 +60,16 @@ function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
   }
 
   return (
-    <div style={{ marginBottom: '8px' }}>
+    <div style={{ marginBottom: "8px" }}>
       <Components.TextInput
-        placeholder={'Custom SKU ID... (enter to copy)'}
+        placeholder={"Custom SKU ID... (enter to copy)"}
         defaultValue={skuId ?? customSkuTextBox}
         value={skuId ?? customSkuTextBox}
         onKeyDown={onKeyDown}
         onChange={(e) => setCustomSkuTextBox(e)}
       />
       <Components.TextInput
-        placeholder={'Palette... (enter to copy)'}
+        placeholder={"Palette... (enter to copy)"}
         defaultValue={palette ?? customPaletteTextBox}
         value={palette ?? customPaletteTextBox}
         onKeyDown={onKeyDown}
@@ -92,12 +92,12 @@ function Nameplate3y3({ product, setPalette, setSkuId }) {
         copyNameplate3y3({ skuId: product.sku_id, palette: product.palette });
       }}
       style={{
-        marginBottom: '10px',
+        marginBottom: "10px",
       }}
       title={product.productName}
     >
       <Nameplate
-        section={'purchase'}
+        section={"purchase"}
         currentUser={UserStore.getCurrentUser()}
         nameplate={{
           skuId: product.sku_id,
@@ -129,12 +129,12 @@ function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
   return filteredProducts.length ? (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'var(--background-base-lower)',
-        borderRadius: '10px',
-        margin: '5px 0px',
-        padding: '8px',
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background-base-lower)",
+        borderRadius: "10px",
+        margin: "5px 0px",
+        padding: "8px",
       }}
     >
       {filteredProducts.length ? <Components.Text>{category.name}</Components.Text> : null}
@@ -146,10 +146,10 @@ function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
 }
 
 function Nameplates() {
-  const [query, setQuery] = useState('');
-  const [skuId, setSkuId] = useState('');
-  const [palette, setPalette] = useState('');
-  const advancedProfileCustomization = SettingsStore.get('advancedProfileCustomization');
+  const [query, setQuery] = useState("");
+  const [skuId, setSkuId] = useState("");
+  const [palette, setPalette] = useState("");
+  const advancedProfileCustomization = SettingsStore.get("advancedProfileCustomization");
   const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore], () =>
     ShopCollectiblesStore.getCategories()
   );
@@ -171,7 +171,7 @@ function Nameplates() {
         />
       ) : null}
       <Components.SearchInput
-        placeholder={'Search nameplates...'}
+        placeholder={"Search nameplates..."}
         defaultValue={query}
         onChange={(e) => setQuery(e)}
       />

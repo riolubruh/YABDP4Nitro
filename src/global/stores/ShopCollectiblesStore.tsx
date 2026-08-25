@@ -1,4 +1,4 @@
-import { BetterDiscord } from '@shared/*';
+import { BetterDiscord } from "@shared/*";
 import {
   type AvatarDecorationItem,
   type NameplateItem,
@@ -10,8 +10,8 @@ import {
   type ShopItem,
   ShopItemType,
   type ShopProduct,
-} from '../../types/collectible.d.ts';
-import { invalid } from '../quests/index.ts';
+} from "../../types/collectible.d.ts";
+import { invalid } from "../quests/index.ts";
 
 interface ShopCollectiblesDispatchData {
   categories: { categories: ShopCollection[] };
@@ -41,10 +41,10 @@ export default new (class ShopCollectiblesStore extends BetterDiscord.Utils.Stor
   async fetch() {
     const [collections, quests] = await Promise.all([
       BetterDiscord.Net.fetch(
-        'https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json'
+        "https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json"
       ).then((r) => r.json() as Promise<ShopCollection[]>),
       BetterDiscord.Net.fetch(
-        'https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json'
+        "https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json"
       ).then((r) => r.json() as Promise<Quest[]>),
     ]);
 
