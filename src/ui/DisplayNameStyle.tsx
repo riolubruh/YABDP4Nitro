@@ -301,7 +301,7 @@ function DisplayNameStyle() {
 						.filter((c) => c.toLowerCase() !== UNSET_COLOR)
 						.slice(0, renderCount)
 						.map((x) => parseInt(x.replace("#", ""), 16))
-						.join(", ");
+						.join(",");
 
 					copyToClipboard(
 						secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`),
