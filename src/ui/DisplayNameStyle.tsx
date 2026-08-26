@@ -149,16 +149,10 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
 			: `linear-gradient(90deg, ${gradientColors.join(", ")})`;
 
 	const toggleDisable = (e, key) => {
-		console.log(e);
-		console.log(key);
-		e.stopPropagation();
-
+		// e.stopPropagation(); // if the ctrl+click idea is added
 		if(colors[key] != null) onChange({ ...colors, [key]: null });
 		else onChange({ ...colors, [key]: visualColors[key] });
 	}
-
-	console.log('colors',colors);
-	console.log('visualColors',visualColors);
 
 	return (
 		<div

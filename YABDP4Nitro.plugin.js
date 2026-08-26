@@ -5157,9 +5157,6 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
   const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
   const background = gradientColors.length === 1 ? gradientColors[0] : `linear-gradient(90deg, ${gradientColors.join(", ")})`;
   const toggleDisable = (e, key) => {
-    console.log(e);
-    console.log(key);
-    e.stopPropagation();
     if (colors[key] != null)
       onChange({ ...colors, [key]: null });
     else
