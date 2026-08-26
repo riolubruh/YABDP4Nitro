@@ -29,7 +29,7 @@ export default function CustomBanner() {
 			/>
 			<Components.Button
 				onClick={handleClick}
-				disabled={url == ""}
+				disabled={!url}
 				style={{
 					marginTop: "10px",
 				}}
