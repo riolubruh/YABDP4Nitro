@@ -5096,7 +5096,6 @@ function ColorPalette({ color }) {
 }
 function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
   const inputRef = React9.useRef(null);
-  const isUnset = disabled;
   return /* @__PURE__ */ React9.createElement("div", {
     style: {
       display: "inline-flex",
@@ -5130,13 +5129,13 @@ function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: isUnset ? "rgba(0, 0, 0, 0.35)" : value,
-      border: isUnset ? "2px solid rgba(255,255,255,0.6)" : "2px solid rgba(0,0,0,0.35)",
+      background: disabled ? "rgba(0, 0, 0, 0.35)" : value,
+      border: disabled ? "2px solid rgba(255,255,255,0.6)" : "2px solid rgba(0,0,0,0.35)",
       boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
       transition: "background 0.15s ease, border 0.15s ease"
     }
   }, /* @__PURE__ */ React9.createElement(ColorPalette, {
-    color: isUnset ? "#ffffff" : "rgba(0,0,0,0.45)"
+    color: disabled ? "#ffffff" : "rgba(0,0,0,0.45)"
   })), /* @__PURE__ */ React9.createElement("span", {
     style: {
       fontSize: 11,
