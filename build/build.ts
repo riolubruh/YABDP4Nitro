@@ -70,7 +70,7 @@ function getBetterDiscordPath() {
 	}
 }
 
-const isDebug = process.argv.includes('--debug')
+const isDebug = process.argv.includes("--debug");
 
 await Bun.build({
 	entrypoints: ["src/index.tsx"],
@@ -79,7 +79,7 @@ await Bun.build({
 	footer: FOOTER,
 	naming: GLOBAL_NAME,
 	define: {
-		"IS_DEVELOPER_LMAO": String(isDebug)
+		IS_DEVELOPER_LMAO: String(isDebug),
 	},
 	loader: { ".js": "jsx", ".jsx": "jsx", ".ts": "tsx", ".tsx": "tsx", ".css": "text" },
 	resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],

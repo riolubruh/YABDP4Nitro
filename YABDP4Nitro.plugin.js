@@ -1026,7 +1026,7 @@ function extractProfileColors(string) {
   const match = string.match(regexReveals_default.PROFILE_COLORS);
   if (!match)
     return null;
-  return [match[1], match[2]].map((x) => parseInt(x, 16));
+  return match.slice(1).filter(Boolean).map((x) => parseInt(x, 16));
 }
 var fakeUserProfile_default = {
   name: "User Profile",
@@ -1083,19 +1083,14 @@ var fakeUserProfile_default = {
 // src/patches/modules/fakeUser.ts
 var { UserStore } = BetterDiscord.Webpack.Stores;
 function getStyleData(surrogate) {
-  let fontId = Number(surrogate?.[0]);
-  let effectId = Number(surrogate?.[1]);
-  let color1 = Number(surrogate?.[2]);
-  let color2;
-  if (surrogate.length >= 4) {
-    color2 = Number(surrogate?.[3]);
-  }
+  const fontId = Number(surrogate?.[0]);
+  const effectId = Number(surrogate?.[1]);
+  const colors = surrogate.slice(2).map(Number);
   return {
     fontId,
     effectId,
-    color1,
-    color2,
-    isNaN: [fontId, effectId, color1, color2].map((id) => Number.isNaN(id)).includes(true)
+    colors,
+    isNaN: [fontId, effectId, ...colors].some((id) => Number.isNaN(id))
   };
 }
 var fakeUser_default = {
@@ -1113,16 +1108,18 @@ var fakeUser_default = {
         const match = extractDisplayNameStyles(revealedText);
         if (match) {
           const styleData = getStyleData(match);
-          styleData && Object.defineProperty(ret, "displayNameStyles", {
-            value: {
-              fontId: styleData.fontId,
-              effectId: styleData.effectId,
-              colors: [styleData.color1, styleData?.color2].filter(Boolean)
-            },
-            enumerable: true,
-            writable: true,
-            configurable: true
-          });
+          if (styleData && !styleData.isNaN) {
+            Object.defineProperty(ret, "displayNameStyles", {
+              value: {
+                fontId: styleData.fontId,
+                effectId: styleData.effectId,
+                colors: styleData.colors
+              },
+              enumerable: true,
+              writable: true,
+              configurable: true
+            });
+          }
         }
       }
       if (decorEnabled) {
@@ -5090,8 +5087,11 @@ var EFFECTS = {
   Gradient: [2797222, 16762000],
   Neon: [6888941],
   Toon: [15999128],
-  Pop: [1036166]
+  Pop: [1036166],
+  Gummy: [15724529, 2797222],
+  Prism: [15724529, 2797222]
 };
+var UNSET_COLOR = "#ffffff";
 function FontButton({ onClick, selected, fontFamily: font }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
     style: {
@@ -5104,6 +5104,90 @@ function FontButton({ onClick, selected, fontFamily: font }) {
     },
     onClick
   }, font.name);
+}
+function ColorPalette({ color }) {
+  return /* @__PURE__ */ React9.createElement("svg", {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: "20px",
+    height: "20px",
+    viewBox: "0 0 36 36"
+  }, /* @__PURE__ */ React9.createElement("path", {
+    fill: color,
+    d: "M32.23 14.89c-2.1-.56-4.93 1.8-6.34.3c-1.71-1.82 2.27-5.53 1.86-8.92c-.33-2.78-3.51-4.08-6.66-4.1A18.5 18.5 0 0 0 7.74 7.59c-6.64 6.59-8.07 16-1.37 22.48c6.21 6 16.61 4.23 22.67-1.4a17.7 17.7 0 0 0 4.22-6.54c1.08-2.9 1.18-6.64-1.03-7.24M9.4 10.57a2.23 2.23 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.81 2.53a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.81-2.53M5.07 20.82a2.22 2.22 0 0 1 1.82-2.53a2.22 2.22 0 0 1 2.86 1.21A2.23 2.23 0 0 1 7.94 22a2.24 2.24 0 0 1-2.87-1.18m7 8.33a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.8-2.53a2.23 2.23 0 0 1 2.87 1.21A2.22 2.22 0 0 1 12 29.15ZM15 8.26a2.23 2.23 0 0 1 1.81-2.53a2.24 2.24 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.82 2.53A2.21 2.21 0 0 1 15 8.26m5.82 22.19a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.81-2.53a2.24 2.24 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.85 2.53Zm5-10.46a3.2 3.2 0 0 1-1.69 1.76a3.5 3.5 0 0 1-1.4.3a2.78 2.78 0 0 1-2.56-1.5a2.5 2.5 0 0 1-.07-2a3.2 3.2 0 0 1 1.69-1.76a3 3 0 0 1 4 1.2a2.54 2.54 0 0 1 0 2.01Z"
+  }));
+}
+function ColorSwatch({ colorKey, value, onChange }) {
+  const inputRef = React9.useRef(null);
+  const isUnset = value.toLowerCase() === UNSET_COLOR;
+  return /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      display: "inline-flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 4,
+      cursor: "pointer"
+    },
+    onClick: () => inputRef.current?.click()
+  }, /* @__PURE__ */ React9.createElement("input", {
+    ref: inputRef,
+    type: "color",
+    defaultValue: value,
+    onChange: (e) => onChange(colorKey, e.target.value),
+    style: {
+      position: "absolute",
+      width: 1,
+      height: 1,
+      opacity: 0,
+      pointerEvents: "none"
+    }
+  }), /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: isUnset ? "rgba(0, 0, 0, 0.35)" : value,
+      border: isUnset ? "2px solid rgba(255,255,255,0.6)" : "2px solid rgba(0,0,0,0.35)",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+      transition: "background 0.15s ease, border 0.15s ease"
+    }
+  }, /* @__PURE__ */ React9.createElement(ColorPalette, {
+    color: isUnset ? "#ffffff" : "rgba(0,0,0,0.45)"
+  })), /* @__PURE__ */ React9.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: "#fff",
+      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+      textTransform: "capitalize"
+    }
+  }, colorKey));
+}
+function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }) {
+  const handleColorChange = (key, newValue) => {
+    onChange({ ...colors, [key]: newValue });
+  };
+  const visibleKeys = Object.keys(colors).slice(0, renderCount);
+  const visibleValues = visibleKeys.map((k) => colors[k]);
+  const setValues = visibleValues.filter((v) => v.toLowerCase() !== UNSET_COLOR);
+  const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
+  const background = gradientColors.length === 1 ? gradientColors[0] : `linear-gradient(90deg, ${gradientColors.join(", ")})`;
+  return /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 14,
+      padding: "14px 16px",
+      borderRadius: 14,
+      background,
+      transition: "background 0.25s ease"
+    }
+  }, visibleKeys.map((key) => /* @__PURE__ */ React9.createElement(ColorSwatch, {
+    key,
+    colorKey: key,
+    value: colors[key],
+    onChange: handleColorChange
+  })));
 }
 function EffectButton({ onClick, selected, children, data, colors }) {
   return /* @__PURE__ */ React9.createElement(Components5.Button, {
@@ -5134,7 +5218,7 @@ function OpenDisplayNameStyleModalButton() {
       return /* @__PURE__ */ React9.createElement(ModalModule3.Modal, {
         notice: {
           type: "warning",
-          message: GlobalModules.SimpleMarkdownWrapper.parse("`Prism` and `Gummy` are both in rollout, we have implemented `Monkey Brace`, `Mainframe`, `Headbang` and `Journal`. We will slowly implement the new effects as time flies.")
+          message: GlobalModules.SimpleMarkdownWrapper.parse("White (#FFF) is considered unset, which will get parsed out of the gradient. Please be warned that when using Gummy or Prism, it can be up to 150 characters!")
         },
         title: "Change Display Name Style",
         ...props
@@ -5153,8 +5237,13 @@ function DisplayNameStyle() {
   const [effectId, setEffectId] = React9.useState(0);
   const [colors, setColors] = React9.useState({
     primary: "#ffffff",
-    accent: "#000000"
+    secondary: "#ffffff",
+    accent: "#ffffff",
+    extra: "#ffffff",
+    extraExtra: "#ffffff"
   });
+  const renderCount = effectId === 5 || effectId === 6 ? 5 : effectId === 1 ? 2 : 1;
+  const activeColors = Object.values(colors).filter((c) => c.toLowerCase() !== UNSET_COLOR).slice(0, renderCount).map((x2) => parseInt(x2.replace("#", "0x"), 16));
   return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
     style: { fontSize: "25px", marginBottom: "10px" }
   }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
@@ -5164,43 +5253,35 @@ function DisplayNameStyle() {
     inProfile: true,
     effectDisplayType: 2,
     displayNameStyles: {
-      colors: [colors.primary, colors.accent].filter(Boolean).map((x2) => parseInt(x2.replace("#", "0x"), 16)),
+      colors: activeColors,
       effectId: effectId + 1,
       fontId
     }
-  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((font) => {
-    return /* @__PURE__ */ React9.createElement(FontButton, {
-      fontFamily: font,
-      selected: fontId == font.id,
-      onClick: () => setFontId(font.id)
-    });
-  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i2) => {
+  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((font) => /* @__PURE__ */ React9.createElement(FontButton, {
+    key: font.id,
+    fontFamily: font,
+    selected: fontId == font.id,
+    onClick: () => setFontId(font.id)
+  })), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i2) => {
     const data = {
       effectName: effect[0],
       effectColors: effect[1],
       effectId: i2
     };
     return /* @__PURE__ */ React9.createElement(EffectButton, {
+      key: i2,
       onClick: () => setEffectId(i2),
       selected: effectId === i2,
       data,
       colors: data.effectColors
     }, data.effectName);
-  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Primary Color"), /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
-    defaultValue: colors.primary,
-    onChange: (e) => {
-      setColors({ primary: e, accent: colors.accent });
-    }
-  }), effectId === 1 ? /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Secondary Color"), /* @__PURE__ */ React9.createElement(Components5.ColorInput, {
-    defaultValue: colors.accent,
-    onChange: (e) => {
-      setColors({ primary: colors.primary, accent: e });
-    }
-  })) : null, /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Button, {
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(FiveGuys, {
+    colors,
+    onChange: setColors,
+    renderCount
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Button, {
     onClick: () => {
-      const PRIMARY_COLOR_DECIMAL = parseInt(colors.primary.replace("#", ""), 16);
-      const SECONDARY_COLOR_DECIMAL = parseInt(colors.accent.replace("#", ""), 16);
-      const colorString = effectId === 1 ? `${PRIMARY_COLOR_DECIMAL},${SECONDARY_COLOR_DECIMAL}` : PRIMARY_COLOR_DECIMAL;
+      const colorString = Object.values(colors).filter((c) => c.toLowerCase() !== UNSET_COLOR).slice(0, renderCount).map((x2) => parseInt(x2.replace("#", ""), 16)).join(", ");
       copyToClipboard(secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
     }
   }, "Copy 3y3"));

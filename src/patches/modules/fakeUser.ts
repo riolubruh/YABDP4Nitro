@@ -11,20 +11,15 @@ import {
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
 function getStyleData(surrogate: string[]) {
-	let fontId = Number(surrogate?.[0]);
-	let effectId = Number(surrogate?.[1]);
-	let color1 = Number(surrogate?.[2]);
-	let color2;
-	if (surrogate.length >= 4) {
-		color2 = Number(surrogate?.[3]);
-	}
+	const fontId = Number(surrogate?.[0]);
+	const effectId = Number(surrogate?.[1]);
+	const colors = surrogate.slice(2).map(Number);
 
 	return {
 		fontId,
 		effectId,
-		color1,
-		color2,
-		isNaN: [fontId, effectId, color1, color2].map((id) => Number.isNaN(id)).includes(true),
+		colors,
+		isNaN: [fontId, effectId, ...colors].some((id) => Number.isNaN(id)),
 	};
 }
 
@@ -45,19 +40,21 @@ export default {
 				if (match) {
 					const styleData = getStyleData(match);
 
-					styleData &&
+					if (styleData && !styleData.isNaN) {
 						Object.defineProperty(ret, "displayNameStyles", {
 							value: {
 								fontId: styleData.fontId,
 								effectId: styleData.effectId,
-								colors: [styleData.color1, styleData?.color2].filter(Boolean),
+								colors: styleData.colors,
 							},
 							enumerable: true,
 							writable: true,
 							configurable: true,
 						});
+					}
 				}
 			}
+
 			if (decorEnabled) {
 				const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
 				const skuId = extractDecoration(revealedText);

@@ -18,9 +18,11 @@ function extractProfileColors(string: string) {
 	const match = string.match(regexReveals.PROFILE_COLORS);
 	if (!match) return null;
 
-	return [match[1], match[2]].map((x) => parseInt(x, 16));
+	return match
+		.slice(1)
+		.filter(Boolean)
+		.map((x) => parseInt(x, 16));
 }
-
 export default {
 	name: "User Profile",
 	description: "Performs fake profile stuffs.",
