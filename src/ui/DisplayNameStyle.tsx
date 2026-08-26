@@ -37,8 +37,6 @@ const EFFECTS = {
 	// "Discord" is a registered trademark of Discord Inc.
 };
 
-const UNSET_COLOR = "#ffffff";
-
 function FontButton({ onClick, selected, fontFamily: font }) {
 	return (
 		<Components.Button
@@ -68,9 +66,9 @@ function ColorPalette({ color }: { color: string }) {
 	);
 }
 
-function ColorSwatch({ colorKey, value, onChange }) {
+function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
 	const inputRef = React.useRef(null);
-	const isUnset = value.toLowerCase() === UNSET_COLOR;
+	const isUnset = disabled;
 
 	return (
 		<div
@@ -82,12 +80,16 @@ function ColorSwatch({ colorKey, value, onChange }) {
 				cursor: "pointer",
 			}}
 			onClick={() => inputRef.current?.click()}
+			onContextMenu={(e) => {
+				toggleDisabled(e, colorKey);
+			}}
 		>
 			<input
 				ref={inputRef}
 				type="color"
 				defaultValue={value}
 				onChange={(e) => onChange(colorKey, e.target.value)}
+				disabled={disabled}
 				style={{
 					position: "absolute",
 					width: 1,
@@ -130,19 +132,34 @@ function ColorSwatch({ colorKey, value, onChange }) {
 }
 
 function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }) {
+	const [visualColors, setVisualColors] = React.useState(colors);
+
 	const handleColorChange = (key, newValue) => {
 		onChange({ ...colors, [key]: newValue });
+		setVisualColors({ ...colors, [key]: newValue });
 	};
 
 	const visibleKeys = Object.keys(colors).slice(0, renderCount);
 	const visibleValues = visibleKeys.map((k) => colors[k]);
 
-	const setValues = visibleValues.filter((v) => v.toLowerCase() !== UNSET_COLOR);
+	const setValues = visibleValues.filter(Boolean);
 	const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
 	const background =
 		gradientColors.length === 1
 			? gradientColors[0]
 			: `linear-gradient(90deg, ${gradientColors.join(", ")})`;
+
+	const toggleDisable = (e, key) => {
+		console.log(e);
+		console.log(key);
+		e.stopPropagation();
+
+		if(colors[key] != null) onChange({ ...colors, [key]: null });
+		else onChange({ ...colors, [key]: visualColors[key] });
+	}
+
+	console.log('colors',colors);
+	console.log('visualColors',visualColors);
 
 	return (
 		<div
@@ -159,7 +176,9 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
 				<ColorSwatch
 					key={key}
 					colorKey={key}
-					value={colors[key]}
+					disabled={!colors[key]}
+					toggleDisabled={toggleDisable}
+					value={visualColors[key]}
 					onChange={handleColorChange}
 				/>
 			))}
@@ -204,7 +223,7 @@ export default function OpenDisplayNameStyleModalButton() {
 					notice={{
 						type: "warning",
 						message: GlobalModules.SimpleMarkdownWrapper.parse(
-							"White (#FFF) is considered unset, which will get parsed out of the gradient. Please be warned that when using Gummy or Prism, it can be up to 150 characters!"
+							"Right-click to toggle a color in the gradient. Please be warned that when using Gummy or Prism, it can be up to 150 characters!"
 						),
 					}}
 					title={"Change Display Name Style"}
@@ -240,7 +259,7 @@ function DisplayNameStyle() {
 	const renderCount = effectId === 5 || effectId === 6 ? 5 : effectId === 1 ? 2 : 1;
 
 	const activeColors = Object.values(colors)
-		.filter((c) => c.toLowerCase() !== UNSET_COLOR)
+		.filter(Boolean)
 		.slice(0, renderCount)
 		.map((x) => parseInt(x.replace("#", "0x"), 16));
 
@@ -298,7 +317,7 @@ function DisplayNameStyle() {
 			<Components.Button
 				onClick={() => {
 					const colorString = Object.values(colors)
-						.filter((c) => c.toLowerCase() !== UNSET_COLOR)
+						.filter(Boolean)
 						.slice(0, renderCount)
 						.map((x) => parseInt(x.replace("#", ""), 16))
 						.join(",");
