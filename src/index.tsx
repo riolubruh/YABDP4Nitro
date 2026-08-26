@@ -566,7 +566,7 @@ export default class Plugin {
 			SettingsStore.set("appIcon", id)
 		);
 
-		if (BadgesStore.isImportant(UserStore.getCurrentUser().id)) {
+		if (IS_DEVELOPER_LMAO) {
 			BetterDiscord.Logger.log("Welcome back, Developer.");
 			window.YABD_DEBUG = {
 				ShopCollectiblesStore,

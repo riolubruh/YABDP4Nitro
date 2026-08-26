@@ -6623,6 +6623,7 @@ var package_default = {
   },
   scripts: {
     prod: "bun run ./build/build.ts",
+    dev: "bun run ./build/build.ts --debug",
     pretty: "npx prettier . --write"
   },
   peerDependencies: {
@@ -7168,17 +7169,7 @@ This will reload the plugin and you can use it normally.`,
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && await this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (BadgesStore_default.isImportant(UserStore12.getCurrentUser().id)) {
-      BetterDiscord.Logger.log("Welcome back, Developer.");
-      window.YABD_DEBUG = {
-        ShopCollectiblesStore: ShopCollectiblesStore_default,
-        BadgesStore: BadgesStore_default,
-        getRevealedText,
-        secondsightifyRevealOnly,
-        SettingsStore: SettingsStore_default,
-        varForcer: import_varforcer.default
-      };
-    }
+    if (false) {}
     await UserBackgroundStore_default.fetch();
     await loadPatches();
   }

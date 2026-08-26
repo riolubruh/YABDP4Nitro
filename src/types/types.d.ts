@@ -1058,4 +1058,8 @@ declare global {
 	}
 }
 
+declare global {
+	var IS_DEVELOPER_LMAO: boolean;
+}
+
 export {};

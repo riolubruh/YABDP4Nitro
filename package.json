@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"prod": "bun run ./build/build.ts",
+		"dev": "bun run ./build/build.ts --debug",
 		"pretty": "npx prettier . --write"
 	},
 	"peerDependencies": {
