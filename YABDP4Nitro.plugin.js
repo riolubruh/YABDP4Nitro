@@ -816,9 +816,6 @@ var BadgesStore_default = new class BadgesStore {
   isImportant(id) {
     return Object.values(Badges).some((category) => category.ids.includes(id));
   }
-  findBadgesForUser(id) {
-    return Object.values(Badges).filter((category) => category.ids.includes(id)).map((category) => category.badge);
-  }
   returnRespondingBadges(id) {
     const categories = Object.values(Badges).filter((x) => x.ids.includes(id));
     return categories.length ? categories.map((x) => x.badge) : [defaultBadge];
@@ -1075,7 +1072,7 @@ var fakeUserProfile_default = {
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
         if (!ret.badges)
           ret.badges = [];
-        ret.badges.push(...BadgesStore_default.findBadgesForUser(ret.userId));
+        ret.badges.push(...BadgesStore_default.returnRespondingBadges(ret.userId));
       }
     });
   }
@@ -6377,7 +6374,7 @@ var dev_default = {
       if (!user)
         return res;
       if (!res.props.badges.find((x2) => x2.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
-        const badges = BadgesStore_default.findBadgesForUser(user.id);
+        const badges = BadgesStore_default.returnRespondingBadges(user.id);
         res.props.badges.push(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
           key: `yabd-${x2.id}`,
           height: "16px",

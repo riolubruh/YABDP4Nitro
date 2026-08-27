@@ -22,7 +22,7 @@ export default {
 				!res.props.badges.find((x) => x.key.includes("yabd")) &&
 				(BadgesStore.check(user.id) || BadgesStore.isImportant(user.id))
 			) {
-				const badges = BadgesStore.findBadgesForUser(user.id);
+				const badges = BadgesStore.returnRespondingBadges(user.id);
 				res.props.badges.push(
 					...badges.map((x) => (
 						<img key={`yabd-${x.id}`} height={"16px"} width={"16px"} src={x.iconSrc} />

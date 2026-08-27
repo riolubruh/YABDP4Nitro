@@ -73,12 +73,6 @@ export default new (class BadgesStore {
 		return Object.values(Badges).some((category) => category.ids.includes(id));
 	}
 
-	findBadgesForUser(id: string): Badge[] {
-		return Object.values(Badges)
-			.filter((category) => category.ids.includes(id))
-			.map((category) => category.badge);
-	}
-
 	returnRespondingBadges(id: string): Badge[] {
 		const categories = Object.values(Badges).filter((x) => x.ids.includes(id));
 		return categories.length ? categories.map((x) => x.badge) : [defaultBadge];
