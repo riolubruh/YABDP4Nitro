@@ -202,6 +202,9 @@ export default {
 			if (upsellRemovalEnabled) return null;
 			return originalFunction.apply(args);
 		});
+
+		Object.values(document.styleSheets).find(x => Object.values(x.rules).find(x => x.selectorText == ":root" && x.cssText.includes("--blue-new-78: hotpink")))!.deleteRule(":root")
+
 		return;
 	},
 };
