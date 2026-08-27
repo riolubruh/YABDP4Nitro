@@ -1,56 +1,83 @@
-import type { Patch } from "../../types/patches";
-import { BetterDiscord } from "@shared/*";
+import type {Patch} from "../../types/patches";
+import {BetterDiscord} from "@shared/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
-import { getKey, wpGet, wpWait } from "../../global/webpack";
+import {getKey} from "../../global/webpack";
+import {GlobalModules} from "@global/*";
 
 const React = BetterDiscord.React;
+const DELAY_MS = 1000;
 
-const { UserStore } = BetterDiscord.Webpack.Stores;
+const {UserStore, UserProfileStore, SelectedGuildStore} = BetterDiscord.Webpack.Stores;
+
+let tail = Promise.resolve();
+const seen = new Set<string>();
+
+export function enqueueFetchProfile(id: string, options: Record<string, any> = {}) {
+    const key = `${id}:${options.guildId ?? ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+
+    tail = tail.then(() => GlobalModules.ProfileHelpers.fetchProfile(id, options))
+        .catch(() => {})
+        .then(() => new Promise((r) => setTimeout(r, DELAY_MS)));
+    return tail;
+}
+
+function ensureGuildUserProfile(id: string, guildId: string) {
+    if (!guildId) return;
+
+    let user = UserProfileStore.getGuildMemberProfile(id, guildId);
+    if (!user) {
+        enqueueFetchProfile(id, {guildId, withMutualGuilds: true, withMutualFriends: true});
+    }
+}
 
 export default {
-	name: "dev",
-	apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
-		const module = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+    name: "dev",
+    apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
+        const module = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
 
-		patcher.after(module.Ay, "type", (_, args, res) => {
-			if (!BadgesStore.isImportant(UserStore.getCurrentUser().id)) return res;
+        patcher.after(module.Ay, "type", (_, args, res) => {
+            ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
 
-			const user = args[0]?.message?.author;
-			if (!user) return res;
+            if (!BadgesStore.isImportant(UserStore.getCurrentUser().id)) return res;
 
-			if (
-				!res.props.badges.find((x) => x.key.includes("yabd")) &&
-				(BadgesStore.check(user.id) || BadgesStore.isImportant(user.id))
-			) {
-				const badges = BadgesStore.returnRespondingBadges(user.id);
-				res.props.badges.push(
-					...badges.map((x) => (
-						<img key={`yabd-${x.id}`} height={"16px"} width={"16px"} src={x.iconSrc} />
-					))
-				);
-			}
+            const user = args[0]?.message?.author;
+            if (!user) return res;
 
-			return res;
-		});
+            if (
+                !res.props.badges.find((x) => x.key.includes("yabd")) &&
+                (BadgesStore.check(user.id) || BadgesStore.isImportant(user.id))
+            ) {
+                const badges = BadgesStore.returnRespondingBadges(user.id);
+                res.props.badges.push(
+                    ...badges.map((x) => (
+                        <img key={`yabd-${x.id}`} height={"16px"} width={"16px"} src={x.iconSrc}/>
+                    ))
+                );
+            }
 
-		const title = getKey(
-			BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations,
-			(x) => String(x).includes(".NOT_STAFF_WARNING})")
-		);
-		patcher.instead(title.module, title.key, () => null);
+            return res;
+        });
 
-		// this was me attempting to mimic discord core badges to implement them into the badge modal
-		// along with eyebrows, body, and titles.
+        const title = getKey(
+            BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", {raw: true}).declarations,
+            (x) => String(x).includes(".NOT_STAFF_WARNING})")
+        );
+        patcher.instead(title.module, title.key, () => null);
 
-		// const _bagdeModal = await wpWait(BetterDiscord.Webpack.getBySource("badgeIndicatorIds:", {raw: true}));
-		// const bagdeModal = getKey(_bagdeModal.declarations, BetterDiscord.Webpack.Filters.byStrings("displayedUserId"));
-		//
-		// patcher.after(bagdeModal.module, bagdeModal.key, (a, b, c) => {
-		//     const userBadges = BadgesStore.findBadgesForUser(b[0].displayedUserId);
-		//     const badges = BetterDiscord.Utils.findInTree(c, x => x.badges, {walkable: ['props', 'children']});
-		//
-		//     console.log(badges);
-		//     badges.badges = [...badges.badges, ...userBadges]
-		// });
-	},
+        // this was me attempting to mimic discord core badges to implement them into the badge modal
+        // along with eyebrows, body, and titles.
+
+        // const _bagdeModal = await wpWait(BetterDiscord.Webpack.getBySource("badgeIndicatorIds:", {raw: true}));
+        // const bagdeModal = getKey(_bagdeModal.declarations, BetterDiscord.Webpack.Filters.byStrings("displayedUserId"));
+        //
+        // patcher.after(bagdeModal.module, bagdeModal.key, (a, b, c) => {
+        //     const userBadges = BadgesStore.findBadgesForUser(b[0].displayedUserId);
+        //     const badges = BetterDiscord.Utils.findInTree(c, x => x.badges, {walkable: ['props', 'children']});
+        //
+        //     console.log(badges);
+        //     badges.badges = [...badges.badges, ...userBadges]
+        // });
+    },
 } as unknown as Patch;

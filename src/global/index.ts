@@ -58,6 +58,9 @@ export const GlobalModules = wpGetBulkKeyed({
 	Lodash: {
 		filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",'),
 	},
+	ProfileHelpers: {
+		filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators"),
+	}
 });
 
 export const LayerManager = {

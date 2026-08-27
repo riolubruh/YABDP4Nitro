@@ -2942,6 +2942,9 @@ var GlobalModules = wpGetBulkKeyed({
   },
   Lodash: {
     filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  },
+  ProfileHelpers: {
+    filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators")
   }
 });
 function CloseAllContextMenus() {
@@ -6362,12 +6365,32 @@ var blockedUserContext_default = {
 };
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var DELAY_MS = 1000;
+var { UserStore: UserStore10, UserProfileStore: UserProfileStore4, SelectedGuildStore: SelectedGuildStore4 } = BetterDiscord.Webpack.Stores;
+var tail = Promise.resolve();
+var seen = new Set;
+function enqueueFetchProfile(id, options = {}) {
+  const key = `${id}:${options.guildId ?? ""}`;
+  if (seen.has(key))
+    return;
+  seen.add(key);
+  tail = tail.then(() => GlobalModules.ProfileHelpers.fetchProfile(id, options)).catch(() => {}).then(() => new Promise((r) => setTimeout(r, DELAY_MS)));
+  return tail;
+}
+function ensureGuildUserProfile(id, guildId) {
+  if (!guildId)
+    return;
+  let user = UserProfileStore4.getGuildMemberProfile(id, guildId);
+  if (!user) {
+    enqueueFetchProfile(id, { guildId, withMutualGuilds: true, withMutualFriends: true });
+  }
+}
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
+      ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;
       const user = args[0]?.message?.author;
