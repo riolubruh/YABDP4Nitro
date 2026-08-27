@@ -552,6 +552,8 @@ export default class Plugin {
 				],
 			});
 
+		BetterDiscord.Logger.info(`(v${Meta.version}) has started.`);
+
 		this.checkChangelog();
 		startSet();
 
@@ -668,6 +670,7 @@ export default class Plugin {
 		// BadgesStore.unload();
 		// this doesnt need to be unloaded...
 		UserStore.getCurrentUser().premiumType = OverridePremiumTypeStore.getPremiumTypeActual();
+		BetterDiscord.Logger.info(`(v${Meta.version}) has stopped.`);
 	}
 
 	private renderControl(def: SettingDef, value: any) {
