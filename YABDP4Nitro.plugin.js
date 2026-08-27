@@ -4144,7 +4144,7 @@ var _sendMessage_default = {
         emojiBypass
       } = SettingsStore_default.getAll();
       let urlsToUpload = [];
-      for (let i2 = 0;i2 < msg.validNonShortcutEmojis.length; i2++) {
+      for (let i2 = 0;i2 < msg.validNonShortcutEmojis?.length; i2++) {
         const emoji = msg.validNonShortcutEmojis[i2];
         if (!emojiBypass)
           break;
