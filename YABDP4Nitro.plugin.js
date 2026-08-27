@@ -2,14 +2,14 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.10.9
+ * @version 7.0.0
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
  * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
  * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
-/*@cc_on
+ /*@cc_on
 @if(@_jscript)
     WScript.Quit();
 @else@*/
@@ -36,5014 +36,7374 @@
  * If not, please visit https://opensource.org/license/osl-3-0-php
  *
 */
-
-//#region Module Hell
-const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu,ReactUtils,Utils} = new BdApi("YABDP4Nitro");
-const {createElement,useState,useRef,useEffect} = React;
-
-const {
-    UserStore,
-    UserProfileStore,
-    PresenceStore,
-    SelectedGuildStore,
-    ChannelStore,
-    SelectedChannelStore,
-    SoundboardStore,
-    EmojiStore,
-    AppIconPersistedStoreState,
-    ClipsStore,
-    GuildChannelStore
- } = Webpack.Stores;
-
-const [
-    ProfileBanner,
-    Dispatcher,
-    AvatarDefaults,
-    LadderModule,
-    FetchCollectibleCategories,
-    MessageActions,
-    MessageEmojiReact,
-    renderEmbedsMod,
-    clientThemesModule,
-    streamSettingsMod,
-    accountSwitchModule,
-    getAvatarUrlModule,
-    isEmojiAvailableMod,
-    videoOptionFunctions,
-    addFilesMod,
-    RegularAppIcon,
-    CustomAppIcon,
-    NameplatePreview,
-    CloudUploader,
-    InvalidStreamSettingsModal,
-    themesModule,
-    CanUserUseMod,
-    DMTag,
-    GIFPickerRender,
-    DiscordCopyToClipboardFn,
-    ContextMenuSlider,
-    PictureInPicturePlayer,
-    stickerSendabilityModule,
-    ClipsEnabledMod,
-    MaxFileSizeMod,
-    UserSettingsModal,
-    CustomUserThemeState,
-    CustomUserPanelState,
-    SimpleUserAvatar,
-    StreamButtons,
-    DownloadIcon
-] = Webpack.getBulk(
-    {filter: Webpack.Filters.bySource("backgroundColor:\"COMPLETE\"==="), map: {
-        renderBanner: x=>x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
-    }},
-    {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
-    {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
-    {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
-    {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
-    {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")},
-    {filter: Webpack.Filters.byStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?'), searchExports: true}, //MessageEmojiReact
-    {filter: Webpack.Filters.bySource('renderEmbeds', 'renderSuppressEmbeds'), map:{ //renderEmbedsMod
-        renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
-    }},
-    {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
-    {filter: Webpack.Filters.bySource('getCodecOptions'), mapDeclarations:true, map:{
-        Connection: x=>x?.prototype?.getCodecOptions
-    }}, //streamSettingsMod
-    {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
-    {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
-    {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
-    {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
-    {filter: Webpack.Filters.byKeys("addFiles")},
-    {filter: Webpack.Filters.bySource('M19.73 4.87a18.2'), map: { //RegularAppIcon
-        render: x=>x
-    }},
-    {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
-    {filter: Webpack.Filters.bySource('nameplateData', 'showPlaceholderUser', 'displayNameStyles')}, //NameplatePreview
-    {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
-    {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
-    {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
-    {filter: Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), mapDeclarations: true, map: {
-        canUserUse: x=>typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
-    }}, //CanUserUseMod
-    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")'), mapDeclarations:true,map:{
-        render: x=>x?.toString?.().includes?.("NOT_STAFF_WARNING")
-    }}, //DMTag
-    {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
-    {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
-    {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
-    {filter: Webpack.Filters.bySource('backgroundKey', 'onForceIdle')}, //PictureInPicturePlayer
-    {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", 'canUseCustomStickersEverywhere'), map: { //stickerSendabilityModule
-        getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
-        isSendableSticker: x=>x.toString().includes('0===')
-    }},
-    {filter: Webpack.Filters.bySource('getConfig({location:"useEnableClips'), map: { //ClipsEnabledMod
-        useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
-        areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
-    }},
-    {filter: Webpack.Filters.bySource("getUserMaxFileSize", "reType"), map: { //MaxFileSizeMod
-        getMaxFileSize: x=>x.toString().includes('getUserMaxFileSize'),
-        exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
-    }},
-    {filter: Webpack.Filters.byKeys('openUserSettings')}, //UserSettingsModal
-    {filter: Webpack.Filters.bySource('setColors', 'setChassisMixAmount', 'setGradientAngle', 'setAll', 'colors:[],'), map: { //CustomUserThemeState
-        state: x=>x?.setState
-    }},
-    {filter: Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), map:{
-        state: x=>x?.setState
-    }},
-    {filter: Webpack.Filters.combine(Webpack.Filters.bySource("getAvatarURL", ".SIZE_32,animate:"), (x=>x.type), Webpack.Filters.not(Webpack.Filters.bySource("guildId")))}, //SimpleUserAvatar
-    {filter: Webpack.Filters.bySource("Unknown frame rate:"), map:{
-        ApplicationStreamFPS: o=>o?.FPS_30,
-        ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
-        ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
-        ApplicationStreamResolutions: o => o?.RESOLUTION_1440
-    }},
-    {filter: Webpack.Filters.byStrings('M12 2a1 1 0 0 1 1 1v10.59l3.3-3.3a1'), searchExports:true} //DownloadIcon
-    
-);
-const {
-    ApplicationStreamFPS,
-    ApplicationStreamFPSButtonsWithSuffixLabel,
-    ApplicationStreamResolutionButtonsWithSuffixLabel,
-    ApplicationStreamResolutions
-} = StreamButtons;
-//#endregion
-const fs = require("fs");
-const path = require("path");
-let CurrentUser = UserStore?.getCurrentUser();
-const ORIGINAL_NITRO_STATUS = CurrentUser?.premiumType;
-const nodePatcher = ReactUtils.createNodePatcher();
-
-//clips related variables
-let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
-
-//for fixing edit cancels
-let lastEditedMsg, lastEditedMsgCopy;
-
-const defaultSettings = {
-    "emojiSize": 64,
-    "screenSharing": true,
-    "emojiBypass": true,
-    "emojiBypassType": 0,
-    "emojiBypassForValidEmoji": true,
-    "PNGemote": true,
-    "uploadStickers": false,
-    "CustomFPSEnabled": false,
-    "CustomFPS": 60,
-    "ResolutionEnabled": false,
-    "CustomResolution": 1440,
-    "CustomBitrateEnabled": false,
-    "minBitrate": -1,
-    "maxBitrate": -1,
-    "targetBitrate": -1,
-    "voiceBitrate": -1,
-    "ResolutionSwapper": true,
-    "stickerBypass": false,
-    "profileV2": false,
-    "forceStickersUnlocked": false,
-    "changePremiumType2": -1,
-    "videoCodec2": -1,
-    "clientThemes": true,
-    "lastGradientSettingStore": -1,
-    "fakeProfileThemes": true,
-    "removeProfileUpsell": false,
-    "removeScreenshareUpsell": true,
-    "fakeProfileBanners": true,
-    "fakeAvatarDecorations": true,
-    "unlockAppIcons": true,
-    "profileEffects": true,
-    "killProfileEffects": false,
-    "customPFPs": true,
-    "experiments": false,
-    "userPfpIntegration": true,
-    "userBgIntegration": true,
-    "useClipBypass": true,
-    "forceClip": false,
-    "checkForUpdates": true,
-    "fakeInlineVencordEmotes": true,
-    "soundmojiEnabled": false,
-    "useAudioClipBypass": true,
-    "forceAudioClip": false,
-    "zipClip": true,
-    "enableClipsExperiment": false,
-    "disableUserBadge": false,
-    "nameplatesEnabled": true,
-    "clipTimestamp": 2,
-    "removeNotStaffWarning": true,
-    "editMessageWithEmoji": true,
-    "extraContextMenus": true,
-    "userSharpenPreferences": {},
-    "sharpenStreams": false,
-    "displayNameStyles": true,
-    "customUserThemeSettings": {
-        custom: false,
-        theme: "dark"
-    },
-    "appIcon": "AppIcon",
-    "voiceTileBannerBackground": false,
-    "advancedProfileCustomization": false
+ 
+const React = window.BdApi.React
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
 };
-const defaultData = {
-    avatarDecorations: {},
-    nameplatesV2: {}
+var __moduleCache = /* @__PURE__ */ new WeakMap;
+var __toCommonJS = (from) => {
+  var entry = __moduleCache.get(from), desc;
+  if (entry)
+    return entry;
+  entry = __defProp({}, "__esModule", { value: true });
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
+  __moduleCache.set(from, entry);
+  return entry;
+};
+var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: (newValue) => all[name] = () => newValue
+    });
+};
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
+
+// src/global/shared/varforcer/index.ts
+var require_varforcer = __commonJS((exports2, module2) => {
+  function normalizeFunctionSource(str) {
+    const trimmed = str.trimStart();
+    if (/^function\b/.test(trimmed))
+      return str;
+    const arrowIdx = str.indexOf("=>");
+    const braceIdx = str.indexOf("{");
+    if (arrowIdx !== -1 && (braceIdx === -1 || arrowIdx < braceIdx))
+      return str;
+    let rest = trimmed;
+    let isAsync = false;
+    let isGenerator = false;
+    if (rest.startsWith("async")) {
+      isAsync = true;
+      rest = rest.slice(5).trimStart();
+    }
+    if (rest.startsWith("*")) {
+      isGenerator = true;
+      rest = rest.slice(1).trimStart();
+    }
+    const parenIdx = rest.indexOf("(");
+    if (parenIdx === -1)
+      throw new Error("[varForcer] Could not normalize function source (no `(` found).");
+    rest = rest.slice(parenIdx);
+    return `${isAsync ? "async " : ""}function${isGenerator ? "*" : ""} ${rest}`;
+  }
+  function parseDestructuredVars(fnStr) {
+    const letIndex = fnStr.indexOf("let{");
+    if (letIndex === -1) {
+      throw new Error("[varForcer] Could not find a `let{...}` destructure in the given function.");
+    }
+    const openBrace = letIndex + 4;
+    const closeBrace = fnStr.indexOf("}", openBrace);
+    if (closeBrace === -1) {
+      throw new Error("[varForcer] Found `let{` but no matching closing `}`.");
+    }
+    const body = fnStr.slice(openBrace, closeBrace);
+    const entries = body.split(",").map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
+      const [remote, local] = chunk.split(":").map((s) => s.trim());
+      return [remote, local || remote];
+    });
+    return Object.fromEntries(entries);
+  }
+  function serializeValue(value) {
+    if (typeof value === "string")
+      return JSON.stringify(value);
+    if (value === undefined)
+      return "undefined";
+    if (typeof value === "object" && value !== null)
+      return JSON.stringify(value);
+    return String(value);
+  }
+  function forceFunctionVars(fn, declarations, options) {
+    const { after, offset = 0, sets, throwIfMissingAnchor = true } = options;
+    if (!after)
+      throw new Error("[varForcer] `options.after` (anchor string) is required.");
+    if (!sets || Object.keys(sets).length === 0)
+      throw new Error("[varForcer] `options.sets` must have at least one entry.");
+    const str = normalizeFunctionSource(fn.toString());
+    const vars = parseDestructuredVars(str);
+    const missing = Object.keys(sets).filter((name) => !vars[name]);
+    if (missing.length) {
+      throw new Error(`[varForcer] Could not resolve destructured var(s): ${missing.join(", ")}. Found: ${Object.keys(vars).join(", ")}`);
+    }
+    const anchorIndex = str.indexOf(after);
+    if (anchorIndex === -1) {
+      if (throwIfMissingAnchor)
+        throw new Error(`[varForcer] Could not find anchor string: "${after}"`);
+      return null;
+    }
+    const insertAt = anchorIndex + after.length + offset;
+    const before = str.slice(0, insertAt);
+    const rest = str.slice(insertAt);
+    const assignments = Object.entries(sets).map(([name, value]) => `${vars[name]}=${serializeValue(value)};`).join("");
+    const source = `with (__DECLARATIONS__) return (${before}${assignments}${rest});`;
+    try {
+      return new Function("__DECLARATIONS__", source)(declarations);
+    } catch (err2) {
+      throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
+
+Generated source:
+${source}`);
+    }
+  }
+  function replaceFunctionLiteral(fn, declarations, options) {
+    const { find, replace, throwIfMissing = true } = options;
+    const str = normalizeFunctionSource(fn.toString());
+    const found = typeof find === "string" ? str.includes(find) : find.test(str);
+    if (!found && throwIfMissing)
+      throw new Error(`[varForcer] Pattern not found: ${find}`);
+    const patched = str.replace(find, replace);
+    const source = `with (__DECLARATIONS__) return (${patched});`;
+    try {
+      return new Function("__DECLARATIONS__", source)(declarations);
+    } catch (err2) {
+      throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
+
+Generated source:
+${source}`);
+    }
+  }
+  module2.exports = {
+    forceFunctionVars,
+    replaceFunctionLiteral,
+    parseDestructuredVars,
+    serializeValue,
+    normalizeFunctionSource
+  };
+});
+
+// node:path
+var exports_path = {};
+__export(exports_path, {
+  sep: () => sep,
+  resolve: () => resolve,
+  relative: () => relative,
+  posix: () => posix,
+  parse: () => parse,
+  normalize: () => normalize,
+  join: () => join,
+  isAbsolute: () => isAbsolute,
+  format: () => format,
+  extname: () => extname,
+  dirname: () => dirname,
+  delimiter: () => delimiter,
+  default: () => path_default,
+  basename: () => basename,
+  _makeLong: () => _makeLong
+});
+function assertPath(path) {
+  if (typeof path !== "string")
+    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+}
+function normalizeStringPosix(path, allowAboveRoot) {
+  var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
+  for (var i2 = 0;i2 <= path.length; ++i2) {
+    if (i2 < path.length)
+      code = path.charCodeAt(i2);
+    else if (code === 47)
+      break;
+    else
+      code = 47;
+    if (code === 47) {
+      if (lastSlash === i2 - 1 || dots === 1)
+        ;
+      else if (lastSlash !== i2 - 1 && dots === 2) {
+        if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
+          if (res.length > 2) {
+            var lastSlashIndex = res.lastIndexOf("/");
+            if (lastSlashIndex !== res.length - 1) {
+              if (lastSlashIndex === -1)
+                res = "", lastSegmentLength = 0;
+              else
+                res = res.slice(0, lastSlashIndex), lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
+              lastSlash = i2, dots = 0;
+              continue;
+            }
+          } else if (res.length === 2 || res.length === 1) {
+            res = "", lastSegmentLength = 0, lastSlash = i2, dots = 0;
+            continue;
+          }
+        }
+        if (allowAboveRoot) {
+          if (res.length > 0)
+            res += "/..";
+          else
+            res = "..";
+          lastSegmentLength = 2;
+        }
+      } else {
+        if (res.length > 0)
+          res += "/" + path.slice(lastSlash + 1, i2);
+        else
+          res = path.slice(lastSlash + 1, i2);
+        lastSegmentLength = i2 - lastSlash - 1;
+      }
+      lastSlash = i2, dots = 0;
+    } else if (code === 46 && dots !== -1)
+      ++dots;
+    else
+      dots = -1;
+  }
+  return res;
+}
+function _format(sep, pathObject) {
+  var dir = pathObject.dir || pathObject.root, base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+  if (!dir)
+    return base;
+  if (dir === pathObject.root)
+    return dir + base;
+  return dir + sep + base;
+}
+function resolve() {
+  var resolvedPath = "", resolvedAbsolute = false, cwd;
+  for (var i2 = arguments.length - 1;i2 >= -1 && !resolvedAbsolute; i2--) {
+    var path;
+    if (i2 >= 0)
+      path = arguments[i2];
+    else {
+      if (cwd === undefined)
+        cwd = process.cwd();
+      path = cwd;
+    }
+    if (assertPath(path), path.length === 0)
+      continue;
+    resolvedPath = path + "/" + resolvedPath, resolvedAbsolute = path.charCodeAt(0) === 47;
+  }
+  if (resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute), resolvedAbsolute)
+    if (resolvedPath.length > 0)
+      return "/" + resolvedPath;
+    else
+      return "/";
+  else if (resolvedPath.length > 0)
+    return resolvedPath;
+  else
+    return ".";
+}
+function normalize(path) {
+  if (assertPath(path), path.length === 0)
+    return ".";
+  var isAbsolute = path.charCodeAt(0) === 47, trailingSeparator = path.charCodeAt(path.length - 1) === 47;
+  if (path = normalizeStringPosix(path, !isAbsolute), path.length === 0 && !isAbsolute)
+    path = ".";
+  if (path.length > 0 && trailingSeparator)
+    path += "/";
+  if (isAbsolute)
+    return "/" + path;
+  return path;
+}
+function isAbsolute(path) {
+  return assertPath(path), path.length > 0 && path.charCodeAt(0) === 47;
+}
+function join() {
+  if (arguments.length === 0)
+    return ".";
+  var joined;
+  for (var i2 = 0;i2 < arguments.length; ++i2) {
+    var arg = arguments[i2];
+    if (assertPath(arg), arg.length > 0)
+      if (joined === undefined)
+        joined = arg;
+      else
+        joined += "/" + arg;
+  }
+  if (joined === undefined)
+    return ".";
+  return normalize(joined);
+}
+function relative(from, to) {
+  if (assertPath(from), assertPath(to), from === to)
+    return "";
+  if (from = resolve(from), to = resolve(to), from === to)
+    return "";
+  var fromStart = 1;
+  for (;fromStart < from.length; ++fromStart)
+    if (from.charCodeAt(fromStart) !== 47)
+      break;
+  var fromEnd = from.length, fromLen = fromEnd - fromStart, toStart = 1;
+  for (;toStart < to.length; ++toStart)
+    if (to.charCodeAt(toStart) !== 47)
+      break;
+  var toEnd = to.length, toLen = toEnd - toStart, length = fromLen < toLen ? fromLen : toLen, lastCommonSep = -1, i2 = 0;
+  for (;i2 <= length; ++i2) {
+    if (i2 === length) {
+      if (toLen > length) {
+        if (to.charCodeAt(toStart + i2) === 47)
+          return to.slice(toStart + i2 + 1);
+        else if (i2 === 0)
+          return to.slice(toStart + i2);
+      } else if (fromLen > length) {
+        if (from.charCodeAt(fromStart + i2) === 47)
+          lastCommonSep = i2;
+        else if (i2 === 0)
+          lastCommonSep = 0;
+      }
+      break;
+    }
+    var fromCode = from.charCodeAt(fromStart + i2), toCode = to.charCodeAt(toStart + i2);
+    if (fromCode !== toCode)
+      break;
+    else if (fromCode === 47)
+      lastCommonSep = i2;
+  }
+  var out = "";
+  for (i2 = fromStart + lastCommonSep + 1;i2 <= fromEnd; ++i2)
+    if (i2 === fromEnd || from.charCodeAt(i2) === 47)
+      if (out.length === 0)
+        out += "..";
+      else
+        out += "/..";
+  if (out.length > 0)
+    return out + to.slice(toStart + lastCommonSep);
+  else {
+    if (toStart += lastCommonSep, to.charCodeAt(toStart) === 47)
+      ++toStart;
+    return to.slice(toStart);
+  }
+}
+function _makeLong(path) {
+  return path;
+}
+function dirname(path) {
+  if (assertPath(path), path.length === 0)
+    return ".";
+  var code = path.charCodeAt(0), hasRoot = code === 47, end = -1, matchedSlash = true;
+  for (var i2 = path.length - 1;i2 >= 1; --i2)
+    if (code = path.charCodeAt(i2), code === 47) {
+      if (!matchedSlash) {
+        end = i2;
+        break;
+      }
+    } else
+      matchedSlash = false;
+  if (end === -1)
+    return hasRoot ? "/" : ".";
+  if (hasRoot && end === 1)
+    return "//";
+  return path.slice(0, end);
+}
+function basename(path, ext) {
+  if (ext !== undefined && typeof ext !== "string")
+    throw new TypeError('"ext" argument must be a string');
+  assertPath(path);
+  var start = 0, end = -1, matchedSlash = true, i2;
+  if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
+    if (ext.length === path.length && ext === path)
+      return "";
+    var extIdx = ext.length - 1, firstNonSlashEnd = -1;
+    for (i2 = path.length - 1;i2 >= 0; --i2) {
+      var code = path.charCodeAt(i2);
+      if (code === 47) {
+        if (!matchedSlash) {
+          start = i2 + 1;
+          break;
+        }
+      } else {
+        if (firstNonSlashEnd === -1)
+          matchedSlash = false, firstNonSlashEnd = i2 + 1;
+        if (extIdx >= 0)
+          if (code === ext.charCodeAt(extIdx)) {
+            if (--extIdx === -1)
+              end = i2;
+          } else
+            extIdx = -1, end = firstNonSlashEnd;
+      }
+    }
+    if (start === end)
+      end = firstNonSlashEnd;
+    else if (end === -1)
+      end = path.length;
+    return path.slice(start, end);
+  } else {
+    for (i2 = path.length - 1;i2 >= 0; --i2)
+      if (path.charCodeAt(i2) === 47) {
+        if (!matchedSlash) {
+          start = i2 + 1;
+          break;
+        }
+      } else if (end === -1)
+        matchedSlash = false, end = i2 + 1;
+    if (end === -1)
+      return "";
+    return path.slice(start, end);
+  }
+}
+function extname(path) {
+  assertPath(path);
+  var startDot = -1, startPart = 0, end = -1, matchedSlash = true, preDotState = 0;
+  for (var i2 = path.length - 1;i2 >= 0; --i2) {
+    var code = path.charCodeAt(i2);
+    if (code === 47) {
+      if (!matchedSlash) {
+        startPart = i2 + 1;
+        break;
+      }
+      continue;
+    }
+    if (end === -1)
+      matchedSlash = false, end = i2 + 1;
+    if (code === 46) {
+      if (startDot === -1)
+        startDot = i2;
+      else if (preDotState !== 1)
+        preDotState = 1;
+    } else if (startDot !== -1)
+      preDotState = -1;
+  }
+  if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
+    return "";
+  return path.slice(startDot, end);
+}
+function format(pathObject) {
+  if (pathObject === null || typeof pathObject !== "object")
+    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+  return _format("/", pathObject);
+}
+function parse(path) {
+  assertPath(path);
+  var ret = { root: "", dir: "", base: "", ext: "", name: "" };
+  if (path.length === 0)
+    return ret;
+  var code = path.charCodeAt(0), isAbsolute2 = code === 47, start;
+  if (isAbsolute2)
+    ret.root = "/", start = 1;
+  else
+    start = 0;
+  var startDot = -1, startPart = 0, end = -1, matchedSlash = true, i2 = path.length - 1, preDotState = 0;
+  for (;i2 >= start; --i2) {
+    if (code = path.charCodeAt(i2), code === 47) {
+      if (!matchedSlash) {
+        startPart = i2 + 1;
+        break;
+      }
+      continue;
+    }
+    if (end === -1)
+      matchedSlash = false, end = i2 + 1;
+    if (code === 46) {
+      if (startDot === -1)
+        startDot = i2;
+      else if (preDotState !== 1)
+        preDotState = 1;
+    } else if (startDot !== -1)
+      preDotState = -1;
+  }
+  if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    if (end !== -1)
+      if (startPart === 0 && isAbsolute2)
+        ret.base = ret.name = path.slice(1, end);
+      else
+        ret.base = ret.name = path.slice(startPart, end);
+  } else {
+    if (startPart === 0 && isAbsolute2)
+      ret.name = path.slice(1, startDot), ret.base = path.slice(1, end);
+    else
+      ret.name = path.slice(startPart, startDot), ret.base = path.slice(startPart, end);
+    ret.ext = path.slice(startDot, end);
+  }
+  if (startPart > 0)
+    ret.dir = path.slice(0, startPart - 1);
+  else if (isAbsolute2)
+    ret.dir = "/";
+  return ret;
+}
+var sep = "/", delimiter = ":", posix, path_default;
+var init_path = __esm(() => {
+  posix = ((p) => (p.posix = p, p))({ resolve, normalize, isAbsolute, join, relative, _makeLong, dirname, basename, extname, format, parse, sep, delimiter, win32: null, posix: null });
+  path_default = posix;
+});
+
+// src/index.tsx
+var exports_src = {};
+__export(exports_src, {
+  fs: () => fs,
+  default: () => Plugin,
+  _path: () => _path
+});
+module.exports = __toCommonJS(exports_src);
+
+// src/global/shared/index.tsx
+var BetterDiscord = new BdApi("YABDP4Nitro");
+
+// src/patches/modules/index.ts
+var exports_modules = {};
+__export(exports_modules, {
+  VideoCodec: () => videoCodecs_default,
+  UserProfileV2: () => UserProfileV2_default,
+  UserBgCallTile: () => userCallTileBg_default,
+  UnlockStickers: () => unlockStickers_default,
+  UnlockEmojis: () => unlockEmojis_default,
+  StreamBypass: () => streamBypass_default,
+  SharpenStreams: () => sharpenStreams_default,
+  SendMessage: () => _sendMessage_default,
+  RenderMessageEmbeds: () => renderMessageEmbeds_default,
+  RenderMessage: () => renderMessage_default,
+  PremiumType: () => premiumType_default,
+  MaxFileSize: () => maxFileSize_default,
+  GoLiveModal: () => goLiveModal_default,
+  GifPickerContext: () => gifPickerContext_default,
+  GetAvatarURL: () => getAvatarURL_default,
+  FakeUserProfile: () => fakeUserProfile_default,
+  FakeUser: () => fakeUser_default,
+  FakeBanners: () => banners_default,
+  EditMessage: () => editMessage_default,
+  DEV: () => dev_default,
+  CustomThemeApply: () => customClientThemes_default,
+  CustomCameraPreview: () => customCameraBackground_default,
+  ClipsBypass: () => clipsBypass_default,
+  ClientThemes: () => clientThemes_default,
+  CanUserUse: () => canUserUse_default,
+  BlockedUserContext: () => blockedUserContext_default,
+  AppIcons: () => appIcons_default,
+  AnimatedUserBanner: () => getUserBannerURL_default,
+  AllowClips: () => allowClips_default
+});
+
+// src/global/stores/CustomUserProfileStore.ts
+var CustomUserProfileStore_default = new class CustomUserProfileStore {
+  profiles = [];
+  getMember(id, guildId) {
+    return this.profiles.find((x) => x?.userId == id && x.guildId == guildId);
+  }
+  cacheMember(user) {
+    this.profiles.push(user);
+  }
+  unload() {
+    this.profiles = [];
+  }
+};
+
+// src/global/stores/SettingsStore.ts
+var { Utils, Data } = BetterDiscord;
+var defaultSettings = {
+  emojiSize: 64,
+  screenSharing: true,
+  emojiBypass: true,
+  emojiBypassType: 0,
+  emojiBypassForValidEmoji: true,
+  PNGemote: true,
+  CustomFPS: 60,
+  CustomResolution: 1440,
+  CustomBitrateEnabled: false,
+  minBitrate: -1,
+  maxBitrate: -1,
+  targetBitrate: -1,
+  voiceBitrate: -1,
+  ResolutionSwapper: true,
+  stickerBypass: false,
+  profileV2: false,
+  forceStickersUnlocked: false,
+  changePremiumType2: -1,
+  videoCodec2: -1,
+  clientThemes: true,
+  lastGradientSettingStore: -1,
+  fakeProfileThemes: true,
+  removeProfileUpsell: true,
+  removeScreenshareUpsell: true,
+  fakeProfileBanners: true,
+  fakeAvatarDecorations: true,
+  unlockAppIcons: true,
+  profileEffects: true,
+  profileFrames: true,
+  killProfileEffects: false,
+  customPFPs: true,
+  experiments: false,
+  userPfpIntegration: true,
+  userBgIntegration: true,
+  useClipBypass: true,
+  forceClip: false,
+  checkForUpdates: true,
+  fakeInlineVencordEmotes: true,
+  soundmojiEnabled: false,
+  useAudioClipBypass: true,
+  forceAudioClip: false,
+  zipClip: true,
+  enableClipsExperiment: false,
+  disableUserBadge: false,
+  nameplatesEnabled: true,
+  clipTimestamp: 2,
+  editMessageWithEmoji: true,
+  extraContextMenus: true,
+  userSharpenPreferences: {},
+  sharpenStreams: false,
+  displayNameStyles: true,
+  customUserThemeSettings: {
+    custom: false,
+    theme: "dark"
+  },
+  appIcon: "AppIcon",
+  voiceTileBannerBackground: false,
+  advancedProfileCustomization: false,
+  lastChangelogVersion: "6.10.7",
+  installedVersion: "6.10.7",
+  customVideoFilter: {
+    link: "https://cdn.discordapp.com/attachments/1334347004935147551/1538395403047673866/medic_balling.mov?ex=6a8285de&is=6a81345e&hm=f9f1f3be500425c255a95606ebf6f8d05eed06477f0f048906cfe9170c842070&",
+    type: "mp4"
+  },
+  customVideoFilterEnabled: false,
+  dontUpdate: false
+};
+var SettingsStore_default = new class SettingsStore extends Utils.Store {
+  settings = {
+    ...defaultSettings,
+    ...Data.load("settings") ?? {}
+  };
+  listeners = new Map;
+  get(id) {
+    return this.settings[id];
+  }
+  set(id, value) {
+    this.settings = { ...this.settings, [id]: value };
+    Data.save("settings", this.settings);
+    this.emitChange();
+    this.notify(id, value);
+  }
+  del(id) {
+    this.settings = { ...this.settings, [id]: defaultSettings[id] };
+    Data.save("settings", this.settings);
+    this.emitChange();
+    this.notify(id, this.settings[id]);
+  }
+  getAll() {
+    return this.settings;
+  }
+  subscribe(id, callback) {
+    if (!this.listeners.has(id)) {
+      this.listeners.set(id, new Set);
+    }
+    this.listeners.get(id).add(callback);
+    return () => {
+      this.listeners.get(id)?.delete(callback);
+    };
+  }
+  notify(id, value) {
+    this.listeners.get(id)?.forEach((cb) => cb(value));
+  }
+};
+
+// src/global/stores/UserBackgroundStore.ts
+var USER_BG = "https://usrbg.is-hardly.online/users";
+var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDiscord.Utils.Store {
+  users = {};
+  meta = {};
+  get(userId) {
+    const enabled = SettingsStore_default.get("userBgIntegration");
+    if (!enabled)
+      return null;
+    return this.users[userId];
+  }
+  format(userId) {
+    const userHash = this.get(userId);
+    return `https://usrbg.is-hardly.online/${this.meta.bucket}/${this.meta.prefix.slice(0, this.meta.prefix.length - 1)}/${userId}?${userHash}`;
+  }
+  hasHash(id) {
+    const enabled = SettingsStore_default.get("userBgIntegration");
+    if (!enabled)
+      return false;
+    return Boolean(this.users[id]);
+  }
+  async fetch() {
+    const data = await BetterDiscord.Net.fetch(USER_BG);
+    const response = await data.json();
+    this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
+    this.users = response.users;
+  }
+  unload() {
+    this.users = {};
+    this.meta = {};
+  }
+};
+
+// src/global/stores/BadgesStore.tsx
+var specialThanks = [
+  "122072911455453184",
+  "760274365853335563",
+  "482224256730791967",
+  "1106012563835195412"
+];
+var Badges = {
+  developers: {
+    ids: ["359063827091816448", "917630027477159986"],
+    badge: {
+      id: "yabdp_developer",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
+      description: "YABDP4Nitro Developer!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  },
+  silly: {
+    ids: ["917630027477159986"],
+    badge: {
+      id: "yabdp_silly",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_silly.png",
+      description: "Honk."
+    }
+  },
+  sera: {
+    ids: ["1323433010858557523"],
+    badge: {
+      id: "yabdp_sera",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/refs/heads/main/img/yabdp_sera.gif",
+      description: "sera so silly ;3"
+    }
+  },
+  contributors: {
+    ids: specialThanks,
+    badge: {
+      id: "yabdp_contributor",
+      iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi_red.gif",
+      description: "YABDP4Nitro Contributor!",
+      link: "https://github.com/riolubruh/YABDP4Nitro#contributors"
+    }
+  }
+};
+var defaultBadge = {
+  id: "yabdp_user",
+  iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
+  description: "A fellow YABDP4Nitro user!",
+  link: "https://github.com/riolubruh/YABDP4Nitro"
+};
+var BadgesStore_default = new class BadgesStore {
+  foundUsers = [];
+  add(id) {
+    if (!this.foundUsers.includes(id)) {
+      this.foundUsers.push(id);
+    }
+  }
+  check(id) {
+    return this.foundUsers.includes(id) || this.isImportant(id);
+  }
+  isImportant(id) {
+    return Object.values(Badges).some((category) => category.ids.includes(id));
+  }
+  findBadgesForUser(id) {
+    return Object.values(Badges).filter((category) => category.ids.includes(id)).map((category) => category.badge);
+  }
+  returnRespondingBadges(id) {
+    const categories = Object.values(Badges).filter((x) => x.ids.includes(id));
+    return categories.length ? categories.map((x) => x.badge) : [defaultBadge];
+  }
+  unload() {
+    this.foundUsers = [];
+  }
+};
+
+// src/utils/index.tsx
+var { UserProfileStore, SelectedGuildStore, PresenceStore, ChannelStore } = BetterDiscord.Webpack.Stores;
+var DiscordCopyToClipboardFn = BetterDiscord.Webpack.getByStrings("await window.navigator.clipboard.writeText", { searchExports: true });
+function getRevealedTextPerServer(userId, shouldInclude = "") {
+  const guildId = SelectedGuildStore.getGuildId();
+  if (!guildId)
+    return;
+  const userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+  userGuildProfile && Object.defineProperty(userGuildProfile, "guildId", { value: guildId });
+  userGuildProfile && CustomUserProfileStore_default.cacheMember(userGuildProfile);
+  if (userGuildProfile?.pronouns && userGuildProfile.pronouns.includes(shouldInclude)) {
+    const revealed = secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+    revealed && BadgesStore_default.add(userId);
+    return revealed;
+  }
+  if (userGuildProfile?.bio && userGuildProfile.bio.includes(shouldInclude)) {
+    const revealed = secondsightifyRevealOnly(String(userGuildProfile.bio));
+    revealed && BadgesStore_default.add(userId);
+    return revealed;
+  }
+}
+function getRevealedText(userId, shouldInclude = "") {
+  const perServer = getRevealedTextPerServer(userId, shouldInclude);
+  if (perServer)
+    return perServer;
+  const bioText = getRevealedTextFromBio(userId, shouldInclude);
+  if (bioText) {
+    BadgesStore_default.add(userId);
+    return bioText;
+  }
+  const statusText = getRevealedTextFromCustomStatus(userId, shouldInclude);
+  if (statusText) {
+    BadgesStore_default.add(userId);
+    return statusText;
+  }
+  return;
+}
+function getRevealedTextFromBio(userId, shouldInclude) {
+  const userProfile = UserProfileStore.getUserProfile(userId);
+  if (!userProfile?.bio?.includes(shouldInclude))
+    return;
+  const revealedText = secondsightifyRevealOnly(userProfile.bio);
+  return revealedText || undefined;
+}
+function getRevealedTextFromCustomStatus(userId, shouldInclude) {
+  let customStatusActivity;
+  try {
+    customStatusActivity = PresenceStore.getActivities(userId).find((activity) => activity.name === "Custom Status" || activity.id === "custom");
+  } catch (err) {
+    BetterDiscord.Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+    return;
+  }
+  if (!customStatusActivity?.state?.includes(shouldInclude))
+    return;
+  const revealedText = secondsightifyRevealOnly(customStatusActivity.state);
+  return revealedText || undefined;
+}
+function secondsightifyRevealOnly(t) {
+  if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
+    return ((t2) => [...t2].map((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631 ? String.fromCodePoint(x.codePointAt(0) - 917504) : x).join(""))(t);
+  } else {
+    return;
+  }
+}
+function secondsightifyEncodeOnly(t) {
+  if ([...t].some((x) => 917504 < x.codePointAt(0) && x.codePointAt(0) < 917631)) {
+    return;
+  } else {
+    return ((t2) => [...t2].map((x) => 0 < x.codePointAt(0) && x.codePointAt(0) < 127 ? String.fromCodePoint(x.codePointAt(0) + 917504) : x).join(""))(t);
+  }
+}
+function shouldSkipEmojiBypass(emoji, currentChannelId) {
+  const shouldAlwaysUseEmojiBypass = SettingsStore_default.get("emojiBypassForValidEmoji");
+  return emoji.type === "UNICODE" || !emoji.guildId || !emoji.id || emoji.useSpriteSheet || shouldAlwaysUseEmojiBypass && (SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available || emoji.managed);
+}
+function getEmojiExtension(emoji) {
+  const pngEmote = SettingsStore_default.get("PNGemote");
+  return `${emoji.animated ? ".webp" : pngEmote ? ".png" : ".webp"}`;
+}
+var EMOJI_PREFIX = "https://cdn.discordapp.com/emojis/";
+function getEmojiUrl(emoji, emojiSize = SettingsStore_default.get("emojiSize")) {
+  return `${EMOJI_PREFIX}${emoji.id}${getEmojiExtension(emoji)}?animated=${emoji.animated}&size=${emojiSize}&quality=lossless`;
+}
+function getEmojiString(emoji) {
+  return `<${emoji.animated ? "a:" : ":"}${emoji.originalName ?? emoji.name}:${emoji.id}>`;
+}
+var styled = new Proxy(styledBase, {
+  get(target, p) {
+    return (cssOrFn) => target(p, cssOrFn);
+  }
+});
+function styledBase(tag, cssOrFn) {
+  return (props) => {
+    const style = typeof cssOrFn === "function" ? cssOrFn(props) : cssOrFn;
+    return React.createElement(tag, { ...props, style: { ...style, ...props.style } });
+  };
+}
+var ContextMenuWrapper = styled.div({
+  display: "flex",
+  flexDirection: "column"
+});
+var ContextMenuLabel = () => /* @__PURE__ */ React.createElement("span", {
+  style: { fontSize: "14px", opacity: 0.6 }
+}, "YABDP4Nitro");
+function copyToClipboard(string, successMessage = undefined, errorMessage = "Failed to copy to clipboard!") {
+  try {
+    DiscordCopyToClipboardFn(string);
+    if (successMessage)
+      BetterDiscord.UI.showToast(successMessage, { type: "info" });
+  } catch (err) {
+    BetterDiscord.UI.showToast(errorMessage, { type: "error", forceShow: true });
+    BetterDiscord.Logger.error(err);
+  }
+}
+var EMOJI_ID_FROM_URL_REGEX = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/g;
+var EMOJI_STRING_REGEX = /<a?:.+?:\d+>/g;
+var HYPERLINK_EMOJI_REGEX = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi;
+var BANNER_REGEX = /B\{[^}]*?\}/;
+var IMGUR_URL_REGEX = /https?:\/\/i\.imgur\.com\/(\w+)\.(?:jpe?g|png|gif|webp)/;
+function getBannerUrl(userId) {
+  const parsed = getRevealedText(userId, `\uDB40\uDC42\uDB40\uDC7B`);
+  const match = parsed?.match(BANNER_REGEX)?.[0];
+  const matched = match?.slice(2, -1);
+  return matched ? `https://i.imgur.com/${matched}.gif` : UserBackgroundStore_default.hasHash(userId) ? UserBackgroundStore_default.format(userId) : null;
+}
+async function getDirectImgurHash(url) {
+  if (url.match(IMGUR_URL_REGEX)?.[1])
+    return url.match(IMGUR_URL_REGEX)?.[1];
+  const res = await (await BetterDiscord.Net.fetch(url)).text();
+  return res.match(IMGUR_URL_REGEX)?.[1];
 }
 
-let controller = new AbortController();
+// src/global/shared/regexReveals.ts
+var regexReveals_default = {
+  PROFILE_EFFECTS: /fx\d+/,
+  DISPLAY_NAME_STYLES: /S\{[^}]*?\}/,
+  DECORATION: /\/a\d+/,
+  NAMEPLATE: /n\{[^}]*?\}/,
+  PROFILE_PICTURE: /P\{[^}]*?\}/,
+  PROFILE_FRAME: /pf\d+/,
+  PROFILE_COLORS: /\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/
+};
 
-//Plugin-wide variables
-let settings = {};
-let data = {};
-let badgeUserIDs = [];
-let fetchedUserBg = false;
-let fetchedUserPfp = false;
-let profileEffects = {};
+// src/global/shared/regexHelpers.ts
+function extractDisplayNameStyles(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.DISPLAY_NAME_STYLES)?.[0]?.slice?.(2, -1)?.split?.(",");
+  return match || null;
+}
+function extractDecoration(revealedText) {
+  if (!revealedText)
+    return null;
+  const skuId = revealedText.match(regexReveals_default.DECORATION)?.[0]?.slice?.(2);
+  return skuId || null;
+}
+function extractNameplate(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.NAMEPLATE)?.[0]?.slice(2, -1)?.split?.(",");
+  return match || null;
+}
+function extractProfileEffects(parsedText) {
+  if (!parsedText)
+    return null;
+  const skuId = parsedText.match(regexReveals_default.PROFILE_EFFECTS)?.[0]?.slice(2);
+  return skuId || null;
+}
+function extractProfileFrame(revealedText) {
+  if (!revealedText)
+    return null;
+  const match = revealedText.match(regexReveals_default.PROFILE_FRAME)?.[0]?.substring(2);
+  return match || null;
+}
+function extractProfilePicture(revealedText) {
+  if (!revealedText)
+    return null;
+  const matches = revealedText.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
+  return matches || null;
+}
+function containsBanner(revealedSurrogate) {
+  return revealedSurrogate?.includes("B{") || false;
+}
+function containsProfileEffects(revealedSurrogate) {
+  return revealedSurrogate?.includes("fx") || false;
+}
+function containsProfileFrame(revealedSurrogate) {
+  return revealedSurrogate?.includes("pf") || false;
+}
 
-// #region Config
-const config = {
-    info: {
-        "name": "YABDP4Nitro",
-        "authors": [{
-            "name": "Riolubruh",
-            "discord_id": "359063827091816448",
-            "github_username": "riolubruh"
-        }],
-        "version": "6.10.9",
-        "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
-        "github": "https://github.com/riolubruh/YABDP4Nitro",
-        "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
-    },
-    changelog: [
-        {
-            title: "6.10.9",
-            items: [
-                "Fixed 3y3 Copying Zone button not appearing when Remove Profile Customization Upsell is enabled or if you are a real Nitro user."
-            ]
+// src/patches/modules/fakeUserProfile.ts
+var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
+function extractProfileColors(string) {
+  if (!string)
+    return null;
+  const match = string.match(regexReveals_default.PROFILE_COLORS);
+  if (!match)
+    return null;
+  return match.slice(1).filter(Boolean).map((x) => parseInt(x, 16));
+}
+var fakeUserProfile_default = {
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
+  ids: undefined,
+  waitFor: [(x) => x.getUser],
+  apply(finale, patcher) {
+    patcher.after(UserProfileStore2, "getUserProfile", (_, [userId], ret) => {
+      const killProfileEffects = SettingsStore_default.get("killProfileEffects");
+      const profileEffectsEnabled = SettingsStore_default.get("profileEffects");
+      const shouldProfileV2 = SettingsStore_default.get("profileV2");
+      const disableUserBadge = SettingsStore_default.get("disableUserBadge");
+      const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
+      const profileFramesEnabled = SettingsStore_default.get("profileFrames");
+      if (!ret)
+        return;
+      const userBio = ret.bio;
+      (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
+      const revealedGlobalBio = secondsightifyRevealOnly(userBio);
+      if (!killProfileEffects && profileEffectsEnabled) {
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+        const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
+        if (parsed && containsProfileEffects(parsed)) {
+          const skuId = extractProfileEffects(parsed);
+          skuId && (ret.profileEffect = {
+            skuId,
+            expiresAt: undefined
+          });
         }
+      }
+      if (killProfileEffects) {
+        ret.profileEffect = {};
+      }
+      if (profileThemesEnabled) {
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
+        const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
+        match && (ret.themeColors = match);
+      }
+      if (profileFramesEnabled) {
+        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+        const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
+        const match = extractProfileFrame(revealedSurrogate);
+        match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
+      }
+      const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) => x?.id?.startsWith("yabdp"));
+      if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
+        if (!ret.badges)
+          ret.badges = [];
+        ret.badges.push(...BadgesStore_default.findBadgesForUser(ret.userId));
+      }
+    });
+  }
+};
+// src/patches/modules/fakeUser.ts
+var { UserStore } = BetterDiscord.Webpack.Stores;
+function getStyleData(surrogate) {
+  const fontId = Number(surrogate?.[0]);
+  const effectId = Number(surrogate?.[1]);
+  const colors = surrogate.slice(2).map(Number);
+  return {
+    fontId,
+    effectId,
+    colors,
+    isNaN: [fontId, effectId, ...colors].some((id) => Number.isNaN(id))
+  };
+}
+var fakeUser_default = {
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
+  ids: undefined,
+  waitFor: [(x) => x.getUser],
+  apply(finale, patcher) {
+    patcher.after(UserStore, "getUser", (_, [userId], ret) => {
+      const dnsEnabled = SettingsStore_default.get("displayNameStyles");
+      const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
+      const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
+      if (dnsEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
+        const match = extractDisplayNameStyles(revealedText);
+        if (match) {
+          const styleData = getStyleData(match);
+          if (styleData && !styleData.isNaN) {
+            Object.defineProperty(ret, "displayNameStyles", {
+              value: {
+                fontId: styleData.fontId,
+                effectId: styleData.effectId,
+                colors: styleData.colors
+              },
+              enumerable: true,
+              writable: true,
+              configurable: true
+            });
+          }
+        }
+      }
+      if (decorEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
+        const skuId = extractDecoration(revealedText);
+        if (skuId) {
+          ret.avatarDecorationData = {
+            skuId
+          };
+        }
+      }
+      if (nameplatesEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
+        const match = extractNameplate(revealedText);
+        if (match) {
+          const [skuId, palette] = match;
+          !ret.collectibles && (ret.collectibles = {});
+          ret.collectibles.nameplate = {
+            skuId,
+            palette
+          };
+        }
+      }
+    });
+  }
+};
+// src/patches/modules/allowClips.ts
+var { ClipsStore } = BetterDiscord.Webpack.Stores;
+var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource("useEnableClips");
+var allowClips_default = {
+  name: "allowClips",
+  description: "Allow clips",
+  waitFor: [GLOBAL_SOURCE],
+  mangled: {
+    areClipsEnabled: (x) => x.toString().includes("areClipsEnabled")
+  },
+  apply(finale, patcher) {
+    Object.entries(finale.mangled).map(([key, value]) => {
+      patcher.instead(finale.mangled, key, (_, __, originalFunction) => {
+        const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+        if (useClipBypass || useAudioClipBypass || zipClip)
+          return true;
+        else
+          return originalFunction();
+      });
+    });
+    [
+      "isViewerClippingAllowedForUser",
+      "isClipsEnabledForUser",
+      "isVoiceRecordingAllowedForUse"
+    ].map((x) => patcher.instead(ClipsStore, x, (_, __, originalFunction) => {
+      const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+      if (useClipBypass || useAudioClipBypass || zipClip)
+        return true;
+      else
+        return originalFunction();
+    }));
+  }
+};
+// bdapi-react-shim:react
+var Children = BdApi.React["Children"];
+var Component = BdApi.React["Component"];
+var Fragment = BdApi.React["Fragment"];
+var Profiler = BdApi.React["Profiler"];
+var PureComponent = BdApi.React["PureComponent"];
+var StrictMode = BdApi.React["StrictMode"];
+var Suspense = BdApi.React["Suspense"];
+var cloneElement = BdApi.React["cloneElement"];
+var createContext = BdApi.React["createContext"];
+var createElement = BdApi.React["createElement"];
+var createFactory = BdApi.React["createFactory"];
+var createRef = BdApi.React["createRef"];
+var forwardRef = BdApi.React["forwardRef"];
+var isValidElement = BdApi.React["isValidElement"];
+var lazy = BdApi.React["lazy"];
+var memo = BdApi.React["memo"];
+var startTransition = BdApi.React["startTransition"];
+var unstable_act = BdApi.React["unstable_act"];
+var useCallback = BdApi.React["useCallback"];
+var useContext = BdApi.React["useContext"];
+var useDebugValue = BdApi.React["useDebugValue"];
+var useDeferredValue = BdApi.React["useDeferredValue"];
+var useEffect = BdApi.React["useEffect"];
+var useId = BdApi.React["useId"];
+var useImperativeHandle = BdApi.React["useImperativeHandle"];
+var useInsertionEffect = BdApi.React["useInsertionEffect"];
+var useLayoutEffect = BdApi.React["useLayoutEffect"];
+var useMemo = BdApi.React["useMemo"];
+var useReducer = BdApi.React["useReducer"];
+var useRef = BdApi.React["useRef"];
+var useState = BdApi.React["useState"];
+var useSyncExternalStore = BdApi.React["useSyncExternalStore"];
+var useTransition = BdApi.React["useTransition"];
+var version = BdApi.React["version"];
+var react_default = BdApi.React;
+
+// node_modules/@iconify/react/dist/iconify.js
+"use client";
+function getIconsTree(data, names) {
+  const icons = data.icons;
+  const aliases = data.aliases || Object.create(null);
+  const resolved = Object.create(null);
+  function resolve(name) {
+    if (icons[name])
+      return resolved[name] = [];
+    if (!(name in resolved)) {
+      resolved[name] = null;
+      const parent = aliases[name] && aliases[name].parent;
+      const value = parent && resolve(parent);
+      if (value)
+        resolved[name] = [parent].concat(value);
+    }
+    return resolved[name];
+  }
+  Object.keys(icons).concat(Object.keys(aliases)).forEach(resolve);
+  return resolved;
+}
+var defaultIconDimensions = Object.freeze({
+  left: 0,
+  top: 0,
+  width: 16,
+  height: 16
+});
+var defaultIconTransformations = Object.freeze({
+  rotate: 0,
+  vFlip: false,
+  hFlip: false
+});
+var defaultIconProps = Object.freeze({
+  ...defaultIconDimensions,
+  ...defaultIconTransformations
+});
+var defaultExtendedIconProps = Object.freeze({
+  ...defaultIconProps,
+  body: "",
+  hidden: false
+});
+function mergeIconTransformations(obj1, obj2) {
+  const result = {};
+  if (!obj1.hFlip !== !obj2.hFlip)
+    result.hFlip = true;
+  if (!obj1.vFlip !== !obj2.vFlip)
+    result.vFlip = true;
+  const rotate = ((obj1.rotate || 0) + (obj2.rotate || 0)) % 4;
+  if (rotate)
+    result.rotate = rotate;
+  return result;
+}
+function mergeIconData(parent, child) {
+  const result = mergeIconTransformations(parent, child);
+  for (const key in defaultExtendedIconProps)
+    if (key in defaultIconTransformations) {
+      if (key in parent && !(key in result))
+        result[key] = defaultIconTransformations[key];
+    } else if (key in child)
+      result[key] = child[key];
+    else if (key in parent)
+      result[key] = parent[key];
+  return result;
+}
+function internalGetIconData(data, name, tree) {
+  const icons = data.icons;
+  const aliases = data.aliases || Object.create(null);
+  let currentProps = {};
+  function parse(name$1) {
+    currentProps = mergeIconData(icons[name$1] || aliases[name$1], currentProps);
+  }
+  parse(name);
+  tree.forEach(parse);
+  return mergeIconData(data, currentProps);
+}
+function parseIconSet(data, callback) {
+  const names = [];
+  if (typeof data !== "object" || typeof data.icons !== "object")
+    return names;
+  if (data.not_found instanceof Array)
+    data.not_found.forEach((name) => {
+      callback(name, null);
+      names.push(name);
+    });
+  const tree = getIconsTree(data);
+  for (const name in tree) {
+    const item = tree[name];
+    if (item) {
+      callback(name, internalGetIconData(data, name, item));
+      names.push(name);
+    }
+  }
+  return names;
+}
+var optionalPropertyDefaults = {
+  provider: "",
+  aliases: {},
+  not_found: {},
+  ...defaultIconDimensions
+};
+function checkOptionalProps(item, defaults) {
+  for (const prop in defaults)
+    if (prop in item && typeof item[prop] !== typeof defaults[prop])
+      return false;
+  return true;
+}
+function quicklyValidateIconSet(obj) {
+  if (typeof obj !== "object" || obj === null)
+    return null;
+  const data = obj;
+  if (typeof data.prefix !== "string" || !obj.icons || typeof obj.icons !== "object")
+    return null;
+  if (!checkOptionalProps(obj, optionalPropertyDefaults))
+    return null;
+  const icons = data.icons;
+  for (const name in icons) {
+    const icon = icons[name];
+    if (!name || typeof icon.body !== "string" || !checkOptionalProps(icon, defaultExtendedIconProps))
+      return null;
+  }
+  const aliases = data.aliases || Object.create(null);
+  for (const name in aliases) {
+    const icon = aliases[name];
+    const parent = icon.parent;
+    if (!name || typeof parent !== "string" || !icons[parent] && !aliases[parent] || !checkOptionalProps(icon, defaultExtendedIconProps))
+      return null;
+  }
+  return data;
+}
+var dataStorage = Object.create(null);
+function newStorage(provider, prefix) {
+  return {
+    provider,
+    prefix,
+    icons: Object.create(null),
+    missing: /* @__PURE__ */ new Set
+  };
+}
+function getStorage(provider, prefix) {
+  const providerStorage = dataStorage[provider] || (dataStorage[provider] = Object.create(null));
+  return providerStorage[prefix] || (providerStorage[prefix] = newStorage(provider, prefix));
+}
+function addIconSet(storage, data) {
+  if (!quicklyValidateIconSet(data))
+    return [];
+  return parseIconSet(data, (name, icon) => {
+    if (icon)
+      storage.icons[name] = icon;
+    else
+      storage.missing.add(name);
+  });
+}
+function addIconToStorage(storage, name, icon) {
+  try {
+    if (typeof icon.body === "string") {
+      storage.icons[name] = { ...icon };
+      return true;
+    }
+  } catch (err) {}
+  return false;
+}
+var matchIconName = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+var stringToIcon = (value, validate, allowSimpleName, provider = "") => {
+  const colonSeparated = value.split(":");
+  if (value.slice(0, 1) === "@") {
+    if (colonSeparated.length < 2 || colonSeparated.length > 3)
+      return null;
+    provider = colonSeparated.shift().slice(1);
+  }
+  if (colonSeparated.length > 3 || !colonSeparated.length)
+    return null;
+  if (colonSeparated.length > 1) {
+    const name$1 = colonSeparated.pop();
+    const prefix = colonSeparated.pop();
+    const result = {
+      provider: colonSeparated.length > 0 ? colonSeparated[0] : provider,
+      prefix,
+      name: name$1
+    };
+    return validate && !validateIconName(result) ? null : result;
+  }
+  const name = colonSeparated[0];
+  const dashSeparated = name.split("-");
+  if (dashSeparated.length > 1) {
+    const result = {
+      provider,
+      prefix: dashSeparated.shift(),
+      name: dashSeparated.join("-")
+    };
+    return validate && !validateIconName(result) ? null : result;
+  }
+  if (allowSimpleName && provider === "") {
+    const result = {
+      provider,
+      prefix: "",
+      name
+    };
+    return validate && !validateIconName(result, allowSimpleName) ? null : result;
+  }
+  return null;
+};
+var validateIconName = (icon, allowSimpleName) => {
+  if (!icon)
+    return false;
+  return !!((allowSimpleName && icon.prefix === "" || !!icon.prefix) && !!icon.name);
+};
+var simpleNames = false;
+function allowSimpleNames(allow) {
+  if (typeof allow === "boolean")
+    simpleNames = allow;
+  return simpleNames;
+}
+function getIconData(name) {
+  const icon = typeof name === "string" ? stringToIcon(name, true, simpleNames) : name;
+  if (icon) {
+    const storage = getStorage(icon.provider, icon.prefix);
+    const iconName = icon.name;
+    return storage.icons[iconName] || (storage.missing.has(iconName) ? null : undefined);
+  }
+}
+function addIcon(name, data) {
+  const icon = stringToIcon(name, true, simpleNames);
+  if (!icon)
+    return false;
+  const storage = getStorage(icon.provider, icon.prefix);
+  if (data)
+    return addIconToStorage(storage, icon.name, data);
+  else {
+    storage.missing.add(icon.name);
+    return true;
+  }
+}
+function addCollection(data, provider) {
+  if (typeof data !== "object")
+    return false;
+  if (typeof provider !== "string")
+    provider = data.provider || "";
+  if (simpleNames && !provider && !data.prefix) {
+    let added = false;
+    if (quicklyValidateIconSet(data)) {
+      data.prefix = "";
+      parseIconSet(data, (name, icon) => {
+        if (addIcon(name, icon))
+          added = true;
+      });
+    }
+    return added;
+  }
+  const prefix = data.prefix;
+  if (!validateIconName({
+    prefix,
+    name: "a"
+  }))
+    return false;
+  const storage = getStorage(provider, prefix);
+  return !!addIconSet(storage, data);
+}
+var defaultIconSizeCustomisations = Object.freeze({
+  width: null,
+  height: null
+});
+var defaultIconCustomisations = Object.freeze({
+  ...defaultIconSizeCustomisations,
+  ...defaultIconTransformations
+});
+var unitsSplit = /(-?[0-9.]*[0-9]+[0-9.]*)/g;
+var unitsTest = /^-?[0-9.]*[0-9]+[0-9.]*$/g;
+function calculateSize(size, ratio, precision) {
+  if (ratio === 1)
+    return size;
+  precision = precision || 100;
+  if (typeof size === "number")
+    return Math.ceil(size * ratio * precision) / precision;
+  if (typeof size !== "string")
+    return size;
+  const oldParts = size.split(unitsSplit);
+  if (oldParts === null || !oldParts.length)
+    return size;
+  const newParts = [];
+  let code = oldParts.shift();
+  let isNumber = unitsTest.test(code);
+  while (true) {
+    if (isNumber) {
+      const num = parseFloat(code);
+      if (isNaN(num))
+        newParts.push(code);
+      else
+        newParts.push(Math.ceil(num * ratio * precision) / precision);
+    } else
+      newParts.push(code);
+    code = oldParts.shift();
+    if (code === undefined)
+      return newParts.join("");
+    isNumber = !isNumber;
+  }
+}
+function splitSVGDefs(content, tag = "defs") {
+  let defs = "";
+  const index = content.indexOf("<" + tag);
+  while (index >= 0) {
+    const start = content.indexOf(">", index);
+    const end = content.indexOf("</" + tag);
+    if (start === -1 || end === -1)
+      break;
+    const endEnd = content.indexOf(">", end);
+    if (endEnd === -1)
+      break;
+    defs += content.slice(start + 1, end).trim();
+    content = content.slice(0, index).trim() + content.slice(endEnd + 1);
+  }
+  return {
+    defs,
+    content
+  };
+}
+function mergeDefsAndContent(defs, content) {
+  return defs ? "<defs>" + defs + "</defs>" + content : content;
+}
+function wrapSVGContent(body, start, end) {
+  const split = splitSVGDefs(body);
+  return mergeDefsAndContent(split.defs, start + split.content + end);
+}
+var isUnsetKeyword = (value) => value === "unset" || value === "undefined" || value === "none";
+function iconToSVG(icon, customisations) {
+  const fullIcon = {
+    ...defaultIconProps,
+    ...icon
+  };
+  const fullCustomisations = {
+    ...defaultIconCustomisations,
+    ...customisations
+  };
+  const box = {
+    left: fullIcon.left,
+    top: fullIcon.top,
+    width: fullIcon.width,
+    height: fullIcon.height
+  };
+  let body = fullIcon.body;
+  [fullIcon, fullCustomisations].forEach((props) => {
+    const transformations = [];
+    const hFlip = props.hFlip;
+    const vFlip = props.vFlip;
+    let rotation = props.rotate;
+    if (hFlip)
+      if (vFlip)
+        rotation += 2;
+      else {
+        transformations.push("translate(" + (box.width + box.left).toString() + " " + (0 - box.top).toString() + ")");
+        transformations.push("scale(-1 1)");
+        box.top = box.left = 0;
+      }
+    else if (vFlip) {
+      transformations.push("translate(" + (0 - box.left).toString() + " " + (box.height + box.top).toString() + ")");
+      transformations.push("scale(1 -1)");
+      box.top = box.left = 0;
+    }
+    let tempValue;
+    if (rotation < 0)
+      rotation -= Math.floor(rotation / 4) * 4;
+    rotation = rotation % 4;
+    switch (rotation) {
+      case 1:
+        tempValue = box.height / 2 + box.top;
+        transformations.unshift("rotate(90 " + tempValue.toString() + " " + tempValue.toString() + ")");
+        break;
+      case 2:
+        transformations.unshift("rotate(180 " + (box.width / 2 + box.left).toString() + " " + (box.height / 2 + box.top).toString() + ")");
+        break;
+      case 3:
+        tempValue = box.width / 2 + box.left;
+        transformations.unshift("rotate(-90 " + tempValue.toString() + " " + tempValue.toString() + ")");
+        break;
+    }
+    if (rotation % 2 === 1) {
+      if (box.left !== box.top) {
+        tempValue = box.left;
+        box.left = box.top;
+        box.top = tempValue;
+      }
+      if (box.width !== box.height) {
+        tempValue = box.width;
+        box.width = box.height;
+        box.height = tempValue;
+      }
+    }
+    if (transformations.length)
+      body = wrapSVGContent(body, '<g transform="' + transformations.join(" ") + '">', "</g>");
+  });
+  const customisationsWidth = fullCustomisations.width;
+  const customisationsHeight = fullCustomisations.height;
+  const boxWidth = box.width;
+  const boxHeight = box.height;
+  let width;
+  let height;
+  if (customisationsWidth === null) {
+    height = customisationsHeight === null ? "1em" : customisationsHeight === "auto" ? boxHeight : customisationsHeight;
+    width = calculateSize(height, boxWidth / boxHeight);
+  } else {
+    width = customisationsWidth === "auto" ? boxWidth : customisationsWidth;
+    height = customisationsHeight === null ? calculateSize(width, boxHeight / boxWidth) : customisationsHeight === "auto" ? boxHeight : customisationsHeight;
+  }
+  const attributes = {};
+  const setAttr = (prop, value) => {
+    if (!isUnsetKeyword(value))
+      attributes[prop] = value.toString();
+  };
+  setAttr("width", width);
+  setAttr("height", height);
+  const viewBox = [
+    box.left,
+    box.top,
+    boxWidth,
+    boxHeight
+  ];
+  attributes.viewBox = viewBox.join(" ");
+  return {
+    attributes,
+    viewBox,
+    body
+  };
+}
+var regex = /\sid="(\S+)"/g;
+var randomPrefix = "IconifyId" + Date.now().toString(16) + (Math.random() * 16777216 | 0).toString(16);
+var counter = 0;
+function replaceIDs(body, prefix = randomPrefix) {
+  const ids = [];
+  let match;
+  while (match = regex.exec(body))
+    ids.push(match[1]);
+  if (!ids.length)
+    return body;
+  const suffix = "suffix" + (Math.random() * 16777216 | Date.now()).toString(16);
+  ids.forEach((id) => {
+    const newID = typeof prefix === "function" ? prefix(id) : prefix + (counter++).toString();
+    const escapedID = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    body = body.replace(new RegExp('([#;"])(' + escapedID + ')([")]|\\.[a-z])', "g"), "$1" + newID + suffix + "$3");
+  });
+  body = body.replace(new RegExp(suffix, "g"), "");
+  return body;
+}
+var storage = Object.create(null);
+function setAPIModule(provider, item) {
+  storage[provider] = item;
+}
+function getAPIModule(provider) {
+  return storage[provider] || storage[""];
+}
+function createAPIConfig(source) {
+  let resources;
+  if (typeof source.resources === "string")
+    resources = [source.resources];
+  else {
+    resources = source.resources;
+    if (!(resources instanceof Array) || !resources.length)
+      return null;
+  }
+  const result = {
+    resources,
+    path: source.path || "/",
+    maxURL: source.maxURL || 500,
+    rotate: source.rotate || 750,
+    timeout: source.timeout || 5000,
+    random: source.random === true,
+    index: source.index || 0,
+    dataAfterTimeout: source.dataAfterTimeout !== false
+  };
+  return result;
+}
+var configStorage = Object.create(null);
+var fallBackAPISources = ["https://api.simplesvg.com", "https://api.unisvg.com"];
+var fallBackAPI = [];
+while (fallBackAPISources.length > 0)
+  if (fallBackAPISources.length === 1)
+    fallBackAPI.push(fallBackAPISources.shift());
+  else if (Math.random() > 0.5)
+    fallBackAPI.push(fallBackAPISources.shift());
+  else
+    fallBackAPI.push(fallBackAPISources.pop());
+configStorage[""] = createAPIConfig({ resources: ["https://api.iconify.design"].concat(fallBackAPI) });
+function addAPIProvider(provider, customConfig) {
+  const config = createAPIConfig(customConfig);
+  if (config === null)
+    return false;
+  configStorage[provider] = config;
+  return true;
+}
+function getAPIConfig(provider) {
+  return configStorage[provider];
+}
+var detectFetch = () => {
+  let callback;
+  try {
+    callback = fetch;
+    if (typeof callback === "function")
+      return callback;
+  } catch (err) {}
+};
+var fetchModule = detectFetch();
+function calculateMaxLength(provider, prefix) {
+  const config = getAPIConfig(provider);
+  if (!config)
+    return 0;
+  let result;
+  if (!config.maxURL)
+    result = 0;
+  else {
+    let maxHostLength = 0;
+    config.resources.forEach((item) => {
+      const host = item;
+      maxHostLength = Math.max(maxHostLength, host.length);
+    });
+    const url = prefix + ".json?icons=";
+    result = config.maxURL - maxHostLength - config.path.length - url.length;
+  }
+  return result;
+}
+function shouldAbort(status) {
+  return status === 404;
+}
+var prepare = (provider, prefix, icons) => {
+  const results = [];
+  const maxLength = calculateMaxLength(provider, prefix);
+  const type = "icons";
+  let item = {
+    type,
+    provider,
+    prefix,
+    icons: []
+  };
+  let length = 0;
+  icons.forEach((name, index) => {
+    length += name.length + 1;
+    if (length >= maxLength && index > 0) {
+      results.push(item);
+      item = {
+        type,
+        provider,
+        prefix,
+        icons: []
+      };
+      length = name.length;
+    }
+    item.icons.push(name);
+  });
+  results.push(item);
+  return results;
+};
+function getPath(provider) {
+  if (typeof provider === "string") {
+    const config = getAPIConfig(provider);
+    if (config)
+      return config.path;
+  }
+  return "/";
+}
+var send = (host, params, callback) => {
+  if (!fetchModule) {
+    callback("abort", 424);
+    return;
+  }
+  let path = getPath(params.provider);
+  switch (params.type) {
+    case "icons": {
+      const prefix = params.prefix;
+      const icons = params.icons;
+      const iconsList = icons.join(",");
+      const urlParams = new URLSearchParams({ icons: iconsList });
+      path += prefix + ".json?" + urlParams.toString();
+      break;
+    }
+    case "custom": {
+      const uri = params.uri;
+      path += uri.slice(0, 1) === "/" ? uri.slice(1) : uri;
+      break;
+    }
+    default:
+      callback("abort", 400);
+      return;
+  }
+  let defaultError = 503;
+  fetchModule(host + path).then((response) => {
+    const status = response.status;
+    if (status !== 200) {
+      setTimeout(() => {
+        callback(shouldAbort(status) ? "abort" : "next", status);
+      });
+      return;
+    }
+    defaultError = 501;
+    return response.json();
+  }).then((data) => {
+    if (typeof data !== "object" || data === null) {
+      setTimeout(() => {
+        if (data === 404)
+          callback("abort", data);
+        else
+          callback("next", defaultError);
+      });
+      return;
+    }
+    setTimeout(() => {
+      callback("success", data);
+    });
+  }).catch(() => {
+    callback("next", defaultError);
+  });
+};
+var fetchAPIModule = {
+  prepare,
+  send
+};
+function removeCallback(storages, id) {
+  storages.forEach((storage2) => {
+    const items = storage2.loaderCallbacks;
+    if (items)
+      storage2.loaderCallbacks = items.filter((row) => row.id !== id);
+  });
+}
+function updateCallbacks(storage2) {
+  if (!storage2.pendingCallbacksFlag) {
+    storage2.pendingCallbacksFlag = true;
+    setTimeout(() => {
+      storage2.pendingCallbacksFlag = false;
+      const items = storage2.loaderCallbacks ? storage2.loaderCallbacks.slice(0) : [];
+      if (!items.length)
+        return;
+      let hasPending = false;
+      const provider = storage2.provider;
+      const prefix = storage2.prefix;
+      items.forEach((item) => {
+        const icons = item.icons;
+        const oldLength = icons.pending.length;
+        icons.pending = icons.pending.filter((icon) => {
+          if (icon.prefix !== prefix)
+            return true;
+          const name = icon.name;
+          if (storage2.icons[name])
+            icons.loaded.push({
+              provider,
+              prefix,
+              name
+            });
+          else if (storage2.missing.has(name))
+            icons.missing.push({
+              provider,
+              prefix,
+              name
+            });
+          else {
+            hasPending = true;
+            return true;
+          }
+          return false;
+        });
+        if (icons.pending.length !== oldLength) {
+          if (!hasPending)
+            removeCallback([storage2], item.id);
+          item.callback(icons.loaded.slice(0), icons.missing.slice(0), icons.pending.slice(0), item.abort);
+        }
+      });
+    });
+  }
+}
+var idCounter = 0;
+function storeCallback(callback, icons, pendingSources) {
+  const id = idCounter++;
+  const abort = removeCallback.bind(null, pendingSources, id);
+  if (!icons.pending.length)
+    return abort;
+  const item = {
+    id,
+    icons,
+    callback,
+    abort
+  };
+  pendingSources.forEach((storage2) => {
+    (storage2.loaderCallbacks || (storage2.loaderCallbacks = [])).push(item);
+  });
+  return abort;
+}
+function sortIcons(icons) {
+  const result = {
+    loaded: [],
+    missing: [],
+    pending: []
+  };
+  const storage2 = Object.create(null);
+  icons.sort((a, b) => {
+    if (a.provider !== b.provider)
+      return a.provider.localeCompare(b.provider);
+    if (a.prefix !== b.prefix)
+      return a.prefix.localeCompare(b.prefix);
+    return a.name.localeCompare(b.name);
+  });
+  let lastIcon = {
+    provider: "",
+    prefix: "",
+    name: ""
+  };
+  icons.forEach((icon) => {
+    if (lastIcon.name === icon.name && lastIcon.prefix === icon.prefix && lastIcon.provider === icon.provider)
+      return;
+    lastIcon = icon;
+    const provider = icon.provider;
+    const prefix = icon.prefix;
+    const name = icon.name;
+    const providerStorage = storage2[provider] || (storage2[provider] = Object.create(null));
+    const localStorage = providerStorage[prefix] || (providerStorage[prefix] = getStorage(provider, prefix));
+    let list;
+    if (name in localStorage.icons)
+      list = result.loaded;
+    else if (prefix === "" || localStorage.missing.has(name))
+      list = result.missing;
+    else
+      list = result.pending;
+    const item = {
+      provider,
+      prefix,
+      name
+    };
+    list.push(item);
+  });
+  return result;
+}
+function listToIcons(list, validate = true, simpleNames2 = false) {
+  const result = [];
+  list.forEach((item) => {
+    const icon = typeof item === "string" ? stringToIcon(item, validate, simpleNames2) : item;
+    if (icon)
+      result.push(icon);
+  });
+  return result;
+}
+var defaultConfig = {
+  resources: [],
+  index: 0,
+  timeout: 2000,
+  rotate: 750,
+  random: false,
+  dataAfterTimeout: false
+};
+function sendQuery(config, payload, query, done) {
+  const resourcesCount = config.resources.length;
+  const startIndex = config.random ? Math.floor(Math.random() * resourcesCount) : config.index;
+  let resources;
+  if (config.random) {
+    let list = config.resources.slice(0);
+    resources = [];
+    while (list.length > 1) {
+      const nextIndex = Math.floor(Math.random() * list.length);
+      resources.push(list[nextIndex]);
+      list = list.slice(0, nextIndex).concat(list.slice(nextIndex + 1));
+    }
+    resources = resources.concat(list);
+  } else
+    resources = config.resources.slice(startIndex).concat(config.resources.slice(0, startIndex));
+  const startTime = Date.now();
+  let status = "pending";
+  let queriesSent = 0;
+  let lastError;
+  let timer = null;
+  let queue = [];
+  let doneCallbacks = [];
+  if (typeof done === "function")
+    doneCallbacks.push(done);
+  function resetTimer() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+  function abort() {
+    if (status === "pending")
+      status = "aborted";
+    resetTimer();
+    queue.forEach((item) => {
+      if (item.status === "pending")
+        item.status = "aborted";
+    });
+    queue = [];
+  }
+  function subscribe(callback, overwrite) {
+    if (overwrite)
+      doneCallbacks = [];
+    if (typeof callback === "function")
+      doneCallbacks.push(callback);
+  }
+  function getQueryStatus() {
+    return {
+      startTime,
+      payload,
+      status,
+      queriesSent,
+      queriesPending: queue.length,
+      subscribe,
+      abort
+    };
+  }
+  function failQuery() {
+    status = "failed";
+    doneCallbacks.forEach((callback) => {
+      callback(undefined, lastError);
+    });
+  }
+  function clearQueue() {
+    queue.forEach((item) => {
+      if (item.status === "pending")
+        item.status = "aborted";
+    });
+    queue = [];
+  }
+  function moduleResponse(item, response, data) {
+    const isError = response !== "success";
+    queue = queue.filter((queued) => queued !== item);
+    switch (status) {
+      case "pending":
+        break;
+      case "failed":
+        if (isError || !config.dataAfterTimeout)
+          return;
+        break;
+      default:
+        return;
+    }
+    if (response === "abort") {
+      lastError = data;
+      failQuery();
+      return;
+    }
+    if (isError) {
+      lastError = data;
+      if (!queue.length)
+        if (!resources.length)
+          failQuery();
+        else
+          execNext();
+      return;
+    }
+    resetTimer();
+    clearQueue();
+    if (!config.random) {
+      const index = config.resources.indexOf(item.resource);
+      if (index !== -1 && index !== config.index)
+        config.index = index;
+    }
+    status = "completed";
+    doneCallbacks.forEach((callback) => {
+      callback(data);
+    });
+  }
+  function execNext() {
+    if (status !== "pending")
+      return;
+    resetTimer();
+    const resource = resources.shift();
+    if (resource === undefined) {
+      if (queue.length) {
+        timer = setTimeout(() => {
+          resetTimer();
+          if (status === "pending") {
+            clearQueue();
+            failQuery();
+          }
+        }, config.timeout);
+        return;
+      }
+      failQuery();
+      return;
+    }
+    const item = {
+      status: "pending",
+      resource,
+      callback: (status$1, data) => {
+        moduleResponse(item, status$1, data);
+      }
+    };
+    queue.push(item);
+    queriesSent++;
+    timer = setTimeout(execNext, config.rotate);
+    query(resource, payload, item.callback);
+  }
+  setTimeout(execNext);
+  return getQueryStatus;
+}
+function initRedundancy(cfg) {
+  const config = {
+    ...defaultConfig,
+    ...cfg
+  };
+  let queries = [];
+  function cleanup() {
+    queries = queries.filter((item) => item().status === "pending");
+  }
+  function query(payload, queryCallback, doneCallback) {
+    const query$1 = sendQuery(config, payload, queryCallback, (data, error) => {
+      cleanup();
+      if (doneCallback)
+        doneCallback(data, error);
+    });
+    queries.push(query$1);
+    return query$1;
+  }
+  function find(callback) {
+    return queries.find((value) => {
+      return callback(value);
+    }) || null;
+  }
+  const instance = {
+    query,
+    find,
+    setIndex: (index) => {
+      config.index = index;
+    },
+    getIndex: () => config.index,
+    cleanup
+  };
+  return instance;
+}
+function emptyCallback$1() {}
+var redundancyCache = Object.create(null);
+function getRedundancyCache(provider) {
+  if (!redundancyCache[provider]) {
+    const config = getAPIConfig(provider);
+    if (!config)
+      return;
+    const redundancy = initRedundancy(config);
+    const cachedReundancy = {
+      config,
+      redundancy
+    };
+    redundancyCache[provider] = cachedReundancy;
+  }
+  return redundancyCache[provider];
+}
+function sendAPIQuery(target, query, callback) {
+  let redundancy;
+  let send2;
+  if (typeof target === "string") {
+    const api = getAPIModule(target);
+    if (!api) {
+      callback(undefined, 424);
+      return emptyCallback$1;
+    }
+    send2 = api.send;
+    const cached = getRedundancyCache(target);
+    if (cached)
+      redundancy = cached.redundancy;
+  } else {
+    const config = createAPIConfig(target);
+    if (config) {
+      redundancy = initRedundancy(config);
+      const moduleKey = target.resources ? target.resources[0] : "";
+      const api = getAPIModule(moduleKey);
+      if (api)
+        send2 = api.send;
+    }
+  }
+  if (!redundancy || !send2) {
+    callback(undefined, 424);
+    return emptyCallback$1;
+  }
+  return redundancy.query(query, send2, callback)().abort;
+}
+function emptyCallback() {}
+function loadedNewIcons(storage2) {
+  if (!storage2.iconsLoaderFlag) {
+    storage2.iconsLoaderFlag = true;
+    setTimeout(() => {
+      storage2.iconsLoaderFlag = false;
+      updateCallbacks(storage2);
+    });
+  }
+}
+function checkIconNamesForAPI(icons) {
+  const valid = [];
+  const invalid = [];
+  icons.forEach((name) => {
+    (name.match(matchIconName) ? valid : invalid).push(name);
+  });
+  return {
+    valid,
+    invalid
+  };
+}
+function parseLoaderResponse(storage2, icons, data) {
+  function checkMissing() {
+    const pending = storage2.pendingIcons;
+    icons.forEach((name) => {
+      if (pending)
+        pending.delete(name);
+      if (!storage2.icons[name])
+        storage2.missing.add(name);
+    });
+  }
+  if (data && typeof data === "object")
+    try {
+      const parsed = addIconSet(storage2, data);
+      if (!parsed.length) {
+        checkMissing();
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  checkMissing();
+  loadedNewIcons(storage2);
+}
+function parsePossiblyAsyncResponse(response, callback) {
+  if (response instanceof Promise)
+    response.then((data) => {
+      callback(data);
+    }).catch(() => {
+      callback(null);
+    });
+  else
+    callback(response);
+}
+function loadNewIcons(storage2, icons) {
+  if (!storage2.iconsToLoad)
+    storage2.iconsToLoad = icons;
+  else
+    storage2.iconsToLoad = storage2.iconsToLoad.concat(icons).sort();
+  if (!storage2.iconsQueueFlag) {
+    storage2.iconsQueueFlag = true;
+    setTimeout(() => {
+      storage2.iconsQueueFlag = false;
+      const { provider, prefix } = storage2;
+      const icons$1 = storage2.iconsToLoad;
+      delete storage2.iconsToLoad;
+      if (!icons$1 || !icons$1.length)
+        return;
+      const customIconLoader = storage2.loadIcon;
+      if (storage2.loadIcons && (icons$1.length > 1 || !customIconLoader)) {
+        parsePossiblyAsyncResponse(storage2.loadIcons(icons$1, prefix, provider), (data) => {
+          parseLoaderResponse(storage2, icons$1, data);
+        });
+        return;
+      }
+      if (customIconLoader) {
+        icons$1.forEach((name) => {
+          const response = customIconLoader(name, prefix, provider);
+          parsePossiblyAsyncResponse(response, (data) => {
+            const iconSet = data ? {
+              prefix,
+              icons: { [name]: data }
+            } : null;
+            parseLoaderResponse(storage2, [name], iconSet);
+          });
+        });
+        return;
+      }
+      const { valid, invalid } = checkIconNamesForAPI(icons$1);
+      if (invalid.length)
+        parseLoaderResponse(storage2, invalid, null);
+      if (!valid.length)
+        return;
+      const api = prefix.match(matchIconName) ? getAPIModule(provider) : null;
+      if (!api) {
+        parseLoaderResponse(storage2, valid, null);
+        return;
+      }
+      const params = api.prepare(provider, prefix, valid);
+      params.forEach((item) => {
+        sendAPIQuery(provider, item, (data) => {
+          parseLoaderResponse(storage2, item.icons, data);
+        });
+      });
+    });
+  }
+}
+var loadIcons = (icons, callback) => {
+  const cleanedIcons = listToIcons(icons, true, allowSimpleNames());
+  const sortedIcons = sortIcons(cleanedIcons);
+  if (!sortedIcons.pending.length) {
+    let callCallback = true;
+    if (callback)
+      setTimeout(() => {
+        if (callCallback)
+          callback(sortedIcons.loaded, sortedIcons.missing, sortedIcons.pending, emptyCallback);
+      });
+    return () => {
+      callCallback = false;
+    };
+  }
+  const newIcons = Object.create(null);
+  const sources = [];
+  let lastProvider, lastPrefix;
+  sortedIcons.pending.forEach((icon) => {
+    const { provider, prefix } = icon;
+    if (prefix === lastPrefix && provider === lastProvider)
+      return;
+    lastProvider = provider;
+    lastPrefix = prefix;
+    sources.push(getStorage(provider, prefix));
+    const providerNewIcons = newIcons[provider] || (newIcons[provider] = Object.create(null));
+    if (!providerNewIcons[prefix])
+      providerNewIcons[prefix] = [];
+  });
+  sortedIcons.pending.forEach((icon) => {
+    const { provider, prefix, name } = icon;
+    const storage2 = getStorage(provider, prefix);
+    const pendingQueue = storage2.pendingIcons || (storage2.pendingIcons = /* @__PURE__ */ new Set);
+    if (!pendingQueue.has(name)) {
+      pendingQueue.add(name);
+      newIcons[provider][prefix].push(name);
+    }
+  });
+  sources.forEach((storage2) => {
+    const list = newIcons[storage2.provider][storage2.prefix];
+    if (list.length)
+      loadNewIcons(storage2, list);
+  });
+  return callback ? storeCallback(callback, sortedIcons, sources) : emptyCallback;
+};
+function mergeCustomisations(defaults, item) {
+  const result = { ...defaults };
+  for (const key in item) {
+    const value = item[key];
+    const valueType = typeof value;
+    if (key in defaultIconSizeCustomisations) {
+      if (value === null || value && (valueType === "string" || valueType === "number"))
+        result[key] = value;
+    } else if (valueType === typeof result[key])
+      result[key] = key === "rotate" ? value % 4 : value;
+  }
+  return result;
+}
+var separator = /[\s,]+/;
+function flipFromString(custom, flip) {
+  flip.split(separator).forEach((str) => {
+    const value = str.trim();
+    switch (value) {
+      case "horizontal":
+        custom.hFlip = true;
+        break;
+      case "vertical":
+        custom.vFlip = true;
+        break;
+    }
+  });
+}
+function rotateFromString(value, defaultValue = 0) {
+  const units = value.replace(/^-?[0-9.]*/, "");
+  function cleanup(value$1) {
+    while (value$1 < 0)
+      value$1 += 4;
+    return value$1 % 4;
+  }
+  if (units === "") {
+    const num = parseInt(value);
+    return isNaN(num) ? 0 : cleanup(num);
+  } else if (units !== value) {
+    let split = 0;
+    switch (units) {
+      case "%":
+        split = 25;
+        break;
+      case "deg":
+        split = 90;
+    }
+    if (split) {
+      let num = parseFloat(value.slice(0, value.length - units.length));
+      if (isNaN(num))
+        return 0;
+      num = num / split;
+      return num % 1 === 0 ? cleanup(num) : 0;
+    }
+  }
+  return defaultValue;
+}
+function iconToHTML(body, attributes) {
+  let renderAttribsHTML = body.indexOf("xlink:") === -1 ? "" : ' xmlns:xlink="http://www.w3.org/1999/xlink"';
+  for (const attr in attributes)
+    renderAttribsHTML += " " + attr + '="' + attributes[attr] + '"';
+  return '<svg xmlns="http://www.w3.org/2000/svg"' + renderAttribsHTML + ">" + body + "</svg>";
+}
+function encodeSVGforURL(svg) {
+  return svg.replace(/"/g, "'").replace(/%/g, "%25").replace(/#/g, "%23").replace(/</g, "%3C").replace(/>/g, "%3E").replace(/\s+/g, " ");
+}
+function svgToData(svg) {
+  return "data:image/svg+xml," + encodeSVGforURL(svg);
+}
+function svgToURL(svg) {
+  return 'url("' + svgToData(svg) + '")';
+}
+var policy;
+function createPolicy() {
+  try {
+    policy = window.trustedTypes.createPolicy("iconify", { createHTML: (s) => s });
+  } catch (err) {
+    policy = null;
+  }
+}
+function cleanUpInnerHTML(html) {
+  if (policy === undefined)
+    createPolicy();
+  return policy ? policy.createHTML(html) : html;
+}
+var defaultExtendedIconCustomisations = {
+  ...defaultIconCustomisations,
+  inline: false
+};
+var svgDefaults = {
+  xmlns: "http://www.w3.org/2000/svg",
+  xmlnsXlink: "http://www.w3.org/1999/xlink",
+  "aria-hidden": true,
+  role: "img"
+};
+var commonProps = {
+  display: "inline-block"
+};
+var monotoneProps = {
+  backgroundColor: "currentColor"
+};
+var coloredProps = {
+  backgroundColor: "transparent"
+};
+var propsToAdd = {
+  Image: "var(--svg)",
+  Repeat: "no-repeat",
+  Size: "100% 100%"
+};
+var propsToAddTo = {
+  WebkitMask: monotoneProps,
+  mask: monotoneProps,
+  background: coloredProps
+};
+for (const prefix in propsToAddTo) {
+  const list = propsToAddTo[prefix];
+  for (const prop in propsToAdd) {
+    list[prefix + prop] = propsToAdd[prop];
+  }
+}
+var inlineDefaults = {
+  ...defaultExtendedIconCustomisations,
+  inline: true
+};
+function fixSize(value) {
+  return value + (value.match(/^[-0-9.]+$/) ? "px" : "");
+}
+var render = (icon, props, name) => {
+  const defaultProps = props.inline ? inlineDefaults : defaultExtendedIconCustomisations;
+  const customisations = mergeCustomisations(defaultProps, props);
+  const mode = props.mode || "svg";
+  const style = {};
+  const customStyle = props.style || {};
+  const componentProps = {
+    ...mode === "svg" ? svgDefaults : {}
+  };
+  if (name) {
+    const iconName = stringToIcon(name, false, true);
+    if (iconName) {
+      const classNames = ["iconify"];
+      const props2 = [
+        "provider",
+        "prefix"
+      ];
+      for (const prop of props2) {
+        if (iconName[prop]) {
+          classNames.push("iconify--" + iconName[prop]);
+        }
+      }
+      componentProps.className = classNames.join(" ");
+    }
+  }
+  for (let key in props) {
+    const value = props[key];
+    if (value === undefined) {
+      continue;
+    }
+    switch (key) {
+      case "icon":
+      case "style":
+      case "children":
+      case "onLoad":
+      case "mode":
+      case "ssr":
+      case "fallback":
+        break;
+      case "_ref":
+        componentProps.ref = value;
+        break;
+      case "className":
+        componentProps[key] = (componentProps[key] ? componentProps[key] + " " : "") + value;
+        break;
+      case "inline":
+      case "hFlip":
+      case "vFlip":
+        customisations[key] = value === true || value === "true" || value === 1;
+        break;
+      case "flip":
+        if (typeof value === "string") {
+          flipFromString(customisations, value);
+        }
+        break;
+      case "color":
+        style.color = value;
+        break;
+      case "rotate":
+        if (typeof value === "string") {
+          customisations[key] = rotateFromString(value);
+        } else if (typeof value === "number") {
+          customisations[key] = value;
+        }
+        break;
+      case "ariaHidden":
+      case "aria-hidden":
+        if (value !== true && value !== "true") {
+          delete componentProps["aria-hidden"];
+        }
+        break;
+      default:
+        if (defaultProps[key] === undefined) {
+          componentProps[key] = value;
+        }
+    }
+  }
+  const item = iconToSVG(icon, customisations);
+  const renderAttribs = item.attributes;
+  if (customisations.inline) {
+    style.verticalAlign = "-0.125em";
+  }
+  if (mode === "svg") {
+    componentProps.style = {
+      ...style,
+      ...customStyle
+    };
+    Object.assign(componentProps, renderAttribs);
+    let localCounter = 0;
+    let id = props.id;
+    if (typeof id === "string") {
+      id = id.replace(/-/g, "_");
+    }
+    componentProps.dangerouslySetInnerHTML = {
+      __html: cleanUpInnerHTML(replaceIDs(item.body, id ? () => id + "ID" + localCounter++ : "iconifyReact"))
+    };
+    return createElement("svg", componentProps);
+  }
+  const { body, width, height } = icon;
+  const useMask = mode === "mask" || (mode === "bg" ? false : body.indexOf("currentColor") !== -1);
+  const html = iconToHTML(body, {
+    ...renderAttribs,
+    width: width + "",
+    height: height + ""
+  });
+  componentProps.style = {
+    ...style,
+    "--svg": svgToURL(html),
+    width: fixSize(renderAttribs.width),
+    height: fixSize(renderAttribs.height),
+    ...commonProps,
+    ...useMask ? monotoneProps : coloredProps,
+    ...customStyle
+  };
+  return createElement("span", componentProps);
+};
+allowSimpleNames(true);
+setAPIModule("", fetchAPIModule);
+if (typeof document !== "undefined" && typeof window !== "undefined") {
+  const _window = window;
+  if (_window.IconifyPreload !== undefined) {
+    const preload = _window.IconifyPreload;
+    const err = "Invalid IconifyPreload syntax.";
+    if (typeof preload === "object" && preload !== null) {
+      (preload instanceof Array ? preload : [preload]).forEach((item) => {
+        try {
+          if (typeof item !== "object" || item === null || item instanceof Array || typeof item.icons !== "object" || typeof item.prefix !== "string" || !addCollection(item)) {
+            console.error(err);
+          }
+        } catch (e) {
+          console.error(err);
+        }
+      });
+    }
+  }
+  if (_window.IconifyProviders !== undefined) {
+    const providers = _window.IconifyProviders;
+    if (typeof providers === "object" && providers !== null) {
+      for (let key in providers) {
+        const err = "IconifyProviders[" + key + "] is invalid.";
+        try {
+          const value = providers[key];
+          if (typeof value !== "object" || !value || value.resources === undefined) {
+            continue;
+          }
+          if (!addAPIProvider(key, value)) {
+            console.error(err);
+          }
+        } catch (e) {
+          console.error(err);
+        }
+      }
+    }
+  }
+}
+function IconComponent(props) {
+  const [mounted, setMounted] = useState(!!props.ssr);
+  const [abort, setAbort] = useState({});
+  function getInitialState(mounted2) {
+    if (mounted2) {
+      const name2 = props.icon;
+      if (typeof name2 === "object") {
+        return {
+          name: "",
+          data: name2
+        };
+      }
+      const data2 = getIconData(name2);
+      if (data2) {
+        return {
+          name: name2,
+          data: data2
+        };
+      }
+    }
+    return {
+      name: ""
+    };
+  }
+  const [state, setState] = useState(getInitialState(!!props.ssr));
+  function cleanup() {
+    const callback = abort.callback;
+    if (callback) {
+      callback();
+      setAbort({});
+    }
+  }
+  function changeState(newState) {
+    if (JSON.stringify(state) !== JSON.stringify(newState)) {
+      cleanup();
+      setState(newState);
+      return true;
+    }
+  }
+  function updateState() {
+    var _a;
+    const name2 = props.icon;
+    if (typeof name2 === "object") {
+      changeState({
+        name: "",
+        data: name2
+      });
+      return;
+    }
+    const data2 = getIconData(name2);
+    if (changeState({
+      name: name2,
+      data: data2
+    })) {
+      if (data2 === undefined) {
+        const callback = loadIcons([name2], updateState);
+        setAbort({
+          callback
+        });
+      } else if (data2) {
+        (_a = props.onLoad) === null || _a === undefined || _a.call(props, name2);
+      }
+    }
+  }
+  useEffect(() => {
+    setMounted(true);
+    return cleanup;
+  }, []);
+  useEffect(() => {
+    if (mounted) {
+      updateState();
+    }
+  }, [props.icon, mounted]);
+  const { name, data } = state;
+  if (!data) {
+    return props.children ? props.children : props.fallback ? props.fallback : createElement("span", {});
+  }
+  return render({
+    ...defaultIconProps,
+    ...data
+  }, props, name);
+}
+var Icon = forwardRef((props, ref) => IconComponent({
+  ...props,
+  _ref: ref
+}));
+var InlineIcon = forwardRef((props, ref) => IconComponent({
+  inline: true,
+  ...props,
+  _ref: ref
+}));
+
+// src/global/webpack/index.ts
+var { Webpack } = BdApi;
+function queryToFilter(query) {
+  if ("filter" in query)
+    return query.filter;
+  if ("keys" in query)
+    return Webpack.Filters.byKeys(...query.keys);
+  if ("prototypeKeys" in query)
+    return Webpack.Filters.byPrototypeKeys(...query.prototypeKeys);
+  if ("strings" in query)
+    return Webpack.Filters.byStrings(...query.strings);
+  if ("source" in query)
+    return Webpack.Filters.bySource(...query.source);
+  if ("regex" in query)
+    return Webpack.Filters.byRegex(query.regex);
+  if ("displayName" in query)
+    return Webpack.Filters.byDisplayName(query.displayName);
+  return Webpack.Filters.byStoreName(query.storeName);
+}
+function resolveModule(filter, options) {
+  const opts = options ?? {};
+  if (opts.declaration) {
+    const { declaration, key, raw, ...rest } = opts;
+    const result = Webpack.getMangled(filter, { __value: declaration }, {
+      ...rest,
+      mapDeclarations: true
+    });
+    return result?.__value ?? null;
+  }
+  const mod = Webpack.getModule(filter, opts);
+  if (mod == null)
+    return null;
+  return opts.key ? mod[opts.key] : mod;
+}
+async function resolveModuleAsync(filter, options) {
+  const opts = options ?? {};
+  if (opts.declaration) {
+    const { declaration, raw, ...rest } = opts;
+    await Webpack.waitForModule(filter, rest);
+    return resolveModule(filter, opts);
+  }
+  return await Webpack.waitForModule(filter, opts) ?? null;
+}
+function resolveQuery(query) {
+  if ("map" in query) {
+    const q = query;
+    const newModule = {};
+    const foundModule = Webpack.getModule(q.filter);
+    if (foundModule) {
+      const remaining = new Map(Object.entries(q.map));
+      for (const value of Object.values(foundModule)) {
+        for (const [queryKey, queryValue] of remaining) {
+          if (queryValue(value)) {
+            newModule[queryKey] = value;
+            remaining.delete(queryKey);
+            break;
+          }
+        }
+        if (remaining.size === 0)
+          break;
+      }
+    }
+    return newModule;
+  }
+  return resolveModule(queryToFilter(query), query.options);
+}
+var wpFilter = {
+  byKeys: (...keys) => Webpack.Filters.byKeys(...keys),
+  byPrototypeKeys: (...keys) => Webpack.Filters.byPrototypeKeys(...keys),
+  byStrings: (...strings) => Webpack.Filters.byStrings(...strings),
+  bySource: (...source) => Webpack.Filters.bySource(...source),
+  byRegex: (regex2) => Webpack.Filters.byRegex(regex2),
+  byDisplayName: (name) => Webpack.Filters.byDisplayName(name),
+  byStoreName: (name) => Webpack.Filters.byStoreName(name),
+  combine: (...filters) => Webpack.Filters.combine(...filters),
+  not: (filter) => Webpack.Filters.not(filter)
+};
+function wpGet(filter, options) {
+  return resolveModule(filter, options);
+}
+function wpGetByKeys(keys, options) {
+  return resolveModule(Webpack.Filters.byKeys(...keys), options);
+}
+function wpGetBulkKeyed(queries) {
+  return Object.fromEntries(Object.entries(queries).map(([key, query]) => [key, resolveQuery(query)]));
+}
+async function wpWait(filter, options) {
+  return resolveModuleAsync(filter, options);
+}
+async function wpWaitWithTimeout(filter, { timeout = 1e4, ...options } = {}) {
+  return Promise.race([
+    resolveModuleAsync(filter, options),
+    new Promise((resolve) => setTimeout(() => resolve(null), timeout))
+  ]);
+}
+var PASSTHROUGH_PROPS = new Set([
+  "then",
+  "toJSON",
+  "valueOf",
+  "toString",
+  Symbol.toPrimitive,
+  Symbol.toStringTag,
+  Symbol.iterator
+]);
+var IDENTITY_PROPS = new Set([
+  "prototype",
+  "contextType",
+  "defaultProps",
+  "$$typeof"
+]);
+function resolveLive(filter, options, path) {
+  let current = resolveModule(filter, options);
+  for (const seg of path) {
+    if (current == null)
+      return;
+    current = current[seg];
+  }
+  return current;
+}
+function createLiveProxy(filter, options, path) {
+  const target = function wpGetProxyTarget() {};
+  return new Proxy(target, {
+    get(_t, prop) {
+      if (PASSTHROUGH_PROPS.has(prop) || IDENTITY_PROPS.has(prop)) {
+        const val = resolveLive(filter, options, path);
+        if (val == null)
+          return;
+        const member = val[prop];
+        return typeof member === "function" ? member.bind(val) : member;
+      }
+      return createLiveProxy(filter, options, [...path, prop]);
+    },
+    apply(_t, thisArg, args) {
+      const fn = resolveLive(filter, options, path);
+      const parent = resolveLive(filter, options, path.slice(0, -1));
+      return fn.apply(parent ?? thisArg, args);
+    },
+    construct(_t, args, _newTarget) {
+      const ctor = resolveLive(filter, options, path);
+      if (typeof ctor !== "function") {
+        throw new TypeError(`${String(path[path.length - 1] ?? "target")} is not a constructor`);
+      }
+      return Reflect.construct(ctor, args, ctor);
+    },
+    set(_t, prop, value) {
+      const val = resolveLive(filter, options, path);
+      if (val == null)
+        return false;
+      val[prop] = value;
+      return true;
+    },
+    has(_t, prop) {
+      const val = resolveLive(filter, options, path);
+      return val != null && prop in Object(val);
+    },
+    ownKeys(_t) {
+      const val = resolveLive(filter, options, path);
+      const keys = val ? Reflect.ownKeys(val) : [];
+      if (!keys.includes("prototype"))
+        keys.push("prototype");
+      return keys;
+    },
+    getOwnPropertyDescriptor(_t, prop) {
+      if (prop === "prototype") {
+        return Reflect.getOwnPropertyDescriptor(_t, prop);
+      }
+      const val = resolveLive(filter, options, path);
+      if (val == null)
+        return;
+      return Object.getOwnPropertyDescriptor(val, prop) ?? {
+        enumerable: true,
+        configurable: true,
+        value: val[prop]
+      };
+    }
+  });
+}
+function wpGetProxy(filter, options) {
+  return createLiveProxy(filter, options, []);
+}
+function getKey(module2, fn) {
+  for (const key in module2) {
+    if (fn(module2[key]))
+      return { key, module: module2 };
+  }
+}
+
+// src/global/index.ts
+var DefaultOptions = {
+  options: {
+    searchExports: true
+  }
+};
+var GlobalModules = wpGetBulkKeyed({
+  Typing: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("startTyping")
+  },
+  Endpoints: {
+    filter: (x) => x.STORE_LAYOUT && x.USER_ACTIVITY_SUBSCRIBE,
+    ...DefaultOptions
+  },
+  Dispatcher: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    ...DefaultOptions,
+    options: {
+      key: "_dispatcher"
+    }
+  },
+  HTTP: {
+    filter: (m) => typeof m === "object" && m.del && m.put,
+    ...DefaultOptions
+  },
+  Gateway: {
+    filter: BetterDiscord.Webpack.Filters.byStoreName("GatewayConnectionStore")
+  },
+  Flux: {
+    filter: BetterDiscord.Webpack.Filters.bySource("OfflineCacheStore"),
+    options: {
+      key: "Ay"
+    }
+  },
+  Intl: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("intl")
+  },
+  ModalModule: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+  },
+  SimpleMarkdownWrapper: {
+    filter: (m) => m.reactParserFor
+  },
+  AssetModule: {
+    filter: BetterDiscord.Webpack.Filters.bySource("ApplicationAssetUtils"),
+    map: {
+      getAssetImage: BetterDiscord.Webpack.Filters.byStrings(".TWITCH?null"),
+      getAssetImageId: BetterDiscord.Webpack.Filters.byStrings(".serialize(t)"),
+      fetchApplicationAssets: BetterDiscord.Webpack.Filters.byStrings("APPLICATION_ASSETS_UPDATE"),
+      getAssetImages: BetterDiscord.Webpack.Filters.byStrings(`.startsWith("http:")`)
+    }
+  },
+  Lodash: {
+    filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  }
+});
+function CloseAllContextMenus() {
+  GlobalModules.Dispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" });
+}
+
+// src/global/stores/UserProfilePictureStore.ts
+var USER_PFP = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+var UserProfilePictureStore_default = new class UserProfilePictureStore extends BetterDiscord.Utils.Store {
+  users = {};
+  constructor() {
+    super();
+    this.fetch();
+  }
+  get(userId) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return null;
+    return this.users[userId];
+  }
+  hasHash(id) {
+    const enabled = SettingsStore_default.get("userPfpIntegration");
+    if (!enabled)
+      return false;
+    return Boolean(this.users[id]);
+  }
+  async fetch() {
+    const data = await BetterDiscord.Net.fetch(USER_PFP);
+    const response = await data.json();
+    this.users = response.avatars;
+  }
+  unload() {
+    this.users = {};
+  }
+};
+
+// src/patches/modules/banners.tsx
+var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
+var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
+var ModalModule = wpGetByKeys(["Modal"]);
+var NodePatcher = BetterDiscord.ReactUtils.createNodePatcher();
+function Debug({ user }) {
+  const revealedText = getRevealedText(user.id);
+  const decorationRevealed = getRevealedText(user.id, `\uDB40\uDC2F\uDB40\uDC61`);
+  const nameplateRevealed = getRevealedText(user.id, `\uDB40\uDC6E\uDB40\uDC7B`);
+  const pfpRevealed = getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
+  const dnsRevealed = getRevealedText(user.id, `\uDB40\uDC53\uDB40\uDC7B`);
+  const data = {
+    pfp: UserProfilePictureStore_default.get(user.id),
+    url: UserBackgroundStore_default.get(user.id),
+    isImportant: BadgesStore_default.isImportant(user.id),
+    revealedText,
+    regexMatches: {
+      displayNameStyles: extractDisplayNameStyles(dnsRevealed),
+      decoration: extractDecoration(decorationRevealed),
+      nameplate: extractNameplate(nameplateRevealed),
+      profilePicture: extractProfilePicture(pfpRevealed),
+      profileEffects: containsProfileEffects(revealedText) ? extractProfileEffects(revealedText) : null,
+      profileFrame: containsProfileFrame(revealedText) ? extractProfileFrame(revealedText) : null,
+      profileV2: containsBanner(revealedText)
+    },
+    badges: BadgesStore_default.check(user.id) ? BadgesStore_default.returnRespondingBadges(user.id).map((x) => String(x.id)).join(", ") : "none"
+  };
+  function OpenModal() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React.createElement(ModalModule.Modal, {
+        size: "lg",
+        title: "Debug",
+        ...props
+      }, /* @__PURE__ */ React.createElement("pre", {
+        style: {
+          color: "#d4d4d4",
+          padding: "16px",
+          borderRadius: "8px",
+          overflow: "auto",
+          maxHeight: "70vh",
+          fontSize: "24px",
+          lineHeight: "1.5",
+          fontFamily: "monospace",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word"
+        }
+      }, JSON.stringify(data, null, 2)));
+    });
+  }
+  return /* @__PURE__ */ React.createElement(TopLeft, null, /* @__PURE__ */ React.createElement(Icon, {
+    icon: "mdi:bug",
+    width: "24px",
+    color: "white",
+    onClick: OpenModal
+  }));
+}
+var banners_default = {
+  name: "fakeBanners",
+  description: "3y3 banners",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource('backgroundColor:"COMPLETE"===')],
+  mangled: {
+    renderBanner: (x) => x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
+  },
+  apply(finale, patcher) {
+    patcher.after(finale.mangled, "renderBanner", (_, [props], ret) => {
+      if (!SettingsStore_default.get("fakeProfileBanners"))
+        return ret;
+      const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, {
+        walkable: ["props", "children"]
+      });
+      try {
+        NodePatcher.patch(newRet ?? ret, (props2, res) => {
+          const bannerUrl = getBannerUrl(props2.user.id);
+          bannerUrl && (res.props.bannerSrc = bannerUrl);
+        });
+      } catch (e) {
+        BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
+      }
+      return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
+        user: props.user
+      }), ret] : ret;
+    });
+  }
+};
+// src/global/stores/FFmpegStore.ts
+var { Logger, Net, UI } = BetterDiscord;
+var BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/`;
+var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Store {
+  ffmpeg;
+  loaded = false;
+  constructor() {
+    super();
+  }
+  async ensureFFmpeg() {
+    if (this.loaded)
+      return;
+    const defineTemp = window.global.define;
+    let ffmpegScript = document.getElementById("ffmpegScript");
+    if (ffmpegScript) {
+      ffmpegScript.remove();
+    }
+    delete window.FFmpegWASM;
+    function tryFetchFromDisk(filename, encoding) {
+      const basepath = _path().join(BdApi.Plugins.folder, "ffmpeg");
+      let filepath = _path().join(basepath, filename);
+      try {
+        if (fs().existsSync(filepath)) {
+          let file = fs().readFileSync(filepath, encoding);
+          Logger.info(`Fetch from disk for file ${filename} succeeded.`);
+          return file;
+        } else
+          return false;
+      } catch (err) {
+        Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
+        Logger.warn(err);
+      }
+    }
+    async function fetchFFmpeg(filename) {
+      const res = await Net.fetch(BASE_URL + filename, { timeout: 1e5 });
+      if (res.ok && res.status == 200) {
+        return res;
+      } else {
+        Logger.error(res);
+        throw new Error(filename + " failed to fetch.");
+      }
+    }
+    async function fetchBlobUrl(filename) {
+      try {
+        let blobUrl;
+        let file = tryFetchFromDisk(filename, "");
+        if (file)
+          blobUrl = URL.createObjectURL(new Blob([file]));
+        else
+          blobUrl = URL.createObjectURL(await (await fetchFFmpeg(filename)).blob());
+        return blobUrl;
+      } catch (err) {
+        Logger.error("An error occurred while fetching " + filename);
+        throw err;
+      }
+    }
+    let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
+    try {
+      ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
+      let ffmpegSrc;
+      try {
+        let file = tryFetchFromDisk("ffmpeg.js", "utf8");
+        if (file)
+          ffmpegSrc = file;
+        else
+          ffmpegSrc = await (await fetchFFmpeg("ffmpeg.js")).text();
+      } catch (err) {
+        Logger.error("An error occurred while fetching ffmpeg.js");
+        throw err;
+      }
+      ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
+      ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
+      window.global.define = undefined;
+      await new Promise((load, err) => {
+        const ffmpegScriptElem = document.createElement("script");
+        ffmpegScriptElem.id = "ffmpegScript";
+        ffmpegScriptElem.src = ffmpegURL;
+        ffmpegScriptElem.onload = load;
+        ffmpegScriptElem.onerror = err;
+        document.head.appendChild(ffmpegScriptElem);
+      });
+      window.global.define = defineTemp;
+      ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
+      ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
+      if (window.FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
+        this.ffmpeg = new window.FFmpegWASM.FFmpeg;
+        await this.ffmpeg.load({
+          coreURL: ffmpegCoreURL,
+          wasmURL: ffmpegCoreWasmURL
+        });
+        Logger.info("FFmpeg load success!");
+        this.loaded = true;
+        this.ffmpeg.on("log", ({ message }) => {
+          console.log(message);
+        });
+      } else {
+        Logger.info("FFmpegWASM", window.FFmpegWASM);
+        Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+        Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+        Logger.info("ffmpegWorkerURL", ffmpegWorkerURL);
+        throw new Error("One or more of the necessary components failed to load.");
+      }
+    } catch (err) {
+      UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", {
+        type: "error",
+        forceShow: true
+      });
+      Logger.info("FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
+      Logger.error(err);
+    } finally {
+      window.global.define = defineTemp;
+      if (ffmpegURL)
+        URL.revokeObjectURL(ffmpegURL);
+      if (ffmpegCoreURL)
+        URL.revokeObjectURL(ffmpegCoreURL);
+      if (ffmpegCoreWasmURL)
+        URL.revokeObjectURL(ffmpegCoreWasmURL);
+      if (ffmpegWorkerURL)
+        URL.revokeObjectURL(ffmpegWorkerURL);
+    }
+  }
+  unload() {
+    if (this.loaded) {
+      this.ffmpeg.terminate();
+      this.ffmpeg = undefined;
+    }
+    const ffmpegScript = document.getElementById("ffmpegScript");
+    ffmpegScript && ffmpegScript.remove();
+    if (window.FFmpegWASM)
+      delete window.FFmpegWASM;
+    this.loaded = false;
+  }
+  getFFmpegInstance() {
+    return this.ffmpeg;
+  }
+};
+
+// node_modules/fflate/esm/browser.js
+var u8 = Uint8Array;
+var u16 = Uint16Array;
+var i32 = Int32Array;
+var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 0, 0, 0]);
+var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 0, 0]);
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+var freb = function(eb, start) {
+  var b = new u16(31);
+  for (var i = 0;i < 31; ++i) {
+    b[i] = start += 1 << eb[i - 1];
+  }
+  var r = new i32(b[30]);
+  for (var i = 1;i < 30; ++i) {
+    for (var j = b[i];j < b[i + 1]; ++j) {
+      r[j] = j - b[i] << 5 | i;
+    }
+  }
+  return { b, r };
+};
+var _a = freb(fleb, 2);
+var fl = _a.b;
+var revfl = _a.r;
+fl[28] = 258, revfl[258] = 28;
+var _b = freb(fdeb, 0);
+var fd = _b.b;
+var revfd = _b.r;
+var rev = new u16(32768);
+for (i = 0;i < 32768; ++i) {
+  x = (i & 43690) >> 1 | (i & 21845) << 1;
+  x = (x & 52428) >> 2 | (x & 13107) << 2;
+  x = (x & 61680) >> 4 | (x & 3855) << 4;
+  rev[i] = ((x & 65280) >> 8 | (x & 255) << 8) >> 1;
+}
+var x;
+var i;
+var hMap = function(cd, mb, r) {
+  var s = cd.length;
+  var i2 = 0;
+  var l = new u16(mb);
+  for (;i2 < s; ++i2) {
+    if (cd[i2])
+      ++l[cd[i2] - 1];
+  }
+  var le = new u16(mb);
+  for (i2 = 1;i2 < mb; ++i2) {
+    le[i2] = le[i2 - 1] + l[i2 - 1] << 1;
+  }
+  var co;
+  if (r) {
+    co = new u16(1 << mb);
+    var rvb = 15 - mb;
+    for (i2 = 0;i2 < s; ++i2) {
+      if (cd[i2]) {
+        var sv = i2 << 4 | cd[i2];
+        var r_1 = mb - cd[i2];
+        var v = le[cd[i2] - 1]++ << r_1;
+        for (var m = v | (1 << r_1) - 1;v <= m; ++v) {
+          co[rev[v] >> rvb] = sv;
+        }
+      }
+    }
+  } else {
+    co = new u16(s);
+    for (i2 = 0;i2 < s; ++i2) {
+      if (cd[i2]) {
+        co[i2] = rev[le[cd[i2] - 1]++] >> 15 - cd[i2];
+      }
+    }
+  }
+  return co;
+};
+var flt = new u8(288);
+for (i = 0;i < 144; ++i)
+  flt[i] = 8;
+var i;
+for (i = 144;i < 256; ++i)
+  flt[i] = 9;
+var i;
+for (i = 256;i < 280; ++i)
+  flt[i] = 7;
+var i;
+for (i = 280;i < 288; ++i)
+  flt[i] = 8;
+var i;
+var fdt = new u8(32);
+for (i = 0;i < 32; ++i)
+  fdt[i] = 5;
+var i;
+var flm = /* @__PURE__ */ hMap(flt, 9, 0);
+var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
+var shft = function(p) {
+  return (p + 7) / 8 | 0;
+};
+var slc = function(v, s, e) {
+  if (s == null || s < 0)
+    s = 0;
+  if (e == null || e > v.length)
+    e = v.length;
+  return new u8(v.subarray(s, e));
+};
+var ec = [
+  "unexpected EOF",
+  "invalid block type",
+  "invalid length/literal",
+  "invalid distance",
+  "stream finished",
+  "no stream handler",
+  ,
+  "no callback",
+  "invalid UTF-8 data",
+  "extra field too long",
+  "date not in range 1980-2099",
+  "filename too long",
+  "stream finishing",
+  "invalid zip data"
+];
+var err = function(ind, msg, nt) {
+  var e = new Error(msg || ec[ind]);
+  e.code = ind;
+  if (Error.captureStackTrace)
+    Error.captureStackTrace(e, err);
+  if (!nt)
+    throw e;
+  return e;
+};
+var wbits = function(d, p, v) {
+  v <<= p & 7;
+  var o = p / 8 | 0;
+  d[o] |= v;
+  d[o + 1] |= v >> 8;
+};
+var wbits16 = function(d, p, v) {
+  v <<= p & 7;
+  var o = p / 8 | 0;
+  d[o] |= v;
+  d[o + 1] |= v >> 8;
+  d[o + 2] |= v >> 16;
+};
+var hTree = function(d, mb) {
+  var t = [];
+  for (var i2 = 0;i2 < d.length; ++i2) {
+    if (d[i2])
+      t.push({ s: i2, f: d[i2] });
+  }
+  var s = t.length;
+  var t2 = t.slice();
+  if (!s)
+    return { t: et, l: 0 };
+  if (s == 1) {
+    var v = new u8(t[0].s + 1);
+    v[t[0].s] = 1;
+    return { t: v, l: 1 };
+  }
+  t.sort(function(a, b) {
+    return a.f - b.f;
+  });
+  t.push({ s: -1, f: 25001 });
+  var l = t[0], r = t[1], i0 = 0, i1 = 1, i22 = 2;
+  t[0] = { s: -1, f: l.f + r.f, l, r };
+  while (i1 != s - 1) {
+    l = t[t[i0].f < t[i22].f ? i0++ : i22++];
+    r = t[i0 != i1 && t[i0].f < t[i22].f ? i0++ : i22++];
+    t[i1++] = { s: -1, f: l.f + r.f, l, r };
+  }
+  var maxSym = t2[0].s;
+  for (var i2 = 1;i2 < s; ++i2) {
+    if (t2[i2].s > maxSym)
+      maxSym = t2[i2].s;
+  }
+  var tr = new u16(maxSym + 1);
+  var mbt = ln(t[i1 - 1], tr, 0);
+  if (mbt > mb) {
+    var i2 = 0, dt = 0;
+    var lft = mbt - mb, cst = 1 << lft;
+    t2.sort(function(a, b) {
+      return tr[b.s] - tr[a.s] || a.f - b.f;
+    });
+    for (;i2 < s; ++i2) {
+      var i2_1 = t2[i2].s;
+      if (tr[i2_1] > mb) {
+        dt += cst - (1 << mbt - tr[i2_1]);
+        tr[i2_1] = mb;
+      } else
+        break;
+    }
+    dt >>= lft;
+    while (dt > 0) {
+      var i2_2 = t2[i2].s;
+      if (tr[i2_2] < mb)
+        dt -= 1 << mb - tr[i2_2]++ - 1;
+      else
+        ++i2;
+    }
+    for (;i2 >= 0 && dt; --i2) {
+      var i2_3 = t2[i2].s;
+      if (tr[i2_3] == mb) {
+        --tr[i2_3];
+        ++dt;
+      }
+    }
+    mbt = mb;
+  }
+  return { t: new u8(tr), l: mbt };
+};
+var ln = function(n, l, d) {
+  return n.s == -1 ? Math.max(ln(n.l, l, d + 1), ln(n.r, l, d + 1)) : l[n.s] = d;
+};
+var lc = function(c) {
+  var s = c.length;
+  while (s && !c[--s])
+    ;
+  var cl = new u16(++s);
+  var cli = 0, cln = c[0], cls = 1;
+  var w = function(v) {
+    cl[cli++] = v;
+  };
+  for (var i2 = 1;i2 <= s; ++i2) {
+    if (c[i2] == cln && i2 != s)
+      ++cls;
+    else {
+      if (!cln && cls > 2) {
+        for (;cls > 138; cls -= 138)
+          w(32754);
+        if (cls > 2) {
+          w(cls > 10 ? cls - 11 << 5 | 28690 : cls - 3 << 5 | 12305);
+          cls = 0;
+        }
+      } else if (cls > 3) {
+        w(cln), --cls;
+        for (;cls > 6; cls -= 6)
+          w(8304);
+        if (cls > 2)
+          w(cls - 3 << 5 | 8208), cls = 0;
+      }
+      while (cls--)
+        w(cln);
+      cls = 1;
+      cln = c[i2];
+    }
+  }
+  return { c: cl.subarray(0, cli), n: s };
+};
+var clen = function(cf, cl) {
+  var l = 0;
+  for (var i2 = 0;i2 < cl.length; ++i2)
+    l += cf[i2] * cl[i2];
+  return l;
+};
+var wfblk = function(out, pos, dat) {
+  var s = dat.length;
+  var o = shft(pos + 2);
+  out[o] = s & 255;
+  out[o + 1] = s >> 8;
+  out[o + 2] = out[o] ^ 255;
+  out[o + 3] = out[o + 1] ^ 255;
+  for (var i2 = 0;i2 < s; ++i2)
+    out[o + i2 + 4] = dat[i2];
+  return (o + 4 + s) * 8;
+};
+var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
+  wbits(out, p++, final);
+  ++lf[256];
+  var _a2 = hTree(lf, 15), dlt = _a2.t, mlb = _a2.l;
+  var _b2 = hTree(df, 15), ddt = _b2.t, mdb = _b2.l;
+  var _c = lc(dlt), lclt = _c.c, nlc = _c.n;
+  var _d = lc(ddt), lcdt = _d.c, ndc = _d.n;
+  var lcfreq = new u16(19);
+  for (var i2 = 0;i2 < lclt.length; ++i2)
+    ++lcfreq[lclt[i2] & 31];
+  for (var i2 = 0;i2 < lcdt.length; ++i2)
+    ++lcfreq[lcdt[i2] & 31];
+  var _e = hTree(lcfreq, 7), lct = _e.t, mlcb = _e.l;
+  var nlcc = 19;
+  for (;nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
+    ;
+  var flen = bl + 5 << 3;
+  var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
+  var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + 2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18];
+  if (bs >= 0 && flen <= ftlen && flen <= dtlen)
+    return wfblk(out, p, dat.subarray(bs, bs + bl));
+  var lm, ll, dm, dl;
+  wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
+  if (dtlen < ftlen) {
+    lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
+    var llm = hMap(lct, mlcb, 0);
+    wbits(out, p, nlc - 257);
+    wbits(out, p + 5, ndc - 1);
+    wbits(out, p + 10, nlcc - 4);
+    p += 14;
+    for (var i2 = 0;i2 < nlcc; ++i2)
+      wbits(out, p + 3 * i2, lct[clim[i2]]);
+    p += 3 * nlcc;
+    var lcts = [lclt, lcdt];
+    for (var it = 0;it < 2; ++it) {
+      var clct = lcts[it];
+      for (var i2 = 0;i2 < clct.length; ++i2) {
+        var len = clct[i2] & 31;
+        wbits(out, p, llm[len]), p += lct[len];
+        if (len > 15)
+          wbits(out, p, clct[i2] >> 5 & 127), p += clct[i2] >> 12;
+      }
+    }
+  } else {
+    lm = flm, ll = flt, dm = fdm, dl = fdt;
+  }
+  for (var i2 = 0;i2 < li; ++i2) {
+    var sym = syms[i2];
+    if (sym > 255) {
+      var len = sym >> 18 & 31;
+      wbits16(out, p, lm[len + 257]), p += ll[len + 257];
+      if (len > 7)
+        wbits(out, p, sym >> 23 & 31), p += fleb[len];
+      var dst = sym & 31;
+      wbits16(out, p, dm[dst]), p += dl[dst];
+      if (dst > 3)
+        wbits16(out, p, sym >> 5 & 8191), p += fdeb[dst];
+    } else {
+      wbits16(out, p, lm[sym]), p += ll[sym];
+    }
+  }
+  wbits16(out, p, lm[256]);
+  return p + ll[256];
+};
+var deo = /* @__PURE__ */ new i32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
+var et = /* @__PURE__ */ new u8(0);
+var dflt = function(dat, lvl, plvl, pre, post, st) {
+  var s = st.z || dat.length;
+  var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7000)) + post);
+  var w = o.subarray(pre, o.length - post);
+  var lst = st.l;
+  var pos = (st.r || 0) & 7;
+  if (lvl) {
+    if (pos)
+      w[0] = st.r >> 3;
+    var opt = deo[lvl - 1];
+    var n = opt >> 13, c = opt & 8191;
+    var msk_1 = (1 << plvl) - 1;
+    var prev = st.p || new u16(32768), head = st.h || new u16(msk_1 + 1);
+    var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
+    var hsh = function(i3) {
+      return (dat[i3] ^ dat[i3 + 1] << bs1_1 ^ dat[i3 + 2] << bs2_1) & msk_1;
+    };
+    var syms = new i32(25000);
+    var lf = new u16(288), df = new u16(32);
+    var lc_1 = 0, eb = 0, i2 = st.i || 0, li = 0, wi = st.w || 0, bs = 0;
+    for (;i2 + 2 < s; ++i2) {
+      var hv = hsh(i2);
+      var imod = i2 & 32767, pimod = head[hv];
+      prev[imod] = pimod;
+      head[hv] = imod;
+      if (wi <= i2) {
+        var rem = s - i2;
+        if ((lc_1 > 7000 || li > 24576) && (rem > 423 || !lst)) {
+          pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i2 - bs, pos);
+          li = lc_1 = eb = 0, bs = i2;
+          for (var j = 0;j < 286; ++j)
+            lf[j] = 0;
+          for (var j = 0;j < 30; ++j)
+            df[j] = 0;
+        }
+        var l = 2, d = 0, ch_1 = c, dif = imod - pimod & 32767;
+        if (rem > 2 && hv == hsh(i2 - dif)) {
+          var maxn = Math.min(n, rem) - 1;
+          var maxd = Math.min(32767, i2);
+          var ml = Math.min(258, rem);
+          while (dif <= maxd && --ch_1 && imod != pimod) {
+            if (dat[i2 + l] == dat[i2 + l - dif]) {
+              var nl = 0;
+              for (;nl < ml && dat[i2 + nl] == dat[i2 + nl - dif]; ++nl)
+                ;
+              if (nl > l) {
+                l = nl, d = dif;
+                if (nl > maxn)
+                  break;
+                var mmd = Math.min(dif, nl - 2);
+                var md = 0;
+                for (var j = 0;j < mmd; ++j) {
+                  var ti = i2 - dif + j & 32767;
+                  var pti = prev[ti];
+                  var cd = ti - pti & 32767;
+                  if (cd > md)
+                    md = cd, pimod = ti;
+                }
+              }
+            }
+            imod = pimod, pimod = prev[imod];
+            dif += imod - pimod & 32767;
+          }
+        }
+        if (d) {
+          syms[li++] = 268435456 | revfl[l] << 18 | revfd[d];
+          var lin = revfl[l] & 31, din = revfd[d] & 31;
+          eb += fleb[lin] + fdeb[din];
+          ++lf[257 + lin];
+          ++df[din];
+          wi = i2 + l;
+          ++lc_1;
+        } else {
+          syms[li++] = dat[i2];
+          ++lf[dat[i2]];
+        }
+      }
+    }
+    for (i2 = Math.max(i2, wi);i2 < s; ++i2) {
+      syms[li++] = dat[i2];
+      ++lf[dat[i2]];
+    }
+    pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i2 - bs, pos);
+    if (!lst) {
+      st.r = pos & 7 | w[pos / 8 | 0] << 3;
+      pos -= 7;
+      st.h = head, st.p = prev, st.i = i2, st.w = wi;
+    }
+  } else {
+    for (var i2 = st.w || 0;i2 < s + lst; i2 += 65535) {
+      var e = i2 + 65535;
+      if (e >= s) {
+        w[pos / 8 | 0] = lst;
+        e = s;
+      }
+      pos = wfblk(w, pos + 1, dat.subarray(i2, e));
+    }
+    st.i = s;
+  }
+  return slc(o, 0, pre + shft(pos) + post);
+};
+var crct = /* @__PURE__ */ function() {
+  var t = new Int32Array(256);
+  for (var i2 = 0;i2 < 256; ++i2) {
+    var c = i2, k = 9;
+    while (--k)
+      c = (c & 1 && -306674912) ^ c >>> 1;
+    t[i2] = c;
+  }
+  return t;
+}();
+var crc = function() {
+  var c = -1;
+  return {
+    p: function(d) {
+      var cr = c;
+      for (var i2 = 0;i2 < d.length; ++i2)
+        cr = crct[cr & 255 ^ d[i2]] ^ cr >>> 8;
+      c = cr;
+    },
+    d: function() {
+      return ~c;
+    }
+  };
+};
+var dopt = function(dat, opt, pre, post, st) {
+  if (!st) {
+    st = { l: 1 };
+    if (opt.dictionary) {
+      var dict = opt.dictionary.subarray(-32768);
+      var newDat = new u8(dict.length + dat.length);
+      newDat.set(dict);
+      newDat.set(dat, dict.length);
+      dat = newDat;
+      st.w = dict.length;
+    }
+  }
+  return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? st.l ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 20 : 12 + opt.mem, pre, post, st);
+};
+var mrg = function(a, b) {
+  var o = {};
+  for (var k in a)
+    o[k] = a[k];
+  for (var k in b)
+    o[k] = b[k];
+  return o;
+};
+var wbytes = function(d, b, v) {
+  for (;v; ++b)
+    d[b] = v, v >>>= 8;
+};
+function deflateSync(data, opts) {
+  return dopt(data, opts || {}, 0, 0);
+}
+var fltn = function(d, p, t, o) {
+  for (var k in d) {
+    var val = d[k], n = p + k, op = o;
+    if (Array.isArray(val))
+      op = mrg(o, val[1]), val = val[0];
+    if (ArrayBuffer.isView(val))
+      t[n] = [val, op];
+    else {
+      t[n += "/"] = [new u8(0), op];
+      fltn(val, n, t, o);
+    }
+  }
+};
+var te = typeof TextEncoder != "undefined" && /* @__PURE__ */ new TextEncoder;
+var td = typeof TextDecoder != "undefined" && /* @__PURE__ */ new TextDecoder;
+var tds = 0;
+try {
+  td.decode(et, { stream: true });
+  tds = 1;
+} catch (e) {}
+function strToU8(str, latin1) {
+  if (latin1) {
+    var ar_1 = new u8(str.length);
+    for (var i2 = 0;i2 < str.length; ++i2)
+      ar_1[i2] = str.charCodeAt(i2);
+    return ar_1;
+  }
+  if (te)
+    return te.encode(str);
+  var l = str.length;
+  var ar = new u8(str.length + (str.length >> 1));
+  var ai = 0;
+  var w = function(v) {
+    ar[ai++] = v;
+  };
+  for (var i2 = 0;i2 < l; ++i2) {
+    if (ai + 5 > ar.length) {
+      var n = new u8(ai + 8 + (l - i2 << 1));
+      n.set(ar);
+      ar = n;
+    }
+    var c = str.charCodeAt(i2);
+    if (c < 128 || latin1)
+      w(c);
+    else if (c < 2048)
+      w(192 | c >> 6), w(128 | c & 63);
+    else if (c > 55295 && c < 57344)
+      c = 65536 + (c & 1023 << 10) | str.charCodeAt(++i2) & 1023, w(240 | c >> 18), w(128 | c >> 12 & 63), w(128 | c >> 6 & 63), w(128 | c & 63);
+    else
+      w(224 | c >> 12), w(128 | c >> 6 & 63), w(128 | c & 63);
+  }
+  return slc(ar, 0, ai);
+}
+var exfl = function(ex) {
+  var le = 0;
+  if (ex) {
+    for (var k in ex) {
+      var l = ex[k].length;
+      if (l > 65535)
+        err(9);
+      le += l + 4;
+    }
+  }
+  return le;
+};
+var wzh = function(d, b, f, fn, u, c, ce, co) {
+  var fl2 = fn.length, ex = f.extra, col = co && co.length;
+  var exl = exfl(ex);
+  wbytes(d, b, ce != null ? 33639248 : 67324752), b += 4;
+  if (ce != null)
+    d[b++] = 20, d[b++] = f.os;
+  d[b] = 20, b += 2;
+  d[b++] = f.flag << 1 | (c < 0 && 8), d[b++] = u && 8;
+  d[b++] = f.compression & 255, d[b++] = f.compression >> 8;
+  var dt = new Date(f.mtime == null ? Date.now() : f.mtime), y = dt.getFullYear() - 1980;
+  if (y < 0 || y > 119)
+    err(10);
+  wbytes(d, b, y << 25 | dt.getMonth() + 1 << 21 | dt.getDate() << 16 | dt.getHours() << 11 | dt.getMinutes() << 5 | dt.getSeconds() >> 1), b += 4;
+  if (c != -1) {
+    wbytes(d, b, f.crc);
+    wbytes(d, b + 4, c < 0 ? -c - 2 : c);
+    wbytes(d, b + 8, f.size);
+  }
+  wbytes(d, b + 12, fl2);
+  wbytes(d, b + 14, exl), b += 16;
+  if (ce != null) {
+    wbytes(d, b, col);
+    wbytes(d, b + 6, f.attrs);
+    wbytes(d, b + 10, ce), b += 14;
+  }
+  d.set(fn, b);
+  b += fl2;
+  if (exl) {
+    for (var k in ex) {
+      var exf = ex[k], l = exf.length;
+      wbytes(d, b, +k);
+      wbytes(d, b + 2, l);
+      d.set(exf, b + 4), b += 4 + l;
+    }
+  }
+  if (col)
+    d.set(co, b), b += col;
+  return b;
+};
+var wzf = function(o, b, c, d, e) {
+  wbytes(o, b, 101010256);
+  wbytes(o, b + 8, c);
+  wbytes(o, b + 10, c);
+  wbytes(o, b + 12, d);
+  wbytes(o, b + 16, e);
+};
+function zipSync(data, opts) {
+  if (!opts)
+    opts = {};
+  var r = {};
+  var files = [];
+  fltn(data, "", r, opts);
+  var o = 0;
+  var tot = 0;
+  for (var fn in r) {
+    var _a2 = r[fn], file = _a2[0], p = _a2[1];
+    var compression = p.level == 0 ? 0 : 8;
+    var f = strToU8(fn), s = f.length;
+    var com = p.comment, m = com && strToU8(com), ms = m && m.length;
+    var exl = exfl(p.extra);
+    if (s > 65535)
+      err(11);
+    var d = compression ? deflateSync(file, p) : file, l = d.length;
+    var c = crc();
+    c.p(file);
+    files.push(mrg(p, {
+      size: file.length,
+      crc: c.d(),
+      c: d,
+      f,
+      m,
+      u: s != fn.length || m && com.length != ms,
+      o,
+      compression
+    }));
+    o += 30 + s + exl + l;
+    tot += 76 + 2 * (s + exl) + (ms || 0) + l;
+  }
+  var out = new u8(tot + 22), oe = o, cdl = tot - o;
+  for (var i2 = 0;i2 < files.length; ++i2) {
+    var f = files[i2];
+    wzh(out, f.o, f, f.f, f.u, f.c.length);
+    var badd = 30 + f.f.length + exfl(f.extra);
+    out.set(f.c, f.o + badd);
+    wzh(out, o, f, f.f, f.u, f.c.length, f.o, f.m), o += 16 + badd + (f.m ? f.m.length : 0);
+  }
+  wzf(out, o, files.length, cdl, oe);
+  return out;
+}
+
+// src/patches/modules/clipsBypass.ts
+var { UserStore: UserStore3 } = BetterDiscord.Webpack.Stores;
+async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4") {
+  await FFmpegStore_default.ensureFFmpeg();
+  const ffmpeg = FFmpegStore_default.getFFmpegInstance();
+  if (!ffmpeg)
+    throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
+  inFileName == outFileName && (inFileName = "in_" + inFileName);
+  arrayBuffer && await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+  BetterDiscord.Logger.log("Approximately equivalent ffmpeg command:");
+  BetterDiscord.Logger.log("ffmpeg " + ffmpegArguments.join(" "));
+  await ffmpeg.exec(ffmpegArguments);
+  const data = await ffmpeg.readFile(outFileName);
+  inFileName && ffmpeg.deleteFile(inFileName);
+  ffmpeg.deleteFile(outFileName);
+  if (data.length == 0)
+    throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + "likely due to an FFmpeg error. Please check the FFmpeg logs above. " + "If you need assistance, please use the support channel in the Discord server.");
+  return data.buffer;
+}
+function concatArrayBuffers(buf1, buf2) {
+  let newArray = new Uint8Array(buf1.byteLength + buf2.byteLength);
+  newArray.set(new Uint8Array(buf1), 0);
+  newArray.set(new Uint8Array(buf2), buf1.byteLength);
+  return newArray.buffer;
+}
+var udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
+var FREE_FILE_LIMIT = 20971520;
+var CLIPS_FILE_LIMIT = 104857600;
+async function doClipsBypass(file) {
+  const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } = SettingsStore_default.getAll();
+  const skippedFileTypes = [
+    "video/3gp",
+    "video/asf",
+    "video/ivf",
+    "video/mpeg",
+    "audio/mid",
+    "audio/basic",
+    "audio/mpegurl",
+    "audio/3gp"
+  ];
+  if (skippedFileTypes.includes(file.file.type))
+    return file;
+  const movTypes = [
+    "video/flv",
+    "video/ogg",
+    "video/wmv",
+    "video/mov",
+    "audio/wav",
+    "audio/aiff",
+    "audio/x-ms-wma",
+    "audio/mpeg"
+  ];
+  let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
+  const clipData = {
+    id: 0n,
+    createdAt: 0,
+    version: 3,
+    applicationName: "",
+    applicationId: "1301689862256066560",
+    users: [UserStore3.getCurrentUser().id],
+    clipMethod: "manual",
+    length: file.file.size,
+    thumbnail: "",
+    filepath: "",
+    name: file.file.name.substring(0, file.file.name.lastIndexOf("."))
+  };
+  switch (clipTimestamp) {
+    default:
+    case 0:
+      clipData.id = 0n;
+      clipData.createdAt = 1420070400000;
+      break;
+    case 1:
+      clipData.id = BigInt(Date.now()) - 1420070400000n << 22n;
+      clipData.createdAt = Date.now();
+      break;
+    case 2:
+      clipData.id = BigInt(file.file.lastModified) - 1420070400000n << 22n;
+      clipData.createdAt = file.file.lastModified;
+      break;
+  }
+  let modifiedFile = false;
+  if ((file.file.size > FREE_FILE_LIMIT || forceClip) && useClipBypass && file.file.type.startsWith("video/") && !skippedFileTypes.includes(file.file.type) && file.file.size <= CLIPS_FILE_LIMIT) {
+    const ffmpegVideoClipArgs = [
+      "-i",
+      file.file.name,
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-c:s",
+      "mov_text",
+      "-dn",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map",
+      "0",
+      "-map_metadata",
+      "-1",
+      "-map_chapters",
+      "-1",
+      "-map",
+      "-0:t",
+      "-strict",
+      "-2",
+      outFileName
+    ];
+    const arrayBuffer = await file.file.arrayBuffer();
+    const videoBuffer = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegVideoClipArgs, outFileName), udtaBuffer);
+    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + ".mp4", {
+      type: "video/mp4"
+    });
+    modifiedFile = true;
+  } else if (useAudioClipBypass && (file.file.size > FREE_FILE_LIMIT || forceAudioClip) && file.file.type.startsWith("audio/") && file.file.size <= CLIPS_FILE_LIMIT) {
+    const ffmpegAudioClipArgs = [
+      "-i",
+      file.file.name,
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=300x100",
+      "-shortest",
+      "-fflags",
+      "+shortest",
+      "-map",
+      "0:v?",
+      "-map",
+      "1:v",
+      "-map",
+      "0:a",
+      "-disposition:v",
+      "default",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      "-dn",
+      "-map_chapters",
+      "-1",
+      "-preset",
+      "ultrafast",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "-strict",
+      "-2",
+      "-tune",
+      "stillimage",
+      "-r",
+      "5",
+      "-pix_fmt",
+      "yuv420p",
+      "-vf",
+      "crop=trunc(iw/2)*2:trunc(ih/2)*2",
+      "-max_interleave_delta",
+      "1",
+      outFileName
+    ];
+    const arrayBuffer = await file.file.arrayBuffer();
+    const videoBuffer = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, file.file.name, ffmpegAudioClipArgs, outFileName), udtaBuffer);
+    file.file = new File([new Uint8Array(videoBuffer)], clipData.name + ".mp4", {
+      type: "video/mp4"
+    });
+    modifiedFile = true;
+  } else if (file.file.size >= FREE_FILE_LIMIT && file.file.size <= CLIPS_FILE_LIMIT && zipClip) {
+    const clipMaFFmpegArgs = [
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=128x96:duration=1",
+      "-f",
+      "lavfi",
+      "-i",
+      "anullsrc=r=44100:cl=mono",
+      "-shortest",
+      "-fflags",
+      "+shortest",
+      "-brand",
+      "isom/avc1",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      "-preset",
+      "ultrafast",
+      "-vframes",
+      "5",
+      "-c:v",
+      "mjpeg",
+      "output.mp4"
+    ];
+    const archiveMimeTypes = [
+      "x-7z-compressed",
+      "x-bzip",
+      "x-bzip2",
+      "x-rar-compressed",
+      "x-tar",
+      "gzip",
+      "x-gzip",
+      "zip",
+      "x-zip-compressed"
+    ];
+    const videoArrayBuffer = await ffmpegTransmux(undefined, "", clipMaFFmpegArgs, "output.mp4");
+    const clipMaBuffer = concatArrayBuffers(videoArrayBuffer, udtaBuffer);
+    if (!clipMaBuffer)
+      return file;
+    if (archiveMimeTypes.includes(file.file.type.replace("application/", ""))) {
+      const arrayBuffer = await file.file.arrayBuffer();
+      const newArrBuf = concatArrayBuffers(clipMaBuffer, arrayBuffer);
+      file.file = new File([new Uint8Array(newArrBuf)], file.file.name + ".mp4", {
+        type: "video/mp4"
+      });
+      clipData.name = file.file.name;
+    } else {
+      let fileExtension = file.file.name.substring(file.file.name.lastIndexOf(".") + 1);
+      let fileToZip = {};
+      fileToZip[file.file.name] = await file.file.bytes();
+      const zipFile = zipSync(fileToZip, { level: 6 }).buffer;
+      const zipClipArrayBuffer = concatArrayBuffers(clipMaBuffer, zipFile);
+      clipData.name = fileExtension.match(/z?\d+/) ? file.file.name + ".zip" : clipData.name += ".zip";
+      file.file = new File([new Uint8Array(zipClipArrayBuffer)], clipData.name + ".mp4", {
+        type: "video/mp4"
+      });
+    }
+    modifiedFile = true;
+  }
+  modifiedFile && (file.clip = clipData);
+  return file;
+}
+function genericErrorHandler(err2, currentFile = undefined) {
+  BetterDiscord.UI.showToast("Something went wrong. See console for details.", {
+    type: "error",
+    forceShow: true
+  });
+  BetterDiscord.Logger.error(err2);
+  if (currentFile) {
+    BetterDiscord.Logger.info("Current file information for debugging:", currentFile);
+    BetterDiscord.Logger.info(`File Type: "${currentFile?.file?.type}"`);
+  }
+}
+var clipsBypass_default = {
+  name: "Clips Bypass",
+  description: "Modify files to be sendable as a clip, changing the file upload limit to 100MB.",
+  ids: undefined,
+  waitFor: [(x2) => x2.addFiles],
+  apply(finale, patcher) {
+    patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
+      const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+      if (!args?.files?.length || !useClipBypass && !useAudioClipBypass && !zipClip)
+        return originalFunction.apply(_, [args]);
+      args.files = await Promise.all(args.files.map(async (currentFile) => {
+        try {
+          currentFile = await doClipsBypass(currentFile) ?? currentFile;
+        } catch (err2) {
+          genericErrorHandler(err2, currentFile);
+        }
+        return currentFile;
+      }));
+      return originalFunction.apply(_, [args]);
+    });
+  }
+};
+
+// src/patches/modules/_sendMessage.ts
+var { StickersStore, SoundboardStore, EmojiStore } = BetterDiscord.Webpack.Stores;
+var StickerTypeToExtension;
+((StickerTypeToExtension2) => {
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 1] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".png"] = 2] = ".png";
+  StickerTypeToExtension2[StickerTypeToExtension2[".json"] = 3] = ".json";
+  StickerTypeToExtension2[StickerTypeToExtension2[".gif"] = 4] = ".gif";
+})(StickerTypeToExtension ||= {});
+var CloudUploader = BetterDiscord.Webpack.getByPrototypeKeys("uploadFileToCloud", {
+  searchExports: true
+});
+async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData, send2, numFilesInMessage = 1, alwaysSendInNewMessage = false) {
+  if (!filesToDownload.length)
+    return;
+  const preexisting = extraData.attachmentsToUpload ?? [];
+  extraData.attachmentsToUpload = preexisting;
+  const uploads = await Promise.all(filesToDownload.map(async (f) => {
+    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+    return new CloudUploader({
+      file: new File([blob], f.filename),
+      isClip: false,
+      isThumbnail: false,
+      platform: 1,
+      isImage: true
+    }, channelId, false, 0);
+  }));
+  if (preexisting.length || alwaysSendInNewMessage) {
+    await send2(channelId, msg, extraData);
+  } else {
+    extraData.attachmentsToUpload = uploads.splice(0, numFilesInMessage);
+    await send2(channelId, msg, extraData);
+  }
+  extraData.attachmentsToUpload = [];
+  msg.content = "";
+  while (uploads.length) {
+    await send2(channelId, { content: "" }, { attachmentsToUpload: uploads.splice(0, numFilesInMessage) });
+  }
+}
+var SOUNDMOJI_REGEX = /<sound:\d+:\d+>/g;
+var _sendMessage_default = {
+  name: "Send Message",
+  description: "Upload emoji, soundmoji, stickers, and insta-clips.",
+  ids: undefined,
+  waitFor: [(x2) => x2._sendMessage],
+  apply(finale, patcher) {
+    patcher.instead(finale.modules[0], "_sendMessage", async (_, [channelId, msg, extraData], send2) => {
+      if (extraData.poll || extraData.activityAction || msg.location === "forwarding")
+        return send2.apply(_, [channelId, msg, extraData]);
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const {
+        zipClip,
+        useClipBypass,
+        useAudioClipBypass,
+        stickerBypass,
+        soundmojiEnabled,
+        emojiBypass
+      } = SettingsStore_default.getAll();
+      let urlsToUpload = [];
+      for (let i2 = 0;i2 < msg.validNonShortcutEmojis.length; i2++) {
+        const emoji = msg.validNonShortcutEmojis[i2];
+        if (!emojiBypass)
+          break;
+        if (shouldSkipEmojiBypass(emoji, channelId))
+          continue;
+        const emojiString = getEmojiString(emoji);
+        if (msg.content.includes(`-${emojiString}`)) {
+          msg.content = msg.content.replace("-" + emojiString, emojiString);
+          continue;
+        }
+        const emojiUrl = getEmojiUrl(emoji);
+        switch (emojiBypassType) {
+          case 0:
+            msg.content = msg.content.replace(emojiString, "");
+            urlsToUpload.push({
+              url: emojiUrl,
+              filename: emoji.name + getEmojiExtension(emoji)
+            });
+            break;
+          case 1:
+          case 3:
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i2})`);
+            break;
+          case 2:
+            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i2}`);
+            break;
+        }
+      }
+      if (extraData.stickerIds && stickerBypass) {
+        extraData.stickerIds = extraData.stickerIds.map((stickerId, index) => {
+          const STICKER_PREFIX = "https://media.discordapp.net/stickers/";
+          const sticker = StickersStore.getStickerById(stickerId);
+          if (sticker.format_type == 3)
+            return stickerId;
+          let extension = StickerTypeToExtension[sticker.format_type];
+          urlsToUpload.push({
+            url: `${STICKER_PREFIX + stickerId + extension}?size=4096&quality=lossless`,
+            filename: `${sticker.name}${extension}`
+          });
+          return null;
+        });
+        extraData.stickerIds = extraData.stickerIds.filter(Boolean);
+      }
+      let soundmojiUrls = [];
+      if (soundmojiEnabled) {
+        const SOUNDBOARD_PREFIX = "https://cdn.discordapp.com/soundboard-sounds/";
+        const soundmojiStrings = msg.content.match(SOUNDMOJI_REGEX);
+        const soundmojiObjects = soundmojiStrings?.map?.((x2) => SoundboardStore.getSoundById(x2?.split?.(":")?.[2]?.slice?.(0, -1)));
+        soundmojiObjects?.forEach?.((x2) => soundmojiUrls.push({
+          url: SOUNDBOARD_PREFIX + x2.soundId,
+          filename: x2.name + ".ogg"
+        }));
+        for (let i2 = 0;i2 < soundmojiObjects?.length; i2++) {
+          const sound = soundmojiObjects[i2];
+          if (!sound)
+            continue;
+          const soundmojiString = soundmojiStrings[i2];
+          !sound.emojiId && sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.emojiName} ${sound.name} )`));
+          if (sound?.emojiId) {
+            let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
+            msg.content = msg.content.replace(soundmojiString, `( [${emoji?.name ?? "someCustomEmoji"}](${EMOJI_PREFIX + sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
+          }
+          !sound.emojiId && !sound.emojiName && (msg.content = msg.content.replace(soundmojiString, `( ${sound.name} ) `));
+        }
+      }
+      if (extraData?.location === "instant_upload" && (zipClip || useClipBypass || useAudioClipBypass)) {
+        await Promise.all(extraData.attachmentsToUpload.map(async (attachment) => {
+          attachment.item = await doClipsBypass(attachment.item);
+          attachment.filename = attachment.item.file.name;
+          attachment.clip = attachment.item.clip;
+          return attachment;
+        }));
+      }
+      if (urlsToUpload?.length > 0)
+        downloadAndUploadUrls(urlsToUpload, channelId, msg, extraData, send2, 1, false);
+      if (soundmojiUrls?.length > 0)
+        downloadAndUploadUrls(soundmojiUrls, channelId, msg, extraData, send2, 10, true);
+      if (!urlsToUpload.length && !soundmojiUrls.length)
+        send2(channelId, msg, extraData);
+    });
+  }
+};
+// src/patches/modules/unlockEmojis.ts
+var unlockEmojis_default = {
+  name: "Unlock Emojis",
+  description: "Fully unlocks emojis.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("isEmojiFilteredOrLocked")],
+  apply(finale, patcher) {
+    [
+      "isEmojiFilteredOrLocked",
+      "isEmojiDisabled",
+      "isEmojiFiltered",
+      "isEmojiPremiumLocked"
+    ].map((x2) => patcher.instead(finale.modules[0], x2, (_, args, callback) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (emojiBypassEnabled)
+        return false;
+      else
+        return callback.apply(_, args);
+    }));
+    patcher.instead(finale.modules[0], "getEmojiUnavailableReason", (_, args, callback) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (emojiBypassEnabled)
+        return;
+      else
+        return callback.apply(_, args);
+    });
+  }
+};
+// src/patches/modules/getUserBannerURL.ts
+var getUserBannerURL_default = {
+  name: "getUserBannerURL",
+  description: "Force animate the user banner URL",
+  waitFor: [(x2) => x2.getEmojiURL],
+  apply(finale, patcher) {
+    const AvatarDefaults = finale.modules[0];
+    patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+      if (!SettingsStore_default.get("fakeProfileBanners"))
+        return;
+      args[0].canAnimate = true;
+    });
+  }
+};
+// src/patches/modules/appIcons.tsx
+var { AppIconPersistedStoreState, SelectedGuildStore: SelectedGuildStore3 } = BetterDiscord.Webpack.Stores;
+var appIcons_default = {
+  name: "appIcons",
+  description: "Lets user select app icon",
+  apply(finale, patcher) {
+    const appIconsEnabled = SettingsStore_default.get("unlockAppIcons");
+    appIconsEnabled && GlobalModules.Dispatcher.dispatch({
+      type: "APP_ICON_UPDATED",
+      id: SettingsStore_default.get("appIcon")
+    });
+    const AppIcon = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("M19.73 4.87a18.2"), {
+      render: (x2) => x2
+    });
+    const CustomAppIcon = BetterDiscord.Webpack.getByStrings(".iconSource,width:");
+    patcher.instead(AppIcon, "render", (_, [args], callback) => {
+      const appIconsEnabled2 = SettingsStore_default.get("unlockAppIcons");
+      if (!appIconsEnabled2)
+        return callback(args);
+      const desktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
+      if (desktopIcon == "AppIcon" || SelectedGuildStore3.getGuildId() == undefined) {
+        return callback(args);
+      } else {
+        return /* @__PURE__ */ React.createElement(CustomAppIcon, {
+          size: 40,
+          id: SettingsStore_default.get("appIcon")
+        });
+      }
+    });
+  }
+};
+// src/patches/modules/streamBypass.ts
+var streamBypass_default = {
+  name: "streamBypass",
+  description: "Custom Bitrates, FPS, Resolution",
+  waitFor: [
+    BetterDiscord.Webpack.Filters.byPrototypeKeys("updateVideoQuality"),
+    BetterDiscord.Webpack.Filters.bySource("preset)&&", "resolution&&", "fps&&")
+  ],
+  apply(finale, patcher) {
+    const _class = finale.modules[0];
+    patcher.before(_class.prototype, "updateVideoQuality", (e) => {
+      const { CustomBitrateEnabled, minBitrate, targetBitrate, maxBitrate, voiceBitrate } = SettingsStore_default.getAll();
+      const vqm = e.videoQualityManager;
+      const vqmOpt = vqm.options;
+      voiceBitrate >= 0 && e.setVoiceBitRate(voiceBitrate * 1000);
+      let quality = {
+        bitrateMax: CustomBitrateEnabled && maxBitrate > 0 ? maxBitrate * 1000 : null,
+        bitrateMin: CustomBitrateEnabled && minBitrate >= 0 ? minBitrate * 1000 : null,
+        bitrateTarget: CustomBitrateEnabled && targetBitrate >= 0 ? targetBitrate * 1000 : null
+      };
+      vqmOpt.videoBitrateFloor = CustomBitrateEnabled && minBitrate > 0 ? minBitrate * 1000 : 150000;
+      vqm.setGoliveQuality(quality);
+      e.context == "default" && vqm.setQualityOverwrite({
+        ...quality
+      });
+    });
+    patcher.instead(finale.modules[1], Object.keys(finale.modules[1]).find(Boolean), (e, args, originalFunction) => {
+      return SettingsStore_default.get("screenSharing") ?? originalFunction.apply(e, args);
+    });
+  }
+};
+// src/patches/modules/gifPickerContext.tsx
+var GIFPickerRender = BetterDiscord.Webpack.getByPrototypeKeys("renderGIF", {
+  searchExports: true
+});
+var gifPickerContext_default = {
+  name: "GIF Picker Context Menu",
+  description: "Adds copy/open url context menu to GIFs in GIF Picker.",
+  ids: undefined,
+  waitFor: [],
+  apply(finale, patcher) {
+    patcher.after(GIFPickerRender.prototype, "render", (instance, __, ret) => {
+      if (!SettingsStore_default.get("extraContextMenus"))
+        return;
+      ret.props.onContextMenu = (event) => {
+        let url = instance?.props?.item?.url ? instance.props.item.url : instance.props.src;
+        url.startsWith("//") && (url = "https:" + url);
+        function copyUrl() {
+          copyToClipboard(url);
+        }
+        function openUrl() {
+          window.open(url);
+        }
+        const Menu = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Menu, {
+          onClose: CloseAllContextMenus
+        }, /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+          leadingAccessory: {
+            type: "icon",
+            icon: () => /* @__PURE__ */ React.createElement(Icon, {
+              width: "22",
+              icon: "mdi:content-copy"
+            })
+          },
+          label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Copy GIF URL")),
+          id: "yabd-copy-url-gif-picker",
+          action: copyUrl
+        }), /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+          leadingAccessory: {
+            type: "icon",
+            icon: () => /* @__PURE__ */ React.createElement(Icon, {
+              width: "22",
+              icon: "mdi:open-in-browser"
+            })
+          },
+          label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open GIF URL")),
+          id: "yabd-open-url-gif-picker",
+          action: openUrl
+        }));
+        BetterDiscord.ContextMenu.open(event, () => Menu);
+      };
+    });
+  }
+};
+// src/patches/modules/videoCodecs.ts
+var streamSettingsMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("getCodecOptions"), {
+  Connection: (x2) => x2?.prototype?.getCodecOptions
+}, { mapDeclarations: true });
+var videoCodecs_default = {
+  name: "Video Codec",
+  description: "Applies chosen video codec.",
+  ids: undefined,
+  apply(finale, patcher) {
+    patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, __, ret) => {
+      const videoCodec = SettingsStore_default.get("videoCodec2");
+      videoCodec >= 0 && (ret.videoEncoder = ret.videoDecoders[videoCodec]);
+    });
+  }
+};
+// src/patches/modules/maxFileSize.ts
+var MaxFileSizeMod = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource('klass:"photoshop"'), {
+  getMaxFileSize: (x2) => x2.toString().includes("getUserMaxFileSize"),
+  exceedsMessageSizeLimit: (x2) => x2.toString().includes("Array.from(", ".size>")
+});
+var maxFileSize_default = {
+  name: "File Size",
+  description: "Disables the max file size popup (used for clips).",
+  ids: undefined,
+  apply(finale, patcher) {
+    patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_, [guildId], originalFunction) => {
+      const videoClipsEnabled = SettingsStore_default.get("useClipBypass");
+      const audioClipsEnabled = SettingsStore_default.get("useAudioClipBypass");
+      const zipClipsEnabled = SettingsStore_default.get("zipClip");
+      let normal = originalFunction(guildId);
+      if (videoClipsEnabled || audioClipsEnabled || zipClipsEnabled)
+        return Math.max(100 * 1024 * 1024, normal);
+      else
+        return normal;
+    });
+    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
+      return false;
+    });
+  }
+};
+// src/patches/modules/sharpenStreams.tsx
+var { React: React2 } = BetterDiscord;
+function Sharpener({ userId }) {
+  let ref = BetterDiscord.React.useRef(null);
+  const sharpnessSetting = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences")[userId] ?? 0);
+  const sharpness = sharpnessSetting / 100;
+  const [size, setSize] = BetterDiscord.React.useState({
+    width: 1980,
+    height: 1980
+  });
+  let filterIntensityFactoringScreen = size.height / screen.height * 1.5;
+  filterIntensityFactoringScreen > 1 && (filterIntensityFactoringScreen = 1);
+  BetterDiscord.React.useEffect(() => {
+    if (ref.current) {
+      const observer = new ResizeObserver((ResizeObserverEntry) => {
+        if (ResizeObserverEntry?.[0]) {
+          setSize({
+            width: ResizeObserverEntry[0].contentRect.width,
+            height: ResizeObserverEntry[0].contentRect.height
+          });
+        }
+      });
+      observer.observe(ref.current);
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, []);
+  return /* @__PURE__ */ React2.createElement("svg", {
+    ref,
+    style: { width: "100%", height: "100%" }
+  }, /* @__PURE__ */ React2.createElement("filter", {
+    id: "yabd-svgSharpen-" + userId,
+    colorInterpolationFilters: "sRGB"
+  }, /* @__PURE__ */ React2.createElement("feConvolveMatrix", {
+    order: "3",
+    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
+    result: "sharpen"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    in: "SourceGraphic",
+    in2: "sharpen",
+    operator: "arithmetic",
+    result: "userPreference",
+    k1: "0",
+    k2: 1 - sharpness,
+    k3: sharpness,
+    k4: "0"
+  }), /* @__PURE__ */ React2.createElement("feComposite", {
+    id: `yabd-svgSharpen-${userId}-size`,
+    in: "SourceGraphic",
+    in2: "userPreference",
+    operator: "arithmetic",
+    k1: "0",
+    k2: 1 - filterIntensityFactoringScreen,
+    k3: filterIntensityFactoringScreen,
+    k4: "0"
+  })));
+}
+var sharpenStreams_default = {
+  name: "Stream Sharpener",
+  description: "Sharpens streams.",
+  ids: undefined,
+  waitFor: [
+    BetterDiscord.Webpack.Filters.bySource("VideoStream", "videoComponent"),
+    BetterDiscord.Webpack.Filters.bySource("backgroundKey", "onForceIdle")
+  ],
+  apply(finale, patcher) {
+    const mod = Object.values(finale.modules[0]).find((x2) => x2.type);
+    patcher.after(mod, "type", (_, [args], ret) => {
+      if (!SettingsStore_default.get("sharpenStreams"))
+        return;
+      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
+        userId: args.userId
+      }));
+      ret?.props?.children?.[0] && (ret.props.children[0].props.style = {
+        filter: `url(#yabd-svgSharpen-${args.userId})`
+      });
+    });
+    const pipPlayerMod = getKey(finale.modules[1], (x2) => x2?.toString?.()?.includes?.("backgroundKey"));
+    patcher.after(pipPlayerMod?.module, pipPlayerMod?.key, (_, [args], ret) => {
+      if (!SettingsStore_default.get("sharpenStreams"))
+        return;
+      const userId = args?.backgroundKey?.split?.(":")?.[3];
+      if (!userId)
+        return;
+      ret.props.children.push(/* @__PURE__ */ React2.createElement(Sharpener, {
+        userId
+      }));
+      ret.props.style = { filter: `url(#yabd-svgSharpen-${userId})` };
+    });
+  }
+};
+// src/patches/modules/unlockStickers.ts
+var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere"), {
+  getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere"),
+  isSendableSticker: (x2) => typeof x2 === "function" && !x2.toString().includes("canUseCustomStickersEverywhere")
+});
+var unlockStickers_default = {
+  name: "Unlock Stickers",
+  description: "Fully unlocks stickers.",
+  apply(finale, patcher) {
+    patcher.instead(stickerSendability, "getStickerSendability", (_, args, callback) => {
+      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
+      if (!stickerBypass && !forceStickersUnlocked)
+        return callback.apply(_, args);
+      return 0;
+    });
+    patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
+      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
+      if (!stickerBypass && !forceStickersUnlocked)
+        return callback.apply(_, args);
+      return true;
+    });
+  }
+};
+// src/patches/modules/renderMessage.tsx
+var { React: React3 } = BetterDiscord;
+var MessageEmoji = BetterDiscord.Webpack.getByStrings(",nudgeAlignIntoViewport:!0,position:", "jumboable?", { searchExports: true });
+var renderMessage_default = {
+  name: "Render Message",
+  description: "Replaces hyperlinked emojis with fakemoji.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource(".SEND_FAILED,")],
+  apply(finale, patcher) {
+    const mod = Object.values(finale.modules[0]).find((o) => typeof o === "object");
+    patcher.before(mod, "type", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes"))
+        return;
+      for (let i2 = 0;i2 < args.content.length; i2++) {
+        let contentItem = args.content[i2];
+        if (!contentItem?.props?.title || !contentItem?.props?.href?.startsWith(EMOJI_PREFIX) || contentItem?.props?.href === contentItem?.props?.title)
+          continue;
+        const emojiName = contentItem.props?.children[0]?.props?.children ? contentItem.props?.children[0]?.props?.children : "unknownEmoji";
+        const emojiElem = /* @__PURE__ */ React3.createElement(MessageEmoji, {
+          node: {
+            name: `:${emojiName}:`,
+            src: contentItem.props.href,
+            type: "emoji",
+            emojiId: contentItem.props.href.match(EMOJI_ID_FROM_URL_REGEX).find(Boolean),
+            animated: true,
+            jumboable: false
+          },
+          channelId: args.message.channel_id,
+          messageId: args.message.id,
+          enableClick: true
+        });
+        args.content[i2] = emojiElem;
+      }
+    });
+  }
+};
+// src/patches/modules/renderMessageEmbeds.ts
+var EMOJI_HYPERLINK_REGEX = /\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/;
+var renderMessageEmbeds_default = {
+  name: "Render Message Embeds",
+  description: "Removes emoji link embeds for inline fakemoji.",
+  ids: undefined,
+  waitFor: [BetterDiscord.Webpack.Filters.bySource("renderEmbeds", "renderSuppressEmbeds")],
+  mangled: {
+    renderEmbeds: (x2) => x2?.toString?.().includes?.("renderSuppressEmbeds")
+  },
+  apply(finale, patcher) {
+    patcher.before(finale.mangled, "renderEmbeds", (_, [args]) => {
+      if (!SettingsStore_default.get("fakeInlineVencordEmotes"))
+        return;
+      const message = args?.message;
+      let embeds = message?.embeds;
+      for (let i2 = 0;i2 < embeds?.length; i2++) {
+        const embed = embeds[i2];
+        if (!embed?.url || !embed?.url?.startsWith(EMOJI_PREFIX) || message.content.replace(EMOJI_HYPERLINK_REGEX, "").trim() == "" || !args.message.content.includes(`](${embed.url})`))
+          continue;
+        delete embeds[i2];
+      }
+      message.embeds = embeds.filter(Boolean);
+    });
+  }
+};
+// src/patches/modules/editMessage.ts
+var { EmojiStore: EmojiStore2 } = BetterDiscord.Webpack.Stores;
+var editMessage_default = {
+  name: "Edit Message",
+  description: "Replaces emoji URLs and hyperlinks with emoji string when starting editing, and performs emoji bypass when finished editing.",
+  ids: undefined,
+  waitFor: [(x2) => x2._sendMessage],
+  apply(finale, patcher) {
+    patcher.before(finale.modules[0], "editMessage", (_, [channelId, msgId, msg]) => {
+      const emojiBypassEnabled = SettingsStore_default.get("emojiBypass");
+      if (!emojiBypassEnabled)
+        return;
+      const emojiBypassType = SettingsStore_default.get("emojiBypassType");
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
+      if (!editMessageWithEmoji)
+        return;
+      let matches = msg.content.match(EMOJI_STRING_REGEX);
+      for (let i2 = 0;i2 < matches?.length; i2++) {
+        const emojiString = matches[i2];
+        let emojiId = emojiString.replace("<", "").replace(">", "").split(":")[2];
+        const emoji = EmojiStore2.getCustomEmojiById(emojiId);
+        if (shouldSkipEmojiBypass(emoji, channelId))
+          continue;
+        const emojiUrl = getEmojiUrl(emoji);
+        switch (emojiBypassType) {
+          default:
+          case 0:
+          case 1:
+          case 3:
+            msg.content = msg.content.replace(emojiString, `[${emoji.name}](${emojiUrl}&${i2})`);
+            break;
+          case 2:
+            msg.content = msg.content.replace(emojiString, `${emojiUrl}&${i2}`);
+            break;
+        }
+      }
+    });
+    patcher.before(finale.modules[0], "startEditMessageRecord", (_, [channelId, msg]) => {
+      const editMessageWithEmoji = SettingsStore_default.get("editMessageWithEmoji");
+      if (!msg?.content || !editMessageWithEmoji)
+        return;
+      function replaceMatchWithEmojiString(match) {
+        const emoji = EmojiStore2.getCustomEmojiById(match.match(EMOJI_ID_FROM_URL_REGEX));
+        const emojiString = getEmojiString(emoji);
+        msg.content = msg.content.replace(match, emojiString);
+      }
+      let hyperlinkMatches = msg.content.match(HYPERLINK_EMOJI_REGEX);
+      hyperlinkMatches?.forEach?.((match) => replaceMatchWithEmojiString(match));
+    });
+  }
+};
+// src/patches/modules/clientThemes.tsx
+var CustomUserThemeState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("setColors", "setChassisMixAmount", "setGradientAngle", "setAll", "colors:[],"), {
+  state: (x2) => x2?.setState
+});
+function applySavedClientTheme() {
+  const customUserThemeSettings = SettingsStore_default.get("customUserThemeSettings");
+  const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
+  if (customUserThemeSettings.custom) {
+    CustomUserThemeState.state.getState().setAll({
+      colors: customUserThemeSettings.custom?.colors,
+      chassisMixAmount: customUserThemeSettings.custom?.baseMix,
+      gradientAngle: customUserThemeSettings.custom?.gradientAngle
+    });
+  } else {
+    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
+  }
+  GlobalModules.Dispatcher.dispatch({
+    type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+    changes: {
+      appearance: {
+        shouldSync: false,
+        settings: {
+          clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? { backgroundGradientPresetId: gradientPresetId } : null,
+          theme: customUserThemeSettings.theme,
+          developerMode: true
+        }
+      }
+    }
+  });
+  if (gradientPresetId >= 0) {
+    GlobalModules.Dispatcher.dispatch({
+      type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+      presetId: gradientPresetId
+    });
+  }
+}
+var clientThemes_default = {
+  name: "clientThemes",
+  description: "Saves and applies gradient client themes.",
+  waitFor: [
+    BetterDiscord.Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{")
+  ],
+  mangled: {
+    saveClientTheme: (x2) => x2?.toString?.()?.includes?.("SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE")
+  },
+  apply(finale, patcher) {
+    SettingsStore_default.get("clientThemes") && applySavedClientTheme();
+    patcher.instead(finale.mangled, "saveClientTheme", (_, [args], originalFunction) => {
+      if (!SettingsStore_default.get("clientThemes"))
+        return originalFunction.apply(_, [args]);
+      SettingsStore_default.set("customUserThemeSettings", {
+        custom: args.customUserThemeSettings ? args.customUserThemeSettings : false,
+        theme: args.theme
+      });
+      SettingsStore_default.set("lastGradientSettingStore", args.backgroundGradientPresetId >= 0 ? args.backgroundGradientPresetId : -1);
+      applySavedClientTheme();
+    });
+  }
+};
+// src/patches/modules/userCallTileBg.ts
+var { React: React4 } = BetterDiscord;
+var userCallTileBg_default = {
+  name: "fakeBanners",
+  description: "3y3 banners",
+  ids: undefined,
+  waitFor: [
+    BetterDiscord.Webpack.Filters.bySource("getSelectedParticipant", "CHANNEL_CALL_POPOUT", "avatarDecoration", "backgroundSrc", "getAvatarURL")
+  ],
+  apply(finale, patcher) {
+    const mod = getKey(finale.modules[0], (x2) => x2.toString?.().includes?.("getSelectedParticipant"));
+    patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
+      const bannerUrl = getBannerUrl(args.participant.id);
+      const callTileBackgroundEnabled = SettingsStore_default.get("voiceTileBannerBackground");
+      if (!bannerUrl || !callTileBackgroundEnabled || !ret)
+        return;
+      ret.props.children && (ret.props.children = React4.cloneElement(ret.props.children, {
+        style: {
+          backgroundImage: `url('${bannerUrl}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat"
+        }
+      }));
+    });
+  }
+};
+// src/patches/modules/goLiveModal.tsx
+var { React: React5, Components } = BetterDiscord;
+var { ApplicationStreamingSettingsStore, MediaEngineStore, UserStore: UserStore4 } = BetterDiscord.Webpack.Stores;
+var FooterColumn = styled.div({
+  display: "flex",
+  flexDirection: "column",
+  width: "100%"
+});
+var FooterRow = styled.div({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%"
+});
+var ModalBody = styled.div({
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "12px",
+  padding: "16px"
+});
+var FieldWrapper = styled.div({
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px"
+});
+var FieldLabel = styled.label({
+  fontSize: "12px",
+  fontWeight: 600,
+  color: "var(--text-muted)",
+  textTransform: "uppercase"
+});
+var ModeRow = styled.div({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px"
+});
+var ToggleRow = styled.div({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  padding: "0 16px 16px 16px"
+});
+var AdminIcon = () => /* @__PURE__ */ React5.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: "22px",
+  height: "22px",
+  viewBox: "0 0 24 24"
+}, /* @__PURE__ */ React5.createElement("path", {
+  d: "M0 0h24v24H0z",
+  fill: "none"
+}), /* @__PURE__ */ React5.createElement("path", {
+  fill: "currentColor",
+  d: "M12 12h7c-.53 4.11-3.28 7.78-7 8.92zH5V6.3l7-3.11M12 1L3 5v6c0 5.55 3.84 10.73 9 12c5.16-1.27 9-6.45 9-12V5z"
+}));
+var IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
+var ModalModule2 = wpGetByKeys(["Modal"]);
+var MODES = [
+  {
+    label: "4K Mode",
+    patch: { CustomResolution: 2160, CustomFPS: 60 }
+  },
+  {
+    label: "2K Mode",
+    patch: { CustomResolution: 1440, CustomFPS: 60 }
+  },
+  {
+    label: "Deez Nutz Mode",
+    patch: { CustomResolution: 20, CustomFPS: 60 }
+  },
+  {
+    label: "Screen Reader Mode",
+    patch: { CustomResolution: 1440, CustomFPS: 15 }
+  }
+];
+function ConfigModal({ props, onClose, forceQuality }) {
+  const [data, setData] = React5.useState(() => SettingsStore_default.getAll());
+  const commit = (key, value) => {
+    setData((prev) => ({ ...prev, [key]: value }));
+  };
+  const applyMode = (patch) => {
+    setData((prev) => ({ ...prev, ...patch }));
+  };
+  const fields = [
+    { key: "CustomFPS", label: "FPS" },
+    { key: "CustomResolution", label: "Resolution" },
+    { key: "maxBitrate", label: "Max Bitrate" },
+    { key: "minBitrate", label: "Min Bitrate" },
+    { key: "targetBitrate", label: "Target Bitrate" },
+    { key: "voiceBitrate", label: "Voice Bitrate" }
+  ];
+  function onApply() {
+    forceQuality("set_resolution", { resolution: data.CustomResolution });
+    forceQuality("set_fps", { fps: data.CustomFPS });
+    forceQuality("set_min_bitrate", { minBitrate: data.minBitrate });
+    forceQuality("set_target_bitrate", { targetBitrate: data.targetBitrate });
+    forceQuality("set_max_bitrate", { maxBitrate: data.maxBitrate });
+    Object.entries(data).forEach(([key, value]) => SettingsStore_default.set(key, value));
+    const connections = Array.from(MediaEngineStore.getMediaEngine()?.connections?.values?.());
+    const streamConnection = connections.filter?.((x2) => x2?.streamUserId == UserStore4.getCurrentUser().id && x2?.context == "stream").find(Boolean);
+    streamConnection && streamConnection?.updateVideoQuality?.apply?.(streamConnection, []);
+    const audioConnection = connections.filter?.((x2) => x2?.userId == UserStore4.getCurrentUser().id && x2?.context == "default" && !x2?.streamUserId).find(Boolean);
+    audioConnection && audioConnection?.updateVideoQuality?.apply?.(audioConnection, []);
+    onClose();
+  }
+  return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
+    actions: [
+      { text: "Cancel", onClick: onClose, variant: "secondary" },
+      { text: "Apply", onClick: onApply }
     ],
-    settingsPanel: [
+    notice: {
+      type: "warning",
+      message: GlobalModules.SimpleMarkdownWrapper.parse("**Bitrate options will instantly apply to your stream upon hitting Apply if you have a stream currently active.**")
+    },
+    ...props,
+    onClose,
+    title: "Stream Settings Configuration"
+  }, /* @__PURE__ */ React5.createElement(ModeRow, null, MODES.map(({ label, patch }) => /* @__PURE__ */ React5.createElement(Components.Button, {
+    key: label,
+    onClick: () => applyMode(patch)
+  }, label))), /* @__PURE__ */ React5.createElement(ModalBody, null, fields.map(({ key, label }) => /* @__PURE__ */ React5.createElement(FieldWrapper, {
+    key
+  }, /* @__PURE__ */ React5.createElement(FieldLabel, {
+    htmlFor: `yabd-${key}`
+  }, label), /* @__PURE__ */ React5.createElement(Components.NumberInput, {
+    id: `yabd-${key}`,
+    initalValue: data[key],
+    value: data[key],
+    min: -1,
+    onChange: (val) => commit(key, val)
+  })))));
+}
+function openConfigModal(forceQuality) {
+  GlobalModules.ModalModule.openModal((props) => /* @__PURE__ */ React5.createElement(ConfigModal, {
+    forceQuality,
+    props,
+    onClose: props.onClose
+  }));
+}
+function CustomFooter() {
+  const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
+  const module2 = getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext"));
+  const [start, dispatch] = module2.module[module2.key]();
+  const forceQuality = (type, value) => {
+    dispatch({ type, ...value });
+    const currentState = ApplicationStreamingSettingsStore.getState();
+    ApplicationStreamingSettingsStore.initialize({
+      resolution: type == "set_resolution" ? value.resolution : currentState.resolution,
+      fps: type == "set_fps" ? value.fps : currentState.fps,
+      preset: 3,
+      soundshareEnabled: currentState.soundshareEnabled
+    });
+  };
+  return /* @__PURE__ */ React5.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "var(--radius-sm)",
+      backgroundColor: "var(--control-secondary-background-default)",
+      borderColor: "var(--control-secondary-border-default)",
+      minHeight: "38px",
+      minWidth: "38px"
+    }
+  }, /* @__PURE__ */ React5.createElement(IconModule.Icon, {
+    tooltip: "Configure Stream Settings",
+    tooltipPosition: "top",
+    onClick: () => openConfigModal(forceQuality),
+    key: "balls-2",
+    icon: () => /* @__PURE__ */ React5.createElement(AdminIcon, null)
+  }));
+}
+var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GO_LIVE_MODAL_V2", "getUseSystemScreensharePicker", "canStreamQuality");
+var validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
+var goLiveModal_default = {
+  name: "goLiveModal",
+  description: "Streaming modal customization.",
+  ids: [
+    async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"), { raw: true }).then((x2) => x2.id)
+  ],
+  waitFor: [LIVE_FILTER],
+  apply(finale, patcher) {
+    const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
+    patcher.instead(mod?.module, mod?.key, () => true);
+    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+      const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
+      const footer = BetterDiscord.Utils.findInTree(ret, (x2) => String(x2?.className).startsWith("footer"));
+      if (!footer)
+        return ret;
+      const footerContent = BetterDiscord.Utils.findInTree(footer, (x2) => String(x2?.className).startsWith("footerContent"));
+      if (!footerContent)
+        return ret;
+      if (removeScreenshareUpsell) {
+        footer.children = footer.children.filter((x2) => !x2?.props?.className.startsWith("upsell"));
+        footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill"));
+      }
+      if (SettingsStore_default.get("ResolutionSwapper")) {
+        const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) => String(x2?.key).includes("gay"));
+        if (!doesExist)
+          footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
+            key: "yabd-is-gay"
+          }));
+        const originalChildren = footerContent.children;
+        footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
+      }
+      return ret;
+    });
+  }
+};
+// src/ui/AccentColors.tsx
+var { UserProfileStore: UserProfileStore3, UserStore: UserStore5 } = BetterDiscord.Webpack.Stores;
+var { React: React6, Components: Components2 } = BetterDiscord;
+function AccentColors() {
+  const CurrentUser = UserStore5.getCurrentUser();
+  const currentUserProfile = UserProfileStore3.getUserProfile(CurrentUser.id);
+  const [primary, setPrimary] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#FFCFF8");
+  const [accent, setAccent] = React6.useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#FFCFF8");
+  return /* @__PURE__ */ React6.createElement("div", null, /* @__PURE__ */ React6.createElement(Components2.Text, {
+    style: {
+      fontSize: "14px",
+      fontWeight: "var(--font-weight-bold)"
+    }
+  }, "Primary"), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
+    value: primary,
+    defaultValue: primary,
+    disabled: false,
+    onChange: (e) => setPrimary(e)
+  }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Text, {
+    style: {
+      fontSize: "14px",
+      fontWeight: "var(--font-weight-bold)"
+    }
+  }, "Accent"), /* @__PURE__ */ React6.createElement(Components2.ColorInput, {
+    value: accent,
+    defaultValue: accent,
+    disabled: false,
+    onChange: (e) => setAccent(e)
+  }), /* @__PURE__ */ React6.createElement("br", null), /* @__PURE__ */ React6.createElement(Components2.Button, {
+    className: "yabd-generic-button",
+    style: {
+      height: "32px",
+      width: "auto",
+      marginTop: "10px"
+    },
+    onClick: () => {
+      copyToClipboard(" " + secondsightifyEncodeOnly(`[${primary},${accent}]`), "3y3 copied to clipboard!");
+    }
+  }, "Copy Colors 3y3"));
+}
+// src/ui/CustomPFP.tsx
+var { React: React7, Components: Components3 } = BetterDiscord;
+function CustomPFP() {
+  const [url, setUrl] = React7.useState("");
+  async function handleClick() {
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
+      return;
+    }
+    let hash = await getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`P{${hash}}`), "3y3 copied to clipboard!");
+  }
+  return /* @__PURE__ */ React7.createElement("div", null, /* @__PURE__ */ React7.createElement("input", {
+    className: "bd-text-input",
+    placeholder: "PFP Imgur URL",
+    onChange: (e) => setUrl(e.target.value),
+    style: {
+      minWidth: "180px",
+      width: "180px",
+      maxWidth: "180px"
+    }
+  }), /* @__PURE__ */ React7.createElement(Components3.Button, {
+    onClick: handleClick,
+    disabled: !url,
+    style: {
+      marginTop: "10px"
+    }
+  }, "Copy PFP 3y3"));
+}
+// src/ui/CustomBanner.tsx
+var { React: React8, Components: Components4 } = BetterDiscord;
+function CustomBanner() {
+  const [url, setUrl] = React8.useState("");
+  async function handleClick() {
+    if (!url.includes("imgur.com")) {
+      BetterDiscord.UI.showToast("Please use Imgur!", { type: "warning" });
+      return;
+    }
+    let hash = await getDirectImgurHash(url);
+    copyToClipboard(secondsightifyEncodeOnly(`B{${hash}}`), "3y3 copied to clipboard!");
+  }
+  return /* @__PURE__ */ React8.createElement("div", null, /* @__PURE__ */ React8.createElement("input", {
+    className: "bd-text-input",
+    placeholder: "Banner Imgur URL",
+    onChange: (e) => setUrl(e.target.value),
+    style: {
+      minWidth: "180px",
+      width: "180px",
+      maxWidth: "180px"
+    }
+  }), /* @__PURE__ */ React8.createElement(Components4.Button, {
+    onClick: handleClick,
+    disabled: !url,
+    style: {
+      marginTop: "10px"
+    }
+  }, "Copy Banner 3y3"));
+}
+// src/ui/DisplayNameStyle.tsx
+var { React: React9, Components: Components5 } = BetterDiscord;
+var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
+var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
+var FONTS = [
+  { name: "GG Sans", id: 11 },
+  { name: "Tempo", id: 12 },
+  { name: "Sakura", id: 3 },
+  { name: "Jellybean", id: 4 },
+  { name: "Modern", id: 6 },
+  { name: "Medieval", id: 7 },
+  { name: "8Bit", id: 8 },
+  { name: "Vampyre", id: 10 },
+  { name: "Monkey Bars", id: 13 },
+  { name: "Mainframe", id: 14 },
+  { name: "Headbang", id: 15 },
+  { name: "Journal", id: 16 }
+];
+var EFFECTS = {
+  Solid: [15724529],
+  Gradient: [2797222, 16762000],
+  Neon: [6888941],
+  Toon: [15999128],
+  Pop: [1036166],
+  Gummy: [15724529, 2797222],
+  Prism: [15724529, 2797222]
+};
+function FontButton({ onClick, selected, fontFamily: font }) {
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    style: {
+      fontFamily: font.name,
+      color: "var(--text-default)",
+      backgroundColor: "var(--control-secondary-background-default)",
+      border: selected ? "1px solid white" : "none",
+      margin: "0px 5px 5px 0px",
+      display: "inline-block"
+    },
+    onClick
+  }, font.name);
+}
+function ColorPalette({ color }) {
+  return /* @__PURE__ */ React9.createElement("svg", {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: "20px",
+    height: "20px",
+    viewBox: "0 0 36 36"
+  }, /* @__PURE__ */ React9.createElement("path", {
+    fill: color,
+    d: "M32.23 14.89c-2.1-.56-4.93 1.8-6.34.3c-1.71-1.82 2.27-5.53 1.86-8.92c-.33-2.78-3.51-4.08-6.66-4.1A18.5 18.5 0 0 0 7.74 7.59c-6.64 6.59-8.07 16-1.37 22.48c6.21 6 16.61 4.23 22.67-1.4a17.7 17.7 0 0 0 4.22-6.54c1.08-2.9 1.18-6.64-1.03-7.24M9.4 10.57a2.23 2.23 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.81 2.53a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.81-2.53M5.07 20.82a2.22 2.22 0 0 1 1.82-2.53a2.22 2.22 0 0 1 2.86 1.21A2.23 2.23 0 0 1 7.94 22a2.24 2.24 0 0 1-2.87-1.18m7 8.33a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.8-2.53a2.23 2.23 0 0 1 2.87 1.21A2.22 2.22 0 0 1 12 29.15ZM15 8.26a2.23 2.23 0 0 1 1.81-2.53a2.24 2.24 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.82 2.53A2.21 2.21 0 0 1 15 8.26m5.82 22.19a2.22 2.22 0 0 1-2.87-1.21a2.23 2.23 0 0 1 1.81-2.53a2.24 2.24 0 0 1 2.87 1.21a2.22 2.22 0 0 1-1.85 2.53Zm5-10.46a3.2 3.2 0 0 1-1.69 1.76a3.5 3.5 0 0 1-1.4.3a2.78 2.78 0 0 1-2.56-1.5a2.5 2.5 0 0 1-.07-2a3.2 3.2 0 0 1 1.69-1.76a3 3 0 0 1 4 1.2a2.54 2.54 0 0 1 0 2.01Z"
+  }));
+}
+function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
+  const inputRef = React9.useRef(null);
+  return /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      display: "inline-flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 4,
+      cursor: "pointer"
+    },
+    onClick: () => inputRef.current?.click(),
+    onContextMenu: (e) => {
+      toggleDisabled(e, colorKey);
+    }
+  }, /* @__PURE__ */ React9.createElement("input", {
+    ref: inputRef,
+    type: "color",
+    defaultValue: value,
+    onChange: (e) => onChange(colorKey, e.target.value),
+    disabled,
+    style: {
+      position: "absolute",
+      width: 1,
+      height: 1,
+      opacity: 0,
+      pointerEvents: "none"
+    }
+  }), /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: disabled ? "rgba(0, 0, 0, 0.35)" : value,
+      border: disabled ? "2px solid rgba(255,255,255,0.6)" : "2px solid rgba(0,0,0,0.35)",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+      transition: "background 0.15s ease, border 0.15s ease"
+    }
+  }, /* @__PURE__ */ React9.createElement(ColorPalette, {
+    color: disabled ? "#ffffff" : "rgba(0,0,0,0.45)"
+  })), /* @__PURE__ */ React9.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: "#fff",
+      textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+      textTransform: "capitalize"
+    }
+  }, colorKey));
+}
+function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }) {
+  const [visualColors, setVisualColors] = React9.useState(colors);
+  const handleColorChange = (key, newValue) => {
+    onChange({ ...colors, [key]: newValue });
+    setVisualColors({ ...colors, [key]: newValue });
+  };
+  const visibleKeys = Object.keys(colors).slice(0, renderCount);
+  const visibleValues = visibleKeys.map((k) => colors[k]);
+  const setValues = visibleValues.filter(Boolean);
+  const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
+  const background = gradientColors.length === 1 ? gradientColors[0] : `linear-gradient(90deg, ${gradientColors.join(", ")})`;
+  const toggleDisable = (e, key) => {
+    if (colors[key] != null)
+      onChange({ ...colors, [key]: null });
+    else
+      onChange({ ...colors, [key]: visualColors[key] });
+  };
+  return /* @__PURE__ */ React9.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 14,
+      padding: "14px 16px",
+      borderRadius: 14,
+      background,
+      transition: "background 0.25s ease"
+    }
+  }, visibleKeys.map((key) => /* @__PURE__ */ React9.createElement(ColorSwatch, {
+    key,
+    colorKey: key,
+    disabled: !colors[key],
+    toggleDisabled: toggleDisable,
+    value: visualColors[key],
+    onChange: handleColorChange
+  })));
+}
+function EffectButton({ onClick, selected, children, data, colors }) {
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    style: {
+      backgroundColor: "var(--control-secondary-background-default)",
+      color: "var(--text-default)",
+      border: selected ? "1px solid white" : "none",
+      margin: "0px 5px 5px 0px",
+      display: "inline-block"
+    },
+    onClick
+  }, /* @__PURE__ */ React9.createElement(EffectText, {
+    displayNameStyles: {
+      colors: data.effectColors,
+      fontId: 1,
+      effectId: data.effectId + 1
+    },
+    effectDisplayType: data.effectId + 1,
+    inProfile: true,
+    loop: true,
+    userName: data.effectName
+  }));
+}
+var ModalModule3 = wpGetByKeys(["Modal"]);
+function OpenDisplayNameStyleModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React9.createElement(ModalModule3.Modal, {
+        notice: {
+          type: "warning",
+          message: GlobalModules.SimpleMarkdownWrapper.parse("Right-click to toggle a color in the gradient. Please be warned that when using Gummy or Prism, it can be up to 150 characters!")
+        },
+        title: "Change Display Name Style",
+        ...props
+      }, /* @__PURE__ */ React9.createElement(DisplayNameStyle, null));
+    });
+  }
+  return /* @__PURE__ */ React9.createElement(Components5.Button, {
+    onClick: handleClick
+  }, "Change");
+}
+function DisplayNameStyle() {
+  const UserNameWithEffects = wpGet(BetterDiscord.Webpack.Filters.bySource("UserNameWithEffects"), {
+    declaration: (x2) => String(x2.type).includes("UserNameWithEffects")
+  });
+  const [fontId, setFontId] = React9.useState(11);
+  const [effectId, setEffectId] = React9.useState(0);
+  const [colors, setColors] = React9.useState({
+    primary: "#ffffff",
+    secondary: "#ffffff",
+    accent: "#ffffff",
+    extra: "#ffffff",
+    extraExtra: "#ffffff"
+  });
+  const renderCount = effectId === 5 || effectId === 6 ? 5 : effectId === 1 ? 2 : 1;
+  const activeColors = Object.values(colors).filter(Boolean).slice(0, renderCount).map((x2) => parseInt(x2.replace("#", "0x"), 16));
+  return /* @__PURE__ */ React9.createElement("div", null, /* @__PURE__ */ React9.createElement("div", {
+    style: { fontSize: "25px", marginBottom: "10px" }
+  }, /* @__PURE__ */ React9.createElement(UserNameWithEffects, {
+    userName: UserStore6.getCurrentUser().globalName,
+    loop: true,
+    shouldWrap: false,
+    inProfile: true,
+    effectDisplayType: 2,
+    displayNameStyles: {
+      colors: activeColors,
+      effectId: effectId + 1,
+      fontId
+    }
+  })), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Font"), Object.values(FONTS).map((font) => /* @__PURE__ */ React9.createElement(FontButton, {
+    key: font.id,
+    fontFamily: font,
+    selected: fontId == font.id,
+    onClick: () => setFontId(font.id)
+  })), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Text, null, "Effect"), Object.entries(EFFECTS).map((effect, i2) => {
+    const data = {
+      effectName: effect[0],
+      effectColors: effect[1],
+      effectId: i2
+    };
+    return /* @__PURE__ */ React9.createElement(EffectButton, {
+      key: i2,
+      onClick: () => setEffectId(i2),
+      selected: effectId === i2,
+      data,
+      colors: data.effectColors
+    }, data.effectName);
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(FiveGuys, {
+    colors,
+    onChange: setColors,
+    renderCount
+  }), /* @__PURE__ */ React9.createElement("br", null), /* @__PURE__ */ React9.createElement(Components5.Button, {
+    onClick: () => {
+      const colorString = Object.values(colors).filter(Boolean).slice(0, renderCount).map((x2) => parseInt(x2.replace("#", ""), 16)).join(",");
+      copyToClipboard(secondsightifyEncodeOnly(`S{${fontId},${effectId + 1},${colorString}}`), "3y3 copied to clipboard!");
+    }
+  }, "Copy 3y3"));
+}
+// src/global/quests/index.ts
+var invalid = [{ name: "Uncategorized", sku_id: "8", products: [{ name: "[Test] Cedric Collectible", items: [{ label: "A collectible test by Cedric", sku_id: "1491545171232559376", type: 0 }], sku_id: "1491545171232559376", type: 0 }, { name: "[TEST] Pls ignore", items: [{ label: "test", sku_id: "1491545387268571177", type: 0 }], sku_id: "1491545387268571177", type: 0 }, { name: "[TEST] Kevin McCollectible2", items: [{ label: "This is a test collectible label2", sku_id: "1491544502937059340", type: 0 }], sku_id: "1491544502937059340", type: 0 }] }, { name: "Misc Profile Frames", sku_id: "7", products: [{ name: "[IGNORE - DUPLICATE] Lofi Skyline", items: [{ inner_width: 1200, label: "A glowing neon cityscape in purple, pink, and blue stretches across the top of the profile against a dark night sky", layers: [{ anchor: "top", id: "1511883747903934664", order: "back", responsive: false, type: "staple" }], overflow_bottom: 0, overflow_horizontal: 0, overflow_top: 304, sku_id: "1493976288711672008", type: 3 }], sku_id: "1493976288711672008", type: 3 }, { name: "Do Not Use - Y2K", items: [{ inner_width: 1200, label: "A chromatic border wraps around your profile", layers: [{ anchor: "center", id: "1511909030375981056", order: "front", responsive: false, type: "border" }, { anchor: "top", id: "1511909034461102151", order: "front", responsive: false, type: "staple" }, { anchor: "bottom", id: "1511909040752431114", order: "front", responsive: false, type: "staple" }], overflow_bottom: 207, overflow_horizontal: 56, overflow_top: 209, sku_id: "1491912717454540830", type: 3 }], sku_id: "1491912717454540830", type: 3 }, { name: "Shoujo", items: [{ type: 3, sku_id: "1491880600054005780", label: "Anime-style character design and vibrant colors frame your profile like a shoujo manga panel", layers: [{ id: "1511887478381088778", type: "staple", order: "front", anchor: "top", responsive: false }, { id: "1511887481904300224", type: "staple", order: "front", anchor: "bottom", responsive: false }], inner_width: 1200, overflow_top: 126, overflow_bottom: 116, overflow_horizontal: 56 }], sku_id: "1491880600054005780", type: 3 }, { name: "Do Not Use - Astrology", items: [{ inner_width: 1200, label: "Astrological symbols and cosmic elements frame your profile like a zodiac chart", layers: [{ anchor: "center", id: "1511836597438648501", order: "front", responsive: false, type: "border" }, { anchor: "center", id: "1511836603969179879", order: "front", responsive: true, type: "rail" }, { anchor: "top", id: "1511836607232344277", order: "front", responsive: false, type: "staple" }, { anchor: "bottom", id: "1511836611158216865", order: "front", responsive: false, type: "staple" }], overflow_bottom: 127, overflow_horizontal: 56, overflow_top: 304, sku_id: "1489397732144844902", type: 3 }], sku_id: "1489397732144844902", type: 3 }, { name: "Do Not Use - Fantasy Galaxy", items: [{ inner_width: 1200, label: "A swirl of stars and cosmic dust frames your profile like a pocket galaxy", layers: [{ anchor: "top", id: "1512141939426984117", order: "front", responsive: true, type: "rail" }, { anchor: "top", id: "1511907713653801031", order: "front", responsive: false, type: "staple" }, { anchor: "top", id: "1511907717302849676", order: "back", responsive: false, type: "staple" }], overflow_bottom: 0, overflow_horizontal: 56, overflow_top: 291, sku_id: "1484726324592640052", type: 3 }], sku_id: "1484726324592640052", type: 3 }] }, { name: "1478820291382743227", sku_id: "1478820291382743227", products: [{ name: "Nitro Control", items: [{ type: 2, sku_id: "1478820329936650464", label: "A chrome rocket ship sails through the galaxy.", palette: "cobalt" }], sku_id: "1478820329936650464", type: 2 }] }, { name: "OOSLA", sku_id: "1464327525974151412", products: [{ name: "Unicorns are Awesome", items: [{ type: 0, sku_id: "1464327740780974167", label: "labels are cool" }], sku_id: "1464327740780974167", type: 0 }, { name: "Bug Catcher Wumpus", items: [{ type: 0, sku_id: "1487099062355361994", label: "OOSLA Quest Deco" }], sku_id: "1487099062355361994", type: 0 }, { name: "Hakuna Bug-tata", items: [{ type: 2, sku_id: "1488553242555187391", label: "OOSLA Quest Deco", palette: "forest" }], sku_id: "1488553242555187391", type: 2 }] }, { name: "Holidays", sku_id: "1349486948942745691", products: [] }, { name: "Nameplate Test", sku_id: "1344802365307621427", products: [{ name: "Angel", items: [{ type: 2, sku_id: "1344802364934062152", label: "It's angel time", palette: "bubble_gum" }], sku_id: "1344802364934062152", type: 2 }, { name: "Aurora", items: [{ type: 2, sku_id: "1344802364971946054", label: "It's aurora time", palette: "teal" }], sku_id: "1344802364971946054", type: 2 }, { name: "Cherry Blossom", items: [{ type: 2, sku_id: "1344802364992782366", label: "It's cherry blossom time", palette: "berry" }], sku_id: "1344802364992782366", type: 2 }, { name: "Dark Fantasy", items: [{ type: 2, sku_id: "1344802365013753962", label: "It's dark fantasy time", palette: "violet" }], sku_id: "1344802365013753962", type: 2 }, { name: "Dreamy", items: [{ type: 2, sku_id: "1344802365038919680", label: "It's dreamy time", palette: "bubble_gum" }], sku_id: "1344802365038919680", type: 2 }, { name: "Fairy Dust", items: [{ type: 2, sku_id: "1344802365068279839", label: "It's fairy dust time", palette: "bubble_gum" }], sku_id: "1344802365068279839", type: 2 }, { name: "Galaxy", items: [{ type: 2, sku_id: "1344802365089251429", label: "It's galaxy time", palette: "cobalt" }], sku_id: "1344802365089251429", type: 2 }, { name: "Glitch", items: [{ type: 2, sku_id: "1344802365114417202", label: "It's glitch time", palette: "cobalt" }], sku_id: "1344802365114417202", type: 2 }, { name: "Heart Bloom", items: [{ type: 2, sku_id: "1344802365135524007", label: "It's heart bloom time", palette: "bubble_gum" }], sku_id: "1344802365135524007", type: 2 }, { name: "Kawaii Gaming", items: [{ type: 2, sku_id: "1344802365160689685", label: "It's kawaii gaming time", palette: "sky" }], sku_id: "1344802365160689685", type: 2 }, { name: "Kitsune", items: [{ type: 2, sku_id: "1344802365177331822", label: "It's Kitsune time", palette: "cobalt" }], sku_id: "1344802365177331822", type: 2 }, { name: "Koi Pond", items: [{ type: 2, sku_id: "1344802365198303314", label: "It's koi pond time", palette: "sky" }], sku_id: "1344802365198303314", type: 2 }, { name: "Lofi", items: [{ type: 2, sku_id: "1344802365223469066", label: "It's lofi time", palette: "berry" }], sku_id: "1344802365223469066", type: 2 }, { name: "Lofi Cat", items: [{ type: 2, sku_id: "1344802365244440606", label: "It's lofi cat time", palette: "berry" }], sku_id: "1344802365244440606", type: 2 }, { name: "Moon and Sun", items: [{ type: 2, sku_id: "1344802365265412119", label: "It's moon and sun time", palette: "cobalt" }], sku_id: "1344802365265412119", type: 2 }] }, { name: "Special Events 2", sku_id: "1309309974266118144", products: [{ name: "New Year", items: [{ type: 0, sku_id: "1174459415924064376", label: "Cheers to 2023, and we hope you have a wonderful new year in 2024! Gold 2024 balloons sit ontop of the avatar." }], sku_id: "1174459415924064376", type: 0 }, { name: "Rift Butterfly", items: [{ type: 0, sku_id: "1308169595055771749", label: "A rift butterfly shines in the center of the avatar, flutters its wings, and returns to the top of the avatar." }], sku_id: "1308169595055771749", type: 0 }, { name: "Batarang", items: [{ type: 0, sku_id: "1309270800099971122", label: "A spinning, bat-shaped metallic projectile hurtles into and impacts the screen, leaving a massive crack." }], sku_id: "1309270800099971122", type: 0 }, { name: "Bush Camper", items: [{ type: 0, sku_id: "1313309630851448833", label: "A bush encircles the avatar, with leaves gently rustling and swaying in a circular motion." }], sku_id: "1313309630851448833", type: 0 }, { name: "Shield Potion", items: [{ type: 0, sku_id: "1315750531330736211", label: "A potion bottle is uncorked, its contents emptied, and a pixelated aura swipes over the avatar from bottom to top." }], sku_id: "1315750531330736211", type: 0 }, { name: "TGA Controller", items: [{ type: 0, sku_id: "1315853682235019326", label: "Two joysticks and keypads control a target that moves in all directions around the profile picture." }], sku_id: "1315853682235019326", type: 0 }, { name: "Shadow", items: [{ type: 0, sku_id: "1316597786862419988", label: "Shadow teleports around multiple times, leaving a red and orange trail while striking various dynamic poses." }], sku_id: "1316597786862419988", type: 0 }, { name: "Rec Room Lightning", items: [{ type: 0, sku_id: "1319423712474435655", label: "A streak of orange lightning surrounds the avatar." }], sku_id: "1319423712474435655", type: 0 }, { name: "WINGMAN'S GOT IT", items: [{ type: 0, sku_id: "1325880072972013670", label: "VALORANT Agent Gekko's cute yellow creature happily bounces on top of your avatar" }], sku_id: "1325880072972013670", type: 0 }, { name: "Heart-to-Heart", items: [{ type: 0, sku_id: "1326347611069874277", label: "A flurry of pink and red hearts surround around your avatar, swirling with a gentle touch before settling into a snug, cheek-to-cheek cuddle." }], sku_id: "1326347611069874277", type: 0 }, { name: "Jeff the Land Shark", items: [{ type: 0, sku_id: "1326718812279799809", label: "Jeff the Land Shark is an absolutely adorable, chonky cartoon shark who looks like it just discovered its love for snacks and hugs. It’s rocking a stylish pink collar with a shiny gold tag, like it’s ready to be your best aquatic buddy. Its big toothy grin says, “I’m cute, but I could still chomp if needed!”." }], sku_id: "1326718812279799809", type: 0 }, { name: "Fuchsia Agent", items: [{ type: 0, sku_id: "1329309467619229797", label: "A Fuchsia Agent character with a red shark swimming around the character's gray headband." }], sku_id: "1329309467619229797", type: 0 }, { name: "Fortnite Boogie Bomb", items: [{ type: 0, sku_id: "1334270711790833776", label: "A Boogie Bomb explodes, lowering a disco ball causing a festive disco light show" }], sku_id: "1334270711790833776", type: 0 }, { name: "Scout", items: [{ type: 0, sku_id: "1336439189041975316", label: "An older man wearing a green cape and gray feathered hat holds a wooden staff and looks into the distance while shielding his eyes to scout ahead. Next to him, his sitting dog companion stands up and looks in the same direction." }], sku_id: "1336439189041975316", type: 0 }, { name: "Hoppy Day", items: [{ type: 0, sku_id: "1336506386296864839", label: "Your avatar has found a friend in the shape of a little brown bunny. It hops in delight when it sees you." }], sku_id: "1336506386296864839", type: 0 }, { name: "Afternoon Breeze", items: [{ type: 0, sku_id: "1336506386296864842", label: "Your avatar stands in a dreamy meadow, where pink and orange flowers sway to nature’s rhythm, sending petals twirling through the soft breeze." }], sku_id: "1336506386296864842", type: 0 }, { name: "Shower Stroll", items: [{ type: 0, sku_id: "1336506386296864845", label: "A soft rain drapes over your avatar, leaving a shimmering rainbow glow that whispers a touch of magic into the misty air." }], sku_id: "1336506386296864845", type: 0 }, { name: "Exoborne", items: [{ type: 0, sku_id: "1338927497860878466", label: "Metallic armor surrounds the avatar with pieces shifting into place and yellow indicator lights turning on." }], sku_id: "1338927497860878466", type: 0 }, { name: "Big Dill Chain", items: [{ type: 0, sku_id: "1341522018197311519", label: "A gold chain holding a gold medallion with a D that has two vertical slashes through it surrounds a green cap." }], sku_id: "1341522018197311519", type: 0 }, { name: "Pathojen", items: [{ type: 0, sku_id: "1346915187243876474", label: "This avatar decoration features a vibrant, neon-colored circular flame effect with an energetic, cartoonish character at the bottom left." }], sku_id: "1346915187243876474", type: 0 }, { name: "Split Avatar Decoration", items: [{ type: 0, sku_id: "1346987105028407307", label: "A circular energy effect split in two: the left side glows purple, the right golden-orange. A diagonal crystal-like fracture runs across it, with shimmering shards and sparks, creating a high-tech, futuristic, battle-worn look." }], sku_id: "1346987105028407307", type: 0 }, { name: "Khazan Avatar Decoration", items: [{ type: 0, sku_id: "1347624589571788951", label: "This Discord avatar decoration features a menacing, metallic circular frame composed of jagged, dark gray spikes with glowing blue crystal-like accents embedded throughout. The design gives off a sharp, armored aesthetic, reminiscent of a magical or futuristic battle-worn artifact." }], sku_id: "1347624589571788951", type: 0 }, { name: "Gallica Avatar Decoration", items: [{ type: 0, sku_id: "1349045865188294719", label: "A fairy is floating while flipping through pages in a book" }], sku_id: "1349045865188294719", type: 0 }, { name: "Supply Llama", items: [{ type: 0, sku_id: "1352347590917882008", label: "A purple and blue llama body surrounds the frame, with a llama head on the top left." }], sku_id: "1352347590917882008", type: 0 }, { name: "Clicker Avatar Decoration", items: [{ type: 0, sku_id: "1357852406079291593", label: "Mushroom-shaped elements in orange-red and mint green colors surround the user's avatar. The organic, flowing fungal shapes have a natural, slightly oceanic aesthetic with a hand-drawn illustration style." }], sku_id: "1357852406079291593", type: 0 }, { name: "Face of Corruption Avatar Decoration", items: [{ type: 0, sku_id: "1359328540104986636", label: "This avatar decoration features two intense, screaming red stone faces split dramatically down the middle." }], sku_id: "1359328540104986636", type: 0 }, { name: "Emma Frost Avatar Decoration", items: [{ type: 0, sku_id: "1359953429778137322", label: "This avatar decoration features a confident, stylishly armored woman standing tall with a shimmering crystal levitating above her hand. The transparent center lets your avatar shine while being blessed by the aura of power, elegance, and just a dash of sass." }], sku_id: "1359953429778137322", type: 0 }, { name: "Signal from Tau Ceti Avatar Decoration", items: [{ type: 0, sku_id: "1360316550313283748", label: "Neon yellow-green overlays surround the user's avatar. The animated overlays show hazard stripes, exclamation marks, directional arrows, and letters and numbers that flicker." }], sku_id: "1360316550313283748", type: 0 }, { name: "Slurp Barrel Avatar Decoration", items: [{ type: 0, sku_id: "1360353397865447707", label: "A metallic barrel with the label 'Slurp co.' expands on top of the user's avatar and explodes into blue and white liquid." }], sku_id: "1360353397865447707", type: 0 }, { name: "Hackclaw", items: [{ type: 0, sku_id: "1362863977222115430", label: "Stylized avatar showing a white-haired character with turquoise highlights, with only the hair and hands visible. The hands appear to be wearing dark gloves with pink highlights, positioned on a keyboard." }], sku_id: "1362863977222115430", type: 0 }, { name: "Friend of Dex", items: [{ type: 0, sku_id: "1366429159961919569", label: "A vibrant yellow fox energetically frames a circular pink energy border." }], sku_id: "1366429159961919569", type: 0 }, { name: "Shield Saw", items: [{ type: 0, sku_id: "1362863977222115433", label: "Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element." }], sku_id: "1362863977222115433", type: 0 }, { name: "Fortnite Galactic Battle", items: [{ type: 0, sku_id: "1369388182927442022", label: "Circular frame with two curved lines framing where a user's avatar would appear. The top curve is blue with a small circular emblem, while the bottom curve is red with a wheel-like symbol." }], sku_id: "1369388182927442022", type: 0 }, { name: "Freshly Picked", items: [{ type: 0, sku_id: "1369404111484751873", label: "Beautiful, juicy strawberries, blueberries, and oranges, still wet from being washed, circle the outside of your avatar and remind you that summer is here." }], sku_id: "1369404111484751873", type: 0 }, { name: "Shield Saw", items: [{ type: 0, sku_id: "1371943141321609357", label: "Circular frame with metallic appearance, featuring a serrated outer edge. The center is light-colored, surrounded by silver triangular markers and gold trim, resembling a sci-fi portal or interface element." }], sku_id: "1371943141321609357", type: 0 }, { name: "The Bad Guys 2 Trailer", items: [{ type: 0, sku_id: "1371949732066234571", label: "A bright, orange comet-like streak curves around the top-left of the frame, fading into sparks and glowing embers. The effect gives the avatar a sense of fiery motion." }], sku_id: "1371949732066234571", type: 0 }, { name: "Mission: Impossible", items: [{ type: 0, sku_id: "1373682603621744720", label: "Person running around in circles upside down" }], sku_id: "1373682603621744720", type: 0 }, { name: "Jurassic World Rebirth Trailer", items: [{ type: 0, sku_id: "1374170804769652797", label: "Dinosaur roaring then fading away into the Jurassic World logo" }], sku_id: "1374170804769652797", type: 0 }, { name: "Open Beta", items: [{ type: 0, sku_id: "1374394443997642803", label: "A circular cyan-blue ring with a faint light blue design in the center that resembles a stylized logo or emblem." }], sku_id: "1374394443997642803", type: 0 }, { name: "Ballerina", items: [{ type: 0, sku_id: "1377740268366991562", label: "Pink rays emit from the center of the decoration like a halo and two blue fluffy ends of a fur coat show on the sides." }], sku_id: "1377740268366991562", type: 0 }, { name: "Ultron", items: [{ type: 0, sku_id: "1377856108282253333", label: "Metallic claws drag open a red swirling portal. The metallic claws disappear and Ultron appears through the portal." }], sku_id: "1377856108282253333", type: 0 }, { name: "Marvel Snap Venom", items: [{ type: 0, sku_id: "1379222146274033798", label: "A glowing cube in the bottom left becomes enveloped by black organic material and disappears. The organic material circulates around the avatar and transforms into Venom's face. The face takes a large bite and transforms back into a large glowing cube." }], sku_id: "1379222146274033798", type: 0 }, { name: "How to Train Your Dragon", items: [{ type: 0, sku_id: "1379879504629207180", label: "Ornate circular frame with a Dragon and a weathered metallic finish" }], sku_id: "1379879504629207180", type: 0 }, { name: "Starlight Revolver", items: [{ type: 0, sku_id: "1380276497209622529", label: "A circular purple gradient border with decorative four-pointed stars in pink, cyan, purple, and orange scattered around the outside edge." }], sku_id: "1380276497209622529", type: 0 }, { name: "R6 Siege X Avatar", items: [{ type: 0, sku_id: "1380688086941302906", label: "A metallic sledge hammer twirls before smashing a wooden panel with a large green X painted on the center of it." }], sku_id: "1380688086941302906", type: 0 }, { name: "Towerborne Play", items: [{ type: 0, sku_id: "1382044334890680442", label: "A white and red fox mask turns to face the viewer. Streams of light emanate from its eyes before it returns to the upper left portion of the frame." }], sku_id: "1382044334890680442", type: 0 }, { name: "28 Years Later", items: [{ type: 0, sku_id: "1383123340142841949", label: "Animated avatar decoration depicting a pile of skulls stacked on the ground in the bottom left corner, with dark, jagged bones or spikes protruding from the back." }], sku_id: "1383123340142841949", type: 0 }, { name: "M3GAN 2.0", items: [{ type: 0, sku_id: "1383136910435811430", label: "Animated M3GAN avatar frame with a dark spinning ring and M3GAN standing in a tan dress." }], sku_id: "1383136910435811430", type: 0 }, { name: "LEGO® Fortnite", items: [{ type: 0, sku_id: "1384216812488757359", label: "Circular LEGO® Fortnite avatar frame with fire, ice, and tech-themed emblems in red, blue, and green." }], sku_id: "1384216812488757359", type: 0 }, { name: "I Love R.E.P.O.", items: [{ type: 0, sku_id: "1384247972107386911", label: "A goofy yellow head with large, wide-set cartoon eyes and a huge open mouth, forming a playful ring around the avatar." }], sku_id: "1384247972107386911", type: 0 }, { name: "SuperCell", items: [{ type: 0, sku_id: "1385015130466680995", label: "Animated green cactus character with red flowers waving next to a decorative circular frame with small leaves" }], sku_id: "1385015130466680995", type: 0 }, { name: "Palia", items: [{ type: 0, sku_id: "1386849676875141292", label: "Animated cute fox peeking out from a circular woodland frame decorated with branches, green leaves, and small white flowers." }], sku_id: "1386849676875141292", type: 0 }, { name: "VALORANT Summer Kickoff", items: [{ type: 0, sku_id: "1386838941801382010", label: "Animated carnival mask with colorful feathers and ribbons in purple, blue, and yellow." }], sku_id: "1386838941801382010", type: 0 }, { name: "Dilophosaurus", items: [{ type: 0, sku_id: "1388206477491175517", label: "Circular frame with gold and black border featuring an animated Dilophosaurus that emerges from the left side. The Dilophosaurus moves its head around the frame edge, and as the animation concludes, its colorful neck frill extends to partially cover the circular white space designed for a profile picture." }], sku_id: "1388206477491175517", type: 0 }, { name: "Moomoo Hood", items: [{ type: 0, sku_id: "1387485784419995649", label: "Cartoon cow frame with pink ears, black spots on white fur, and gold bell at bottom. Circular opening centers where user's profile picture appears." }], sku_id: "1387485784419995649", type: 0 }, { name: "Mecha BREAK", items: [{ type: 0, sku_id: "1390436532988674091", label: "A futuristic metallic helmet encloses the avatar. The eyes shine with a blue light before the helmet opens up again." }], sku_id: "1390436532988674091", type: 0 }, { name: "THPS Half Pipe", items: [{ type: 0, sku_id: "1391785327613706301", label: "An aeriel view of a retro style half pipe with graffiti art flanks the frame. An orange skateboard drops in and performs a spinning trick, then returns to the bottom left of the frame." }], sku_id: "1391785327613706301", type: 0 }, { name: "Jet Ring", items: [{ type: 0, sku_id: "1409978159255785652", label: "Give your avatar a new look." }], sku_id: "1409978159255785652", type: 0 }, { name: "Blast Off", items: [{ type: 1, sku_id: "1409978969670815795", title: "Blast Off", description: "Show this effect when others view your profile.", accessibilityLabel: "Show this effect when others view your profile.", animationType: 1, staticFrameSrc: "https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1", thumbnailPreviewSrc: "https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00", reducedMotionSrc: "https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198", effects: [{ src: "https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186", loop: false, height: 880, width: 450, duration: 2000, start: 0, loopDelay: 0, position: { x: 0, y: 0 }, zIndex: 100, randomizedSources: [] }, { src: "https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532", loop: true, height: 880, width: 450, duration: 3000, start: 2000, loopDelay: 0, position: { x: 0, y: 0 }, zIndex: 101, randomizedSources: [] }] }], sku_id: "1409978969670815795", type: 1 }, { name: "Jet Stream", items: [{ type: 2, sku_id: "1409983105577783410", label: "Make your name stand out in servers and chats.", palette: "violet" }], sku_id: "1409983105577783410", type: 2 }, { name: "Nitro Jet Fuel", items: [{ type: 0, sku_id: "1409978159255785652", label: "Give your avatar a new look." }, { type: 1, sku_id: "1409978969670815795", title: "Blast Off", description: "Show this effect when others view your profile.", accessibilityLabel: "Show this effect when others view your profile.", animationType: 1, staticFrameSrc: "https://cdn.discordapp.com/assets/content/f2865fa070e5a4b90d75044d695587ad3f15f29d01d79c462a900d2c9d76bba1", thumbnailPreviewSrc: "https://cdn.discordapp.com/assets/content/15d4ee817f281d45c8060349acaa5855c5321564594b30ca61913acb88e67e00", reducedMotionSrc: "https://cdn.discordapp.com/assets/content/7a7173a103bd32107c451319a6f5fb7bf015de212587e843fceab4c0dffdb198", effects: [{ src: "https://cdn.discordapp.com/assets/content/00f3f29848f11b215e277e10320a6a5c4428bee49bd7c9db5493280b4358e186", loop: false, height: 880, width: 450, duration: 2000, start: 0, loopDelay: 0, position: { x: 0, y: 0 }, zIndex: 100, randomizedSources: [] }, { src: "https://cdn.discordapp.com/assets/content/aba3fdf9a8c4c9d35f9d4b35a9a81ddde2ba3a86c5d6159e7ee4fbfff084c532", loop: true, height: 880, width: 450, duration: 3000, start: 2000, loopDelay: 0, position: { x: 0, y: 0 }, zIndex: 101, randomizedSources: [] }] }, { type: 2, sku_id: "1409983105577783410", label: "Make your name stand out in servers and chats.", palette: "violet" }], sku_id: "1410030846337093672", type: 1000 }, { name: "Bonsai - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853949", label: "A bonsai avatar decoration." }], sku_id: "1440174638930853949", type: 0 }, { name: "Donut - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853950", label: "A donut avatar decoration." }], sku_id: "1440174638930853950", type: 0 }, { name: "Capybara - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853951", label: "A capybara avatar decoration." }], sku_id: "1440174638930853951", type: 0 }, { name: "Disco - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853952", label: "A disco ball avatar decoration." }], sku_id: "1440174638930853952", type: 0 }, { name: "Origami - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853953", label: "An origami avatar decoration." }], sku_id: "1440174638930853953", type: 0 }, { name: "Snail - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853954", label: "A snail avatar decoration." }], sku_id: "1440174638930853954", type: 0 }, { name: "Duck - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853955", label: "A duck avatar decoration." }], sku_id: "1440174638930853955", type: 0 }, { name: "Banana - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853956", label: "A banana avatar decoration." }], sku_id: "1440174638930853956", type: 0 }, { name: "Cat - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853957", label: "A cat avatar decoration." }], sku_id: "1440174638930853957", type: 0 }, { name: "Cassette - Checkpoint 2025", items: [{ type: 0, sku_id: "1440174638930853958", label: "A cassette avatar decoration." }], sku_id: "1440174638930853958", type: 0 }, { name: "Full HP", items: [{ type: 0, sku_id: "1464006538304684063", label: "Three pixel-style red hearts appear above the user’s avatar. Each heart gradually fills from empty to full in a loop, mimicking a video game health bar animation." }], sku_id: "1464006538304684063", type: 0 }, { name: "Full Heart", items: [{ type: 2, sku_id: "1464017397081047081", label: "A red pixel-style heart is displayed to the right of the user’s name. The heart slowly fills from empty to full in a repeating animation.", palette: "crimson" }], sku_id: "1464017397081047081", type: 2 }] }, { name: "Special Events", sku_id: "1217175518781243583", products: [{ name: "Ghosts", items: [{ type: 0, sku_id: "1157411685687115858", label: "You notice two spooky ghosts twirling around each other in an eternal dance. Are they friend or foe?" }], sku_id: "1157411685687115858", type: 0 }, { name: "Graveyard Cat", items: [{ type: 0, sku_id: "1157411984371880118", label: "Bathed in the glow of a full moon, a mysterious black cat is perched upon a tombstone, playfully pawing the tomb's exterior." }], sku_id: "1157411984371880118", type: 0 }, { name: "Jack-o'-lantern", items: [{ type: 0, sku_id: "1157412388509864068", label: "A gleeful jack-o'-lantern cackles atop a dark, twisted branch, with bats swirling above to join in on the spooky shenanigans." }], sku_id: "1157412388509864068", type: 0 }, { name: "Minions", items: [{ type: 0, sku_id: "1157412779335090267", label: "A one-eyed magic cauldron hovers in the air, bubbling with a strange, green brew. Its winged jack-o'-lantern companion flaps nearby. What mischief are they brewing?" }], sku_id: "1157412779335090267", type: 0 }, { name: "I'm a Clown", items: [{ type: 0, sku_id: "1216908559548289084", label: "An avatar wears a vibrant ensemble of colorful clown hair, bowtie, and a striking red nose that balloons and pops." }], sku_id: "1216908559548289084", type: 0 }, { name: "Gyoiko Sakura", items: [{ type: 0, sku_id: "1225876188074082374", label: "The petals of three lovely, green cherry blossoms drift softly across the avatar." }], sku_id: "1225876188074082374", type: 0 }, { name: "Mokoko", items: [{ type: 0, sku_id: "1226939756617793606", label: "An affectionate Mokoko hugs the avatar then slides down and climbs back up to hug the avatar again." }], sku_id: "1226939756617793606", type: 0 }, { name: "Warp Helmet", items: [{ type: 0, sku_id: "1251324401459265537", label: "Futuristic Helmet, Blue with Green Warp Speed Light, Animated" }], sku_id: "1251324401459265537", type: 0 }, { name: "Fortnite Victory Crown", items: [{ type: 0, sku_id: "1252353273256480818", label: "A gold, sparkly crown with a llama adornment tilts up and down. The avatar sparkles and glows with a golden aura." }], sku_id: "1252353273256480818", type: 0 }, { name: "Freezer Bunny Lovebug", items: [{ type: 0, sku_id: "1262457693965258874", label: "An adorable Freezer Bunny. It bounces upward into frame and throws hearts into the sky around the avatar." }], sku_id: "1262457693965258874", type: 0 }, { name: "Wingman Boba", items: [{ type: 0, sku_id: "1262473048876122112", label: "VALORANT Agent Gekko's cute yellow creature presents you with a boba tea and happily floats beside your avatar, creating a delightful and playful atmosphere." }], sku_id: "1262473048876122112", type: 0 }, { name: "Los Santos", items: [{ type: 0, sku_id: "1262518692248420434", label: 'Reads "City of Los Santos, Founded 1781", and shows a helicopter with a searchlight flying into the frame.' }], sku_id: "1262518692248420434", type: 0 }, { name: "Test Collectible Quest Reward", items: [{ type: 0, sku_id: "1272728337848074271", label: "The petals of three lovely, green cherry blossoms drift softly across the avatar." }], sku_id: "1272728337848074271", type: 0 }, { name: "Hailey", items: [{ type: 0, sku_id: "1278392092258734091", label: "A white fur coat hood that pulls a cover over the mouth as snow falls around the decoration" }], sku_id: "1278392092258734091", type: 0 }, { name: "Torgal Puppy", items: [{ type: 0, sku_id: "1280648686736638003", label: "Torgal the Puppy chasing a firefly but not catching it." }], sku_id: "1280648686736638003", type: 0 }, { name: "Street Fighter 6 Battle Field Avatar Decoration", items: [{ type: 0, sku_id: "1280648686749352003", label: "Shows two health bars, a timer, fireballs moving between the two health bars, and the word FIGHT!" }], sku_id: "1280648686749352003", type: 0 }, { name: "Bunny", items: [{ type: 0, sku_id: "1280648686749352007", label: "A futuristic headpiece with glowing ears that crackle with electric energy." }], sku_id: "1280648686749352007", type: 0 }, { name: "Wolf Morph", items: [{ type: 0, sku_id: "1286046055498252319", label: "Wolf Morph appears, shakes their head, then disappears" }], sku_id: "1286046055498252319", type: 0 }, { name: "2025 Balloons", items: [{ type: 0, sku_id: "1301993378484850769", label: "Gold, metallic, balloon-style numbers arranged to spell 2025." }], sku_id: "1301993378484850769", type: 0 }, { name: "Holiday Cat Ears", items: [{ type: 0, sku_id: "1301993378484850771", label: "A Santa hat with a red, pointed top and fluffy white trim, designed with two prominent cat ears that stick up on either side" }], sku_id: "1301993378484850771", type: 0 }, { name: "Snowfall", items: [{ type: 0, sku_id: "1301993378484850773", label: "Snowflakes fall gently around the avatar, creating a winter wonderland." }], sku_id: "1301993378484850773", type: 0 }, { name: "Gear Spin", items: [{ type: 0, sku_id: "1304519765917696011", label: "A pink and purple gear spins rapidly around your avatar, putting off neon green sparks. Careful with that." }], sku_id: "1304519765917696011", type: 0 }, { name: "Wallach IX Spaceport", items: [{ type: 0, sku_id: "1305905202578325535", label: "A spacecraft flies by two pillars at the Wallach IX Spaceport past a glowing crescent ring and disappears." }], sku_id: "1305905202578325535", type: 0 }] }, { name: "Breakfast", sku_id: "1144054000099012659", products: [{ name: "Toast", items: [{ type: 0, id: "1144056139584127059", sku_id: "1144056139584127058", label: "Toast Being Eaten, Animated" }], sku_id: "1144056139584127058" }, { name: "Morning Coffee", items: [{ type: 0, id: "1144056631374647459", sku_id: "1144056631374647458", label: "Coffee with Milk Steaming from Blue Mug with Smiley Face, Animated" }], sku_id: "1144056631374647458" }, { name: "Fried Egg", items: [{ type: 0, id: "1144057023726628946", sku_id: "1144057023726628945", label: "Runny Egg Yolk, Animated" }], sku_id: "1144057023726628945" }, { name: "Blueberry Jam", items: [{ type: 0, id: "1144057249392771146", sku_id: "1144057249392771145", label: "Blueberry Jam Spelling the Letters ‘mmmm’, Animated" }], sku_id: "1144057249392771145" }, { name: "Doughnut", items: [{ type: 0, id: "1144057486203158561", sku_id: "1144057486203158560", label: "Doughnut with Pink Glaze and Sprinkles, Animated" }], sku_id: "1144057486203158560" }, { name: "Pancakes", items: [{ type: 0, id: "1144057737475534890", sku_id: "1144057737475534889", label: "Stack of Pancakes with Butter and Syrup, Animated" }], sku_id: "1144057737475534889" }] }];
+
+// src/global/stores/ShopCollectiblesStore.tsx
+function itemsByType(collection, type) {
+  if (!collection)
+    return null;
+  const items = collection.products.flatMap((p) => p.items.filter((i2) => i2.type === type).map((i2) => ({ ...i2, productName: p.name })));
+  return [...new Map(items.map((i2) => [i2.sku_id, i2])).values()];
+}
+var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends BetterDiscord.Utils.Store {
+  collections = [];
+  quests = [];
+  _invalid = [];
+  constructor() {
+    super();
+    this.fetch();
+  }
+  async fetch() {
+    const [collections, quests] = await Promise.all([
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then((r) => r.json()),
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then((r) => r.json())
+    ]);
+    this.collections = collections;
+    this.quests = quests;
+    this._invalid = invalid;
+    this.emitChange();
+  }
+  set(data) {
+    this.collections = data.categories.categories;
+    this.emitChange();
+  }
+  getCategories() {
+    return this.collections.map((c) => c.sku_id);
+  }
+  getInvalids() {
+    return this._invalid.map((c) => c.sku_id);
+  }
+  getInvalid(id) {
+    return this._invalid.find((c) => c.sku_id === id);
+  }
+  getCategory(skuId) {
+    return this.collections.find((c) => c.sku_id === skuId);
+  }
+  getInvalidCategory(skuId) {
+    return this._invalid.find((c) => c.sku_id === skuId);
+  }
+  getItemsFromCategory(skuId) {
+    const category = this.getCategory(skuId);
+    return category ? category.products.filter((p) => p.type !== 1000) : null;
+  }
+  getAvatarDecorations(skuId) {
+    return itemsByType(this.getCategory(skuId), 0 /* AvatarDecoration */);
+  }
+  getNameplates(skuId) {
+    return itemsByType(this.getCategory(skuId), 2 /* Nameplate */);
+  }
+  getProfileEffects(skuId) {
+    return itemsByType(this.getCategory(skuId), 1 /* ProfileEffect */);
+  }
+  getProfileFrames(skuId) {
+    return itemsByType(this.getCategory(skuId), 3 /* ProfileFrame */);
+  }
+  getInvalidByType(skuId, type) {
+    return itemsByType(this.getInvalidCategory(skuId), type);
+  }
+  getAllShopItems() {
+    return this.collections.flatMap((c) => c.products.flatMap((p) => p.items.map((i2) => ({ ...i2, productName: p.name }))));
+  }
+  getShopItemBySkuId(skuId) {
+    return this.getAllShopItems().find((i2) => i2.sku_id === skuId);
+  }
+  getQuests() {
+    return this.quests;
+  }
+  getQuest(id) {
+    return this.quests.find((q) => q.id === id);
+  }
+  getAllQuestRewards() {
+    return this.quests.flatMap((q) => q?.config?.rewards_config?.rewards ?? []);
+  }
+  getProduct(skuId) {
+    return this.getAllQuestRewards().find((r) => r.sku_id === skuId);
+  }
+  getQuestCollectible(skuId) {
+    return this.getAllQuestRewards().find((r) => r.sku_id === skuId);
+  }
+  getAllResolvedQuestItems() {
+    return this.getAllQuestRewards().map((r) => this.getShopItemBySkuId(r.sku_id)).filter((i2) => i2 !== undefined);
+  }
+  getQuestAvatarDecorations() {
+    return this.getAllResolvedQuestItems().filter((i2) => i2.type === 3);
+  }
+  unload() {
+    this.collections = [];
+    this.quests = [];
+    this._invalid = [];
+  }
+};
+
+// src/ui/ProfileEffects.tsx
+var { Components: Components6, React: React10 } = BetterDiscord;
+var { useState: useState2 } = React10;
+var ModalModule4 = wpGetByKeys(["Modal"]);
+function OpenProfileEffectModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React10.createElement(ModalModule4.Modal, {
+        title: "Change Profile Effect",
+        ...props
+      }, /* @__PURE__ */ React10.createElement(ProfileEffects, null));
+    });
+  }
+  return /* @__PURE__ */ React10.createElement(Components6.Button, {
+    onClick: handleClick
+  }, "Change");
+}
+function CustomSkuTextInput({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState2("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyProfileEffect3y3(skuId ?? customSkuTextBox);
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React10.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React10.createElement(Components6.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
+function copyProfileEffect3y3(skuId) {
+  copyToClipboard(" " + secondsightifyEncodeOnly("fx" + skuId), "3y3 copied to clipboard!");
+}
+function ProfileEffect({ product, setSkuId }) {
+  const skuId = product.sku_id;
+  const src = product.thumbnailPreviewSrc;
+  const title = product.title;
+  return /* @__PURE__ */ React10.createElement("img", {
+    onClick: () => {
+      setSkuId(skuId);
+      copyProfileEffect3y3(skuId);
+    },
+    src,
+    title,
+    style: {
+      width: "22.5%",
+      cursor: "pointer",
+      marginBottom: "0.5em",
+      marginLeft: "0.5em",
+      backgroundColor: "var(--background-base-lower)",
+      display: "inline-block"
+    }
+  });
+}
+function Category({ skuId, query, setSkuId }) {
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  const products = ShopCollectiblesStore_default.getProfileEffects(skuId);
+  const filteredProducts = products?.filter?.((product) => product?.title?.toLowerCase?.()?.includes?.(query.toLowerCase()) || product?.accessibilityLabel?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  return /* @__PURE__ */ React10.createElement("div", {
+    style: {
+      display: "inline-block",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px"
+    }
+  }, filteredProducts?.length ? /* @__PURE__ */ React10.createElement(Components6.Text, {
+    style: { fontSize: "16px", fontWeight: "bold", margin: "10px 8px" }
+  }, category?.name) : null, filteredProducts?.map((x2) => /* @__PURE__ */ React10.createElement(ProfileEffect, {
+    product: x2,
+    setSkuId
+  })));
+}
+function ProfileEffects() {
+  const [query, setQuery] = useState2("");
+  const [skuId, setSkuId] = useState2("");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  return /* @__PURE__ */ React10.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React10.createElement(CustomSkuTextInput, {
+    setSkuId,
+    skuId
+  }) : null, /* @__PURE__ */ React10.createElement(Components6.SearchInput, {
+    defaultValue: query,
+    placeholder: "Search...",
+    onChange: (e) => setQuery(e),
+    style: {
+      backgroundColor: `var(--control-secondary-background-default)`
+    }
+  }), Collections.map((id) => {
+    return /* @__PURE__ */ React10.createElement(Category, {
+      skuId: id,
+      query,
+      setSkuId
+    });
+  }));
+}
+// src/ui/AvatarDecorations.tsx
+var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
+var { useState: useState3, useMemo: useMemo2, useCallback: useCallback2 } = React11;
+var { UserStore: UserStore7 } = Webpack2.Stores;
+var ModalModule5 = wpGetByKeys(["Modal"]);
+var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
+function OpenAvatarDecorationModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React11.createElement(ModalModule5.Modal, {
+        title: "Change Avatar Decorations",
+        ...props
+      }, /* @__PURE__ */ React11.createElement(AvatarDecorations, null));
+    });
+  }
+  return /* @__PURE__ */ React11.createElement(Components7.Button, {
+    onClick: handleClick
+  }, "Change");
+}
+function copyAvatarDecoration3y3(skuId) {
+  copyToClipboard(" " + secondsightifyEncodeOnly("/a" + skuId), "3y3 copied to clipboard!");
+}
+function AvatarDecoration({ product, setSkuId }) {
+  const [hovered, setHovered] = useState3(false);
+  const skuId = product.sku_id;
+  const decorationItem = { ...product, skuId: product.sku_id };
+  function handleClick() {
+    setSkuId(skuId);
+    copyAvatarDecoration3y3(skuId);
+  }
+  return /* @__PURE__ */ React11.createElement("div", {
+    onMouseOver: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    onClick: handleClick,
+    title: product.productName,
+    style: { cursor: "pointer" }
+  }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
+    isHighlighted: hovered,
+    item: decorationItem,
+    user: UserStore7.getCurrentUser(),
+    avatarSize: "SIZE_72"
+  }));
+}
+function InvalidProductDisplay({ product, setSkuId }) {
+  const [hovered, setHovered] = useState3(false);
+  const skuId = product.sku_id;
+  const decorationItem = { ...product, skuId: product.sku_id };
+  return /* @__PURE__ */ React11.createElement("div", {
+    onMouseOver: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    onClick: () => copyAvatarDecoration3y3(skuId),
+    title: product.name,
+    style: { cursor: "pointer" }
+  }, /* @__PURE__ */ React11.createElement(ProductDisplayer, {
+    avatarSize: "SIZE_72",
+    isHighlighted: hovered,
+    item: decorationItem,
+    user: UserStore7.getCurrentUser()
+  }));
+}
+function Category2({
+  skuId,
+  query,
+  setSkuId
+}) {
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  const products = ShopCollectiblesStore_default.getAvatarDecorations(skuId);
+  const filteredProducts = useMemo2(() => {
+    if (!products?.length)
+      return [];
+    if (!query.trim())
+      return products;
+    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [products, query]);
+  if (!filteredProducts.length)
+    return null;
+  return /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, /* @__PURE__ */ React11.createElement(Components7.Text, {
+    style: {
+      fontSize: "16px",
+      fontWeight: "bold",
+      margin: "0 0 8px 0"
+    }
+  }, category?.name), /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x2) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+    key: x2.sku_id,
+    product: x2,
+    setSkuId
+  }))));
+}
+function QuestCategory({
+  questDecorations,
+  query,
+  setSkuId
+}) {
+  const filteredProducts = useMemo2(() => {
+    if (!questDecorations?.length)
+      return [];
+    if (!query.trim())
+      return questDecorations;
+    return questDecorations.filter((product) => product?.messages?.name?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [questDecorations, query]);
+  if (!filteredProducts.length)
+    return null;
+  return /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, /* @__PURE__ */ React11.createElement(Components7.Text, {
+    style: {
+      fontSize: "16px",
+      fontWeight: "bold",
+      margin: "0 0 8px 0"
+    }
+  }, "Quests"), /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x2) => /* @__PURE__ */ React11.createElement(AvatarDecoration, {
+    key: x2.sku_id,
+    product: x2,
+    setSkuId
+  }))));
+}
+function InvalidCategory({
+  category,
+  query,
+  setSkuId
+}) {
+  const filteredProducts = useMemo2(() => {
+    if (!category?.products?.length)
+      return [];
+    if (!query.trim())
+      return category.products;
+    return category.products.filter((product) => product?.name?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [category, query]);
+  if (!filteredProducts.length)
+    return null;
+  return /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, /* @__PURE__ */ React11.createElement(Components7.Text, {
+    style: {
+      fontSize: "16px",
+      fontWeight: "bold",
+      margin: "0 0 8px 0"
+    }
+  }, category?.name, " (Offsale)"), /* @__PURE__ */ React11.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((product) => /* @__PURE__ */ React11.createElement(InvalidProductDisplay, {
+    key: product.sku_id,
+    product,
+    setSkuId
+  }))));
+}
+function Invalid({ query, setSkuId }) {
+  const categories = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getInvalids().map((x2) => ShopCollectiblesStore_default.getInvalid(x2)).filter(Boolean));
+  if (!categories?.length)
+    return null;
+  return /* @__PURE__ */ React11.createElement("div", null, categories.map((x2) => /* @__PURE__ */ React11.createElement(InvalidCategory, {
+    key: x2.id,
+    category: x2,
+    query,
+    setSkuId
+  })));
+}
+function CustomSkuTextInput2({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState3("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyAvatarDecoration3y3(skuId ?? customSkuTextBox);
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React11.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React11.createElement(Components7.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
+function AvatarDecorations() {
+  const [query, setQuery] = useState3("");
+  const [skuId, setSkuId] = useState3("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  const questDecorations = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getQuestAvatarDecorations());
+  return /* @__PURE__ */ React11.createElement("div", null, advancedProfileCustomization ? /* @__PURE__ */ React11.createElement(CustomSkuTextInput2, {
+    skuId,
+    setSkuId
+  }) : null, /* @__PURE__ */ React11.createElement(Components7.SearchInput, {
+    value: query,
+    defaultValue: "",
+    placeholder: "Search decorations...",
+    onChange: (e) => setQuery(e),
+    style: {
+      backgroundColor: "var(--control-secondary-background-default)"
+    }
+  }), Collections?.map((id) => /* @__PURE__ */ React11.createElement(Category2, {
+    key: id,
+    skuId: id,
+    query,
+    setSkuId
+  })), /* @__PURE__ */ React11.createElement(QuestCategory, {
+    query,
+    questDecorations,
+    setSkuId
+  }), /* @__PURE__ */ React11.createElement(Invalid, {
+    query,
+    setSkuId
+  }));
+}
+// src/ui/Nameplates.tsx
+var { React: React12, Components: Components8 } = BetterDiscord;
+var { Suspense: Suspense2 } = React12;
+var { useMemo: useMemo3, useState: useState4 } = React12;
+var ModalModule6 = wpGetByKeys(["Modal"]);
+var Nameplate = React12.lazy(async () => ({
+  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {
+    timeout: 1e4,
+    declaration: (x2) => String(x2).includes(".x5CoXR),className:")
+  })
+}));
+var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
+function OpenNameplateModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React12.createElement(ModalModule6.Modal, {
+        title: "Change Nameplate",
+        ...props
+      }, /* @__PURE__ */ React12.createElement(Nameplates, null));
+    });
+  }
+  return /* @__PURE__ */ React12.createElement(Components8.Button, {
+    onClick: handleClick
+  }, "Change");
+}
+function copyNameplate3y3({ skuId, palette }) {
+  copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
+}
+function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState4("");
+  const [customPaletteTextBox, setCustomPaletteTextBox] = useState4("");
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyNameplate3y3({
+        skuId: skuId ?? customSkuTextBox,
+        palette: palette ?? customPaletteTextBox
+      });
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setCustomPaletteTextBox(palette ?? customPaletteTextBox);
+      setSkuId(null);
+      setPalette(null);
+    }
+  }
+  return /* @__PURE__ */ React12.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React12.createElement(Components8.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange: (e) => setCustomSkuTextBox(e)
+  }), /* @__PURE__ */ React12.createElement(Components8.TextInput, {
+    placeholder: "Palette... (enter to copy)",
+    defaultValue: palette ?? customPaletteTextBox,
+    value: palette ?? customPaletteTextBox,
+    onKeyDown,
+    onChange: (e) => setCustomPaletteTextBox(e)
+  }));
+}
+function Nameplate3y3({ product, setPalette, setSkuId }) {
+  const [hovered, setHovered] = React12.useState(false);
+  return /* @__PURE__ */ React12.createElement("div", {
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    onClick: () => {
+      setPalette(product.palette);
+      setSkuId(product.sku_id);
+      copyNameplate3y3({ skuId: product.sku_id, palette: product.palette });
+    },
+    style: {
+      marginBottom: "10px"
+    },
+    title: product.productName
+  }, /* @__PURE__ */ React12.createElement(Nameplate, {
+    section: "purchase",
+    currentUser: UserStore8.getCurrentUser(),
+    nameplate: {
+      skuId: product.sku_id,
+      asset: product.asset,
+      label: product.label,
+      palette: product.palette
+    },
+    canUsePremiumCollectibles: true,
+    isSelected: hovered
+  }));
+}
+function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  if (!category)
+    return null;
+  const products = ShopCollectiblesStore_default.getNameplates(skuId);
+  const filteredProducts = useMemo3(() => {
+    if (!products?.length)
+      return [];
+    if (!query.trim())
+      return products;
+    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [products, query]);
+  return filteredProducts.length ? /* @__PURE__ */ React12.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, filteredProducts.length ? /* @__PURE__ */ React12.createElement(Components8.Text, null, category.name) : null, filteredProducts.map((x2) => /* @__PURE__ */ React12.createElement(Nameplate3y3, {
+    product: x2,
+    setSkuId,
+    setPalette
+  }))) : null;
+}
+function Nameplates() {
+  const [query, setQuery] = useState4("");
+  const [skuId, setSkuId] = useState4("");
+  const [palette, setPalette] = useState4("");
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  return /* @__PURE__ */ React12.createElement(Suspense2, {
+    fallback: /* @__PURE__ */ React12.createElement("div", null, "This could be infinite loading situation, Please load the normal nameplates button")
+  }, advancedProfileCustomization ? /* @__PURE__ */ React12.createElement(AdvancedNameplateTextInput, {
+    palette,
+    setPalette,
+    skuId,
+    setSkuId
+  }) : null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
+    placeholder: "Search nameplates...",
+    defaultValue: query,
+    onChange: (e) => setQuery(e)
+  }), Collections.map((x2) => /* @__PURE__ */ React12.createElement(NameplateCategory, {
+    skuId: x2,
+    query,
+    setSkuId,
+    setPalette
+  })));
+}
+// src/ui/ProfileFrames.tsx
+var { React: React13, Components: Components9 } = BetterDiscord;
+var { Suspense: Suspense3 } = React13;
+var { useMemo: useMemo4, useState: useState5 } = React13;
+var ModalModule7 = wpGetByKeys(["Modal"]);
+var ProfileFrameElem = React13.lazy(async () => ({
+  default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), {
+    timeout: 1e4,
+    declaration: (x2) => String(x2).includes("let{profileFrame:")
+  })
+}));
+function OpenProfileFramesModalButton() {
+  function handleClick() {
+    GlobalModules.ModalModule.openModal((props) => {
+      return /* @__PURE__ */ React13.createElement(ModalModule7.Modal, {
+        title: "Change Profile Frame",
+        size: "lg",
+        ...props
+      }, /* @__PURE__ */ React13.createElement(ProfileFrames, null));
+    });
+  }
+  return /* @__PURE__ */ React13.createElement(Components9.Button, {
+    onClick: handleClick
+  }, "Change");
+}
+function copyProfileFrame3y3({ skuId }) {
+  copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
+}
+function CustomSkuTextInput3({ skuId, setSkuId }) {
+  const [customSkuTextBox, setCustomSkuTextBox] = useState5("");
+  function onChange(e) {
+    setCustomSkuTextBox(e);
+  }
+  function onKeyDown(e) {
+    if (e.keyCode == 13 || e.key == "Enter")
+      return copyProfileFrame3y3({ skuId: skuId ?? customSkuTextBox });
+    else {
+      setCustomSkuTextBox(skuId ?? customSkuTextBox);
+      setSkuId(null);
+    }
+  }
+  return /* @__PURE__ */ React13.createElement("div", {
+    style: { marginBottom: "8px" }
+  }, /* @__PURE__ */ React13.createElement(Components9.TextInput, {
+    placeholder: "Custom SKU ID... (enter to copy)",
+    defaultValue: skuId ?? customSkuTextBox,
+    value: skuId ?? customSkuTextBox,
+    onKeyDown,
+    onChange
+  }));
+}
+function ProfileFrame({ product, setSkuId }) {
+  const [hovered, setHovered] = React13.useState(false);
+  return /* @__PURE__ */ React13.createElement("div", {
+    onMouseOver: () => setHovered(true),
+    onMouseOut: () => setHovered(false),
+    onClick: () => {
+      copyProfileFrame3y3({ skuId: product.sku_id });
+      setSkuId(product.sku_id);
+    },
+    title: product.productName
+  }, /* @__PURE__ */ React13.createElement(ProfileFrameElem, {
+    profileFrame: {
+      ...product,
+      overflowBottom: product.overflow_bottom,
+      overflowTop: product.overflow_top,
+      overflowHorizontal: product.overflow_horizontal,
+      innerWidth: product.inner_width,
+      skuId: product.sku_id
+    },
+    section: "purchase",
+    isSelected: hovered,
+    canUsePremiumCollectibles: true,
+    style: {
+      height: "175px",
+      width: "175px",
+      cursor: "pointer"
+    }
+  }));
+}
+function ProfileFrameCategory({ skuId, query, setSkuId }) {
+  const category = ShopCollectiblesStore_default.getCategory(skuId);
+  if (!category)
+    return null;
+  const products = ShopCollectiblesStore_default.getProfileFrames(skuId);
+  const filteredProducts = useMemo4(() => {
+    if (!products?.length)
+      return [];
+    if (!query.trim())
+      return products;
+    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
+  }, [products, query]);
+  return filteredProducts.length ? /* @__PURE__ */ React13.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      backgroundColor: "var(--background-base-lower)",
+      borderRadius: "10px",
+      margin: "5px 0px",
+      padding: "8px"
+    }
+  }, filteredProducts.length ? /* @__PURE__ */ React13.createElement(Components9.Text, null, category.name) : null, /* @__PURE__ */ React13.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
+      gap: "8px"
+    }
+  }, filteredProducts.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrame, {
+    product: x2,
+    setSkuId
+  })))) : null;
+}
+function ProfileFrames() {
+  const [query, setQuery] = useState5("");
+  const [skuId, setSkuId] = useState5("");
+  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  return /* @__PURE__ */ React13.createElement(Suspense3, {
+    fallback: /* @__PURE__ */ React13.createElement("div", null, "This could be infinite loading situation, Please load the normal profile effects button")
+  }, advancedProfileCustomization ? /* @__PURE__ */ React13.createElement(CustomSkuTextInput3, {
+    setSkuId,
+    skuId
+  }) : null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
+    placeholder: "Search nameplates...",
+    defaultValue: query,
+    onChange: (e) => setQuery(e)
+  }), Collections.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrameCategory, {
+    skuId: x2,
+    query,
+    setSkuId
+  })));
+}
+// src/patches/modules/UserProfileV2.tsx
+var { React: React14, Components: Components10 } = BetterDiscord;
+var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
+var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+var Scroller = styled.div({
+  overflowY: "scroll",
+  scrollbarWidth: "none",
+  maxWidth: "400px"
+});
+var Grid = styled.div({
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: "8px"
+});
+var Card = styled.div({
+  padding: "12px 12px 12px 0px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  gap: "8px",
+  minWidth: 0,
+  overflow: "hidden"
+});
+var CardTop = styled.div({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  minWidth: 0,
+  overflow: "hidden",
+  marginTop: "8px"
+});
+var CardLabel = styled.div({
+  fontSize: "12px",
+  fontWeight: "var(--font-weight-bold)",
+  color: "var(--text-default)",
+  textTransform: "uppercase",
+  letterSpacing: "0.02em"
+});
+function CustomSettingsTab() {
+  const isDeveloper = BadgesStore_default.isImportant(UserStore9.getCurrentUser().id);
+  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
+  const [devText, setDevText] = React14.useState("");
+  return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)), /* @__PURE__ */ React14.createElement(Card, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
+    style: { gridColumn: "span 2" }
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"), /* @__PURE__ */ React14.createElement("div", {
+    style: { display: "flex", gap: "8px", width: "100%" }
+  }, /* @__PURE__ */ React14.createElement(Components10.TextInput, {
+    value: devText,
+    onChange: setDevText,
+    style: { flex: 1 }
+  }), /* @__PURE__ */ React14.createElement(Components10.Button, {
+    onClick: () => {
+      copyToClipboard(secondsightifyEncodeOnly(devText), "Copied encoded text to clipboard!");
+    }
+  }, "Encode"))) : null));
+}
+var UserProfileV2_default = {
+  name: "User Profile V2",
+  description: "skibidi toilet",
+  ids: [
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
+      raw: true
+    }).then((x2) => x2.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {
+      raw: true
+    }).then((x2) => x2.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x2) => x2.id),
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), { raw: true }).then((x2) => x2.id)
+  ],
+  priority: 10,
+  waitFor: [GLOBAL_FILTER],
+  apply(finale, patcher) {
+    const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
+    const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
+    const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
+    const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
+    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
+    patcher.after(module2.module, module2.key, (a, [args], callback) => {
+      if (args.section == "YABDP4Nitro") {
+        return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
+      }
+      return callback;
+    });
+    patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
+      if (args?.displayProfile?.userId != UserStore9.getCurrentUser().id)
+        return res;
+      if (args?.items && args.items.find((x2) => x2.text.includes("YABD")))
+        return;
+      args.items.push({
+        text: "YABDP4Nitro",
+        section: "YABDP4Nitro"
+      });
+    });
+    patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
+      const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
+      if (upsellRemovalEnabled)
+        return null;
+      return originalFunction.apply(args);
+    });
+    Object.values(document.styleSheets).find((x2) => Object.values(x2.rules).find((x3) => x3.selectorText == ":root" && x3.cssText.includes("--blue-new-78: hotpink"))).deleteRule(":root");
+    return;
+  }
+};
+// src/patches/modules/getAvatarURL.ts
+var UserClass = wpGet((x2) => x2.prototype?.getAvatarURL, { searchExports: true });
+var getAvatarURL_default = {
+  name: "getAvatarURL",
+  apply(finale, patcher) {
+    patcher.instead(UserClass.prototype, "getAvatarURL", (thisContext, args, originalFunction) => {
+      if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration")) {
+        return originalFunction.apply(thisContext, args);
+      }
+      const userPfp = UserProfilePictureStore_default.get(thisContext.id);
+      if (userPfp)
+        return userPfp;
+      const foundPFP = getRevealedText(thisContext.id, `\uDB40\uDC50\uDB40\uDC7B`);
+      if (!foundPFP)
+        return originalFunction.apply(thisContext, args);
+      const matches = foundPFP.match(regexReveals_default.PROFILE_PICTURE)?.[0].replace("P{", "").replace("}", "");
+      if (!matches)
+        return originalFunction.apply(thisContext, args);
+      return `https://i.imgur.com/${matches}.gif`;
+    });
+  }
+};
+// src/patches/modules/canUserUse.ts
+var bypassMap = {
+  emojisEverywhere: "emojiBypass",
+  animatedEmojis: "emojiBypass",
+  appIcons: "unlockAppIcons",
+  clientThemes: "clientThemes",
+  soundboardEverywhere: "soundmojiEnabled"
+};
+var canUserUse = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), {
+  canUserUse: (x2) => typeof x2 === "function" && x2.toString?.().includes?.(".getFeatureValue(")
+}, { mapDeclarations: true });
+var canUserUse_default = {
+  name: "canUserUse",
+  description: "Unlocks nitro-locked features based on settings.",
+  apply(finale, patcher) {
+    patcher.instead(canUserUse, "canUserUse", (_, [feature, user], originalFunction) => {
+      const settingKey = bypassMap[feature.name];
+      if (settingKey && SettingsStore_default.get(settingKey))
+        return true;
+      return originalFunction(feature, user);
+    });
+  }
+};
+// src/patches/modules/customClientThemes.tsx
+var { React: React15, Components: Components11 } = BetterDiscord;
+var CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("CLIENT_THEMES_EDITOR", "activePanel", "SHARE_MESSAGE"), {
+  state: (x2) => x2?.setState
+});
+var customClientThemes_default = {
+  name: "customClientThemes",
+  description: "Adds an apply button to the custom client theme panel.",
+  waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
+  apply(finale, patcher) {
+    wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
+      patcher.after(mod, "default", (_, [args], ret) => {
+        const clientThemesEnabled = SettingsStore_default.get("clientThemes");
+        if (!clientThemesEnabled)
+          return;
+        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), {
+          declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
+          raw: true
+        });
+        const onSaveTheme = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.onSaveTheme).onSaveTheme;
+        ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
+          style: {
+            display: "flex",
+            gap: "10px",
+            padding: "16px 15px",
+            borderTop: "1px solid var(--border-subtle)"
+          }
+        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
+          onClick: (e) => {
+            CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
+            finale.modules[0].openUserSettings("appearance_panel");
+          },
+          style: {
+            backgroundColor: "var(--control-secondary-background-default)"
+          }
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+          style: {
+            fontSize: "16px",
+            fontWeight: "500"
+          }
+        }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
+          onClick: (e) => onSaveTheme(e)
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
+          style: {
+            fontSize: "16px",
+            fontWeight: "500"
+          }
+        }, "Apply")));
+      });
+    });
+  }
+};
+// src/patches/modules/premiumType.ts
+var { OverridePremiumTypeStore } = BetterDiscord.Webpack.Stores;
+var premiumType_default = {
+  name: "premiumType",
+  description: "Makes sure the premium type is always what you want",
+  apply(finale, patcher) {
+    patcher.instead(OverridePremiumTypeStore, "getPremiumTypeActual", (_, __, callback) => {
+      const info = SettingsStore_default.get("changePremiumType2");
+      if (info == -1)
+        return callback();
+      return info;
+    });
+  }
+};
+// src/global/shared/cameraBackground.ts
+var MediaFilterModule = BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function")?.wq ? BetterDiscord.Webpack.getModule((m) => typeof m.wq === "function" && typeof m.Oo === "function") : null;
+var BackgroundEnums = BetterDiscord.Webpack.getModule((m) => m.Tr?.CAMERA_BACKGROUND_LIVE && m.gO?.BACKGROUND_REPLACEMENT && m.Qo?.INPUT_DEVICE);
+var PresetModule = BetterDiscord.Webpack.getBySource("52f91129995158682c465310f61e64cd61fbf227f0dc6b43313c5e8226818661");
+var Enums = {
+  filterType: {
+    LIVE: BackgroundEnums.Tr.CAMERA_BACKGROUND_LIVE,
+    PREVIEW: BackgroundEnums.Tr.CAMERA_BACKGROUND_PREVIEW
+  },
+  graph: {
+    NONE: BackgroundEnums.gO.NONE,
+    BLUR: BackgroundEnums.gO.BACKGROUND_BLUR,
+    REPLACEMENT: BackgroundEnums.gO.BACKGROUND_REPLACEMENT
+  },
+  targetType: {
+    INPUT_DEVICE: BackgroundEnums.Qo.INPUT_DEVICE,
+    STREAM: BackgroundEnums.Qo.STREAM
+  }
+};
+
+// src/patches/modules/customCameraBackground.ts
+var CUSTOM_ID = 69;
+var TARGET_WIDTH = 1280;
+var TARGET_HEIGHT = 720;
+async function fetchAsBytes(link) {
+  const res = await BetterDiscord.Net.fetch(link);
+  const buf = await res.arrayBuffer();
+  return new Uint8ClampedArray(buf);
+}
+async function fetchAsImageData(link) {
+  const bytes = await fetchAsBytes(link);
+  const blobUrl = URL.createObjectURL(new Blob([bytes]));
+  const img = new Image;
+  await new Promise((res, rej) => {
+    img.onload = () => res();
+    img.onerror = rej;
+    img.src = blobUrl;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = TARGET_WIDTH;
+  canvas.height = TARGET_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+  const { data } = ctx.getImageData(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+  URL.revokeObjectURL(blobUrl);
+  return { data, width: TARGET_WIDTH, height: TARGET_HEIGHT, pixelFormat: "rgba" };
+}
+var customCameraBackground_default = {
+  name: "cameraPreviewBypass",
+  apply(finale, patcher) {
+    patcher.after(PresetModule, "A", (thisObj, args, result) => {
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
+      if (!enabled)
+        return;
+      const filter = SettingsStore_default.get("customVideoFilter");
+      if (filter?.link) {
+        result[CUSTOM_ID] = {
+          id: CUSTOM_ID,
+          name: "My Custom Background",
+          source: filter.link,
+          isVideo: filter.type === "mp4"
+        };
+      }
+      return result;
+    });
+    const mod = BetterDiscord.Webpack.getBySource(".gO.BACKGROUND_BLUR);if", { raw: true });
+    const { declarations } = mod;
+    const [, pKey] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("BACKGROUND_REPLACEMENT"), { target: declarations });
+    patcher.instead(declarations, pKey, (thisObj, args, original) => {
+      const enabled = SettingsStore_default.get("customVideoFilterEnabled");
+      if (!enabled)
+        return original.apply(thisObj, args);
+      const [type, target, option] = args;
+      if (option !== CUSTOM_ID)
+        return original.apply(thisObj, args);
+      const filter = SettingsStore_default.get("customVideoFilter");
+      if (!filter?.link)
+        return original.apply(thisObj, args);
+      const isVideo = filter.type === "mp4";
+      const apply = async () => {
+        const payload = isVideo ? { blob: await fetchAsBytes(filter.link) } : { image: await fetchAsImageData(filter.link) };
+        MediaFilterModule.wq({
+          [type]: {
+            graph: Enums.graph.REPLACEMENT,
+            target,
+            ...payload
+          }
+        });
+      };
+      return apply();
+    });
+  }
+};
+// src/patches/modules/blockedUserContext.tsx
+var { SelectedChannelStore, ChannelStore: ChannelStore2 } = BetterDiscord.Webpack.Stores;
+var USER_SETTINGS_FILTER = BetterDiscord.Webpack.Filters.bySource("unblockUser", "USER_SETTINGS");
+var blockedUserContext_default = {
+  name: "Blocked/Ignored User Context Menu",
+  description: "Allows opening a user context menu in the blocked/ignored user list.",
+  ids: undefined,
+  waitFor: [
+    USER_SETTINGS_FILTER,
+    BetterDiscord.Webpack.Filters.bySource("isGroupDM", "targetIsUser")
+  ],
+  apply(finale, patcher) {
+    const SettingsModule = BetterDiscord.Webpack.getModule(USER_SETTINGS_FILTER, { raw: true });
+    const mod = getKey(SettingsModule.declarations, BdApi.Webpack.Filters.byStrings("unblockUser", "USER_SETTINGS"));
+    const mod2 = getKey(finale.modules[1], (x2) => x2?.toString?.().includes?.("targetIsUser", "showMute"));
+    const openUserContextMenu = mod2?.module[mod2?.key];
+    patcher.after(mod?.module, mod?.key, (_, [args], ret) => {
+      const pfp = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.size, {
+        walkable: ["props", "children"]
+      });
+      const channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore2.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore2.getSortedPrivateChannels()?.[0];
+      if (!pfp || !pfp?.user || !channel)
+        return;
+      pfp.onContextMenu = (e) => {
+        openUserContextMenu(e, pfp.user, channel);
+      };
+    });
+  }
+};
+// src/patches/modules/dev.tsx
+var React16 = BetterDiscord.React;
+var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var dev_default = {
+  name: "dev",
+  apply(finale, patcher) {
+    const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+    patcher.after(module2.Ay, "type", (_, args, res) => {
+      if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
+        return res;
+      const user = args[0]?.message?.author;
+      if (!user)
+        return res;
+      if (!res.props.badges.find((x2) => x2.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
+        const badges = BadgesStore_default.findBadgesForUser(user.id);
+        res.props.badges.push(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
+          key: `yabd-${x2.id}`,
+          height: "16px",
+          width: "16px",
+          src: x2.iconSrc
+        })));
+      }
+      return res;
+    });
+    const title = getKey(BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations, (x2) => String(x2).includes(".NOT_STAFF_WARNING})"));
+    patcher.instead(title.module, title.key, () => null);
+  }
+};
+// src/patches/contextMenus/index.ts
+var exports_contextMenus = {};
+__export(exports_contextMenus, {
+  StreamContextMenu: () => streamContext_default,
+  MessageContextMenu: () => message_default,
+  ExpressionPickerContextMenu: () => expressionPicker_default
+});
+
+// src/patches/contextMenus/message.tsx
+var { React: React17 } = BetterDiscord;
+var DiscordNativeModule = BetterDiscord.Webpack.getByKeys("purgeMemory");
+var message_default = {
+  id: "message",
+  callback(res, props) {
+    const enabled = SettingsStore_default.get("extraContextMenus");
+    if (!enabled)
+      return;
+    const attachmentsLmao = [
+      ...props.message.attachments,
+      ...props?.message?.messageSnapshots?.[0]?.message?.attachments ?? []
+    ];
+    async function startDownload() {
+      BetterDiscord.UI.showToast("Downloading attachments...");
+      const attachments = attachmentsLmao.filter(Boolean);
+      if (!attachments.length) {
+        BetterDiscord.UI.showToast("No attachments found?");
+        return;
+      }
+      let files = await Promise.all(attachments.map(async (attachment) => ({
+        blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
+        fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z")
+      })));
+      const zipped = {};
+      for (const file of files) {
+        zipped[file.fileName] = new Uint8Array(file.blob);
+      }
+      const zippedInt = zipSync(zipped, { level: 6 });
+      const blob = new Blob([zippedInt], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement("a");
+      a.href = url;
+      a.download = `${props.message.id}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        DiscordNativeModule.purgeMemory();
+      }, 1000);
+    }
+    const Menu = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      action: startDownload,
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React17.createElement(Icon, {
+          width: "22",
+          icon: "mdi:download"
+        })
+      },
+      label: /* @__PURE__ */ React17.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React17.createElement(ContextMenuLabel, null), /* @__PURE__ */ React17.createElement("span", null, "Download Attachment(s)")),
+      id: "yabdp4nitro-download-attachments"
+    });
+    const Sep = /* @__PURE__ */ React17.createElement(BetterDiscord.ContextMenu.Separator, null);
+    attachmentsLmao.length > 0 && res.props.children.props.children.push(Sep, Menu);
+  }
+};
+// src/patches/contextMenus/expressionPicker.tsx
+var { EmojiStore: EmojiStore3 } = BetterDiscord.Webpack.Stores;
+var expressionPicker_default = {
+  id: "expression-picker",
+  callback(res, props) {
+    const enabled = SettingsStore_default.get("extraContextMenus");
+    if (!enabled)
+      return;
+    let src = props?.target?.src ?? props?.target?.firstChild?.src;
+    if (!src)
+      return;
+    let emojiId = src.match(EMOJI_ID_FROM_URL_REGEX)?.find?.(Boolean);
+    if (emojiId) {
+      let emoji = EmojiStore3.getCustomEmojiById(emojiId);
+      emoji && (src = getEmojiUrl(emoji, 4096));
+    } else {
+      let url = new URL(src);
+      url.searchParams.set("size", 4096);
+      src = url.toString();
+    }
+    function openUrl() {
+      window.open(src);
+    }
+    const MenuItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "mdi:external-link"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Open ", emojiId ? "Emoji" : "Sticker", " URL")),
+      id: "yabd-open-url-expression-picker",
+      action: openUrl
+    });
+    res.props.children.props.children.push(MenuItem);
+  }
+};
+// src/patches/contextMenus/streamContext.tsx
+var { UserStore: UserStore11 } = BetterDiscord.Webpack.Stores;
+var Slider = BetterDiscord.Webpack.getByStrings("initialValue", "label", "sortedMarkers", {
+  searchExports: true
+});
+var streamContext_default = {
+  id: "stream-context",
+  callback(res, props) {
+    const sharpenStreamsEnabled = SettingsStore_default.get("sharpenStreams");
+    const currentUserId = UserStore11.getCurrentUser().id;
+    const streamingUserId = props?.stream?.ownerId;
+    const userSharpnessPreferences = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => SettingsStore_default.get("userSharpenPreferences"));
+    const streamSharpnessPreference = userSharpnessPreferences?.[streamingUserId] ?? 0;
+    if (!sharpenStreamsEnabled || !props?.stream?.ownerId || props?.stream?.ownerId == currentUserId)
+      return;
+    function handleChange(percentSharpness) {
+      SettingsStore_default.set("userSharpenPreferences", {
+        ...SettingsStore_default.get("userSharpenPreferences"),
+        [streamingUserId]: percentSharpness
+      });
+    }
+    const ContextMenuSlider = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      id: "yabd-sharpness-slider",
+      label: /* @__PURE__ */ React.createElement(Slider, {
+        initialValue: streamSharpnessPreference,
+        label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement(BetterDiscord.Components.Text, {
+          style: {
+            fontSize: "14px",
+            fontWeight: "var(--font-weight-medium)"
+          }
+        }, "Sharpness", `                                     `)),
+        mini: true,
+        handleSize: 16,
+        keyboardStep: 1,
+        onValueChange: handleChange,
+        asValueChanges: handleChange
+      })
+    });
+    res.props.children.props.children.splice(2, 0, ContextMenuSlider);
+  }
+};
+// src/patches/index.ts
+var PatcherAPI = new BdApi("Patcher");
+var moduleCache = new Map;
+var idCache = new Map;
+async function resolveIds(ids) {
+  if (!ids)
+    return [];
+  const entries = typeof ids === "function" ? await ids() : ids;
+  const results = await Promise.allSettled(entries.map(async (entry) => {
+    const id = typeof entry === "function" ? await entry() : entry;
+    const cacheKey = id.toString();
+    if (idCache.has(cacheKey)) {
+      return idCache.get(cacheKey);
+    }
+    const resolvedId = await BdApi.Utils.forceLoad(id);
+    idCache.set(cacheKey, resolvedId);
+    return resolvedId;
+  }));
+  const resolved = [];
+  results.forEach((r, i2) => {
+    if (r.status === "fulfilled") {
+      resolved.push(r.value);
+    } else {
+      BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i2}`, r.reason);
+    }
+  });
+  return resolved;
+}
+function withTimeout(p, ms, label) {
+  return Promise.race([
+    p,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout waiting for ${label}`)), ms))
+  ]);
+}
+async function getCachedModule(filter, patchName) {
+  const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
+  if (moduleCache.has(cacheKey)) {
+    return moduleCache.get(cacheKey);
+  }
+  const module2 = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 1e4, patchName);
+  moduleCache.set(cacheKey, module2);
+  return module2;
+}
+async function loadPatch(patch) {
+  const finale = {};
+  const operations = [
+    resolveIds(patch.ids).then((ids) => {
+      if (ids.length)
+        finale.ids = ids;
+    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
+    ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
+      try {
+        const module2 = await getCachedModule(x2, patch.name);
+        if (!finale.modules)
+          finale.modules = [];
+        finale.modules[i2] = module2;
+      } catch (e) {
+        BetterDiscord.Logger.warn(`[Patcher] Failed to load module ${i2} for ${patch.name}`, e);
+      }
+    }) : [],
+    ...patch.mangled && patch.waitFor ? [
+      getCachedModule(patch.waitFor[0], patch.name).then(() => {
+        finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor[0], patch.mangled);
+      }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load mangled for ${patch.name}`, e))
+    ] : []
+  ];
+  await Promise.allSettled(operations);
+  return finale;
+}
+function loadPatches() {
+  const patches = Object.values(exports_modules);
+  const loaded = [];
+  let isCleanedUp = false;
+  const cleanup = () => {
+    if (isCleanedUp)
+      return;
+    isCleanedUp = true;
+    for (const patch of loaded)
+      patch.revert?.();
+    PatcherAPI.Patcher.unpatchAll();
+    moduleCache.clear();
+    idCache.clear();
+  };
+  const sortedPatches = patches.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  sortedPatches.forEach(async (patch) => {
+    if (isCleanedUp)
+      return;
+    try {
+      const finale = await loadPatch(patch);
+      if (isCleanedUp)
+        return;
+      patch.apply(finale, PatcherAPI.Patcher);
+      loaded.push(patch);
+    } catch (e) {
+      BetterDiscord.Logger.error(`[Patcher] "${patch.name}" failed`, e);
+    }
+  });
+  return cleanup;
+}
+function loadContextMenus() {
+  const loaded = [];
+  let isCleanedUp = false;
+  const cleanup = () => {
+    if (isCleanedUp)
+      return;
+    isCleanedUp = true;
+    for (const patch of loaded)
+      patch?.();
+    loaded.length = 0;
+  };
+  for (const module2 of Object.values(exports_contextMenus)) {
+    if (isCleanedUp)
+      break;
+    const patch = BetterDiscord.ContextMenu.patch(module2.id, (res, props) => module2.callback(res, props));
+    loaded.push(patch);
+  }
+  return cleanup;
+}
+
+// src/global/changelog/changelog.json
+var changelog_default = {
+  "7.0.0": [
+    {
+      banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
+      changes: [
         {
-            type: "category",
-            id: "ScreenShare",
-            name: "Screen Share Features",
-            collapsible: true,
-            shown: false,
-            settings: [
-                { type: "switch", id: "screenSharing", name: "High Quality Screensharing", note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.", value: () => settings.screenSharing },
-                { type: "switch", id: "ResolutionEnabled", name: "Custom Screenshare Resolution", note: "Choose your own screen share resolution!", value: () => settings.ResolutionEnabled },
-                { type: "text", id: "CustomResolution", name: "Resolution", note: "The custom resolution you want (in pixels)", value: () => settings.CustomResolution },
-                { type: "switch", id: "CustomFPSEnabled", name: "Custom Screenshare FPS", note: "Choose your own screen share FPS!", value: () => settings.CustomFPSEnabled },
-                { type: "text", id: "CustomFPS", name: "FPS", note: "The custom FPS you want to stream at.", value: () => settings.CustomFPS },
-                { type: "switch", id: "ResolutionSwapper", name: "Stream Settings Quick Swapper", note: "Lets you change your custom resolution and FPS quickly in the stream settings modal!", value: () => settings.ResolutionSwapper },
-                { type: "switch", id: "CustomBitrateEnabled", name: "Custom Bitrate", note: "Choose the bitrate for your streams!", value: () => settings.CustomBitrateEnabled },
-                { type: "text", id: "minBitrate", name: "Minimum Bitrate", note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.", value: () => settings.minBitrate },
-                { type: "text", id: "targetBitrate", name: "Target Bitrate", note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.", value: () => settings.targetBitrate },
-                { type: "text", id: "maxBitrate", name: "Maximum Bitrate",
-                    note: `The maximum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used. 
-                    The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025. 
-                    There is also a strange bug(?) where setting your max bitrate will cause issues with your stream's preview. 
-                    If you want to avoid these issues, please disable this option.`, value: () => settings.maxBitrate },
-                { type: "text", id: "voiceBitrate", name: "Voice Audio Bitrate", note: `
+          title: "YABDP4Nitro Huge Revamp",
+          type: "improved",
+          items: [
+            "Fully rewritten internals from the ground up.",
+            "Improved performance and stability.",
+            "Cleaner, more maintainable codebase for future updates.",
+            "Improved UI.",
+            "Moved 3y3 profile editing to a YABDP4Nitro tab in the profile editor.",
+            "Removed some redundant/unnecessary settings.",
+            "Removed data json - you can now delete it.",
+            "Limited edition, quest-only, off-sale, and developer collectibles are now consistently included in the 3y3 UI.",
+            "Download All Attachments button now zips the files when downloading.",
+            "Experiment override options (Clips, Soundmoji experiments) no longer put you into staff mode.",
+            "You no longer need to refresh to remove staff/experiments.",
+            "Changing min, target, max, or audio bitrate in the Quick Swapper now applies to the active stream / audio connection instantly upon pressing Apply.",
+            "Contributor badge is now red instead of being identical to the developer badge.",
+            "Fixed a bug with the Audio Clips bypass where the audio could sometimes end too early or too late by up to 10 seconds.",
+            "All kinds of Imgur URLs should now work."
+          ]
+        },
+        {
+          title: "Known Bugs/Issues",
+          type: "progress",
+          items: [
+            "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
+            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...'
+          ]
+        },
+        {
+          title: "Extra",
+          type: "added",
+          items: [
+            "Added 3y3 Profile Frames.",
+            "You can now set a custom camera background 🥳🎉🎉🎉!!",
+            "<@917630027477159986> joins the team for future development of the plugin!"
+          ]
+        }
+      ]
+    }
+  ]
+};
+// package.json
+var package_default = {
+  name: "YABDP4Nitro",
+  module: "src/index.tsx",
+  type: "module",
+  version: "7.0.0",
+  private: true,
+  devDependencies: {
+    "@types/bun": "latest"
+  },
+  scripts: {
+    prod: "bun run ./build/build.ts",
+    dev: "bun run ./build/build.ts --debug",
+    pretty: "npx prettier . --write"
+  },
+  peerDependencies: {
+    typescript: "^5"
+  },
+  resolve: {
+    alias: {
+      "react/jsx-dev-runtime": "react/jsx-dev-runtime.js",
+      "react/jsx-runtime": "react/jsx-runtime.js"
+    }
+  },
+  dependencies: {
+    "@eslint/js": "^10.0.1",
+    "@iconify/react": "^6.0.2",
+    "@types/react": "^19.2.18",
+    eslint: "^10.9.1",
+    fflate: "^0.8.3",
+    prettier: "^3.9.6"
+  }
+};
+
+// src/global/changelog/index.tsx
+var Meta = package_default;
+function normalizeVersion(v) {
+  const parts = v.split(".");
+  while (parts.length < 3)
+    parts.push("0");
+  return parts.join(".");
+}
+function startChangelog(sourceVersion) {
+  const lastSeen = normalizeVersion(SettingsStore_default.get("lastChangelogVersion") ?? "0.0.0");
+  const currentVersion = sourceVersion ?? normalizeVersion(Meta.version);
+  if (BetterDiscord.Utils.semverCompare(currentVersion, lastSeen) >= 0)
+    return;
+  const entry = changelog_default?.[currentVersion]?.[0];
+  if (!entry)
+    return;
+  BetterDiscord.UI.showChangelogModal({
+    title: Meta.name,
+    subtitle: `v${currentVersion}`,
+    ...entry
+  });
+  SettingsStore_default.set("lastChangelogVersion", currentVersion);
+}
+
+// src/index.tsx
+var import_varforcer = __toESM(require_varforcer(), 1);
+var { Components: Components12 } = BetterDiscord;
+var { React: React18 } = BetterDiscord;
+var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
+var SettingsSchema = [
+  {
+    key: "screenSharing",
+    label: "High Quality Screensharing",
+    note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "ResolutionSwapper",
+    label: "Custom Stream Settings & Settings Quick Swapper",
+    note: "Lets you customize your resolution and FPS, and change it quickly in the stream settings modal!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "CustomResolution",
+    label: "Resolution",
+    note: "The custom resolution you want (in pixels)",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "CustomFPS",
+    label: "FPS",
+    note: "The custom FPS you want to stream at.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "CustomBitrateEnabled",
+    label: "Custom Bitrate",
+    note: "Choose the bitrate for your streams!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "minBitrate",
+    label: "Minimum Bitrate",
+    note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "targetBitrate",
+    label: "Target Bitrate",
+    note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.",
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "maxBitrate",
+    label: "Maximum Bitrate",
+    note: `The maximum bitrate (in kbps). If this is set to zero or a negative number, the default for your quality choices is used. 
+                    The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025.`,
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "voiceBitrate",
+    label: "Voice Audio Bitrate",
+    note: `
                     Allows you to change the voice bitrate to whatever you want. 
                     Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. 
-                    Bitrate in kbps. Disabled if this is set to -1.`, value: () => settings.voiceBitrate },
-                { type: "switch", id:"sharpenStreams", name:"Stream Sharpness", note:"Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!", value: () => settings.sharpenStreams},
-                { 
-                    type: "dropdown", id: "videoCodec2", name: "Force Video Codec (Advanced Users Only)", note: `
+                    Bitrate in kbps. Disabled if this is set to -1.`,
+    category: "Screen Share Features",
+    type: "number"
+  },
+  {
+    key: "sharpenStreams",
+    label: "Stream Sharpness",
+    note: "Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!",
+    category: "Screen Share Features",
+    type: "boolean"
+  },
+  {
+    key: "videoCodec2",
+    label: "Force Video Codec (Advanced Users Only)",
+    note: `
                     Allows you to force a specified video codec to be used. Normally, Discord would automatically 
                     choose this based on your hardware, options in Voice & Video, and the viewers watching.
                     Mobile and Web clients can only view H.264 and VP8 streams.
-                    If a client does not support the codec you choose, the stream will infinitely load for them!`, value: () => settings.videoCodec2, options: [
-                        { label: "Default (recommended, automatic)", value: -1 },
-                        { label: "AV1", value: 0 },
-                        { label: "H265", value: 1 },
-                        { label: "H264", value: 2 },
-                        { label: "VP8", value: 3 }
-                    ]
-                },
-            ]
-        },
-        {
-            type: "category",
-            id: "emojis",
-            name: "Emojis",
-            collapsible: true,
-            shown: false,
-            settings: [
-                { type: "switch", id: "emojiBypass", name: "Nitro Emotes Bypass", note: "Enable or disable using the emoji bypass.", value: () => settings.emojiBypass },
-                {
-                    type: "dropdown", id: "emojiSize", name: "Size", note: "The size of the emoji in pixels.", value: () => settings.emojiSize, options: [
-                        { label: "32px (Default small/inline)", value: 32 },
-                        { label: "48px (Recommended, default large)", value: 48 },
-                        { label: "16px", value: 16 },
-                        { label: "24px", value: 24 },
-                        { label: "40px", value: 40 },
-                        { label: "56px", value: 56 },
-                        { label: "64px", value: 64 },
-                        { label: "80px", value: 80 },
-                        { label: "96px", value: 96 },
-                        { label: "128px (Max emoji size)", value: 128 },
-                        { label: "256px (Max GIF emoji size)", value: 256 }
-                    ]
-                },
-                {
-                    type: "dropdown", id: "emojiBypassType", name: "Emoji Bypass Method", note: "The method of bypass to use.", value: () => settings.emojiBypassType,
-                    options: [
-                        { label: "Upload Emojis", value: 0 },
-                        { label: "Hyperlink/Vencord-Like Mode", value: 3 },
-                        { label: "Classic Mode", value: 2 }
-                    ]
-                },
-                { type: "switch", id: "editMessageWithEmoji", name: "Replace Fakemoji When Editing Message", note: "Replaces text-based fakemoji with their emoji when editing a message.", value: () => settings.editMessageWithEmoji },
-                { type: "switch", id: "emojiBypassForValidEmoji", name: "Don't Use Emote Bypass if Emote is Unlocked", note: "Disable to use emoji bypass even if bypass is not required for that emoji.", value: () => settings.emojiBypassForValidEmoji },
-                { type: "switch", id: "PNGemote", name: "Use PNG instead of WEBP", note: "Use the PNG version of static emoji for higher quality!", value: () => settings.PNGemote },
-                { type: "switch", id: "stickerBypass", name: "Sticker Bypass", note: "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.", value: () => settings.stickerBypass },
-                { type: "switch", id: "uploadStickers", name: "Upload Stickers", note: "Upload stickers in the same way as emotes.", value: () => settings.uploadStickers },
-                { type: "switch", id: "forceStickersUnlocked", name: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked.", value: () => settings.forceStickersUnlocked },
-                { type: "switch", id: "fakeInlineVencordEmotes", name: "Fake Inline Hyperlink Emotes", note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.", value: () => settings.fakeInlineVencordEmotes },
-                { type: "switch", id: "soundmojiEnabled", name: "Soundmoji Bypass", note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.", value: () => settings.soundmojiEnabled }
-            ]
-        },
-        {
-            type: "category",
-            id: "profile",
-            name: "Profile",
-            collapsible: true,
-            shown: false,
-            settings: [
-                { type: "switch", id: "profileV2", name: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", value: () => settings.profileV2 },
-                { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", value: () => settings.fakeProfileThemes },
-                { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", value: () => settings.fakeProfileBanners },
-                { type: "switch", id: "userBgIntegration", name: "UsrBG Integration", note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.", value: () => settings.userBgIntegration },
-                { type: "switch", id: "voiceTileBannerBackground", name: "Call Tile Background", note: "Uses fake banners as the background for call tiles.", value: () => settings.voiceTileBannerBackground },
-                { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", value: () => settings.fakeAvatarDecorations },
-                { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", value: () => settings.profileEffects },
-                { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
-                { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
-                { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
-                { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
-                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled },
-                { type: "switch", id: "displayNameStyles", name: "Fake Display Name Styles", note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.", value: () => settings.displayNameStyles },
-                { type: "switch", id: "advancedProfileCustomization", name: "Advanced Profile Editing", note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.", value: () => settings.advancedProfileCustomization },
-            ]
-        },
-        {
-            type: "category",
-            id: "clips",
-            name: "Clips",
-            collapsible: true,
-            shown: false,
-            settings: [
-                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.", value: () => settings.useClipBypass },
-                { type: "dropdown", id: "clipTimestamp", name: "Timestamp", note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.", value: () => settings.clipTimestamp, options: [
-                        { label: "Zero (January 1st, 2015)", value: 0 },
-                        { label: "Current Date/Time", value: 1 },
-                        { label: "Last Modified Date/Time of File", value: 2 },
-                    ]
-                },
-                { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
-                { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
-                { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
-                { type: "switch", id: "zipClip", name: "ZipClip", note: "Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit \"Open Inside\", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.", value: () => settings.zipClip },
-                { type: "switch", id: "enableClipsExperiment", name: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings.", value: () => settings.enableClipsExperiment}
-            ]
-        },
-        {
-            type: "category",
-            id: "miscellaneous",
-            name: "Miscellaneous",
-            collapsible: true,
-            shown: false,
-            settings: [
-                { type: "dropdown", id: "changePremiumType2", name: "Change Premium Type", note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED.", value: () => settings.changePremiumType2, options:[
-                    { label: "Disabled (Actual Nitro Status)", value: -1 },
-                    { label: "Free User", value: null},
-                    { label: "Nitro Basic", value: 3},
-                    { label: "Nitro Classic", value: 1},
-                    { label: "Nitro", value: 2},
-                ] },
-                { type: "switch", id: "clientThemes", name: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes.", value: () => settings.clientThemes },
-                { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
-                { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
-                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
-                { type: "switch", id: "removeNotStaffWarning", name: "Remove Not Staff Warning", note: "Removes the \"NOT STAFF\" warning on DMs when Experiments are enabled.", value: () => settings.removeNotStaffWarning },
-                { type: "switch", id: "extraContextMenus", name: "Extra Context Menus and Options", note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list), and a context menu on messages with attachments that lets you download all attachments.", value: () => settings.extraContextMenus},
-                { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.", value: () => (settings.experiments || settings.soundmojiEnabled || (settings.useClipBypass && settings.enableClipsExperiment))},
-                { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
-            ]
-        }
-
-    ],
-    "main": "YABDP4Nitro.plugin.js"
-};
-// #endregion
-
-//#region Plugin-wide Function(s)
-
-function copyToClipboard(string, successMessage, errorMessage = "Failed to copy to clipboard!") {
-    try {
-        DiscordCopyToClipboardFn(string);
-        if(successMessage)
-            UI.showToast(successMessage,{type: "info"});
-    } catch(err) {
-        UI.showToast(errorMessage,{type: "error",forceShow: true});
-        Logger.error(err);
+                    If a client does not support the codec you choose, the stream will infinitely load for them!`,
+    category: "Screen Share Features",
+    type: "select",
+    options: [
+      { label: "Default (recommended, automatic)", value: -1 },
+      { label: "AV1", value: 0 },
+      { label: "H265", value: 1 },
+      { label: "H264", value: 2 },
+      { label: "VP8", value: 3 }
+    ]
+  },
+  {
+    key: "emojiBypass",
+    label: "Nitro Emotes Bypass",
+    note: "Enable or disable using the emoji bypass.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "emojiSize",
+    label: "Size",
+    note: "The size of the emoji in pixels.",
+    category: "Emojis",
+    type: "select",
+    options: [
+      { label: "32px (Default small/inline)", value: 32 },
+      { label: "48px (Recommended, default large)", value: 48 },
+      { label: "16px", value: 16 },
+      { label: "24px", value: 24 },
+      { label: "40px", value: 40 },
+      { label: "56px", value: 56 },
+      { label: "64px", value: 64 },
+      { label: "80px", value: 80 },
+      { label: "96px", value: 96 },
+      { label: "128px (Max emoji size)", value: 128 },
+      { label: "256px (Max GIF emoji size)", value: 256 }
+    ]
+  },
+  {
+    key: "emojiBypassType",
+    label: "Emoji Bypass Method",
+    note: "The method of bypass to use.",
+    category: "Emojis",
+    type: "select",
+    options: [
+      { label: "Upload Emojis", value: 0 },
+      { label: "Hyperlink/Vencord-Like Mode", value: 3 },
+      { label: "Classic Mode", value: 2 }
+    ]
+  },
+  {
+    key: "editMessageWithEmoji",
+    label: "Replace Fakemoji When Editing Message",
+    note: "Replaces text-based fakemoji with their emoji when editing a message.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "emojiBypassForValidEmoji",
+    label: "Don't Use Emote Bypass if Emote is Unlocked",
+    note: "Disable to use emoji bypass even if bypass is not required for that emoji.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "PNGemote",
+    label: "Use PNG instead of WEBP",
+    note: "Use the PNG version of static emoji for higher quality!",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "stickerBypass",
+    label: "Sticker Bypass",
+    note: "Enable or disable using the sticker bypass. I recommend using my fork of DiscordFreeStickers over this. Animated APNG/Lottie Stickers WILL NOT animate.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "forceStickersUnlocked",
+    label: "Force Stickers Unlocked",
+    note: "Enable to cause Stickers to be unlocked.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "fakeInlineVencordEmotes",
+    label: "Fake Inline Hyperlink Emotes",
+    note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.",
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "soundmojiEnabled",
+    label: "Soundmoji Bypass",
+    note: 'Unlocks soundmojis and allows you to "send" them by automatically replacing them with an OGG upload and some text representing the soundmoji.',
+    category: "Emojis",
+    type: "boolean"
+  },
+  {
+    key: "profileV2",
+    label: "Profile Accents",
+    note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeProfileThemes",
+    label: "Fake Profile Themes",
+    note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeProfileBanners",
+    label: "Fake Profile Banners",
+    note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "userBgIntegration",
+    label: "UsrBG Integration",
+    note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "voiceTileBannerBackground",
+    label: "Call Tile Background",
+    note: "Uses fake banners as the background for call tiles.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "fakeAvatarDecorations",
+    label: "Fake Avatar Decorations",
+    note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "profileEffects",
+    label: "Fake Profile Effects",
+    note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "killProfileEffects",
+    label: "Kill Profile Effects",
+    note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "customPFPs",
+    label: "Fake Profile Pictures",
+    note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "userPfpIntegration",
+    label: "UserPFP Integration",
+    note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "disableUserBadge",
+    label: "Disable User Badge",
+    note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "nameplatesEnabled",
+    label: "Fake Nameplates",
+    note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "displayNameStyles",
+    label: "Fake Display Name Styles",
+    note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "profileFrames",
+    label: "Fake Profile Frames",
+    note: "Uses invisible 3y3 encoding to allow setting fake profile frames by hiding the information in your bio. Please paste the 3y3 information in your bio.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "advancedProfileCustomization",
+    label: "Advanced Profile Editing",
+    note: "Allows you to use custom SKU IDs when editing Profile Effects, and Decorations, and the ID/Palette combo with Nameplates. Allows you to use effects/decorations/nameplates that are not possible otherwise.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
+    key: "useClipBypass",
+    label: "Use Clips Bypass",
+    note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "clipTimestamp",
+    label: "Timestamp",
+    note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.",
+    category: "Clips",
+    type: "select",
+    options: [
+      { label: "Zero (January 1st, 2015)", value: 0 },
+      { label: "Current Date/Time", value: 1 },
+      { label: "Last Modified Date/Time of File", value: 2 }
+    ]
+  },
+  {
+    key: "forceClip",
+    label: "Force Clip",
+    note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "useAudioClipBypass",
+    label: "Audio Clips Bypass",
+    note: "Identical to the Clips Bypass for videos, except it works with audio files.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "forceAudioClip",
+    label: "Force Audio Clip",
+    note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "zipClip",
+    label: "ZipClip",
+    note: `Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit "Open Inside", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.`,
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "enableClipsExperiment",
+    label: "Enable Clips Experiments",
+    note: "Whether or not Clips-related experiments should be enabled.",
+    category: "Clips",
+    type: "boolean"
+  },
+  {
+    key: "changePremiumType2",
+    label: "Change Premium Type",
+    note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED.",
+    category: "Miscellaneous",
+    type: "select",
+    options: [
+      { label: "Disabled (Actual Nitro Status)", value: -1 },
+      { label: "Free User", value: null },
+      { label: "Nitro Basic", value: 3 },
+      { label: "Nitro Classic", value: 1 },
+      { label: "Nitro", value: 2 }
+    ]
+  },
+  {
+    key: "clientThemes",
+    label: "Gradient Client Themes",
+    note: "Allows you to use Nitro-exclusive Client Themes.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "removeProfileUpsell",
+    label: "Remove Profile Customization Upsell",
+    note: 'Removes the "Get Nitro" upsell in the profile editing modal.',
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "removeScreenshareUpsell",
+    label: "Remove Screen Share Nitro Upsell",
+    note: "Removes the Nitro upsell in the Go Live modal screen.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "unlockAppIcons",
+    label: "App Icons",
+    note: "Unlocks app icons.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "extraContextMenus",
+    label: "Extra Context Menus and Options",
+    note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, a context menu that will appear when right-clicking on user avatars in the blocked/ignored list, and a context menu on messages with attachments that lets you download all attachments.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "experiments",
+    label: "Experiments",
+    note: "Unlocks experiments.",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "checkForUpdates",
+    label: "Check for Updates",
+    note: "Should the plugin check for updates on startup?",
+    category: "Miscellaneous",
+    type: "boolean"
+  },
+  {
+    key: "customVideoFilterEnabled",
+    label: "Video Filter",
+    note: "Allows you to use a Custom Video preset background.",
+    type: "boolean",
+    category: "Miscellaneous"
+  },
+  {
+    key: "customVideoFilter",
+    label: "Custom Camera Background Source",
+    note: "Set a direct link to an image or video (CDN link recommended) to use as your camera background preset.",
+    type: "custom",
+    category: "Miscellaneous",
+    Custom: ({ value, onChange }) => {
+      const link = value?.link ?? "";
+      const type = value?.type ?? "png";
+      const update = (patch) => {
+        onChange({ link, type, ...patch });
+      };
+      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+        value: link,
+        placeholder: "https://cdn.discordapp.com/attachments/...",
+        onChange: (v) => update({ link: v })
+      }), /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+        value: type,
+        options: [
+          { label: "Image", value: "png" },
+          { label: "Video (MP4)", value: "mp4" }
+        ],
+        onChange: (v) => update({ type: v })
+      }));
     }
+  }
+];
+function normalizeVersion2(v) {
+  const parts = v.split(".");
+  while (parts.length < 3)
+    parts.push("0");
+  return parts.join(".");
+}
+var Electron = () => eval('require("electron")');
+var _path = () => (init_path(), __toCommonJS(exports_path));
+var fs = () => eval('require("fs")');
+var unpatchDevMode = null;
+function startSet() {
+  const { declarations: decls } = BetterDiscord.Webpack.getBySource("discord_dev_testing", {
+    raw: true
+  });
+  const [, key] = BetterDiscord.Webpack.getWithKey(BetterDiscord.Webpack.Filters.byStrings("getCurrentUser"), { target: decls });
+  decls.c = SettingsStore_default.get("experiments");
+  if (unpatchDevMode)
+    return;
+  unpatchDevMode = BetterDiscord.Patcher.instead(decls, key, () => {
+    decls.c = SettingsStore_default.get("experiments");
+  });
+}
+function overrideVariant(experimentName, variantId) {
+  ApexExperimentStore.createOverride(experimentName, variantId);
+  ApexExperimentStore.emitChange();
 }
 
-function ResizeFindingElement({id, onResize}){
-    const ref = useRef(null);
+class Plugin {
+  unpatch = loadContextMenus();
+  source = "";
+  async start() {
+    const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
+    if (!version2 && !SettingsStore_default.get("dontUpdate"))
+      return BetterDiscord.UI.showNotification({
+        title: "Cannot start YABD4Nitro",
+        type: "error",
+        content: `You need to be on BetterDiscord version 1.14.0 to have the smoothest experience. Please update. If you dont wish to update, then click "I dont care".
 
-    useEffect(() => {
-        if(ref.current){
-            const observer = new ResizeObserver((ResizeObserverEntry) => {
-                if(ResizeObserverEntry?.[0]){
-                    onResize(ResizeObserverEntry[0].contentRect.width, ResizeObserverEntry[0].contentRect.height);
-                }
-            });
-            observer.observe(ref.current);
-    
-            return () => {
-                observer.disconnect();
-            };
-        }
-    },[]);
-
-    return createElement('div', {
-        id,
-        ref,
-        style: {
-            width: "100%",
-            height: "100%"
-        }
-    })
-}
-
-//#endregion
-
-// #region Exports
-module.exports = class YABDP4Nitro {
-    constructor(meta){
-        this.meta = meta;
-    }
-
-    getSettingsPanel(){
-        return UI.buildSettingsPanel({
-            settings: config.settingsPanel,
-            onChange: (category, id, value) => {
-                switch (id){
-                    case "CustomResolution":
-                    case "CustomFPS":
-                        settings[id] = parseInt(value);
-                        this.saveAndUpdate();
-                        break;
-                    case "minBitrate":
-                    case "targetBitrate":
-                    case "maxBitrate":
-                    case "voiceBitrate":
-                        //protect people from their own stupidity
-                        settings[id] = parseFloat(value) > 50000 ? 50000 : parseFloat(value);
-                        this.saveAndUpdate();
-                        break;
-                    default:
-                        settings[id] = value;
-                        this.saveAndUpdate();
-                        break;
-                }
+This will reload the plugin and you can use it normally.`,
+        duration: Infinity,
+        actions: [
+          {
+            label: "I dont care",
+            onClick: () => {
+              SettingsStore_default.set("dontUpdate", true);
+              this.start();
             }
-        });
-    }
-
-    // #region Save and Update
-    saveAndUpdate(){ //Saves and updates settings and runs functions
-
-        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
-        ContextMenu.unpatch('stream-context', this.streamContextPatch);
-        ContextMenu.unpatch("message", this.messageContext);
-
-        controller.abort();
-        controller = new AbortController();
-
-        //delete old nameplate data
-        if(data.nameplates) delete data.nameplates;
-
-        Data.save("settings", settings);
-        this.saveDataFile();
-
-        Patcher.unpatchAll();
-
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
-
-        Dispatcher.subscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
-
-        try{
-            if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 3){
-                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
-                this.applyPremiumType();
-            }else{
-                if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
-                    CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-
-        if(isNaN(settings.CustomFPS)) settings.CustomFPS = 60;
-        if(isNaN(settings.CustomResolution)) settings.CustomResolution = 1440;
-
-        if(settings.ResolutionSwapper){
-            try {
-                this.resolutionSwapperV2();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.stickerBypass){
-            try {
-                this.stickerSending();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.forceStickersUnlocked || settings.stickerBypass){
-            try {
-                this.unlockStickers();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.emojiBypass){
-            try {
-                this.emojiBypass();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.profileV2){
-            try {
-                Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
-                    if(ret == undefined) return;
-                    ret.premiumType = 2;
-                });
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.screenSharing){
-            try {
-                this.customizeStreamButtons(); //Apply custom resolution and fps options for Go Live Modal V1
-            } catch(err){
-                Logger.error("Error occurred during customizeStreamButtons() " + err);
-            }
-            try {
-                this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
-
-                if(InvalidStreamSettingsModal){
-                    let areStreamSettingsAllowed = this.findMangledName(InvalidStreamSettingsModal, x=>x, "areStreamSettingsAllowed");
-                    if(areStreamSettingsAllowed){
-                        //disable resolution / fps check
-                        Patcher.instead(InvalidStreamSettingsModal, areStreamSettingsAllowed, () => {
-                            return true;
-                        });
-                    }
-                }
-            } catch(err){
-                Logger.error("Error occurred during videoQualityModule() " + err);
-            }
-        }
-
-        if(settings.clientThemes){
-            try {
-                this.clientThemes();
-            } catch(err){
-                Logger.warn(err);
-            }
-        }
-
-        if(settings.fakeProfileThemes){
-            try {
-                this.decodeAndApplyProfileColors();
-            } catch(err){
-                Logger.error("Error occurred running fakeProfileThemes bypass. " + err);
-            }
-
-        }
-
-        if(settings.fakeProfileBanners){
-            try{
-                this.bannerUrlDecoding();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.fakeAvatarDecorations){
-            try{
-                this.fakeAvatarDecorations();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.unlockAppIcons){
-            try{
-                this.appIcons();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.profileEffects){
-            try {
-                this.profileFX(this.secondsightifyEncodeOnly);
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.killProfileEffects){
-            try {
-                this.killProfileFX();
-            } catch(err){
-                Logger.error("Error occured during killProfileFX() " + err);
-            }
-        }
-
-        try {
-            this.honorBadge();
-        } catch(err){
-            Logger.error("An error occurred during honorBadge() " + err);
-        }
-
-        if(settings.customPFPs){
-            try {
-                this.customProfilePictureDecoding();
-            } catch(err){
-                Logger.error("An error occurred during customProfilePicture decoding/encoding. " + err);
-            }
-        }
-
-        if(settings.experiments || settings.soundmojiEnabled || settings.enableClipsExperiment){
-            try {
-                this.experiments();
-                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.experiments);
-            } catch(err){
-                Logger.error("Error occurred in experiments() " + err);
-            }
-        }
-
-        try{
-            if(CanUserUseMod?.canUserUse){
-                Patcher.instead(CanUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
-                    if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
-                        return true;
-
-                    if(settings.unlockAppIcons && feature.name == 'appIcons')
-                        return true;
-        
-                    if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
-                        return true;
-        
-                    if(settings.clientThemes && feature.name == 'clientThemes')
-                        return true;
-        
-                    if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
-                        return true;
-
-                    return originalFunction(feature, user);
-                });
-            }else{
-                Logger.error("CanUserUse is undefined!!");
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-
-        //Clips Bypass
-        if(settings.useClipBypass || settings.useAudioClipBypass || settings.zipClip){
-            try {
-                this.clipsBypass();
-            } catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.fakeInlineVencordEmotes){
-            try{
-                this.inlineFakemojiPatch();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0) || settings.stickerBypass || settings.zipClip || settings.useClipBypass || settings.useAudioClipBypass){
-            try{
-                this._sendMessageInsteadPatch();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.videoCodec2 > -1){
-            try{
-                this.videoCodecs();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        
-        try{
-            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled || settings.profileEffects){
-                //subscribe to successful collectible category fetch event
-                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-    
-                //trigger collectibles fetch
-                FetchCollectibleCategories({
-                    includeBundles: false,
-                    includeUnpublished: false,
-                    noCache: false,
-                    paymentGateway: undefined
-                });
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-
-        try{
-            if(settings.nameplatesEnabled){
-                this.nameplates();
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-
-        try{
-            if(settings.removeNotStaffWarning && DMTag?.render){
-                Patcher.instead(DMTag, "render", (_,[args],org) => {
-                    let ret = org(args);
-                    if(ret?.props?.type === 5) return;
-                    return ret;
-                });
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-
-        if(settings.extraContextMenus){
-            try{
-                this.extraContextMenus();
-            }catch(err){
-                Logger.error(err);
-            }
-            try{
-                this.pfpContextMenu();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.sharpenStreams){
-            try{
-                this.sharpenStreams();
-                this.sharpenPipPlayer();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.displayNameStyles){
-            try{
-                this.displayNameStyles();
-                if(ORIGINAL_NITRO_STATUS != 2){
-                    this.displayNameStylesSection();
-                }
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        try{
-            this.settingsUI();
-        }catch(err){
-            Logger.error(err);
-        }
-
-        if(settings.voiceTileBannerBackground){
-            try{
-                this.userCallTileBannerBackground();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-        if(settings.extraContextMenus){
-            try{
-                ContextMenu.patch("message", this.messageContext);
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-
-    } //End of saveAndUpdate()
-    // #endregion
-
-
-    async pfpContextMenu(){
-        if(SimpleUserAvatar?.type){
-            if(!this.UserContextMenuFunctions) this.UserContextMenuFunctions = await Webpack.waitForModule(Webpack.Filters.bySource('isGroupDM', 'targetIsUser'), {signal: controller.signal});
-
-            let openUserContextMenu;
-            if(this.UserContextMenuFunctions){
-                openUserContextMenu = Object.values(this.UserContextMenuFunctions).find(x=>x?.toString?.().includes?.("targetIsUser", "showMute"));
-            }else{
-                Logger.warn("UserContextMenuFunctions is undefined");
-                return;
-            }
-
-            Patcher.after(SimpleUserAvatar, "type", (_,[{user, size}],ret) => {
-                if(ret?.props){
-                    ret.props.onContextMenu = (e) => {
-                        if(user) {
-                            //get channel id of first selectable channel in first guild
-                            let channel = Object.values(GuildChannelStore.getAllGuilds()).filter(o => o?.SELECTABLE?.[0]?.channel)?.[0]?.SELECTABLE?.[0]?.channel;
-    
-                            //if we cant find one, look for last selected channel
-                            // unless there is no last selected channel id, in which case get the first available DM channel
-                            if(!channel) channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore.getSortedPrivateChannels()?.[0];
-    
-                            if(channel) openUserContextMenu(e,user,channel);
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
-    //#region Settings UI
-
-    //#region UserProfileModalV2
-    //"What You See Is What You Get" user profile, aka UserProfileModalV2.
-    async wysiwygUserProfileEditing(){
-        if(!this.UserProfileModalV2) this.UserProfileModalV2 = await Webpack.waitForModule(Webpack.Filters.bySource('originGuildId','initialTabSection','UserProfileModalV2','profileFrameOverride'), {raw:true,signal: controller.signal});
-        if(!this.UserProfileModalV2) return;
-
-        this.overrideVariant("2026-06-wysiwyg-show-dns-to-non-nitro", 1);
-
-        const name = this.findMangledName(this.UserProfileModalV2.declarations, Webpack.Filters.byStrings('handlePanelTransitionComplete'));
-
-        Patcher.after(this.UserProfileModalV2.declarations, name, (_,[args],ret) => {
-            const editPanel = Utils.findInTree(ret, x=> x?.props?.panelId == "user-profile-editing-panel", {walkable:["props","children"]});
-            if(!editPanel) return Logger.warn("editPanel is undefined!", ret);
-
-            nodePatcher.patch(editPanel,(props,res) => {
-                const leftPanel = Utils.findInTree(res,x => Object.keys(x)?.includes?.('floatingFooter'),{walkable: ["props","children"]});
-
-                if(!leftPanel) return Logger.warn("leftPanel is undefined!", leftPanel);
-
-                leftPanel?.children?.props?.children?.push?.(createElement("button",{
-                    children: "3y3 Copying Zone",
-                    className: `yabd-secondary-button`,
-                    style: {
-                        height: "30px"
-                    },
-                    onClick: () => {
-                        UI.showConfirmationModal("3y3 Copying Zone", createElement("div", {
-                            children: [
-                                createElement(this.newProfileThemesUI),
-                                createElement("br"),
-                                createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                createElement("br"),
-                                createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                createElement("br"),
-                                createElement(this.CreateNameplateButton, {self: this}),
-                                createElement("br"),
-                                createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                                createElement("br"),
-                                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                            ]
-                        }), {cancelText: ""})
-                    }
-                }))
-            })
-        })
-    }
-    //#endregion
-
-    async settingsUI(){
-
-        try{
-            this.wysiwygUserProfileEditing();
-        }catch(err){
-            Logger.error(err);
-        }
-
-        // this.overrideVariant('2026-03-wysiwyg-user-profile-editing', -1);
-        if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
-        if(!this.settingsUIMod){
-            Logger.warn("Settings UI module was undefined.");
-            return;
-        }
-
-        if(settings.fakeProfileBanners || settings.fakeProfileThemes || settings.customPFPs){
-            this.perServerSection();
-        }
-
-        if(settings.nameplatesEnabled){
-            try{
-                this.nameplatesUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        if(settings.fakeAvatarDecorations){
-            try{
-                this.avatarDecorationsUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        if(settings.customPFPs){
-            try{
-                this.customPfpUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        if(settings.profileEffects){
-            try{
-                this.profileFxUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        if(settings.fakeProfileBanners){
-            try{
-                this.bannerUrlUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-        if(settings.fakeProfileThemes){
-            try{
-                this.profileThemesUI();
-            }catch(err){
-                Logger.error(err);
-            }
-        }
-    }
-
-    //#region Accent Colors
-    newProfileThemesUI(){
-        const currentUserProfile = UserProfileStore.getUserProfile(CurrentUser.id);
-        const [primary, setPrimary] = useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[0].toString(16).padStart(6, "0")}` : "#000000");
-        const [accent, setAccent] = useState(currentUserProfile.themeColors ? `#${currentUserProfile.themeColors[1].toString(16).padStart(6, "0")}` : "#000000");
-        let userProfile = UserProfileStore.getUserProfile(CurrentUser.id);
-
-        return createElement("div",{
-            children:[
-                createElement(Components.Text, {
-                    children:"Primary",
-                    style: {
-                        fontSize: "14px",
-                        fontWeight: "var(--font-weight-bold)"
-                    }
-                }),
-                createElement(Components.ColorInput, {
-                    value: primary,
-                    defaultValue: "#000000",
-                    disabled:false,
-                    onChange: (e) => {
-                        setPrimary(e);
-                    }
-                }),
-                createElement('br'),
-                createElement(Components.Text, {
-                    children:"Accent",
-                    style: {
-                        fontSize: "14px",
-                        fontWeight: "var(--font-weight-bold)"
-                    }
-                }),
-                createElement(Components.ColorInput, {
-                    value: accent,
-                    defaultValue: "#000000",
-                    disabled:false,
-                    onChange: (e) => {
-                        setAccent(e);
-                    }
-                }),
-                createElement("button",{
-                    children: "Copy Colors 3y3",
-                    className: `yabd-generic-button`,
-                    style: {
-                        height: "32px",
-                        width: "auto",
-                        marginTop: "10px"
-                    },
-                    onClick: () => {
-                        let message = `[${primary},${accent}]`;
-
-                        const padding = "";
-                        let encoded = Array.from(message)
-                            .map(x => x.codePointAt(0))
-                            .filter(x => x >= 0x20 && x <= 0x7f)
-                            .map(x => String.fromCodePoint(x + 0xe0000))
-                            .join("");
-
-                        let encodedStr = ((padding || "") + " " + encoded);
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                    }
-                })
-            ]
-        })
-    }
-    //#endregion
-
-    // #region Custom PFP UI
-    CustomPFPInput({secondsightifyEncodeOnly}) {
-        return createElement("div",{
-            style: {
-                display: "flex",
-                marginTop: "4px",
-            },
-            children: [
-                createElement("input",{
-                    id: "profilePictureUrlInput",
-                    style: {
-                        maxWidth: "112px",
-                        marginTop: "4px",
-                    },
-                    placeholder: "PFP Imgur URL"
-                }),
-                //Create and append Copy PFP 3y3 button.
-                createElement("button",{
-                    children: "Copy PFP 3y3",
-                    className: `yabd-generic-button`,
-                    id: "profilePictureButton",
-                    style: {
-                        marginLeft: "5px",
-                        whiteSpace: "nowrap"
-                    },
-                    onClick: async function() { //on copy pfp 3y3 button click
-
-                        //grab text from pfp url input textarea.
-                        let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-
-                        //empty, skip.
-                        if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profilePictureUrlInputValue
-                            //clean up URL
-                            .replace("http://","") //remove protocol
-                            .replace("https://","")
-                            .replace("i.imgur.com","imgur.com");
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode),{
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
-                                        .replace("https://","") //get rid of protocol
-                                        .replace("i.imgur.com","imgur.com")
-                                        .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err) {
-                                    Logger.error(err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
-                                    return;
-                                }
-                            }
-                            if(stringToEncode == "") {
-                                UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
-                                Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
-                            }
-
-                            //add starting "P{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                            //If this is not an Imgur URL, yell at the user.
-                        } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-                            UI.showToast("Please use Imgur!",{type: "warning"});
-                            return;
-                        }
-
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
-
-                        copyToClipboard(encodedStr,"3y3 copied to clipboard!");
-
-                    } //end copy pfp 3y3 click event
-                }) //end of react createElement of button
-            ]
-        }) //end of react createElement of div
-    }
-
-    //Custom PFP profile customization buttons and encoding code.
-    customPfpUI(){
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
-        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
-
-        let AvatarSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), "AvatarSection");
-        if(!AvatarSectionFnName) return;
-
-        Patcher.before(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args]) => {
-            args.disabled = false;
-        });
-
-        Patcher.after(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args], ret) => {
-            if(!args) return;
-            if(!ret) return;
-
-            //don't need to do anything if this is the "Try out Nitro" flow.
-            if(args.isTryItOut) return;
-
-            if(ret?.props?.children){
-                ret.props.children = [ret.props.children];
-                ret.props.children.push(
-                    createElement(this.CustomPFPInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly}),
-                ); //end of element push
-            }
-        }); //end of patch
-    } //End of customPfpUI()
-    // #endregion
-
-    //#region Per Server
-    perServerSection(){
-        const PremiumUpsellOverlay = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("PREMIUM_UPSELL_OVERLAY", "showOverlay", "PREMIUM_UPSELL_VIEWED"));
-        if(PremiumUpsellOverlay){
-            Patcher.before(this.settingsUIMod.declarations, PremiumUpsellOverlay, (_,[args]) => {
-                args.showOverlay = false;
-            });
-        }
-    }
-    //#endregion
-
-    //#region Nameplates UI
-
-    CreateNameplateButton({self}) {
-        const NameplatePreviewName = self.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
-        const secondsightifyEncodeOnly = self.secondsightifyEncodeOnly;
-        
-        function NameplateList({NameplatePreviewName}) {
-            const [query,setQuery] = useState("");
-            const [skuIdBox, setSkuIdBox] = useState("");
-            const [paletteBox, setPaletteBox] = useState("");
-
-            let nameplatesList = [];
-
-            if(NameplatePreview) {
-                if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1) {
-                    return createElement('h1',{
-                        children: "No nameplates were found!",
-                        style: {
-                            color: "red",
-                            fontWeight: "bold"
-                        }
-                    });
+          }
+        ]
+      });
+    this.checkChangelog();
+    startSet();
+    const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
+    overrideVariant("2026-03-soundmoji-rendering", soundmojiEnabled ? 1 : 0);
+    overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
+    const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
+    checkForUpdatesEnabled && await this.checkUpdate();
+    GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
+    if (false) {}
+    await UserBackgroundStore_default.fetch();
+    await loadPatches();
+  }
+  exposed = {
+    YABDNitroPanel: CustomSettingsTab
+  };
+  async checkUpdate() {
+    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
+    this.source = await res.text();
+    const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
+    const installedVersion = SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";
+    if (!sourceVersion)
+      return;
+    if (BetterDiscord.Utils.semverCompare(sourceVersion, installedVersion) < 0) {
+      BetterDiscord.Logger.log("New update version found!");
+      this.notification = BetterDiscord.UI.showNotification({
+        title: "YABDP4Nitro Update Available",
+        icon: () => /* @__PURE__ */ React18.createElement(Icon, {
+          icon: "mdi:update",
+          width: "20"
+        }),
+        content: `Update ${sourceVersion} is now downloadable, Would you like to update?`,
+        duration: Infinity,
+        actions: [
+          {
+            label: "Update",
+            onClick: () => {
+              const bd_path = Electron().ipcRenderer.sendSync("bd-get-path", "appData");
+              const path = _path().join(bd_path, "BetterDiscord", "plugins", "YABDP4Nitro.plugin.js");
+              fs().writeFile(path, this.source, (err2) => {
+                if (err2) {
+                  BetterDiscord.UI.showToast("Failed to update, Please update manually.");
                 } else {
-                    const listOfNameplates = Object.values(data.nameplatesV2);
-                    const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
-
-                    for(let i = 0;i < listOfNameplates.length;i++) {
-                        let nameplate = listOfNameplates[i];
-                        let skuId = listOfNameplateSkuIds[i];
-                        if(nameplate) {
-                            if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())) {
-                                continue;
-                            }
-
-                            function nameplateCopier({nameplate, skuId}){
-                                const [highlighted, setHighlighted] = useState(false);
-
-                                return createElement('div',{
-                                    children: createElement(NameplatePreview[NameplatePreviewName].type,{
-                                        user: CurrentUser,
-                                        isHighlighted: highlighted,
-                                        nameplate: {
-                                            asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
-                                            palette: nameplate.palette,
-                                            skuId,
-                                            label: nameplate.label ? nameplate.label : ""
-                                        },
-                                        isPurchased: true
-                                    }),
-                                    style: {
-                                        borderRadius: "10px",
-                                        width: "95%",
-                                        marginLeft: "auto",
-                                        marginRight: "auto",
-                                        height: "42px",
-                                        marginTop: "10px",
-                                        position: "relative",
-                                        top: '5px',
-                                        cursor: "pointer",
-                                    },
-                                    onClick: () => {
-                                        //make 3y3 string
-                                        let strToEncode = `n{${skuId},${nameplate.palette}}`;
-                                        let encodedStr = secondsightifyEncodeOnly(strToEncode);
-
-                                        copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                                    },
-                                    onMouseOver: (e) => {
-                                        setHighlighted(true);
-                                    },
-                                    onMouseLeave: (e) => {
-                                        setHighlighted(false);
-                                    },
-                                    title: nameplate.name
-                                })
-                            }
-                            nameplatesList.push(createElement(nameplateCopier,{nameplate,skuId}));
-                        }
-                    }
-                    let onKeyDown = (e) => {
-                        if(e.keyCode == 13) {
-                            let strToEncode = `n{${skuIdBox},${paletteBox}}`;
-                            let encodedStr = secondsightifyEncodeOnly(strToEncode);
-
-                            copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                        }
-                    };
-                    return createElement('div',{
-                        children: [
-                            settings.advancedProfileCustomization ? createElement(Components.TextInput,{
-                                value: skuIdBox,
-                                placeholder: "Custom SKU ID... (enter to copy)",
-                                onChange: (input) => setSkuIdBox(input),
-                                onKeyDown
-                            }) : null,
-                            settings.advancedProfileCustomization ? createElement(Components.TextInput,{
-                                value: paletteBox,
-                                placeholder: "Palette... (enter to copy)",
-                                onChange: (input) => setPaletteBox(input),
-                                onKeyDown
-                            }) : null,
-                            settings.advancedProfileCustomization ? createElement('br') : null,
-                            settings.advancedProfileCustomization ? createElement('br') : null,
-                            createElement(Components.SearchInput,{
-                                value: query,
-                                placeholder: "Search...",
-                                onChange: (e) => {
-                                    setQuery(e.target.value);
-                                }
-                            }),
-                            createElement('div',{
-                                children: nameplatesList,
-                                style: {
-                                    height: "460px",
-                                    overflowY: "scroll",
-                                    backgroundColor: "var(--input-background-default)"
-                                },
-                                className: "bd-scroller-thin"
-                            })
-                        ],
-                    });
+                  BetterDiscord.UI.showToast("Update was successful!");
+                  SettingsStore_default.set("installedVersion", sourceVersion);
+                  startChangelog(sourceVersion);
                 }
-            } else {
-                return createElement('h1',{
-                    children: "Error: Nameplate Preview element is undefined!",
-                    style: {
-                        color: "red",
-                        fontWeight: "bold"
-                    }
-                });
+              });
             }
-        }
-
-        return createElement("button",{
-            className: `yabd-generic-button`,
-            style: {
-                height: "30px",
-                marginTop: "8px",
-                width: "auto",
-                height: "30px"
-            },
-            children: "Change Nameplate [YABDP4Nitro]",
+          },
+          {
+            label: "Hell Nah",
             onClick: () => {
-                UI.showConfirmationModal("Change Nameplate",createElement(NameplateList,{NameplatePreviewName}),{cancelText: ""})
+              this.notification.close();
             }
-        });
+          }
+        ]
+      });
     }
-
-    nameplatesUI(){
-        let NameplateSection = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), "NameplateSection");
-        if(NameplateSection){
-            Patcher.after(this.settingsUIMod.declarations, NameplateSection, (_, [args], ret) => {
-                //disable for per-server profiles screen
-                if(args?.guild && ORIGINAL_NITRO_STATUS != 2) return;
-                
-                if(ret?.props?.children){
-                    ret.props.children = [ret.props.children];
-                    ret.props.children.push(createElement(this.CreateNameplateButton, {self: this}));
-                }
-            });
-        }
+    return;
+  }
+  checkChangelog() {
+    const currentVersion = package_default.version;
+    const lastSeenVersion = SettingsStore_default.get("installedVersion");
+    if (lastSeenVersion && lastSeenVersion !== currentVersion) {
+      startChangelog(currentVersion);
     }
-    //#endregion
-
-    //#region Avatar Decorations UI
-
-    DecorButton({secondsightifyEncodeOnly}){
-        function AvatarDecorations() {
-            const [skuId, setSkuId] = useState("");
-            if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
-            let listOfDecorationIds = Object.keys(data.avatarDecorations);
-            let avatarDecorationChildren = [];
-
-            //for each avatar decoration
-            for(let i = 0;i < listOfDecorationIds.length;i++) {
-
-                const decorationId = listOfDecorationIds[i];
-                const assetHash = data.avatarDecorations[decorationId];
-
-                if(decorationId && assetHash) {
-                    //remove existing nameplates from decoration list
-                    if(assetHash.includes('nameplate')) {
-                        delete data.avatarDecorations[decorationId];
-                        continue;
-                    }
-
-                    //encode to 3y3 and store clipboard copy in onclick event
-                    let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
-                    //javascript that runs onclick for each avatar decoration button
-
-                    let child = createElement("img",{
-                        style: {
-                            width: "23%",
-                            cursor: "pointer",
-                            marginLeft: "5px",
-                            marginBottom: "10px",
-                            borderRadius: "4px",
-                            backgroundColor: "var(--background-base-lower)"
-                        },
-                        onClick: () => {
-                            copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!");
-                        },
-                        onMouseOver: (e) => {
-                            e.target.src = e.target.src.replace('.webp','.png');
-                        },
-                        onMouseLeave: (e) => {
-                            e.target.src = e.target.src.replace('.png','.webp');
-                        },
-                        src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
-                    });
-                    avatarDecorationChildren.push(child);
-
-                    //add newline every 4th decoration
-                    if((i + 1) % 4 == 0) {
-                        //avatarDecorationsHTML += "<br>"
-                        avatarDecorationChildren.push(createElement("br"));
-                    }
-                }
-            }
-            return createElement('div',{
-                children: [
-                    settings.advancedProfileCustomization ? createElement(Components.TextInput, {
-                        value: skuId,
-                        placeholder: "Custom SKU ID... (enter to copy)",
-                        onKeyDown: (e) => {
-                            if(e.keyCode == 13){
-                                let encodedStr = secondsightifyEncodeOnly("/a" + skuId);
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                            }
-                        },
-                        onChange: (value) => {
-                            setSkuId(value);
-                        },
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }): null,
-                    settings.advancedProfileCustomization ? createElement("br") : null,
-                    settings.advancedProfileCustomization ? createElement("br") : null,
-                    ...avatarDecorationChildren
-                ]
-            });
-        }
-        function DecorModal() {
-            return createElement("div",{
-                style: {
-                    width: "100%",
-                    display: "block",
-                    color: "white",
-                    whiteSpace: "nowrap",
-                    overflow: "visible",
-                    marginTop: ".5em"
-                },
-                children: createElement(AvatarDecorations)
-            });
-        }
-
-        return createElement("button",{
-            id: "decorationButton",
-            children: "Change Decoration [YABDP4Nitro]",
-            style: {
-                width: "100px",
-                height: "50px",
-                color: "white",
-                marginLeft: "5px",
-            },
-            className: "yabd-generic-button",
-            onClick: () => {
-                UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)",createElement(DecorModal),{cancelText: ""});
-            }
-        })
+    if (lastSeenVersion !== currentVersion) {
+      SettingsStore_default.set("installedVersion", currentVersion);
     }
-
-    avatarDecorationsUI(){
-        let decorationCustomizationSectionName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings('pendingAvatarDecoration', 'forcedDivider'));
-
-        //Avatar decoration customization section patch
-        Patcher.after(this.settingsUIMod.declarations, decorationCustomizationSectionName, (_, [args], ret) => {
-            if(!args) return;
-
-            //don't run if this is the try out nitro flow.
-            if(args.isTryItOut) return;
-
-            //disable for the per-server profiles screen
-            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
-
-            //push change decoration button
-            if(ret?.props?.children?.props?.children){
-                ret.props.children.props.children.push(
-                    createElement(this.DecorButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})
-                );
-            }else{
-                Logger.error("Decoration Section ain't right chief.")
-            }
-        }); //end patch of profile decoration section renderer function
-    }
-    //#endregion
-
-    //#region Effects UI
-
-    EffectsButton({secondsightifyEncodeOnly}) {
-
-        function ProfileEffects({query}) {
-            let profileEffectChildren = [];
-            let actualRuns = 0;
-
-            let profileEffectsArray = Object.values(profileEffects);
-            //for each profile effect
-            for(let i = 0;i < profileEffectsArray.length;i++){
-
-                //get preview image url
-                const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
-                const title = profileEffectsArray[i].title;
-
-                //search
-                if(query.trim() != "") {
-                    if(title) {
-                        if(!title.toLowerCase().includes(query)) continue;
-                    } else continue;
-                }
-
-                //encode 3y3
-                let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
-                //javascript that runs onclick for each profile effect button
-                let copyDecoration3y3 = function(){
-                    copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                };
-
-                profileEffectChildren.push(
-                    createElement("img", {
-                        className: "riolubruhsSecretStuff",
-                        onClick: copyDecoration3y3,
-                        src: previewURL,
-                        title,
-                        style: {
-                            width: "22.5%",
-                            cursor: "pointer",
-                            marginBottom: "0.5em",
-                            marginLeft: "0.5em",
-                            backgroundColor: "var(--background-base-lower)"
-                        }
-                    })
-                );
-
-                //add newline every 4th profile effect
-                if((actualRuns + 1) % 4 == 0){
-                    profileEffectChildren.push(
-                        createElement("br")
-                    );
-                }
-
-                actualRuns++;
-            }
-            return createElement('div', {
-                children: profileEffectChildren,
-                style: {
-                    paddingTop: "10px",
-                    height: "460px",
-                    overflowY: "scroll",
-                    backgroundColor: "var(--input-background-default)"
-                },
-                className: "bd-scroller-thin"
-            });
-        }
-
-        //Profile Effects Modal
-        function EffectsModal(){
-            const [query,setQuery] = useState("");
-            const [skuId, setSkuId] = useState("");
-
-            return createElement("div", {
-                style: {
-                    width: "100%",
-                    display: "block",
-                    color: "white",
-                    whiteSpace: "nowrap",
-                    overflow: "visible",
-                    marginTop: ".5em"
-                },
-                children: [
-                    settings.advancedProfileCustomization ? createElement(Components.TextInput, {
-                        value: skuId,
-                        placeholder: "Custom SKU ID... (enter to copy)",
-                        onKeyDown: (e) => {
-                            if(e.keyCode == 13){
-                                let encodedStr = secondsightifyEncodeOnly("fx" + skuId);
-                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
-                            }
-                        },
-                        onChange: (value) => {
-                            setSkuId(value);
-                        },
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }) : null,
-                    settings.advancedProfileCustomization ? createElement('br') : null,
-                    settings.advancedProfileCustomization ? createElement('br') : null,
-                    createElement(Components.SearchInput, {
-                        value: query,
-                        placeholder: "Search...",
-                        onChange: (e) => setQuery(e.target.value),
-                        style: {
-                            backgroundColor: `var(--control-secondary-background-default)`
-                        }
-                    }),
-                    createElement(ProfileEffects, {query})
-                ]
-            });
-        }
-
-        return createElement("button", {
-            children: "Change Effect [YABDP4Nitro]",
-            className: `yabd-generic-button`,
-            size: "bd-button-small",
-            id: "changeProfileEffectButton",
-            style: {
-                width: "100px",
-                height: "32px",
-                color: "white",
-                marginLeft: "4px"
-            },
-            onClick: () => {
-                UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)",createElement(EffectsModal),{cancelText: ""});
-            }
-        })
-    }
-
-    profileFxUI(){
-        let ProfileEffectSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), "ProfileEffectSection");
-        if(!ProfileEffectSectionFnName) return;
-
-        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
-
-        //patch profile effect section renderer function
-        Patcher.after(this.settingsUIMod.declarations, ProfileEffectSectionFnName, (_, [args], ret) => {
-            if(!args) return;
-            if(args.isTryItOut) return;
-            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
-            if(!ret?.props?.children?.props?.children) return;
-
-            
-
-            //Append Change Effect button
-            ret.props.children.props.children.push(
-                //self explanatory create react element
-                createElement(this.EffectsButton, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})
-            );
-        }); //end patch of profile effect section renderer function
-    }
-    //#endregion
-
-    //#region Banner UI
-    CustomBannerInput({secondsightifyEncodeOnly}) {
-        let profileBannerUrlInput = createElement("input",{
-            id: "profileBannerUrlInput",
-            placeholder: "Banner Imgur URL",
-            style: {
-                float: "right",
-                width: "116px",
-                height: "20%",
-                maxHeight: "50%",
-                marginTop: "3px"
-            }
-        });
-
-        return createElement('div',{
-            style: {
-                marginTop: "8px",
-                display: "flex",
-            },
-            children: [
-                profileBannerUrlInput,
-                createElement("button",{
-                    id: "profileBannerButton",
-                    children: "Copy Banner 3y3",
-                    className: `yabd-generic-button`,
-                    size: "bd-button-small",
-                    style: {
-                        whiteSpace: "nowrap",
-                        marginLeft: "4px",
-                        width: "116px",
-                        height: "30px"
-                    },
-                    onClick: async function() { //Upon clicking Copy 3y3 button
-
-                        //grab text from banner URL input textarea 
-                        let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
-
-                        //if it's empty, stop processing and issue a warning.
-                        if(profileBannerUrlInputValue == undefined) {
-                            emptyWarn();
-                            return;
-                        }
-                        if(profileBannerUrlInputValue == "") {
-                            emptyWarn();
-                            return;
-                        }
-
-                        //clean up string to encode
-                        let stringToEncode = "" + profileBannerUrlInputValue
-                            .replace("http://","") //get rid of protocol
-                            .replace("https://","")
-                            .replace(".jpg","")
-                            .replace(".png","")
-                            .replace(".mp4","")
-                            .replace("webm","")
-                            .replace("i.imgur.com","imgur.com"); //change i.imgur.com to imgur.com
-
-
-                        let encodedStr = ""; //initialize encoded string as empty string
-
-                        stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-                        //if url seems correct
-                        if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-                            //Check for album or gallery URL
-                            if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
-
-                                //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-                                //Fetch imgur album page
-                                try {
-                                    const parser = new DOMParser();
-                                    stringToEncode = await Net.fetch(("https://" + stringToEncode),{
-                                        method: "GET",
-                                        mode: "cors"
-                                    }).then(res => res.text()
-                                        //parse html, queryselect meta tag with certain name
-                                        .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
-                                    stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
-                                        .replace("https://","") //get rid of protocol
-                                        .replace("i.imgur.com","imgur.com")
-                                        .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
-                                        .split("?")[0]; //remove any URL parameters since we don't want or need them
-                                } catch(err) {
-                                    Logger.error(err);
-                                    UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
-                                    return;
-                                }
-                            }
-                            if(stringToEncode == "") {
-                                UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
-                                Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
-                                return;
-                            }
-                            //add starting "B{" , remove "imgur.com/" , and add ending "}"
-                            stringToEncode = "B{" + stringToEncode.replace("imgur.com/","") + "}";
-                            //finally encode the string, adding a space before it so nothing fucks up
-                            encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-
-                            //If this is not an Imgur URL, yell at the user.
-                        } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-                            UI.showToast("Please use Imgur!",{type: "warning"});
-                            return;
-                        }
-
-                        //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-                        if(encodedStr == "") return;
-
-                        //copy to clipboard
-                        copyToClipboard(encodedStr,"3y3 copied to clipboard!");
-
-                    } //end of onClick function
-                }) //end of button react createElement
-            ] //end of children
-        })
-    }
-
-    //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
-    bannerUrlUI(){
-
-        let BannerSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), "BannerSection");
-        if(!BannerSectionFnName) return;
-
-        function emptyWarn(){
-            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
-        }
-
-        Patcher.before(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args]) =>  {
-            args.disabled = false;
-        });
-
-        Patcher.after(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args], ret) => {
-            
-            //create and append profileBannerUrlInput input element.
-            
-            if(ret?.props?.children){
-                ret.props.children = [ret.props.children];
-                ret.props.children.push(createElement(this.CustomBannerInput, {secondsightifyEncodeOnly: this.secondsightifyEncodeOnly})); //end of profileBannerButton element push
-            }
-
-        }); //end of patched function
-
-    } //End of bannerUrlUI()
-    //#endregion
-
-    //#region Profile Themes UI
-    //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
-    profileThemesUI(){
-        let profileThemesSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("__invalid_profileThemesSection"), "ProfileThemesSection");
-        if(!profileThemesSectionFnName) return;
-
-        Patcher.after(this.settingsUIMod.declarations, profileThemesSectionFnName, (_, [args], ret) => {
-            //enable in per-server profile section
-            ret.props.disabled = false;
-
-            ret.props.children.props.children.push( //append copy colors 3y3 button
-                createElement("button", {
-                    id: "copy3y3button",
-                    children: "Copy Colors 3y3",
-                    className: `yabd-generic-button`,
-                    style: {
-                        height: "32px",
-                        width: "auto",
-                        marginLeft: "10px",
-                        marginTop: "10px"
-                    },
-                    onClick: () => {
-                        let primary = args?.pendingColors?.[0];
-                        let accent = args?.pendingColors?.[1];
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
-                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
-                        }
-
-                        if(isNaN(primary) || isNaN(accent)){
-                            Logger.error("Primary:",primary,"Accent:",accent);
-                            UI.showToast("Nothing has been copied!", { type: "error" });
-                            return;
-                        }
- 
-                        let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
-
-                        const padding = "";
-                        let encoded = Array.from(message)
-                            .map(x => x.codePointAt(0))
-                            .filter(x => x >= 0x20 && x <= 0x7f)
-                            .map(x => String.fromCodePoint(x + 0xe0000))
-                            .join("");
-
-                        let encodedStr = ((padding || "") + " " + encoded);
-
-                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
-                    }
-                })
-            );
-        });
-
-    } //End of profileThemesUI()
-    //#endregion
-   
-    applyPremiumType(){
-        const currentUser = UserStore.getCurrentUser();
-        currentUser.premiumType = settings.changePremiumType2;
-    }
-
-    updateCurrentUser(){
-        CurrentUser = UserStore.getCurrentUser();
-    }
-
-    //#region Display Name Styles
-    async displayNameStyles(){
-        Patcher.after(UserStore,"getUser",(_,[userId],ret) => {
-            let revealedText = this.getRevealedText(userId,`\uDB40\uDC53\uDB40\uDC7B`);
-            if(revealedText) {
-                let regex = /S\{[^}]*?\}/;
-                //Check if there are any matches in the revealed text.
-                let matches = revealedText.match(regex);
-                if(matches == undefined) return;
-
-                let firstMatch = matches[0];
-                if(firstMatch == undefined) return;
-
-                //slice off the S{ and the ending }
-                let styleDataStr = firstMatch.slice(2,-1);
-
-                let styleDataArr = styleDataStr.split(",");
-                if(styleDataArr){
-                    let fontId = Number(styleDataArr?.[0]);
-                    let effectId = Number(styleDataArr?.[1]);
-                    let color1 = Number(styleDataArr?.[2]);
-                    let color2;
-                    if(styleDataArr.length >= 4) {
-                        color2 = Number(styleDataArr?.[3]);
-                    }
-    
-                    if(Number.isNaN(color1) || Number.isNaN(color2) || Number.isNaN(fontId) || Number.isNaN(effectId)) return;
-    
-                    if(fontId,effectId,color1) {
-                        let styleData = {
-                            fontId,
-                            effectId,
-                            colors: [Number(color1)]
-                        };
-                        
-                        if(color2) styleData.colors.push(color2);
-    
-                        if (!Object.prototype.hasOwnProperty.call(ret, "displayNameStyles")) {
-                            Object.defineProperty(ret, "displayNameStyles", {
-                                value: cache,
-                                enumerable: true,
-                                configurable: true,
-                                writable: true,
-                            });
-                        } else {
-                            ret.displayNameStyles = styleData;
-                        }
-                        
-                        //add user to list of badge users
-                        if(userId && !badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
-                    }
-                }
-            }
-        });
-
-        Utils.forceLoad(259065); // force load display name styles modal
-
-        if(!this.DisplayNameStylesModal) this.DisplayNameStylesModal = await Webpack.waitForModule(Webpack.Filters.bySource("DisplayNameStylesModal"), {signal: controller.signal});
-        
-        if(this.DisplayNameStylesModal){
-            let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
-            if(renderFn){
-                Patcher.after(this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
-                    const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
-                    const font = selectionArea?.[1]?.props?.selectedFontId;
-                    const effect = selectionArea?.[2]?.props?.selectedEffectId;
-                    const colors = selectionArea?.[3]?.props?.selectedColors;
-        
-                    if(ret && font && effect && colors){
-                        if(ret?.props?.children?.props?.children?.props?.children){
-                            ret.props.children.props.children.props.children.splice(1, 0, createElement(Components.Button, {
-                                children: "Copy 3y3",
-                                color: Components.Button.Colors.PRIMARY,
-                                look: Components.Button.Looks.OUTLINED,
-                                style: {
-                                    top: "64px",
-                                    width: "90px",
-                                    left: "50%",
-                                    zIndex: "2",
-                                    background: "var(--control-secondary-background-default)",
-                                    borderRadius: "8px"
-                                },
-                                onClick: () => {    
-                                    //encoding part                          ex: S{11,1,15724528,15724528}
-                                    let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
-                                    copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
-                                }
-                            }))
-                        }
-                    }
-                });
-            }
-        }else{
-            Logger.warn("DisplayNameStylesModal is undefined.")
-        }
-    }
-    //#endregion
-
-    //#region Display Name Styles UI
-    async displayNameStylesSection(){
-        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('pendingGlobalName', 'onGlobalNameChange', 'currentGlobalName'), {signal: controller.signal});
-        let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
-
-        if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('userDisplayNameStyles', 'guildDisplayNameStyles'), {signal: controller.signal});
-
-        if(this.DisplayNameSection && this.DisplayNameStylesSection && renderFn2){
-            Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
-                ret.props.children.splice(1,0,createElement(this.DisplayNameStylesSection,{
-                    user: args.user,
-                    className: "yabd-marginTop24"
-                }));
-            });
-        }
-    }
-    //#endregion
-
-    //#endregion Settings UI
-
-    //#region Sharpen Streams
-    //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
-    async sharpenStreams(){
-        ContextMenu.patch('stream-context', this.streamContextPatch);
-
-        if(!this.VideoStream) this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
-
-        if(!this.VideoStream) return;
-        let videoStreamName = this.findMangledName(this.VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
-
-        if(videoStreamName){
-            Patcher.after(this.VideoStream?.[videoStreamName], "type", (_,[args],ret) => {
-                if(args?.userId){
-                    let percentNormal = 100;
-                    let percentSharpened = 0;
-    
-                    if(settings.userSharpenPreferences?.[args.userId]){
-                        percentSharpened = settings.userSharpenPreferences[args.userId]; 
-                        percentNormal = 100 - percentSharpened;
-                    }
-    
-                    ret.props.children.push(createElement('svg',{
-                        children: createElement("filter",{
-                            id: "yabd-svgSharpen-" + args.userId,
-                            colorInterpolationFilters: "sRGB",
-                            children: [
-                                createElement('feConvolveMatrix',{
-                                    order: "3",
-                                    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
-                                    result: "sharpen"
-                                }),
-                                createElement('feComposite',{
-                                    in: "SourceGraphic",
-                                    in2: "sharpen",
-                                    operator: "arithmetic",
-                                    result: "userPreference",
-                                    k1: "0",k2: (percentNormal / 100),k3: (percentSharpened / 100),k4: "0"
-                                }),
-                                createElement('feComposite',{
-                                    id: `yabd-svgSharpen-${args.userId}-size`,
-                                    in: "SourceGraphic",
-                                    in2: "userPreference",
-                                    operator: "arithmetic",
-                                    k1: "0",k2: "1",k3: "0",k4: "0" //default to not changing anything but we change these values below
-                                })
-                            ]
-                        })
-                    }));
-    
-                    //I could have made this part work a bit better, but I don't feel like it right now honestly.
-                    ret.props.children.push(createElement(ResizeFindingElement, {
-                        id: `yabd-sharpen-resize-div-${args.userId}`,
-                        onResize: (width, height) => {
-                            //get the part of the filter that compares the user preference to the source graphic
-                            const sizeOfStreamFilter = document.getElementById(`yabd-svgSharpen-${args.userId}-size`);
-    
-                            //calculate tile's percentage of the screen
-                            let heightOfStreamComparedToScreen = height / screen.height;
-    
-                            //if the user is focusing the stream and Discord is the maximized window, then this multiplication should get them to the full intensity
-                            //(ensures that the intensity isn't always less than 100%)
-                            let filterIntensityFactoringScreen = heightOfStreamComparedToScreen * 1.3;
-                            if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //normalize value so it cant go over 100%
-                            
-                            //apply new values 
-                            sizeOfStreamFilter.k3.baseVal = filterIntensityFactoringScreen.toString();
-                            sizeOfStreamFilter.k2.baseVal = (1 - filterIntensityFactoringScreen).toString();
-                        } 
-                    }))
-    
-                    if(ret?.props?.children?.[0]?.props)
-                        ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
-                }
-            });
-        }
-    }
-    //#endregion
-
-    //#region Sharpen PIP
-    sharpenPipPlayer(){
-        if(PictureInPicturePlayer){
-            let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
-            if(pipPlayerName){
-                Patcher.after(PictureInPicturePlayer?.[pipPlayerName]?.prototype, "render",(_,[args],ret) => {
-                    nodePatcher.patch(ret,(_,props,res) => {
-                        //this shit insane ngl
-                        let finder = res._reactInternals;
-                        let count = 0;
-                        while(finder){
-                            if(finder?.pendingProps?.backgroundKey) break;
-                            else{
-                                finder = finder.child;
-                                count++;
-                                if(count > 100) return;
-                            }
-                        }
-                        if(finder){
-                            nodePatcher.patch(finder, (args,ret) => {
-                                const userId = args?.backgroundKey?.split?.(":")?.[3];
-                                if(userId){
-                                    if(userId != CurrentUser.id){
-                                        let sharpnessPercent = 0;
-
-                                        if(settings.userSharpenPreferences?.[userId]) {
-                                            sharpnessPercent = settings.userSharpenPreferences[userId];
-                                        }
-                                        let normalPercent = 100 - sharpnessPercent;
-
-                                        // This is to change the intensity when the user changes the size of the PIP window.
-                                        // It only updates after they stop dragging the mouse, but it's not that big of a deal,
-                                        // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
-                                        // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
-                                        // to get the approximate percent of the screen that is covered by the stream
-                                        let widthOfStreamComparedToScreen = args.width / screen.width;
-
-                                        let filterIntensityFactoringScreen;
-                                        filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
-                                        if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
-                                        //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
-
-                                        ret.props.children.push(createElement('svg',{
-                                            children: [
-                                                createElement("filter",{
-                                                    id: "yabd-svgSharpen-" + userId + "-pip",
-                                                    colorInterpolationFilters: "sRGB",
-                                                    children: [
-                                                        createElement('feConvolveMatrix',{
-                                                            order: "3",
-                                                            kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
-                                                            result: "sharpen"
-                                                        }),
-                                                        createElement('feComposite',{
-                                                            in: "SourceGraphic",
-                                                            in2: "sharpen",
-                                                            operator: "arithmetic",
-                                                            k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
-                                                            result: "userPreference"
-                                                        }),
-                                                        createElement('feComposite',{
-                                                            in: "SourceGraphic",
-                                                            in2: "userPreference",
-                                                            operator: "arithmetic",
-                                                            k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
-                                                        })
-                                                    ]
-                                                })
-                                            ]
-                                        }));
-
-                                        ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
-                                    }
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-        }else{
-            Logger.error("PictureInPicturePlayer not found!");
-        }
-    }
-    //#endregion
-
-    //#region Sharpen Context
-    streamContextPatch(reactElem,context) {
-        if(!settings.sharpenStreams) return;
-
-        if(reactElem?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.id == "mute"){ //Makes the sharpness slider only appear on other user's stream while you are watching it
-            let userId = context.stream.ownerId;
-
-            if(userId){
-                let initialValue = 0;
-    
-                if(settings.userSharpenPreferences?.[userId]) {
-                    initialValue = settings.userSharpenPreferences[userId];
-                }
-    
-                const handleChange = (e) => {
-                    let percentSharpness = parseInt(e);
-                    let percentNormal = 100 - percentSharpness;
-    
-                    let filter = document.getElementById(`yabd-svgSharpen-${userId}`);
-                    if(filter){
-                        settings.userSharpenPreferences[userId] = percentSharpness;
-                        let feComposite = filter?.children[1];
-                        feComposite.k3.baseVal = (percentSharpness / 100).toString();
-                        feComposite.k2.baseVal = (percentNormal / 100).toString();
-                    }
-                }
-    
-                const handleSave = () => {
-                    Data.save("settings", settings);
-                }
-    
-                reactElem.props.children.props.children.splice(2,0,
-                    createElement(ContextMenu.Item,
-                        {
-                            id: "yabd-sharpness-slider",
-                            label: () => createElement(ContextMenuSlider,{
-                                initialValue,
-                                label: createElement(Components.Text, { //Default label is the wrong size so this uses the text component lol
-                                    children: "Sharpness",
-                                    style: {
-                                        fontSize: "14px",
-                                        fontWeight: "var(--font-weight-medium)"
-                                    }
-                                }),
-                                asValueChanges: handleChange,
-                                onValueChange: handleSave
-                            })
-                        }
-                    )
-                )   
-            }
-        }
-    }
-    //#endregion
-
-    //#region Extra Context
-    extraContextMenus(){
-        try{
-            ContextMenu.patch('expression-picker', this.expressionPickerFunction);
-        }catch(err){
-            Logger.error(err);
-        }
-
-        try{
-            if(GIFPickerRender){
-                Patcher.after(GIFPickerRender?.prototype, "render", (thisRef, __, ret) => {
-                    if(ret?.props){
-                        ret.props.onContextMenu = (e) => {
-                            let url;
-                            if(thisRef?.props?.item?.url)
-                                url = thisRef.props.item.url;
-                            else
-                                url = thisRef.props.src;
-        
-                            if(url.startsWith('//')){
-                                url = "https:" + url;
-                            }
-        
-                            ContextMenu.open(e, ContextMenu.buildMenu([{
-                                type: "text",
-                                label: "Copy Link",
-                                onClick: () => {
-                                    copyToClipboard(url);
-                                }
-                            },{
-                                type:"text",
-                                label: "Open Link",
-                                onClick: () => {
-                                    window.open(url);
-                                }
-                            }]))
-                        }
-                    }
-                });
-            }else{
-                Logger.error("GIF Picker element was not found!");
-            }
-        }catch(err){
-            Logger.error(err);
-        }
-    }
-    //#endregion
-
-    //#region Expression Picker Context
-    //GIF and Sticker Picker Context Menu
-    expressionPickerFunction(reactElem, context) {
-        //those variable names arent good but idk what else to call em lol
-
-        let src = context?.target?.src ? context?.target?.src : context?.target?.firstChild?.src;
-        if(src) {
-            if(src.includes('emojis')){
-                let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
-                let emojiId = src.match(idFromUrlRegex)[0];
-                if(emojiId){
-                    let emoji = EmojiStore.getCustomEmojiById(emojiId);
-                    if(emoji){
-                        if(!emoji.animated && settings.PNGemote){
-                            src = src.replace('.webp', '.png'); 
-                        }
-                    } 
-                }
-            }
-
-            src = src.split('?')[0] + "?size=4096";
-
-            try {
-                if(reactElem?.props?.children?.props?.children){
-                    //add copy url button only if the developer mode copy url isnt there already
-                    if(reactElem.props.children.props.children.filter(x=>x?.props?.id == "copy-image-link")?.length == 0){
-                        reactElem.props.children.props.children.push(
-                            ContextMenu.buildItem({
-                                id: "yabd-copy-url-expression-picker",
-                                label: "Copy URL",
-                                action: () => {
-                                    copyToClipboard(src);
-                                }
-                            })
-                        );
-                    }
-                    reactElem.props.children.props.children.push(
-                        ContextMenu.buildItem({
-                            id: "yabd-open-url-expression-picker",
-                            label: "Open URL",
-                            action: () => {
-                                window.open(src);
-                            }
-                        })
-                    )
-                }
-            } catch(err) {
-                Logger.error(err);
-            }
-        }
-    }
-    //#endregion
-
-    //#region Utilities
-    // Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
-	// If filter variable is a string, it uses an includes string filter.
-    findMangledName(module, filter, debugInfo){
-        if(module){
-            if(typeof filter === "string"){
-                filter = (x) => x.toString?.().includes?.(filter);
-            }
-            let keys = Object.keys(module);
-            let values = Object.values(module);
-            
-            let index = values.findIndex(filter);
-    
-            if(index >= 0) return keys[index];
-            else{
-                Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
-                return null;
-            };
-        }else{
-            Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
-            return null;
-        }
-    }
-
-    //this functionality was previously in getRevealedText, but it's been separated to allow it to be checked on its own
-    getRevealedTextPerServer(userId, shouldInclude){
-        //per-server pronoun field check
-        const guildId = SelectedGuildStore.getGuildId();
-        if(guildId){
-            let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-            if(userGuildProfile?.pronouns){
-                if(userGuildProfile.pronouns.includes(shouldInclude)){
-                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.pronouns));
-                    if(revealedText != undefined && revealedText != ""){
-                        return revealedText;
-                    }
-                }
-            }
-            //per-server bio check
-            if(userGuildProfile?.bio){
-                if(userGuildProfile.bio.includes(shouldInclude)){
-                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.bio));
-                    if(revealedText != undefined && revealedText != ""){
-                        return revealedText;
-                    }
-                }
-            }
-        }
-    }
-
-    //shouldInclude is a string containing the characters that the encoded text should contain
-    //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
-    //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
-    //if shouldInclude is blank, always return the revealed text if there is revealed text
-    getRevealedText(userId, shouldInclude=""){
-        let revealedText = ""; //init variable
-
-        let perServer = this.getRevealedTextPerServer(userId, shouldInclude);
-        if(perServer != undefined && perServer != "") return perServer;
-
-        //get the user's profile from the cached user profiles
-        let userProfile = UserProfileStore.getUserProfile(userId);
-        //if this user's profile has been downloaded
-        if(userProfile){
-            //if their bio is empty, move on to the next check.
-            if(userProfile?.bio != undefined){
-                if(userProfile.bio.includes(shouldInclude)){
-                    //reveal 3y3 encoded text
-                    revealedText = this.secondsightifyRevealOnly(String(userProfile.bio));
-                    //if there's no 3y3 text, move on to the next check.
-                    if(revealedText != undefined && revealedText != ""){
-                        //return bio with the 3y3 decoded
-                        return revealedText;
-                    }
-                }
-            }
-        }
-        
-        let customStatusActivity;
-        try{
-            //get Custom Status
-            //avoid using findActivity function due to conflict with ChatFilter (#290)
-            customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
-        }catch(err){
-            Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
-        }
-        
-        //if the user has a custom status
-        if(customStatusActivity) {
-            //grab the text from the custom status
-            let customStatus = customStatusActivity.state;
-            //if something has gone horribly wrong, stop processing.
-            if(customStatus == undefined) return;
-            //reveal 3y3 encoded text
-            if(customStatus.includes(shouldInclude)){
-                revealedText = this.secondsightifyRevealOnly(String(customStatus));
-                //return custom status with the 3y3 decoded
-                return revealedText;
-            }
-        }
-    }
-    //#endregion
-
-    //#region Nameplates
-    // nameplate 3y3 format: n{asset/palette}
-    nameplates(){
-        Patcher.after(UserStore, "getUser", (_, [userId], ret) => {
-            if(!ret || !userId) return;
-            
-            let userNameplate = ret?.collectibles?.nameplate;
-
-            //if user has a nameplate
-            if(userNameplate) {
-                //filter out bad or existing nameplate
-                if(userNameplate.sku_id != 0 && userNameplate.sku_id != undefined && userNameplate.sku_id != null && data?.nameplatesV2?.[userNameplate.skuId] == undefined) {
-                    //get shortened asset name
-                    let nameplateAsset = userNameplate.asset.replace('nameplates/','').replaceAll('/','');
-                    //create name for nameplate since it's not provided through getUser
-                    let nameplateName = nameplateAsset.replaceAll('_',' '); //replace _ with space
-                    nameplateName = nameplateName.replace(/(^\w|\s\w)/g,m => m.toUpperCase()); //make every word start with uppercase letter
-
-                    //store seen nameplate
-                    data.nameplatesV2[userNameplate.sku_id] = {
-                        asset: userNameplate.asset.replace('nameplates/',''),
-                        palette: userNameplate.palette,
-                        name: nameplateName
-                    }
-                }
-            }
-
-            //Nameplate decoding
-                                    // check if it includes /n encoded
-            let revealedText = this.getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
-
-            //if nothing's returned, or an empty string is returned, stop processing.
-            if(revealedText == undefined) return;
-            if(revealedText == "") return;
-            
-            //This regex matches n{*} . (Do not fuck with this)
-            let regex = /n\{[^}]*?\}/;
-
-            //Check if there are any matches in the revealed text.
-            let matches = revealedText.match(regex);
-            if(matches == undefined) return;
-
-            let firstMatch = matches[0];
-            if(firstMatch == undefined) return;
-
-            //slice off the n{ and the ending }
-            let nameplate = firstMatch.slice(2,-1);
-            if(nameplate){
-                let [skuId, palette] = nameplate.split(',');
-                let asset = data.nameplatesV2[skuId]?.asset;
-                
-                if(skuId != undefined && palette != undefined){
-                    if(ret.collectibles == undefined) ret.collectibles = {};
-                    ret.collectibles.nameplate = {
-                        asset,
-                        palette,
-                        skuId
-                    }
-
-                    //add user to list of badge users
-                    if(userId && !badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
-                }
-            }
-        });
-    }
-    //#endregion
-
-    //#region Go Live Modal V2
-    async resolutionSwapperV2(){
-
-        //wait for lazy loaded modules
-        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality'), {defaultExport:false, signal: controller.signal});
-
-        //the sign of janky code inbound
-        let GLMV2Opt = {
-            resolutionToSet: undefined,
-            fpsToSet: undefined,
-            minBitrateToSet: undefined,
-            targetBitrateToSet: undefined,
-            maxBitrateToSet: undefined
-        };
-
-        let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
-        if(goLiveModalV2FnName){
-            Patcher.instead(this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,[args],ogFunction) => {
-                let ret = ogFunction(args);
-
-                //maybe the worst amalgamation in this whole plugin?
-    
-                if(GLMV2Opt.resolutionToSet != undefined) {
-                    ret.props.state.resolution = GLMV2Opt.resolutionToSet;
-                    settings.CustomResolution = GLMV2Opt.resolutionToSet;
-                    GLMV2Opt.resolutionToSet = undefined;
-                }
-                if(GLMV2Opt.fpsToSet != undefined) {
-                    ret.props.state.fps = GLMV2Opt.fpsToSet;
-                    settings.CustomFPS = GLMV2Opt.fpsToSet;
-                    GLMV2Opt.fpsToSet = undefined;
-                }
-    
-                let RightButtonGroup = ret?.props?.children?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props;
-                
-                //add YABD button
-                if(RightButtonGroup) {
-                    RightButtonGroup.children.splice(2,0,createElement("button",{
-                        class: "yabd-resolution-swapper-v2-button",
-                        children: 'YABD',
-                        onClick: () => {
-                            let localStreamOptions = {
-                                resolutionToSet: settings.CustomResolution, //set to apply on pressing Apply even if custom resolution/fps is disabled
-                                fpsToSet: settings.CustomFPS, // -------------^
-                                minBitrateToSet: undefined,
-                                targetBitrateToSet: undefined,
-                                maxBitrateToSet: undefined
-                            }
-    
-                            //defaults
-                            if(settings.CustomBitrateEnabled) {
-                                localStreamOptions.minBitrateToSet = settings.minBitrate;
-                                localStreamOptions.targetBitrateToSet = settings.targetBitrate;
-                                localStreamOptions.maxBitrateToSet = settings.maxBitrate;
-                            }
-    
-                            UI.showConfirmationModal("Configure Stream Settings",[
-                                createElement('div', {
-                                    children: [
-                                        createElement('div', {
-                                            style: {
-                                                display: "flex",
-                                                width: "100%",
-                                                justifyContent: "space-around"
-                                            },
-                                            children: [
-                                                createElement("h1",{
-                                                    children: "Resolution",
-                                                    className: `yabd-text-h5`
-                                                }),
-                                                createElement("h1",{
-                                                    children: "FPS",
-                                                    className: `yabd-text-h5`
-                                                }),
-                                            ]
-                                        }),
-                                        createElement('div', {
-                                            style: {
-                                                display: "flex",
-                                                width: "100%",
-                                                justifyContent: "space-around"
-                                            },
-                                            children: [
-                                                createElement(Components.NumberInput,{
-                                                    value: settings.CustomResolution,
-                                                    min: -1,
-                                                    onChange: (input) => {
-                                                        input = parseInt(input);
-                                                        if(isNaN(input)) input = 1440;
-                    
-                                                        localStreamOptions.resolutionToSet = input;
-                                                    }
-                                                }),
-                                                createElement(Components.NumberInput,{
-                                                    value: settings.CustomFPS,
-                                                    min: -1,
-                                                    onChange: (input) => {
-                                                        input = parseInt(input);
-                                                        if(isNaN(input)) input = 60;
-                    
-                                                        localStreamOptions.fpsToSet = input;
-                                                    }
-                                                }),
-                                            ]
-                                        }),
-                                    ]
-                                }),
-                                settings.CustomBitrateEnabled ? createElement("br") : undefined,
-                                settings.CustomBitrateEnabled ? createElement("h1",{
-                                    children: "Custom Bitrate (kbps)",
-                                    className: `yabd-text-h5`
-                                }) : undefined,
-                                settings.CustomBitrateEnabled ? createElement('div', {
-                                    style: {
-                                        display: "flex",
-                                        width: "100%",
-                                        justifyContent: "space-around",
-                                    },
-                                    children: [
-                                        createElement("h1", {
-                                            children: "Min",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                        createElement("h1", {
-                                            children: "Target",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                        createElement("h1", {
-                                            children: "Max",
-                                            style: {
-                                                marginBlock: "0 5px",
-                                            },
-                                            className: `yabd-text-h5`
-                                        }),
-                                    ]
-                                }) : undefined,
-                                createElement('div',{
-                                    style: {
-                                        display: "flex",
-                                        width: "100%",
-                                        justifyContent: "space-around",
-                                        marginBottom: "5px"
-                                    },
-                                    children: settings.CustomBitrateEnabled ? [
-                                        createElement(Components.NumberInput,{
-                                            value: settings.minBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                localStreamOptions.minBitrateToSet = input;
-                                            }
-                                        }),
-                                        createElement(Components.NumberInput,{
-                                            value: settings.targetBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                localStreamOptions.targetBitrateToSet = input;
-                                            }
-                                        }),
-                                        createElement(Components.NumberInput,{
-                                            value: settings.maxBitrate,
-                                            min: -1,
-                                            onChange: (input) => {
-                                                input = parseInt(input);
-                                                if(isNaN(input)) input = -1;
-                                                localStreamOptions.maxBitrateToSet = input;
-                                            }
-                                        }),
-                                    ] : undefined
-                                })
-                            ],
-                            {
-                                confirmText: "Apply",
-                                onConfirm: () => {
-                                    GLMV2Opt = localStreamOptions;
-    
-                                    if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
-                                    if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
-                                    if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
-                                    Data.save("settings",settings);
-                                }
-                            }
-                            )
-                        }
-                    }
-                    ));
-
-                    //remove SD/HD pill upsell
-                    if(settings.removeScreenshareUpsell){
-                        RightButtonGroup.children = RightButtonGroup.children.filter(x=>!x.type?.toString?.()?.includes?.("pill"))
-                    }
-                }
-
-                //Remove Nitro upsell
-                if(settings.removeScreenshareUpsell){
-                    const footer = ret?.props?.children?.props?.children?.props?.children?.[1]?.props;
-                    if(footer?.children){
-                        footer.children = footer.children[0];
-                    }
-                }
-                
-                return ret;
-            });
-        }
-    }
-    // #endregion
-
-    unlockStickers(){
-        Patcher.instead(stickerSendabilityModule, "getStickerSendability", () => {
-            return 0; //SENDABLE
-        });
-        Patcher.instead(stickerSendabilityModule, "isSendableSticker", () => {
-            return true;
-        });
-    }
-
-    videoCodecs(){
-        Patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, args, ret) => {
-            ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
-        });
-    }
-
-    // #region Clips Bypasses
-    async clipsBypass(){
-
-        if(settings.enableClipsExperiment){
-            this.overrideVariant("2026-03-clips-experiment", 2);
-        }
-       
-        //spoof nitro file size limit
-        Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,[serverId],originalFunction) => {
-            let originalOutput = originalFunction(serverId);
-            if(ORIGINAL_NITRO_STATUS === 2){
-                return 500 * 1024 * 1024; //500 MB
-            }else{
-                return Math.max((100 * 1024 * 1024), originalOutput); //100 MB or server's file size if greater
-            }
-        });
-        
-        //disable max file size message
-        Patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
-            return false;
-        });
-
-        // todo: maybe fix ActionBarClipsButton and ClipsButton button not appearing with experiments disabled eventually
-        // currently they use useExperiment to check if they should appear, which is a function that I can't patch
-        // and remaking the respective React elements sounds really difficult
-
-        if(ffmpeg == undefined) await this.loadFFmpeg();
-
-        Patcher.instead(addFilesMod, "addFiles", async (_, [args], originalFunction) => {
-            /* If ffmpeg isn't loaded, or was unloaded for some reason,
-               when the user adds a file, make sure to load it again if it's undefined
-               If we don't do this check, then the user would have to
-               trigger saveAndUpdate or restart the plugin to
-               make ffmpeg load if it wasn't loaded properly the first time. */
-            if(ffmpeg == undefined) await this.loadFFmpeg();
-
-            //moved clips bypass into its own function so it can be used in sendMessage patch
-            await this.doClipsBypass(args);
-            originalFunction(args);
-        });
-
-        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
-            return true;
-        });
-        Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isViewerClippingAllowedForUser", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isClipsEnabledForUser", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isVoiceRecordingAllowedForUser", () => {
-            return true;
-        });
-    } //End of clipsBypass()
-
-    async ffmpegTransmux(arrayBuffer,inFileName = "input.mp4",ffmpegArguments,outFileName = "output.mp4") {
-        if(ffmpeg) {
-            if(inFileName == outFileName) {
-                inFileName = "in_" + inFileName;
-            }
-            if(!ffmpegArguments)
-                ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
-                    "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
-                ];
-            if(arrayBuffer && inFileName) {
-                await ffmpeg.writeFile(inFileName,new Uint8Array(arrayBuffer));
-            }
-            console.log("Approximately equivalent ffmpeg command:");
-            console.log("ffmpeg " + ffmpegArguments.join(" "));
-            await ffmpeg.exec(ffmpegArguments);
-            const data = await ffmpeg.readFile(outFileName);
-
-            if(inFileName) ffmpeg.deleteFile(inFileName);
-            if(outFileName) ffmpeg.deleteFile(outFileName);
-
-            if(data.length == 0) {
-                throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " +
-                    "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
-                    "If you need assistance, please use the support channel in the Discord server.");
-            }
-
-            return data.buffer;
-        }
-        else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
-    }
-    async ffmpegAudioTransmux(arrayBuffer,inFileName = "input.mp3",outFileName = "output.mp4") {
-        let ffmpegArgs = ["-i",inFileName,"-f","lavfi","-i","color=c=black:s=300x100","-shortest","-fflags","+shortest",
-            "-map","0:v?","-map","1:v","-map","0:a","-disposition:v","default","-brand","isom/avc1","-movflags","+faststart",
-            "-map_metadata","-1","-dn","-map_chapters","-1","-preset","ultrafast","-c:v","libx264","-c:a","copy","-strict","-2",
-            "-tune","stillimage","-r","5","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2",outFileName];
-
-        return await this.ffmpegTransmux(arrayBuffer,inFileName,ffmpegArgs,outFileName);
-    }
-
-    async doClipsBypass(args){
-            //unsupported file types
-            const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
-            const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
-
-            //load append data only on first added file
-            if(!udta || !udtaBuffer){
-                udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
-                udtaBuffer = udta.buffer;
-            }
-
-            function errorHandler(err, currentFile) {
-                UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
-                Logger.error(err);
-                if(currentFile) {
-                    Logger.info("Current file information for debugging:", currentFile);
-                    Logger.info(`File Type: "${currentFile.file?.type}"`);
-                }
-            }
-
-            function concatArrayBuffers(buf1, buf2){
-                let newArray = new Uint8Array(buf1.byteLength + buf2.byteLength);
-                newArray.set(new Uint8Array(buf1), 0);
-                newArray.set(new Uint8Array(buf2), buf1.byteLength);
-                return newArray.buffer;
-            }
-			
-            //for each file being added
-            for(let i = 0; i < args.files.length; i++){
-                const currentFile = args.files[i];
-
-               if(currentFile.file.name.endsWith(".dlfc")) return;
-
-                const clipData = {
-                    "id": 0,
-                    "version": 3,
-                    "applicationName": "",
-                    "applicationId": "1301689862256066560",
-                    "users": [
-                        CurrentUser.id
-                    ],
-                    "clipMethod": "manual",
-                    "length": currentFile.file.size,
-                    "thumbnail": "",
-                    "filepath": "",
-                    "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
-                };
-
-                switch(settings.clipTimestamp){
-                    default:
-                    case 0: //January 1st, 2015
-                        clipData.id = 0;
-                        clipData.createdAt = 1420070400000;
-                        break;
-                    case 1: //Current Time
-                        clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
-                        clipData.createdAt = Date.now();
-                        break;
-                    case 2: //Last Modified Date
-                        clipData.id = (BigInt(currentFile.file.lastModified) - 1420070400000n) << 22n;
-                        clipData.createdAt = currentFile.file.lastModified;
-                        break;
-                }
-
-                // #region Video Clip
-                //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip AND is less than or equal to 100mb
-                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") 
-                        && !skippedVideoTypes.includes(currentFile.file.type) && currentFile.file.size <= 104857590){
-                    if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
-                        continue;
-                    }else{
-                        let outFileName = "output.mp4";
-
-                        //AVI file warning
-                        if(currentFile.file.type == "video/avi"){
-                            UI.showToast("[YABDP4Nitro] NOTE: AVI Files may send, but HTML5 and MP4 do not support all AVI video codecs, it may not play and FFmpeg may error!", { type: "warning" });
-                        }
-                        try {
-                            let arrayBuffer = await currentFile.file.arrayBuffer();
-                            const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov"];
-                            if(movTypes.includes(currentFile.file.type)){
-                                Logger.info('Using MOV format for clip.');
-                                
-                                outFileName = "output.mov";
-                            }
-
-                            let array1 = concatArrayBuffers(await this.ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
-
-                            let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", { type: "video/mp4" });
-
-                            currentFile.file = video;
-
-                            //send as a "clip"
-                            currentFile.clip = clipData;
-                        } catch(err){
-                            errorHandler(err, currentFile);
-                            continue;
-                        }
-                    }
-                    //#endregion
-                }
-                // #region Audio Clip
-                //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true and file below 100mb
-                else if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
-                   (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type)) && currentFile.file.size <= 104857590){
-
-                    try {
-                        let arrayBuffer = await currentFile.file.arrayBuffer();
-
-                        let outFileName = "output.mp4";
-
-                        if(['audio/wav', 'audio/aiff', 'audio/x-ms-wma', 'audio/mpeg'].includes(currentFile.file.type)){
-                            Logger.info('Using MOV format for audio clip.');
-                            outFileName = 'output.mov';
-                        }
-                        if(currentFile.file.type == 'audio/vnd.dolby.dd-raw'){
-                            UI.showToast("AC3 will send but playback is only supported on mobile!", {type: "warn"});
-                        }
-
-                        let array1 = concatArrayBuffers(await this.ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
-
-                        let video = new File([new Uint8Array(array1)], clipData.name + ".mp4", { type: "video/mp4" });
-
-                        currentFile.file = video;
-
-                        //send as a "clip"
-                        currentFile.clip = clipData;
-                    } catch(err){
-                        errorHandler(err, currentFile);
-                        continue;
-                    }
-                }
-                //#endregion
-
-                // #region File Clip
-
-                //any file above 10mb and below 100mb that does not fit any previous criteria
-                else if(currentFile.file.size >= 10485759 && currentFile.file.size <= 104857590 && settings.zipClip) {
-
-                    //Calculate crcTable only once it's necessary
-                    if(crcTable == undefined){
-                        crcTable = Array.from({ length: 256 }, (_, i) =>
-                        Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
-                            (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
-                    }
-
-                    //generate clipMaBuffer
-                    if(!clipMaBuffer){
-                        let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=128x96:duration=1","-f","lavfi",
-                            "-i","anullsrc=r=44100:cl=mono","-shortest","-fflags","+shortest",
-                            "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1",
-                            "-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4"];
-
-                        clipMaBuffer = await this.ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
-                        clipMaBuffer = concatArrayBuffers(clipMaBuffer, udtaBuffer);
-                    }
-
-                    if(clipMaBuffer){
-                        const archiveMimeTypes = ['x-7z-compressed','x-bzip','x-bzip2','x-rar-compressed','x-tar','gzip','x-gzip','zip','x-zip-compressed'];
-
-                        let zipFile;
-                        let fileArrayBuffer = await currentFile.file.arrayBuffer();
-
-                        if(archiveMimeTypes.includes(currentFile.file.type.replace('application/',''))) {
-
-                            zipFile = fileArrayBuffer;
-                            clipData.name = currentFile.file.name;
-                        }else{
-                            /* DeepSeek-R1 helped to write this createZip function.
-                            Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
-                            I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
-                            An explanation of the function is below (yes I wrote the explanation):
-                            The function creates a basic zip file containing the data variable as a file with no compression and returns a Uint8Array of the zip file.
-                            The name variable is the file name of the file within the zip.
-                            The data variable can be ArrayBuffer, Uint8Array, or string.
-                            To make a zip file, a bunch of headers and data descriptors, including a CRC checksum and a bunch of info about the file, must be created, so that's what we're doing.
-                            https://en.wikipedia.org/wiki/ZIP_(file_format)#File_headers for more information on that.
-                            Writing all this shit would've been pretty tedious so yea. */
-                            function createZip(name, data) {
-
-                                // Convert input to Uint8Array
-                                const enc = new TextEncoder();
-                                const nameBytes = enc.encode(name);
-                                const dataBytes = data instanceof ArrayBuffer ? new Uint8Array(data) :
-                                    data instanceof Uint8Array ? data : enc.encode(data);
-    
-                                // Calculate CRC and lengths
-                                let crc = -1;  // Initial value
-                                const len = dataBytes.length;
-    
-                                // Process bytes in chunks
-                                for(let i = 0; i < len; i++) {
-                                    crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
-                                }
-    
-                                // Finalize CRC and convert to unsigned int
-                                crc = (crc ^ -1) >>> 0;
-    
-                                const dataLength = dataBytes.length;
-                                const headerLength = 30 + nameBytes.length;
-    
-                                // Local File Header (starts at 0)
-                                const localHeader = new DataView(new ArrayBuffer(headerLength));
-                                localHeader.setUint32(0, 0x04034B50, true);  // Signature
-                                localHeader.setUint16(4, 0x0A00, true);      // Version needed
-                                localHeader.setUint32(14, crc, true);        // CRC-32
-                                localHeader.setUint32(18, dataLength, true); // Compressed size
-                                localHeader.setUint32(22, dataLength, true); // Uncompressed size
-                                localHeader.setUint16(26, nameBytes.length, true);
-                                new Uint8Array(localHeader.buffer).set(nameBytes, 30);
-    
-                                // Central Directory (starts after file data)
-                                // Note: Omitted fields default to 0, since the length is set manually.
-                                const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
-                                centralDir.setUint32(0, 0x02014B50, true);   // Signature
-                                centralDir.setUint16(6, 0x0A00, true);       // Version needed
-                                centralDir.setUint32(16, crc, true);         // CRC-32
-                                centralDir.setUint32(20, dataLength, true);  // Sizes
-                                centralDir.setUint32(24, dataLength, true);
-                                centralDir.setUint16(28, nameBytes.length, true);
-                                new Uint8Array(centralDir.buffer).set(nameBytes, 46);
-    
-                                // End of Central Directory
-                                const end = new DataView(new ArrayBuffer(22));
-                                end.setUint32(0, 0x06054B50, true);         // Signature
-                                end.setUint16(8, 1, true);                  // Entry count
-                                end.setUint16(10, 1, true);                 // Total entries
-                                end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
-                                end.setUint32(16, headerLength + dataLength, true);    // Dir offset
-    
-                                //Allocating a Uint8Array large enough for the file
-                                const totalSize = localHeader.buffer.byteLength + dataBytes.length +
-                                    centralDir.buffer.byteLength + end.buffer.byteLength;
-                                const result = new Uint8Array(totalSize);
-    
-                                //Putting all the data together
-                                let offset = 0;
-                                [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
-                                    result.set(new Uint8Array(buf), offset);
-                                    offset += buf.byteLength || buf.length;
-                                });
-    
-                                return result;
-                            }
-    
-                            zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
-
-                            let fileExtension = currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1);
-                            //if the file is a .001-.999 or .z01-.z99 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
-                            if(parseInt(fileExtension) > 0 || fileExtension.match(/z\d+/)){
-                                clipData.name = currentFile.file.name + ".zip";
-                            }else{
-                                clipData.name += ".zip";
-                            }
-                        }
-    
-                        try {
-                            let newArrBuf = concatArrayBuffers(clipMaBuffer, zipFile);
-                            
-                            let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
-                            currentFile.file = newFile;
-                            currentFile.clip = clipData;
-                        } catch(err) {
-                            errorHandler(err, currentFile);
-                        }
-                    }
-                    //#endregion
-                    currentFile.platform = 1;
-                }
-            }
-        }
-    // #endregion
-
-    // #region Load FFmpeg.js
-    async loadFFmpeg(){
-        const defineTemp = window.global.define;
-
-        let ffmpegScript = document.getElementById("ffmpegScript");
-        if(ffmpegScript) {
-            ffmpegScript.remove();
-        }
-        delete window.FFmpegWASM;
-
-        function tryFetchFromDisk(filename, encoding){
-            const basepath = path.join(BdApi.Plugins.folder, "ffmpeg");
-            let filepath = path.join(basepath, filename);
-            try{
-                if(fs.existsSync(filepath)){
-                    let file = fs.readFileSync(filepath, encoding);
-                    Logger.info(`Fetch from disk for file ${filename} succeeded.`);
-                    return file;
-                }
-                else return false;
-            }catch(err){
-                Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
-                Logger.warn(err);
-            }
-        }
-
-        async function fetchAndRetryWithNetFetch(filename){            
-            const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
-            let res = await fetch(ffmpeg_js_baseurl + filename, { timeout: 100000, cache: "force-cache" });
-            if(res.ok || res.status == 200) {
-                return res;
-            } else {
-                Logger.warn(res);
-                res = await Net.fetch(ffmpeg_js_baseurl + filename, { timeout: 100000 });
-                if(res.ok || res.status == 200){
-                    return res;
-                }else{
-                    Logger.error(res);
-                    throw new Error(filename + " failed to fetch.");
-                }
-            }
-        }
-
-        async function fetchBlobUrl(filename){
-            try{
-                let blobUrl;
-                let file = tryFetchFromDisk(filename, "");
-                if(file) blobUrl = URL.createObjectURL(new Blob([file]));
-                else blobUrl = URL.createObjectURL(await (await fetchAndRetryWithNetFetch(filename)).blob());
-                return blobUrl;
-            }catch(err){
-                Logger.error("An error occurred while fetching " + filename);
-                throw err;
-            }
-        }
-
-        let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
-        try {
-
-            //load 814.ffmpeg.js (ffmpeg worker)
-            ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
-
-            //load FFmpeg.js as text
-            let ffmpegSrc;
-            try{
-                let file = tryFetchFromDisk("ffmpeg.js");
-                if(file) ffmpegSrc = file;
-                else ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
-            }catch(err){
-                Logger.error("An error occurred while fetching ffmpeg.js");
-                throw err;
-            }
-
-            //patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
-            ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
-            //blob ffmpeg
-            ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
-
-            // for some reason, for ffmpeg.js to work we need to set global define to undefined temporarily.
-            // since for a brief moment it is undefined, any function that uses it may throw an error during that window.
-            window.global.define = undefined;
-
-            //load external JS as a script
-            await new Promise((load, err) => {
-                const ffmpegScriptElem = document.createElement("script");
-                ffmpegScriptElem.id = "ffmpegScript";
-                ffmpegScriptElem.src = ffmpegURL;
-                ffmpegScriptElem.onload = load;
-                ffmpegScriptElem.onerror = err;
-                document.head.appendChild(ffmpegScriptElem);
-            });
-
-            window.global.define = defineTemp;
-
-            //load ffmpeg core
-            ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
-
-            ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
-
-            if(FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
-                ffmpeg = new FFmpegWASM.FFmpeg();
-
-                await ffmpeg.load({
-                    coreURL: ffmpegCoreURL,
-                    wasmURL: ffmpegCoreWasmURL
-                });
-                Logger.info("FFmpeg load success!");
-                ffmpeg.on("log", ({ message }) => {
-                    console.log(message);
-                });
-            }else{
-                Logger.info("FFmpegWASM", FFmpegWASM);
-                Logger.info("ffmpegCoreURL", ffmpegCoreURL);
-                Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
-                Logger.info("ffmpegWorkerURL",ffmpegWorkerURL);
-                throw new Error("One or more of the necessary components failed to load.");
-            }
-        } catch(err) {
-            UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
-            Logger.info("FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
-            Logger.error(err);
-        } finally {
-            //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
-            window.global.define = defineTemp;
-            //revoke blob urls since we dont actually need them anymore
-            if(ffmpegURL) URL.revokeObjectURL(ffmpegURL);
-            if(ffmpegCoreURL) URL.revokeObjectURL(ffmpegCoreURL);
-            if(ffmpegCoreWasmURL) URL.revokeObjectURL(ffmpegCoreWasmURL);
-            if(ffmpegWorkerURL) URL.revokeObjectURL(ffmpegWorkerURL);
-        }
-    } //End of loadFFmpeg()
-    // #endregion
-
-    // #region Experiments
-    async experiments(){
-        try {
-            //code heavily modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
-            const currentUser = UserStore.getCurrentUser();
-            currentUser.flags |= 1;
-            const Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
-            Stores.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
-            try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
-            Stores.find((x) => x.name === "ExperimentStore").storeDidChange();
-        } catch(err){
-            Logger.warn(err);
-        }
-    }
-
-    overrideExperiment(type, bucket){
-        //console.log("applying experiment override " + type + "; bucket " + bucket);
-        Dispatcher.dispatch({
-            type: "EXPERIMENT_OVERRIDE_BUCKET",
-            experimentId: type,
-            experimentBucket: bucket
-        });
-    }
-
-    overrideVariant(experimentName, variantId){
-        Dispatcher.dispatch({
-            type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
-            experimentName,
-            variantId
-        });
-    }
-    // #endregion
-
-    applySavedClientTheme(){
-        //If last appearance choice was a preset nitro client theme
-        if(settings.lastGradientSettingStore != -1 && !settings.customUserThemeSettings.custom) {
-            //dispatch settings update event to change to the gradient the user chose
-            Dispatcher.dispatch({
-                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                changes: {
-                    appearance: {
-                        shouldSync: false,  //prevent sync to stop discord api from butting in
-                        settings: {
-                            theme: settings.customUserThemeSettings.theme, //dark or light theme
-                            clientThemeSettings: {
-                                backgroundGradientPresetId: settings.lastGradientSettingStore //preset ID for the gradient theme
-                            },
-                            developerMode: true
-                        }
-                    }
-                }
-            });
-
-            Dispatcher.dispatch({
-                type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
-                presetId: settings.lastGradientSettingStore
-            });
-        } else if(settings.customUserThemeSettings.custom){
-
-            Dispatcher.dispatch({
-                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                changes: {
-                    appearance: {
-                        shouldSync: false,
-                        settings: {
-                            clientThemeSettings: settings.customUserThemeSettings.custom,
-                            theme: settings.customUserThemeSettings.theme,
-                            developerMode: true
-                        }
-                    }
-                }
-            });
-
-            CustomUserThemeState.state.getState().setAll({
-                colors: settings.customUserThemeSettings.custom.colors,
-                chassisMixAmount: settings.customUserThemeSettings.custom.baseMix,
-                gradientAngle: settings.customUserThemeSettings.custom.gradientAngle
-            });
-        }
-    }
-
-    // #region Client Themes
-    async clientThemes(){
-        try{
-            this.applySavedClientTheme();
-        }catch(err){
-            Logger.error(err);
-        }
-
-        //delete isPreview property so that we can set our own
-        delete clientThemesModule.isPreview;
-
-        //this property basically unlocks the preset client theme buttons
-        Object.defineProperty(clientThemesModule, "isPreview", { //Enabling the nitro theme settings
-            value: false,
-            configurable: true,
-            enumerable: true,
-            writable: true,
-        });
-
-        let saveClientTheme = this.findMangledName(themesModule,x=>typeof x === "function" && x.toString?.().includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),"saveClientTheme");
-
-        if(saveClientTheme){
-            //Patching saveClientTheme function.
-            Patcher.instead(themesModule, saveClientTheme, (_, [args]) => {
-                //Support for custom gradient themes
-                if(args.customUserThemeSettings != undefined){
-                    //this dispatch is technically not necessary
-                    Dispatcher.dispatch({
-                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                        changes: {
-                            appearance: {
-                                shouldSync: false,
-                                settings: {
-                                    clientThemeSettings: args.customUserThemeSettings,
-                                    theme: args.theme,
-                                    developerMode: true
-                                }
-                            }
-                        }
-                    });
-
-                    //save
-                    settings.customUserThemeSettings.custom = args.customUserThemeSettings;
-                    settings.customUserThemeSettings.theme = args.theme;
-
-                    Data.save("settings", settings);
-                } else if(args.customUserThemeSettings == undefined && args?.backgroundGradientPresetId != undefined && args.theme != undefined){ //preset gradient themes
-                    //Store the last gradient setting used in settings
-                    settings.lastGradientSettingStore = args.backgroundGradientPresetId;
-
-                    //indicate not custom
-                    settings.customUserThemeSettings.custom = false;
-                    //remove custom theme
-                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
-
-                    //dark/light
-                    settings.customUserThemeSettings.theme = args.theme;
-                    
-                    //save any changes to settings
-                    Data.save("settings", settings);
-    
-                    //dispatch settings update event to change to the gradient the user chose
-                    Dispatcher.dispatch({
-                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                        changes: {
-                            appearance: {
-                                shouldSync: false,  //prevent sync to stop discord api from butting in
-                                settings: {
-                                    theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
-                                    clientThemeSettings: {
-                                        backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
-                                    },
-                                    developerMode: true
-                                }
-                            }
-                        }
-                    });
-    
-                    //update background gradient preset to the one that was just chosen.
-                    Dispatcher.dispatch({
-                        type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
-                        presetId: settings.lastGradientSettingStore
-                    });
-                } else if(args.customUserThemeSettings == undefined && args.backgroundGradientPresetId == undefined && !args.customUserThemeSettings){ //if user is trying to set the theme to a default theme
-
-                    //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
-                    settings.lastGradientSettingStore = -1;
-
-                    //indicate not custom
-                    settings.customUserThemeSettings.custom = false;
-
-                    //remove custom theme
-                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
-    
-                    //save any changes to settings
-                    Data.save("settings", settings);
-                    
-                    //dispatch settings update to change themes
-                    Dispatcher.dispatch({
-                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                        changes: {
-                            appearance: {
-                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
-                                settings: {
-                                    theme: args.theme,
-                                    developerMode: true //genuinely have no idea what this does.
-                                }
-                            }
-                        }
-                    });
-                }
-
-            }); //End of saveClientTheme patch.
-        }
-
-        //startSession patch. This function runs upon switching accounts.
-        Patcher.after(accountSwitchModule, "startSession", () => {
-            setTimeout(() => {
-                try{
-                    this.applySavedClientTheme();
-                }catch(err){
-                    Logger.error(err);
-                }
-            }, 3000);
-        });
-
-        if(!this.CustomThemesEditor) this.CustomThemesEditor = await Webpack.waitForModule(Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), {signal:controller.signal})
-        if(this.CustomThemesEditor){
-            let render = this.findMangledName(this.CustomThemesEditor, x=>x?.toString?.()?.includes?.("onSaveTheme"), "CustomThemesEditor");
-            if(render){
-                Patcher.instead(this.CustomThemesEditor, render, (_,[args],ogFunction) => {
-                    let ret = ogFunction(args);
-                    //dont replace footer if user is premium
-                    if(CurrentUser.premiumType == 2) return ret;
-        
-                    //take the onSaveTheme function from the original footer cause we still need it
-                    const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
-        
-                    if(onSaveTheme){
-                        //replace the original footer with a custom one
-                        ret.props.children[1] = createElement('div', {
-                            style: {
-                                display: "flex",
-                                gap: "25px",
-                                padding: "16px 30px",
-                                borderTop: "1px solid var(--border-subtle)"
-                            },
-                            children: [
-                                createElement(Components.Button, {
-                                    children: "Back",
-                                    className: "yabd-secondary-button",
-                                    style: {
-                                        width: "100%",
-                                    },
-                                    onClick: () => {
-                                        UserSettingsModal.openUserSettings('appearance_panel');
-                                        
-                                        //close theme customization panel
-                                        CustomUserPanelState.state.setState({
-                                            activePanel: null,
-                                            metadata: null
-                                        });
-                                    }
-                                }),
-                                createElement(Components.Button, {
-                                    children: "Apply",
-                                    style: {
-                                        width: "100%",
-                                        fontSize: "16px"
-                                    },
-                                    onClick: (e) => {
-                                        onSaveTheme(e);
-                                    }
-                                }),
-                            ]
-                        });
-                    }else{
-                        Logger.error('onSaveTheme is not defined.', ret);
-                    }
-                    return ret;
-                });
-            }
-        }
-    } //End of clientThemes()
-    // #endregion
-
-    // #region Custom PFP Decode
-    customProfilePictureDecoding(){
-        Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [guildId, size, shouldAnimate], originalFunction) => {
-            //userpfp closer integration
-            //if we haven't fetched userPFP database yet and it's enabled
-            if((!fetchedUserPfp || this.userPfps == undefined) && settings.userPfpIntegration){
-
-                const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
-
-                // download userPfp data
-                Net.fetch(userPfpJsonUrl)
-                    // parse as json
-                    .then(res => res.json())
-                    // store res.avatars in this.userPfps
-                    .then(res => this.userPfps = res.avatars);
-                //set fetchedUserPfp flag to true.
-                fetchedUserPfp = true;
-
-            }
-
-            //if userPfp database is not undefined, has been fetched, and is enabled
-            if((this.userPfps != undefined && fetchedUserPfp) && settings.userPfpIntegration){
-                //and this user is in the userPfp database,
-                if(this.userPfps[user.id] != undefined){
-                    //return UserPFP profile picture URL.
-                    return this.userPfps[user.id];
-                }
-            }
-            //get revealed text                               includes P{ encoded
-            let revealedText = this.getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
-            //if there is no 3y3 encoded text, return original function.
-            if(revealedText == undefined) return originalFunction.apply(user, [guildId,size,shouldAnimate]);
-
-            //This regex matches P{*} . (Do not fuck with this)
-            let regex = /P\{[^}]*?\}/;
-
-            //Check if there are any matches in the custom status.
-            let matches = revealedText.toString().match(regex);
-            //if not, return orig function
-            if(matches == undefined || matches == "") return originalFunction.apply(user, [guildId,size,shouldAnimate]);
-
-            //if there is a match, take the first match and remove the starting "P{ and ending "}"
-            let matchedText = matches[0].replace("P{","").replace("}","");
-
-            //look for a file extension. If omitted, fallback to .gif .
-            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
-                matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
-            }
-
-            //add this user to the list of users who have the YABDP4Nitro user badge if we haven't added them already.
-            if(!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
-
-            //return imgur url
-            return `https://i.imgur.com/${matchedText}`;
-        });
-    }
-    // #endregion
-
-    // #region Badges
-    //Apply custom badges.
-    honorBadge(){
-
-        //User profile badge patches
-        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
-            //bad data checks
-            if(ret == undefined) return;
-            if(ret.userId == undefined) return;
-            if(ret.badges == undefined) return;
-
-            const badgesList = []; //list of the currently processed user's badge IDs
-
-            for(let i = 0; i < ret.badges.length; i++){ //for each of currently processed user's badges
-                badgesList.push(ret.badges[i].id); //add each of this user's badge IDs to badgesList
-            }
-
-            // if list of users that should have yabdp_user badge includes current user,
-            // and they don't already have the badge applied,
-            // and the user badge isn't disabled,
-            if(badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user") && !settings.disableUserBadge){
-                //add the yabdp user badge to the user's list of badges.
-                ret.badges.push({
-                    id: "yabdp_user",
-                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png",
-                    description: "A fellow YABDP4Nitro user!",
-                    link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
-                });
-            }
-
-            //remove user badge if it is disabled
-            if(settings.disableUserBadge){
-                let userBadgeIndex = ret.badges.findIndex(badge => badge.id == "yabdp_user");
-                if(userBadgeIndex > -1){
-                    ret.badges.splice(userBadgeIndex, 1);
-                    badgesList.splice(userBadgeIndex, 1);
-                }
-            }
-
-            //if this user is Riolubruh, and they don't already have the badge applied,
-            if(ret.userId == "359063827091816448" && !badgesList.includes("yabdp_creator")){
-                //add the yabdp creator badge to riolubruh's list of badges.
-                ret.badges.push({
-                    id: "yabdp_creator",
-                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
-                    description: "YABDP4Nitro Creator!",
-                    link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
-                });
-            }
-
-            // List of Discord User IDs of people who have made contributions to the plugin
-            // Special thanks to the following gamers:
-            const specialThanks = [
-                "122072911455453184", // Weblure,
-                "760274365853335563", // Kozhura_ubezhishe_player_fly,
-                "482224256730791967", // Moeefa,
-                "1106012563835195412",// HunBun (hunbun.net),
-                "917630027477159986"  // and Arven (zrodevkaan)!
-            ];
-
-            //if the currently processed user is included in specialThanks, and they don't already have the badge applied,
-            if(specialThanks.includes(ret.userId) && !badgesList.includes("yabdp_contributor")){
-                //add the yabdp contributor badge to the contributor's list of badges
-                ret.badges.push({
-                    id: "yabdp_contributor",
-                    iconSrc: "https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/img/big_yoshi.gif",
-                    description: "YABDP4Nitro Contributor!",
-                    link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
-                });
-            }
-
-        }); //End of user profile badge patches
-    } //End of honorBadge()
-    // #endregion
-
-    // #region 3y3 Secondsightify
-    secondsightifyRevealOnly(t){
-        if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))){
-            // 3y3 text detected. Revealing...
-            return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t);
-        }else{
-            // no encoded text found, returning
-            return;
-        }
-    }
-
-    secondsightifyEncodeOnly(t){
-        if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))){
-            // 3y3 text detected. returning...
-            return;
-        }else{
-            // no 3y3 text detected. encoding...
-            return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
-        }
-    }
-    // #endregion
-
-    // #region Profile Effects
-    async profileFX(secondsightifyEncodeOnly){
-
-        if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
-
-        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
-            //error prevention
-            if(ret == undefined) return;
-            if(ret.bio == undefined) return;
-
-            let perServer = this.getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-
-            //if main or server bio includes encoded fx 
-            if(perServer || ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
-                let revealedText;
-                if(!perServer) revealedText = this.secondsightifyRevealOnly(ret.bio); //reveal 3y3 encoded text. this string will also include the rest of the bio
-                else revealedText = perServer;
-                
-                if(revealedText == undefined) return;
-
-                //if profile effect 3y3 is detected
-                if(revealedText.includes("fx")){
-                    const regex = /fx\d+/;
-                    let matches = revealedText.toString().match(regex);
-                    if(matches == undefined) return;
-                    let firstMatch = matches[0];
-                    if(firstMatch == undefined) return;
-
-                    //slice the fx and only take the number after it.
-                    let effectId = firstMatch.slice(2);
-                    
-                    //apply profile effect
-                    ret.profileEffect = {
-                        skuId: effectId,
-                        expiresAt: null
-                    };
-
-                    //if for some reason we dont know what this user's ID is, stop here
-                    if(userId == undefined) return;
-                    //otherwise add them to the list of users who show up with the YABDP4Nitro user badge
-                    if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
-                }
-            }
-        }); //end of getUserProfile patch.
-    } //End of profileFX()
-
-    killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
-        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
-            if(ret?.profileEffect === undefined) return;
-            ret.profileEffect = undefined;
-        });
-    }
-    // #endregion
-
-    //fetch collectibles - decorations and nameplates are stored in data
-    storeProductsFromCategories = event => {
-        if(event?.categories?.categories){
-            event.categories.categories.forEach(category => {
-                category.products.forEach(product => {
-                    if(product.type !== 1000){ //exclude bundles
-                        product.items.forEach(item => {
-                            switch(item.type){
-                                case 0:
-                                    //store avatar decorations assets
-                                    data.avatarDecorations[item.skuId] = item.asset;
-                                    break;
-                                case 1:
-                                    //profile effects
-                                    profileEffects[item.skuId] = item;
-                                    break;
-                                case 2:
-                                    //store nameplates
-                                    data.nameplatesV2[item.skuId] = {
-                                        asset: item.asset.replace('nameplates/', ''),
-                                        palette: item.palette,
-                                        name: product.name
-                                    };
-                                    break;
-                            }
-                        });
-                    }
-                });
-            });
-            this.saveDataFile();
-        }
+  }
+  stop() {
+    this.unpatch();
+    new BdApi("Patcher").Patcher.unpatchAll();
+    FFmpegStore_default.unload();
+    UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+  }
+  renderControl(def, value) {
+    const onChange = (v) => {
+      SettingsStore_default.set(def.key, v);
+      if (def.key == "changePremiumType2" && v != -1)
+        UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+      if (def.key == "experiments")
+        startSet();
+      if (def.key == "enableClipsExperiment") {
+        SettingsStore_default.set("enableClipsExperiment", v);
+        overrideVariant("2026-03-clips-experiment", v ? 2 : 0);
+      }
+      if (def.key == "soundmojiEnabled") {
+        overrideVariant("2026-03-soundmoji-rendering", v ? 1 : 0);
+        overrideVariant("2026-03-soundmoji-sending", v ? 2 : 0);
+      }
     };
-
-    // #region Avatar Decorations
-    async fakeAvatarDecorations(){
-        //apply decorations
-        Patcher.after(UserStore, "getUser", (_, args, ret) => {
-            //basic error checking
-            if(args == undefined) return;
-            if(args[0] == undefined) return;
-            if(ret == undefined) return;
-
-            let avatarDecorations = data.avatarDecorations;
-
-            if(!avatarDecorations) return;
-
-            //user has an avatar decoration
-            if(ret.avatarDecorationData){
-                //error check
-                if(avatarDecorations){
-                    //dont process fake avatar decorations
-                    if(ret.avatarDecorationData.sku_id != "0" && ret.avatarDecorationData.asset){
-                        //cache avatar decoration
-                        avatarDecorations[ret.avatarDecorationData.skuId] = ret.avatarDecorationData.asset;
-                    }
-                }
-            }
-
-            //                                      includes /a encoded?
-            let revealedText = this.getRevealedText(args[0], `\uDB40\uDC2F\uDB40\uDC61`);
-            //if nothing's returned, or an empty string is returned, stop processing.
-            if(revealedText == undefined) return;
-            if(revealedText == "") return;
-
-            //Matches the characters "/a" and any numbers after the a
-            const regex = /\/a\d+/;
-            let matches = revealedText.toString().match(regex);
-            if(matches == undefined) return;
-            let firstMatch = matches[0];
-            if(firstMatch == undefined) return;
-
-            //slice off the /a and just store the ID number
-            let assetId = firstMatch.slice(2);
-
-            //set avatar decoration data to fake avatar decoration
-            ret.avatarDecorationData = {
-                asset: avatarDecorations[assetId],
-                skuId: assetId
-            };
-
-            //add user to the list of users to show with the YABDP4Nitro user badge if we haven't already.
-            if(!badgeUserIDs.includes(ret.id)) badgeUserIDs.push(ret.id);
-        }); //end of getUser patch for avatar decorations
-    } //End of fakeAvatarDecorations()
-    // #endregion
-
-    //#region Emote Uploader
-    async UploadEmote(url, channelIdLmao, msg, emoji, runs, send){
-        if(!msg[2].attachmentsToUpload) msg[2].attachmentsToUpload = [];
-        if(emoji == undefined){
-            emoji = {animated: true, name: "default"};
-        }
-
-        if(msg == undefined){
-            msg = [channelIdLmao, {content: ""}, []];
-        }
-
-        let a = url.split("?")[0];
-        let extension = a.slice(a.lastIndexOf("."));
-
-        //Download emote by URL, convert to blob, then convert to File object
-        let file = await Net.fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)));
-        file.platform = 1; // Not exactly sure what this does, but it should be set to 1.
-        file.spoiler = false; //not marked as spoiler.
-
-        //Start file upload
-        let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelIdLmao, false, 0);
-        fileUp.isImage = true;
-
-        //if this is not the first emoji uploaded
-        if(runs >= 1){
-            //make the message attached to the upload have no text
-            msg[1].content = "";
-            //clear nonce so this is sent as a new message
-            msg[2].nonce = "";
-            //clear list of attachments
-            msg[2].attachmentsToUpload = [];
-        }
-
-        try {
-            //add attachment
-            msg[2].attachmentsToUpload.unshift(fileUp);
-
-            //send and wait till its sent before moving on
-            await send.apply(undefined, msg);
-           
-        } catch(err){
-            Logger.error(err);
-        }
-    }
-    // #endregion
-
-    //#region Soundmoji Uploader
-    async UploadSoundmojis(ids, channelId, msg, sounds, send){
-
-        if(ids != undefined && channelId != undefined && msg != undefined){
-            let files = [];
-            for(let i = 0; i < ids.length; i++){
-                let file = await fetch("https://cdn.discordapp.com/soundboard-sounds/" + ids[i])
-                    .then(res => res.blob())
-                    .then(blobFile => new File([blobFile], `${sounds[i].name}.mp3`));
-                file.platform = 1;
-                file.spoiler = false;
-                let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelId, false, 0);
-                files.push(fileUp);
-                fileUp.isAudio = true;
-            }
-            if(files.length <= 10){
-                
-                try {
-                    send(channelId, msg, {attachmentsToUpload: files}) //finally finish the process of uploading
-                } catch(err){
-                    Logger.error(err);
-                }
-            }else{
-				//Upload 10 files at a time with a delay
-                let firstTime = true;
-                while (files.length){
-                    let tenFiles = files.splice(0, 10);
-                    // uploadOptions.uploads = tenFiles;
-                    if(!firstTime) msg.content = ""
-                    try {
-                        send(channelId, msg, {attachmentsToUpload: tenFiles});
-                    } catch(err){
-                        Logger.error(err);
-                    }
-                    firstTime = false;
-                    await new Promise(r => setTimeout(r, 3000));
-                }
-            }
-        }
-    }
-    // #endregion
-
-    //#region Stream Options Context Menu
-    customizeStreamButtons(){ //Apply custom resolution and fps options for Stream Options context menu
-
-        //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
-        //console.log(StreamButtons);
-
-        const settings = Data.load("settings");
-
-        //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
-        let resolutionToSet = parseInt(settings.CustomResolution);
-        if(!settings.ResolutionEnabled || settings.CustomResolution == 0)
-            resolutionToSet = 1440;
-
-        //Some of these properties are marked as read only, but they still allow you to delete them
-        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.        
-
-
-        //************************************Buttons below this point*****************************************
-
-        //Set value of button with suffix label to custom resolution
-        if(settings.CustomResolution){
-            delete ApplicationStreamResolutions.RESOLUTION_1440;
-            //Change 1440p resolution internally to custom resolution
-            ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
-            ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
-            delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-            //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
-            //This one is used in the dropdown kind of menu after you've started streaming
-            ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
-        }
-
-        let fpsToSet = parseInt(settings.CustomFPS);
-        //If custom FPS toggle is disabled, set to the default 60.
-        if(!settings.CustomFPSEnabled)
-            fpsToSet = 60;
-
-        if(settings.CustomFPSEnabled){
-            //set suffix label button value to the custom number
-            ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
-            delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-            //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
-            ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
-            ApplicationStreamFPS.FPS_60 = fpsToSet;
-        }
-
-        Data.save("settings", settings);
-    } //End of customizeStreamButtons()
-    //#endregion
-
-    //Whether we should skip the emoji bypass for a given emoji.
-    // true = skip bypass
-    // false = perform bypass
-    emojiBypassForValidEmoji(emoji, currentChannelId){
-        if(settings.emojiBypassForValidEmoji){
-            if((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated
-                && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available)
-                //If emoji is from current guild, not animated, and we are actually in a guild channel,
-                //and emoji is "available" (could be unavailable due to Server Boost level dropping), cancel emoji bypass
-
-                || emoji.managed){
-                // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration)
-                return true;
-            }
-        }
-        return false;
-    }
-
-    //#region _sendMessage Patch
-    _sendMessageInsteadPatch(){
-        if(settings.soundmojiEnabled){
-            this.overrideVariant("2026-03-soundmoji-rendering", 1);
-            this.overrideVariant("2026-03-soundmoji-sending", 2);
-        }
-
-        Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
-            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].location == "forwarding") { //fix polls, activity actions, forwarding
-                send.apply(_, msg);
-                return;
-            }
-
-            const currentChannelId = msg[0];
-            let emojis = [];
-            let emojiUrls = [];
-            //#region Upload Emojis
-            if(settings.emojiBypass && settings.emojiBypassType == 0){
-                //SimpleDiscordCrypt compat
-                let SDCEnabled = false;
-                if(document.getElementsByClassName("sdc-tooltip").length > 0) {
-                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-                    if(SDC_Tooltip.innerHTML == "Disable Encryption") {
-                        //SDC Encryption Enabled
-                        SDCEnabled = true;
-                    }
-                }    
-
-                if(!SDCEnabled){
-                    msg[1].validNonShortcutEmojis?.forEach?.(async emoji => {
-                        if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
-                        if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
-                        if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
-                        if(settings.PNGemote && !emoji.animated) {
-                            emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
-                        }else{
-                            emoji.forcePNG = false;
-                        }
-                        let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-
-                        let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
-    
-                        let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
-
-                        //If there is a heiphen (-) before the emote we are processing,
-                        if(msg[1].content.includes("-" + emojiString)) {
-                            //remove the heiphen
-                            msg[1].content = msg[1].content.replace(("-" + emojiString), emojiString);
-                            //and skip bypass for that emote
-                            return;
-                        }
-    
-                        //remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-                        emojiUrl = emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}`;
-                        //remove emote from message.
-                        msg[1].content = msg[1].content.replace(emojiString, "");
-    
-                        //queue for upload
-                        emojis.push(emoji);
-                        emojiUrls.push(emojiUrl);
-                    });
-                }
-            }
-            //#endregion
-            
-            //#region Soundmoji
-            const channelId = msg[0];
-            let regex = /<sound:\d+:\d+>/;
-            let ids = [];
-            let sounds = [];
-            if(settings.soundmojiEnabled){
-                let soundmojis = msg[1].content.match(regex);
-                if(soundmojis) {
-                    for(let i = 0; i < soundmojis.length; i++) {
-                        let id = soundmojis[i].split(':')[2].slice(0,-1);
-                        let sound = SoundboardStore.getSoundById(id);
-                        if(sound) {
-                            sounds.push(sound);
-                            ids.push(id);
-                            if(sound?.emojiId == null && sound?.emojiName != null) { //default / system emoji
-                                msg[1].content = msg[1].content.replace(soundmojis[i], `( ${sound.emojiName} ${sound.name} )`);
-                            }
-                            else if(sound?.emojiId != null) { // custom emoji
-                                let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
-                                msg[1].content = msg[1].content.replace(soundmojis[i], `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](https://cdn.discordapp.com/emojis/${sound.emojiId}.${emoji?.animated ? "webp" : "png"}?size=32&animated=true) ${sound.name} ) `);
-                            }
-                            else { //no emoji
-                                msg[1].content = msg[1].content.replace(soundmojis[i], `( ${sound.name} ) `);
-                            }
-                        } else continue;
-                    }
-                }
-            }
-            //#endregion
-
-            if(settings.emojiBypass && settings.emojiBypassType == 0 && emojis.length > 0) {
-                //upload all emotes
-                for(let i = 0;i < emojis.length;i++) {
-                    await this.UploadEmote(emojiUrls[i],currentChannelId,msg,emojis[i],i,send)
-                }
-                //reset message content since we dont want a repeated message if soundmoji upload happens next
-                msg[1].content = "";
-            }
-            
-            if(settings.soundmojiEnabled && sounds.length > 0){
-                await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
-            }
-
-            //#region Sticker Bypass
-            if(settings.stickerBypass){
-                let stickerIds = msg[2]?.stickerIds;
-                let currentChannelId = SelectedChannelStore.getChannelId();
-                if(stickerIds){
-                    for(let i = 0; i < stickerIds.length; i++){
-                        let stickerId = stickerIds[i];
-                        let stickerURL = "https://media.discordapp.net/stickers/" + stickerId + ".png?size=4096&quality=lossless";
-                        let msgtemp = [...msg];
-                        msgtemp[2].stickerIds = [];
-                        if(i > 0) msgtemp[1].content = "";
-        
-                        if(settings.uploadStickers){
-                            let emoji = new Object();
-                            emoji.animated = false;
-                            emoji.name = "sticker";
-                            this.UploadEmote(stickerURL, currentChannelId, msgtemp, emoji, 0, send);
-                            return;
-                        } else{
-                            let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
-                            MessageActions.sendMessage(currentChannelId, messageContent, undefined, {});
-                            return;
-                        }
-                    }
-                }
-            }
-            //#endregion
-
-            //#region Clips Instant Upload Patch
-            let extraInfo = msg?.[2];
-            if(extraInfo?.location === "instant_upload" && (settings.zipClip || settings.useClipBypass || settings.useAudioClipBypass)){
-                //load ffmpeg if it isnt
-                if(ffmpeg == undefined) await this.loadFFmpeg();
-
-                if(extraInfo?.attachmentsToUpload?.length > 0){
-                    //convert to the format doClipsBypass function uses (array of files)
-                    let files = [];
-                    for(let i = 0; i < extraInfo.attachmentsToUpload.length; i++){
-                        let attachment = extraInfo.attachmentsToUpload[i];
-                        files.push(attachment.item);
-                    }
-                    let args = {files};
-    
-                    //let it do the work
-                    await this.doClipsBypass(args);
-    
-                    //apply changes in attachmentsToUpload
-                    for(let i = 0; i < args.files.length; i++){
-                        let attachment = extraInfo.attachmentsToUpload[i];
-                        attachment.item = args.files[i];
-                        attachment.clip = args.files[i].clip;
-                        attachment.filename = args.files[i].file.name;
-                    }
-                }
-            }
-            //#endregion
-
-            if(emojis.length == 0 && sounds.length == 0){
-                send.apply(_, msg);
-            }
-            
+    switch (def.type) {
+      case "custom":
+        return /* @__PURE__ */ React18.createElement(def.Custom, {
+          value,
+          options: def.options,
+          onChange
+        });
+      case "boolean":
+        return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
+          value,
+          onChange
+        });
+      case "number":
+        return /* @__PURE__ */ React18.createElement(Components12.NumberInput, {
+          value,
+          onChange
+        });
+      case "string":
+        return /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+          value,
+          onChange
+        });
+      case "select":
+        return /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+          value,
+          options: def.options,
+          onChange
         });
     }
-    //#endregion
-
-    //#region Other Emoji Bypasses
-    emojiBypass(){
-        Patcher.instead(isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
-            return false;
-        });
-        Patcher.instead(isEmojiAvailableMod, "isEmojiDisabled", () => {
-            return false;
-        });
-        Patcher.instead(isEmojiAvailableMod, "isEmojiFiltered", () => {
-            return false;
-        });
-        Patcher.instead(isEmojiAvailableMod, "isEmojiPremiumLocked", () => {
-            return false;
-        });
-        Patcher.instead(isEmojiAvailableMod, "getEmojiUnavailableReason", () => {
-            return;
-        });
-
-        //#region Classic Mode Patch
-        //Original method
-        if(settings.emojiBypassType == 2){
-            function classicModeMethod(msg, currentChannelId, self){
-                if(document.getElementsByClassName("sdc-tooltip").length > 0){
-                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
-                        //SDC Encryption Enabled
-                        return;
-                    }
-                }
-                //refer to previous bypasses for comments on what this all is for.
-                let emojiInteration = 0;
-                msg.validNonShortcutEmojis.forEach(emoji => {
-                    if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
-                    if(emoji.type == "UNICODE") return;
-                    if(settings.PNGemote && !emoji.animated) emoji.forcePNG = true;
-                    else emoji.forcePNG = false;
-
-                    let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-                    if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
-
-                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
-
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
-                    if(msg.content.includes("-" + emojiString)){
-                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
-                        return; //If there is a heiphen before the emoji, skip it.
-                    }
-                    emojiInteration++;
-                    msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration} `);
-                });
-            }
-
-            //sending message in classic mode
-            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-                classicModeMethod(msg, currentChannelId, this);
+  }
+  getSettingsPanel() {
+    return () => {
+      const values = BetterDiscord.Hooks.useStateFromStores([SettingsStore_default], () => {
+        const all = SettingsStore_default.getAll();
+        return SettingsSchema.reduce((acc, def) => {
+          acc[def.key] = def.key in all ? all[def.key] : defaultSettings[def.key];
+          return acc;
+        }, {});
+      });
+      const grouped = SettingsSchema.reduce((acc, def) => {
+        (acc[def.category] ??= []).push(def);
+        return acc;
+      }, {});
+      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React18.createElement(Components12.SettingGroup, {
+        key: category,
+        name: category,
+        collapsible: true,
+        shown: false
+      }, defs.map((def) => /* @__PURE__ */ React18.createElement(Components12.SettingItem, {
+        key: def.key,
+        name: def.label,
+        note: def.note
+      }, this.renderControl(def, values[def.key]))))), /* @__PURE__ */ React18.createElement("div", {
+        style: { padding: "5px", justifyContent: "space-between" }
+      }, /* @__PURE__ */ React18.createElement("div", {
+        style: { width: "24px" }
+      }, /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+        text: "Check recent changelog"
+      }, (props) => {
+        return /* @__PURE__ */ React18.createElement("div", {
+          ...props
+        }, /* @__PURE__ */ React18.createElement(Icon, {
+          onClick: () => {
+            const entry = changelog_default?.[package_default.version];
+            if (!entry)
+              return;
+            BetterDiscord.UI.showChangelogModal({
+              title: package_default.name,
+              subtitle: `v${package_default.version}`,
+              ...entry[0]
             });
-        }
-        //#endregion
+          },
+          width: 24,
+          icon: "material-symbols:update"
+        }));
+      }))));
+    };
+  }
+}
 
-        //#region Vencord-like Patch
-        //Vencord-like bypass                    (ghost mode removed, fallback to hyperlink)
-        else if(settings.emojiBypassType == 3 || settings.emojiBypassType == 1){
-            function vencordModeMethod(msg, currentChannelId, self){
-                if(document.getElementsByClassName("sdc-tooltip").length > 0){
-                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
-                        //SDC Encryption Enabled
-                        return;
-                    }
-                }
-                //refer to previous bypasses for comments on what this all is for.
-                let emojiInteration = 0;
-                msg.validNonShortcutEmojis.forEach(emoji => {
-                    if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
-                    if(emoji.type == "UNICODE") return;
-                    if(settings.PNGemote && !emoji.animated) emoji.forcePNG = true;
-                    else emoji.forcePNG = false;
-
-                    let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-                    if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
-
-                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
-
-                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
-
-                    if(msg.content.includes("-" + emojiString)){
-                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
-                        return; //If there is a heiphen before the emoji, skip it.
-                    }
-                    emojiInteration++;
-                    msg.content = msg.content.replace(emojiString, `[${allNamesString}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration})`);
-                });
-            }
-
-            //sending message in vencord-like mode
-            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-                vencordModeMethod(msg, currentChannelId, this);
-            });
-        }
-        //#endregion
-
-        if(settings.editMessageWithEmoji){
-            //applying edited message
-            Patcher.before(MessageActions, "editMessage", (_, [channelId, msgId, msg]) => {
-                if(msg.content.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
-                                                          //...except SimpleDiscordCrypt has been broken for years, so really this does nothing and is only included as a tradition.
-    
-                let emojiInteration = 0;
-                
-                msg.content.match(/<a?:.+?:\d+>/g)?.forEach?.(emojiString => {
-    
-                    if(msg.content.includes("-" + emojiString)){
-                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
-                        return; //If there is a heiphen before the emoji, skip it.
-                    }
-    
-                    let [animatedStr, name, id] = emojiString.replace("<","").replace(">","").split(":");
-                    let animatedBool = (animatedStr === "a");
-    
-                    let forcePNG = (!animatedBool && settings.PNGemote);
-                    let emojiUrl = AvatarDefaults.getEmojiURL({id, animated: animatedBool, size: settings.emojiSize, forcePNG });
-    
-                    
-                    emojiInteration++;
-                    switch(settings.emojiBypassType){
-                        default:
-                        case 0: //upload
-                        case 1: //ghost (removed)
-                        case 3: //vencord
-                            msg.content = msg.content.replace(emojiString, `[${name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration})`);
-                            break;
-                        case 2: //classic
-                            msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&animated=${emoji.animated}&${emojiInteration} `);
-                            break;
-                        
-                    }
-                    
-                });
-            });
-            
-            //starting editing message
-            Patcher.before(MessageActions, "startEditMessageRecord", (_, [channelId, msg]) => {
-                lastEditedMsg = msg;
-                lastEditedMsgCopy = {...msg};
-    
-                let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/gi;
-                
-                //vencord mode undo
-                let vencordRegex = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi
-                if(msg.content.includes("[") && msg.content.includes("/emojis/")){
-                    msg.content.match(vencordRegex)?.forEach?.(matched => {
-                        let startOfName = matched.indexOf("[") + 1;
-                        let endOfName = matched.indexOf("]") - 1;
-                        let emojiName = matched.substring(startOfName, endOfName);
-                        
-                        let startOfUrl = matched.indexOf("(") + 1;
-                        let endOfUrl = matched.indexOf(")") - 1;
-                        let emojiUrl = matched.substring(startOfUrl, endOfUrl);
-                        
-                        let emojiId = emojiUrl.match(idFromUrlRegex)?.[0];
-                        
-                        let animated = (emojiUrl.includes(".gif") || emojiUrl.includes(".avif") || emojiUrl.includes("animated=true"));
-                        if(emojiId != undefined && emojiUrl != undefined && emojiName != undefined){
-                            msg.content = msg.content.replace(matched, `<${animated ? "a:" : ":"}${emojiName}:${emojiId}>`)
-                        }
-                    });
-                }
-                
-                const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ ";
-                
-                //cleanup ghost mode text
-                if(msg.content.includes(ghostmodetext))
-                    msg.content = msg.content.replace(ghostmodetext, "");
-    
-                //classic / ghost mode undo
-                let emojiUrlRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?(?=$| )/gi
-                if(msg.content.includes("/emojis/")){
-                    msg.content.match(emojiUrlRegex)?.forEach?.(emojiUrl => {
-                        let emojiId = emojiUrl.match(idFromUrlRegex)?.[0];
-                        let animated = (emojiUrl.includes(".gif") || emojiUrl.includes(".avif") || emojiUrl.includes("animated=true"));
-    
-                        if(emojiId)
-                            msg.content = msg.content.replace(emojiUrl, `<${animated ? "a:" : ":"}emoji:${emojiId}>`)
-                    })
-                }
-            });
-        }
-
-        Patcher.before(MessageActions, "endEditMessage", () => {
-            if(lastEditedMsg?.content != undefined && lastEditedMsgCopy?.content != undefined)
-                //fix cancelling edit by restoring message to original state manually after cancellation
-                lastEditedMsg.content = lastEditedMsgCopy.content;
-        });
-    } //End of emojiBypass()
-    //#endregion
-
-    //#region Fake Inline Emoji
-    async inlineFakemojiPatch(){
-        //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
-
-        if(!this.messageRenderMod) this.messageRenderMod = await Webpack.waitForModule(Webpack.Filters.bySource(".SEND_FAILED,"), {defaultExport: false, signal:controller.signal})
-        if(!this.messageRenderMod){
-            Logger.warn("messageRenderMod is undefined.");
-            return;
-        }
-        const messageRender = Object.values(this.messageRenderMod).find(o => typeof o === "object");
-
-        Patcher.before(messageRender, "type", (_, [args]) => {
-            for(let i = 0; i < args.content.length; i++){
-                let contentItem = args.content[i];
-
-                if(contentItem?.type?.type?.toString?.().includes?.("MASKED_LINK")){ //is it a hyperlink?
-
-                    if(contentItem.props.href.startsWith("https://cdn.discordapp.com/emojis/")){ //does this hyperlink have an emoji URL?
-
-                        if(contentItem.props.href == contentItem.props.title) continue;  //skip direct emoji URL (causes too much buggy behavior)
-
-                        let emojiName = contentItem.props?.children[0]?.props?.children;
-                        if(emojiName == undefined) emojiName = "unknownEmoji"; //fallback to default emoji name if unknown
-
-                        let key = contentItem.key; //store key
-
-                        //create discord emoji react element
-                        let emoteElement = createElement(MessageEmojiReact, {
-                            node: {
-                                name: `:${emojiName}:`,
-                                src: contentItem.props.href,
-                                type: "emoji",
-                                emojiId: contentItem.props.href.replace("https://cdn.discordapp.com/emojis/", "").split(".")[0],
-                                animated: true,
-                                jumboable: false //makes the emoji large or small. "jumboable" is a stupid ass name, Discord. 
-                            },
-                            channelId: args.message.channel_id,
-                            messageId: args.message.id,
-                            enableClick: true //I'm curious in what circumstance this value becomes false. Does what it says on the tin; enables or disables the emoji click menu.
-                        });
-
-                        //restore key
-                        emoteElement.key = key;
-                        //replace this content item with our fake emoji
-                        args.content[i] = emoteElement;
-                    }
-                }
-            }
-        });
-
-        //who knows what unholy compatibility issues this will bring me
-        //this code fucking sucks i think
-        Patcher.before(renderEmbedsMod, "renderEmbeds", (_,[args]) => {
-            const embeds = args?.message?.embeds;
-
-            if(embeds){
-                if(embeds.length > 0){
-                    for(let i = 0; i < embeds.length; i++){
-                        if(embeds[i]){
-                            if(embeds[i].url){
-                                let url = embeds[i].url;
-                                let isEmojiHyperlink = false;
-
-                                //this embed is an emoji
-                                if(url.startsWith("https://cdn.discordapp.com/emojis/")){
-
-                                    /* Is embed from a hyperlink? It can't tell if it's from a hyperlink *this time*, unfortunately, 
-                                     * so if someone has an emoji URL and a hyperlink with that same URL in the same message, it won't render correctly (or at least not how you might expect)!
-                                     * Let's just hope nobody notices that..! I didn't have this system initially cause I'm a dumbfuck and didn't think it over.
-                                    */
-                                    if(args.message.content.includes(`](${url})`)){
-                                        isEmojiHyperlink = true;
-                                    }
-
-                                    //if currently processed embed is an emoji and a hyperlink
-                                    if(isEmojiHyperlink){
-                                        if(embeds.length == 1){ //if there is only 1 fakemoji
-
-                                            //removes first instance of pattern [anyemojiname](https://cdn.discordapp.com/emojis/anynumber.ext) then checks if there is anything else in the message
-                                            if(args.message.content.replace(/\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/, "") //is regex necessary? probably.
-                                                .trim().length > 0){ //if there is other stuff in the message, delete the embed
-                                                delete embeds[i];
-                                            }
-                                            //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
-                                            //for some reason, if the fakemoji is in a message alone, it disappears, so keeping the embed was the easiest solution
-                                        }
-
-                                        //if there is more than 1 hyperlink
-                                        else{
-                                            delete embeds[i]; //if the hyperlink is an emoji url, delete the embed
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                //removes empty items from the array. def did not take from stackoverflow (trust)
-                args.message.embeds = args.message.embeds.filter(n => n);
-
-                
-            }else{ //if the original function returns undefined/null
-                //this should never happen, but in case it does, return an empty array
-                return [];
-            }
-        });
-    }
-    //#endregion
-
-    //#region Video Quality Patch
-    videoQualityModule(){ //Custom Bitrates, FPS, Resolution
-        Patcher.before(videoOptionFunctions.prototype, "updateVideoQuality", (e) => {
-            if(settings.CustomBitrateEnabled){
-                if(settings.minBitrate > 0){
-                    //Minimum Bitrate
-                    e.videoQualityManager.options.videoBitrateFloor = (settings.minBitrate * 1000);
-                    e.videoQualityManager.options.videoBitrate.min = (settings.minBitrate * 1000);
-                    e.videoQualityManager.options.desktopBitrate.min = (settings.minBitrate * 1000);
-                }else{
-                    e.videoQualityManager.options.videoBitrateFloor = 5e5;
-                    e.videoQualityManager.options.videoBitrate.min = 5e5;
-                    e.videoQualityManager.options.desktopBitrate.min = 5e5;
-                }
-
-                if(settings.targetBitrate > 0){
-                    //Target Bitrate
-                    e.videoQualityManager.options.desktopBitrate.target = (settings.targetBitrate * 1000);
-                }
-    
-                if(settings.maxBitrate > 0){
-                    //Maximum Bitrate
-                    e.videoQualityManager.options.videoBitrate.max = (settings.maxBitrate * 1000);
-                    e.videoQualityManager.options.desktopBitrate.max = (settings.maxBitrate * 1000);
-                    e.videoQualityManager.goliveMaxQuality.bitrateMax = (settings.maxBitrate * 1000);
-                }
-            }
-
-            if(settings.voiceBitrate > -1){
-                //Audio Bitrate
-                e.voiceBitrate = settings.voiceBitrate * 1000;
-
-                e.conn.setTransportOptions({
-                    encodingVoiceBitRate: e.voiceBitrate
-                });
-            }
-
-            //Video quality bypasses if Custom FPS is enabled.
-            if(settings.CustomFPSEnabled){
-                e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
-                e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
-            }
-
-            //If screen sharing bypasses are enabled,
-            if(settings.screenSharing){
-                //Ensure video quality parameters match the stream parameters.
-                const videoQuality = new Object({
-                    width: e.videoStreamParameters[0].maxResolution.width,
-                    height: e.videoStreamParameters[0].maxResolution.height,
-                    framerate: e.videoStreamParameters[0].maxFrameRate,
-                });
-
-                e.remoteSinkWantsMaxFramerate = e.videoStreamParameters[0].maxFrameRate;
-
-                //slightly improved fix to #218
-                if(videoQuality.height <= 0){
-                    videoQuality.height = screen.height;
-                }
-                if(videoQuality.width <= 0){
-                    videoQuality.width = screen.width;
-                }
-
-
-                //Ensure video budget and capture quality parameters match stream parameters
-                e.videoQualityManager.options.videoBudget = videoQuality;
-                e.videoQualityManager.options.videoCapture = videoQuality;
-
-                //Ladder bypasses
-                let pixelBudget = (videoQuality.width * videoQuality.height);
-                e.videoQualityManager.ladder.pixelBudget = pixelBudget;
-                e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
-                e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
-            }
-        });
-    } //End of videoQualityModule()
-    //#endregion
-
-    //#region Sticker Uploader
-    async stickerSending(){
-        Patcher.instead(MessageActions, "sendStickers", (_, args, originalFunction) => {
-            let stickerID = args[1][0];
-            let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless";
-            let currentChannelId = SelectedChannelStore.getChannelId();
-
-            if(settings.uploadStickers){
-                let emoji = new Object();
-                emoji.animated = false;
-                emoji.name = args[0];
-                let msg = [undefined, { content: "" }];
-                this.UploadEmote(stickerURL, currentChannelId, msg, emoji, 1, send);
-                return;
-            }
-            if(!settings.uploadStickers){
-                let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
-                MessageActions.sendMessage(currentChannelId, messageContent, undefined, {});
-            }
-        });
-    }
-    //#endregion
-
-    //#region 3y3 Profile Colors
-    decodeAndApplyProfileColors(){
-        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
-            if(ret == undefined) return;
-            if(ret.bio == null) return;
-
-            function decodeProfileColors(string){
-                const colorString = string.match(
-                    /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
-                );
-                if(colorString == null) return false;
-                let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
-                let colors = parsed
-                .substring(1, parsed.length - 1)
-                .split(",")
-                .map(x => parseInt(x.replace("#", "0x"), 16));
-                ret.themeColors = colors;
-                ret.premiumType = 2;
-                return true;
-            }
-
-            //per-server pronoun field check
-            const guildId = SelectedGuildStore.getGuildId();
-            if(guildId){
-                let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
-                if(userGuildProfile?.pronouns){
-                    let success = decodeProfileColors(userGuildProfile.pronouns);
-                    if(success) return;
-                }
-                if(userGuildProfile?.bio){
-                    let success = decodeProfileColors(userGuildProfile.bio);
-                    if(success) return;
-                }
-            }
-
-            decodeProfileColors(ret.bio);
-        });
-    }
-    //#endregion
-
-    //#region Banner Decoding
-    //Decode 3y3 from profile bio and apply fake banners.
-    bannerUrlDecoding(){
-        //if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
-        if(settings.userBgIntegration && !fetchedUserBg){
-
-            //userBg database url.
-            const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
-            //download, then store json
-            Net.fetch(userBgJsonUrl, { timeout: 100000 }).then(res => res.json().then(res => {
-                this.usrBgData = res;
-                //mark db as fetched so we only fetch it once per load of the plugin
-                fetchedUserBg = true;
-            }));
-        }
-
-        //Patch getUserBannerURL function
-        Patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
-            args[0].canAnimate = true;
-        });
-
-        //set user to render with premium rendering
-        Patcher.after(UserProfileStore, "getUserProfile" ,(_, [userId], ret) => {
-            if(ret != undefined){
-                if(ret.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`)){
-                    ret.premiumType = 2;
-                    return;
-                }
-                let perServer = this.getRevealedTextPerServer(userId,`\uDB40\uDC42\uDB40\uDC7B`);
-                if(perServer){
-                    ret.premiumType = 2;
-                }
-            }
-        });
-
-        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
-            nodePatcher.patch(ret, (props, res) => {
-                let bannerUrl = this.getBannerUrl(props.user.id);
-                if(bannerUrl) res.props.bannerSrc = bannerUrl;
-            });
-        });
-    } //End of bannerUrlDecoding()
-
-    getBannerUrl(userId){
-            if(settings.userBgIntegration){ //if userBg integration is enabled
-                //if we've fetched the userbg database
-                if(fetchedUserBg){
-                    //if user is in userBg database,
-                    if(this.usrBgData?.users?.[userId]){
-                        return `${this.usrBgData.endpoint}/${this.usrBgData.bucket}/${this.usrBgData.prefix}${userId}?${this.usrBgData.users[userId]}`; //return userBg banner URL and exit.
-                    }
-                }
-            }
-
-            //reveal 3y3 encoded text, store as parsed
-            let parsed = this.getRevealedText(userId,`\uDB40\uDC42\uDB40\uDC7B`);
-            //if there is no 3y3 encoded text, return original function
-            if(parsed == undefined) return;
-
-            //This regex matches B{*} . Do not touch unless you know what you are doing.
-            let regex = /B\{[^}]*?\}/;
-
-            //find banner url in parsed
-            let matches = parsed.toString().match(regex);
-
-            //if there's no matches, return original function
-            if(matches == undefined) return;
-
-            //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
-            let matchedText = matches[0].replace("B{","").replace("}","");
-
-            //Checking for file extension. 
-            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
-                matchedText += ".gif"; //Fallback to a default file extension if one is not found.
-            }
-
-            //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-            if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
-
-            //return final banner URL.
-            return `https://i.imgur.com/${matchedText}`;
-        }
-    //#endregion
-
-    //save app icon on change
-    saveAppIcon({type, id}){
-        settings.appIcon = id;
-        Data.save("settings", settings);
-    }
-
-    //#region App Icons
-    appIcons(){
-        //restore app icon on start
-        Dispatcher.dispatch({
-            type: "APP_ICON_UPDATED",
-            id: settings.appIcon
-        });
-
-        Dispatcher.subscribe("APP_ICON_UPDATED", this.saveAppIcon);
-        
-        Patcher.instead(RegularAppIcon, "render", (_,[args],ogFunction) => {
-            const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
-            if(currentDesktopIcon == "AppIcon"){
-                return ogFunction(args);
-            }else{
-                return createElement(CustomAppIcon, {
-                    id: currentDesktopIcon,
-                    size: 40
-                });
-            }
-        });
-    }
-    //#endregion
-
-    //#region User Voice Call Tile Background
-    async userCallTileBannerBackground(){
-        if(!this.UserCallTile) this.UserCallTile = await Webpack.waitForModule(Webpack.Filters.bySource("getSelectedParticipant","CHANNEL_CALL_POPOUT",'avatarDecoration','backgroundSrc','getAvatarURL'), {signal: controller.signal});
-        if(!this.UserCallTile) return;
-
-        Patcher.instead(this.UserCallTile, this.findMangledName(this.UserCallTile, x=>x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_,[args],ogFunction) => {
-            let ret = ogFunction(args);
-
-            if(args?.participant?.id){
-                let userId = args?.participant?.id;
-                let bannerUrl = this.getBannerUrl(userId);
-                if(bannerUrl && ret?.props){
-                    ret.props.style = {
-                        backgroundImage: `url('${bannerUrl}')`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center center',
-                        backgroundRepeat: 'no-repeat'
-                    };
-                    nodePatcher.patch(ret.props.children, (__,props,res) => {
-                        props.props.style = {};
-                    });
-                }
-            }
-            return ret;
-        });
-    }
-    //#endregion
-
-    messageContext(reactElem,context){
-
-        async function downloadFileInClient(url,filename){
-            let dest = await UI.openDialog({
-                mode: "save",
-                title: "Save As",
-                showOverwriteConfirmation: true,
-                defaultPath: process.env.USERPROFILE + "\\Desktop\\" + filename
-            });
-
-            if(dest.canceled) return;
-
-            const file = fs.createWriteStream(dest.filePath);
-            
-            try{
-                let arrayBuffer = await (await (await Net.fetch(url)).blob()).arrayBuffer();
-                await file.write(Buffer.from(arrayBuffer));
-            }catch(err){
-                UI.showToast("An error occurred. Check console for details.", {type:'error'});
-                Logger.error(err);
-            }finally{
-                file.close();
-            }
-        }
-
-        if(context?.message?.attachments.length > 0){
-            const attachments = context?.message?.attachments;
-            if(reactElem?.props?.children?.props?.children) {
-                reactElem.props.children.props.children.splice(5,0,ContextMenu.buildItem({
-                    id: "yabd-download-all-attachments",
-                    label: context?.message?.attachments.length == 1 ? "Download Attachment" : "Download Attachments",
-                    action: () => {
-                        for(let i = 0; i < attachments.length; i++){
-                            let attachment = attachments[i];
-                            downloadFileInClient(attachment.url, attachment.filename);
-                        }
-                    },
-                    icon: DownloadIcon
-                }))
-            }
-        }
-    }
-
-    //#region Meta and Updates
-    parseMeta(fileContent){
-        //zlibrary code
-        const splitRegex = /[^\S\r\n]*?\r?(?:\r\n|\n)[^\S\r\n]*?\*[^\S\r\n]?/;
-        const escapedAtRegex = /^\\@/;
-        const block = fileContent.split("/**", 2)[1].split("*/", 1)[0];
-        const out = {};
-        let field = "";
-        let accum = "";
-        for(const line of block.split(splitRegex)){
-            if(line.length === 0) continue;
-            if(line.charAt(0) === "@" && line.charAt(1) !== " "){
-                out[field] = accum;
-                const l = line.indexOf(" ");
-                field = line.substring(1, l);
-                accum = line.substring(l + 1);
-            }
-            else{
-                accum += " " + line.replace("\\n", "\n").replace(escapedAtRegex, "@");
-            }
-        }
-        out[field] = accum.trim();
-        delete out[""];
-        out.format = "jsdoc";
-        return out;
-    }
-
-    async checkForUpdate(){
-        try {
-            let res = await fetch(this.meta.updateUrl);
-
-            if(!res.ok && res.status != 200){
-                Logger.warn(res);
-                res = await Net.fetch(this.meta.updateUrl);
-                if(!res.ok && res.status != 200){
-                    Logger.error(res);
-                    throw new Error("Failed to check for updates!");
-                }
-            }
-
-            let fileContent = await res.text();
-            let remoteMeta = this.parseMeta(fileContent);
-            let remoteVersion = remoteMeta.version.trim().split('.');
-            let currentVersion = this.meta.version.trim().split('.');
-
-            if(parseInt(remoteVersion[0]) > parseInt(currentVersion[0])){
-                this.newUpdateNotify(remoteMeta, fileContent);
-                return true;
-            }else if(remoteVersion[0] == currentVersion[0] && parseInt(remoteVersion[1]) > parseInt(currentVersion[1])){
-                this.newUpdateNotify(remoteMeta, fileContent);
-                return true;
-            }else if(remoteVersion[0] == currentVersion[0] && remoteVersion[1] == currentVersion[1] && parseInt(remoteVersion[2]) > parseInt(currentVersion[2])){
-                this.newUpdateNotify(remoteMeta, fileContent);
-                return true;
-            }
-        }
-        catch(err){
-            UI.showToast("[YABDP4Nitro] Failed to check for updates", { type: "error" });
-            Logger.error(err);
-        }
-
-    }
-
-    newUpdateNotify(remoteMeta, remoteFile){
-        Logger.info(`Update ${remoteMeta.version} is available!`);
-
-        UI.showNotification({
-            title: "YABDP4Nitro Update Available!",
-            content: `Update ${remoteMeta.version} is now available!`,
-            actions: [{
-                label: "Update",
-                onClick: async (e) => {
-                    try {
-                        await new Promise(r => fs.writeFile(path.join(Plugins.folder,`${this.meta.name}.plugin.js`),remoteFile,r));
-                    } catch(err) {
-                        UI.showToast("An error occurred when trying to download the update!",{type: "error",forceShow: true});
-                        Logger.error(err);
-                    }
-                }
-            }]
-        })
-    }
-    //#endregion
-
-    saveDataFile(){
-        const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
-        try{
-            fs.writeFileSync(dataFilePath, JSON.stringify(data));
-        }catch(err){
-            UI.showToast(`[${this.meta.name}] Error saving dava JSON. See console for error message.`, { type: "error", forceShow: true });
-            Logger.error(err);
-        }
-    }
-
-    loadDataFile(){
-        try{
-            const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
-            if(!fs.existsSync(dataFilePath)){
-                fs.writeFileSync(dataFilePath, '{}');
-            }
-
-            try{
-                data = Object.assign({}, defaultData, JSON.parse(fs.readFileSync(dataFilePath)));
-            }catch(err){
-                UI.showToast(`[${this.meta.name}] Error parsing or reading data JSON.`, { type: "error", forceShow: true });
-                Logger.error(`Error parsing or reading ${this.meta.name}.data.json.`, err);
-                data = defaultData;
-            }
-        }catch(err){
-            UI.showToast(`[${this.meta.name}] An error occurred loading the data file.`, { type: "error", forceShow: true });
-            Logger.error("An error occurred loading the data file.", err);
-        }
-    }
-
-    //#region Start, Stop
-    start(){
-        Logger.info("(v" + this.meta.version + ") has started.");
-
-        try {
-            //load settings from config
-            settings = Object.assign({}, defaultSettings, Data.load("settings"));
-        } catch(err){
-            //The super mega awesome data-unfucker 9000
-            Logger.warn(err);
-            Logger.info("Error parsing JSON. Resetting file to default...");
-            //watch this shit yo
-            fs.rmSync(path.join(Plugins.folder, `${this.meta.name}.config.json`));
-            Plugins.reload(this.meta.name);
-            Plugins.enable(this.meta.name);
-            return;
-        }
-
-        this.loadDataFile();
-
-        //update check
-        try {
-            let currentVersionInfo = {};
-            try {
-                currentVersionInfo = Object.assign({}, { version: this.meta.version, hasShownChangelog: false }, Data.load("currentVersionInfo"));
-            } catch(err){
-                currentVersionInfo = { version: this.meta.version, hasShownChangelog: false };
-            }
-            if(this.meta.version != currentVersionInfo.version) currentVersionInfo.hasShownChangelog = false;
-            currentVersionInfo.version = this.meta.version;
-            Data.save("currentVersionInfo", currentVersionInfo);
-
-            if(settings.checkForUpdates) this.checkForUpdate();
-
-            if(!currentVersionInfo.hasShownChangelog){
-                UI.showChangelogModal({
-                    title: "YABDP4Nitro Changelog",
-                    subtitle: config.changelog[0].title,
-                    changes: [{
-                        title: config.changelog[0].title,
-                        type: "changed",
-                        items: config.changelog[0].items
-                    }]
-                });
-                currentVersionInfo.hasShownChangelog = true;
-                Data.save("currentVersionInfo", currentVersionInfo);
-            }
-        }
-        catch(err){
-            Logger.error(err);
-        }
-
-        DOM.addStyle("YABDP4NitroGeneral", `
-            /*wow it's discord css code*/
-            .yabd-text-h5 {
-                line-height: 20px;
-                color: var(--header-primary);
-                font-size: 16px;
-                font-weight: 500;
-                margin-bottom: 8px;
-                text-transform: unset 
-            }
-            .yabd-generic-button {
-                align-items: center;
-                background: none;
-                border: 1px solid var(--control-primary-border-default);
-                border-radius: 8px;
-                box-sizing: border-box;
-                display: flex;
-                font-size: 14px;
-                font-weight: var(--font-weight-medium);
-                justify-content: center;
-                line-height: 16px;
-                padding: 2px 16px;
-                position: relative;
-                transition-duration: .2s;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                user-select: none;
-                cursor: pointer;
-                color: var(--control-primary-text-default);
-                background-color: var(--control-primary-background-default);
-                transition: background-color var(--custom-button-transition-duration) ease;
-            }
-
-            .yabd-generic-button:hover {
-                background-color: var(--control-primary-background-active);
-            }
-
-            .yabd-resolution-swapper-v2-button {
-                background-color: var(--control-secondary-background-default);
-                height: 40px;
-                width: 40px;
-                align-items: center;
-                color: var(--control-secondary-text-default);
-                border: 1px solid var(--control-secondary-border-default);
-                border-radius: 8px;
-                box-sizing: border-box;
-                display: flex;
-                font-size: 14px;
-                font-weight: var(--font-weight-medium);
-                justify-content: center;
-                line-height: 16px;
-                padding: 2px 16px;
-                position: relative;
-                transition-duration: .2s;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                user-select: none;
-                cursor: pointer;
-                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
-            }
-
-            .yabd-secondary-button {
-                background-color: var(--control-secondary-background-default) !important;
-                align-items: center;
-                color: var(--control-secondary-text-default);
-                border: 1px solid var(--control-secondary-border-default);
-                border-radius: 8px;
-                box-sizing: border-box;
-                display: flex;
-                font-size: 16px;
-                font-weight: var(--font-weight-medium);
-                justify-content: center;
-                line-height: 16px;
-                position: relative;
-                transition-duration: .2s;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                user-select: none;
-                cursor: pointer;
-                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
-            }
-
-            .yabd-resolution-swapper-v2-button:hover, .yabd-secondary-button:hover {
-                background-color: var(--control-secondary-background-active) !important;
-            }
-
-            .yabd-marginTop24 {
-                margin-top: 24px;
-            }
-
-            .yabd-hidden {
-                display: none !important;
-                visibility: hidden !important;
-            }
-        `)
-
-        this.saveAndUpdate();
-    }
-
-    stop(){
-        controller.abort();
-        CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
-        Patcher.unpatchAll();
-        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
-        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
-        DOM.removeStyle("YABDP4NitroGeneral");
-        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
-        ContextMenu.unpatch('stream-context', this.streamContextPatch);
-        ContextMenu.unpatch("message", this.messageContext);
-        
-        if(ffmpeg){
-            ffmpeg.terminate();
-            ffmpeg = undefined;
-        }
-        let ffmpegScript = document.getElementById("ffmpegScript");
-        if(ffmpegScript){
-            ffmpegScript.remove();
-        }
-        if(window.FFmpegWASM) delete window.FFmpegWASM;
-
-        if(udta) udta = null; 
-        if(udtaBuffer) udtaBuffer = null;
-        if(crcTable) crcTable = null;
-        if(clipMaBuffer) clipMaBuffer = null;
-        if(lastEditedMsg) lastEditedMsg = null;
-        if(lastEditedMsgCopy) lastEditedMsgCopy = null;
-        if(profileEffects) profileEffects = {};
-        if(badgeUserIDs) badgeUserIDs = [];
-        if(this.usrBgData) this.usrBgData = null;
-        if(this.userPfps) this.userPfps = null;
-        if(this.settingsUIMod) this.settingsUIMod = null;
-        if(this.CustomThemesEditor) this.CustomThemesEditor = null;
-        if(this.UserContextMenuFunctions) this.UserContextMenuFunctions = null;
-        
-        Data.save("settings", settings);
-        this.saveDataFile();
-        if(data) data = null;
-        Logger.info("(v" + this.meta.version + ") has stopped.");
-    }
-    // #endregion
-};
-// #endregion
 /*@end@*/
