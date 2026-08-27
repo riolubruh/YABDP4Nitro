@@ -44,39 +44,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -213,7 +234,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -403,7 +424,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw new TypeError('"ext" argument must be a string');
+    throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -475,7 +496,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -5148,8 +5169,6 @@ function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
 function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }) {
   const [visualColors, setVisualColors] = React9.useState(colors);
   const handleColorChange = (key, newValue) => {
-    console.log("key", key);
-    console.log("newValue", newValue);
     onChange({ ...colors, [key]: newValue });
     setVisualColors({ ...visualColors, [key]: newValue });
   };
@@ -5159,8 +5178,6 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
   const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
   const background = gradientColors.length === 1 ? gradientColors[0] : `linear-gradient(90deg, ${gradientColors.join(", ")})`;
   const toggleDisable = (e, key) => {
-    console.log("colors", colors);
-    console.log("visualColors", visualColors);
     if (colors[key] != null)
       onChange({ ...colors, [key]: null });
     else
@@ -6069,11 +6086,13 @@ function CustomSettingsTab() {
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
+  entrys: [
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
+      raw: true
+    }).then((x2) => Object.values(x2.declarations).find((x3) => x3?.TOGGLE_SCREENSHARE).TOGGLE_SCREENSHARE.handler.toString())
+  ],
   ids: [
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
-      raw: true
-    }).then((x2) => x2.id),
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {
       raw: true
     }).then((x2) => x2.id),
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x2) => x2.id),
@@ -6109,7 +6128,6 @@ var UserProfileV2_default = {
         return null;
       return originalFunction.apply(args);
     });
-    Object.values(document.styleSheets).find((x2) => Object.values(x2.rules).find((x3) => x3.selectorText == ":root" && x3.cssText.includes("--blue-new-78: hotpink"))).deleteRule(":root");
     return;
   }
 };
@@ -6545,18 +6563,19 @@ var streamContext_default = {
 var PatcherAPI = new BdApi("Patcher");
 var moduleCache = new Map;
 var idCache = new Map;
-async function resolveIds(ids) {
+var entryCache = new Map;
+async function resolveList(ids, loader, cache) {
   if (!ids)
     return [];
   const entries = typeof ids === "function" ? await ids() : ids;
   const results = await Promise.allSettled(entries.map(async (entry) => {
     const id = typeof entry === "function" ? await entry() : entry;
     const cacheKey = id.toString();
-    if (idCache.has(cacheKey)) {
-      return idCache.get(cacheKey);
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey);
     }
-    const resolvedId = await BdApi.Utils.forceLoad(id);
-    idCache.set(cacheKey, resolvedId);
+    const resolvedId = await loader?.(id);
+    cache.set(cacheKey, resolvedId);
     return resolvedId;
   }));
   const resolved = [];
@@ -6569,6 +6588,8 @@ async function resolveIds(ids) {
   });
   return resolved;
 }
+var resolveIds = (ids) => resolveList(ids, BdApi.Utils.forceLoad, idCache);
+var resolveEntries = (ids) => resolveList(ids, BdApi.Utils.loadEntry, entryCache);
 function withTimeout(p, ms, label) {
   return Promise.race([
     p,
@@ -6591,6 +6612,10 @@ async function loadPatch(patch) {
       if (ids.length)
         finale.ids = ids;
     }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
+    resolveEntries(patch.entrys).then((entrys) => {
+      if (entrys.length)
+        finale.entrys = entrys;
+    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load entries for ${patch.name}`, e)),
     ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
       try {
         const module2 = await getCachedModule(x2, patch.name);
@@ -6623,6 +6648,7 @@ function loadPatches() {
     PatcherAPI.Patcher.unpatchAll();
     moduleCache.clear();
     idCache.clear();
+    entryCache.clear();
   };
   const sortedPatches = patches.sort((a, b) => (b.priority || 0) - (a.priority || 0));
   sortedPatches.forEach(async (patch) => {

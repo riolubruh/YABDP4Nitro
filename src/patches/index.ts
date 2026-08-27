@@ -10,8 +10,13 @@ const PatcherAPI = new BdApi("Patcher");
 
 const moduleCache = new Map<any, any>();
 const idCache = new Map<string, number>();
+const entryCache = new Map<string, number>();
 
-async function resolveIds(ids?: Ids): Promise<number[]> {
+async function resolveList(
+	ids: Ids | undefined,
+	loader: (id: any) => Promise<number>,
+	cache: Map<string, number>
+): Promise<number[]> {
 	if (!ids) return [];
 	const entries = typeof ids === "function" ? await ids() : ids;
 
@@ -20,13 +25,13 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
 			const id = typeof entry === "function" ? await entry() : entry;
 			const cacheKey = id.toString();
 
-			if (idCache.has(cacheKey)) {
-				return idCache.get(cacheKey)!;
+			if (cache.has(cacheKey)) {
+				return cache.get(cacheKey)!;
 			}
 
-			const resolvedId = await BdApi.Utils.forceLoad(id);
+			const resolvedId = await loader?.(id);
 
-			idCache.set(cacheKey, resolvedId);
+			cache.set(cacheKey, resolvedId);
 			return resolvedId;
 		})
 	);
@@ -42,6 +47,9 @@ async function resolveIds(ids?: Ids): Promise<number[]> {
 
 	return resolved;
 }
+
+const resolveIds = (ids?: Ids) => resolveList(ids, BdApi.Utils.forceLoad, idCache);
+const resolveEntries = (ids?: Ids) => resolveList(ids, BdApi.Utils.loadEntry, entryCache);
 
 export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 	return Promise.race([
@@ -64,6 +72,7 @@ async function getCachedModule(filter: any, patchName: string): Promise<any> {
 	moduleCache.set(cacheKey, module);
 	return module;
 }
+
 async function loadPatch(patch: Patch) {
 	const finale: Record<string, any> = {};
 
@@ -76,37 +85,45 @@ async function loadPatch(patch: Patch) {
 				BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)
 			),
 
+		resolveEntries(patch.entrys)
+			.then((entrys) => {
+				if (entrys.length) finale.entrys = entrys;
+			})
+			.catch((e) =>
+				BetterDiscord.Logger.warn(`[Patcher] Failed to load entries for ${patch.name}`, e)
+			),
+
 		...(Array.isArray(patch.waitFor)
 			? patch.waitFor.map(async (x, i) => {
-					try {
-						const module = await getCachedModule(x, patch.name);
-						if (!finale.modules) finale.modules = [];
-						finale.modules[i] = module;
-					} catch (e) {
-						BetterDiscord.Logger.warn(
-							`[Patcher] Failed to load module ${i} for ${patch.name}`,
-							e
-						);
-					}
-				})
+				try {
+					const module = await getCachedModule(x, patch.name);
+					if (!finale.modules) finale.modules = [];
+					finale.modules[i] = module;
+				} catch (e) {
+					BetterDiscord.Logger.warn(
+						`[Patcher] Failed to load module ${i} for ${patch.name}`,
+						e
+					);
+				}
+			})
 			: []),
 
 		...(patch.mangled && patch.waitFor
 			? [
-					getCachedModule(patch.waitFor[0], patch.name)
-						.then(() => {
-							finale.mangled = BetterDiscord.Webpack.getMangled(
-								patch.waitFor![0],
-								patch.mangled
-							);
-						})
-						.catch((e) =>
-							BetterDiscord.Logger.warn(
-								`[Patcher] Failed to load mangled for ${patch.name}`,
-								e
-							)
-						),
-				]
+				getCachedModule(patch.waitFor[0], patch.name)
+					.then(() => {
+						finale.mangled = BetterDiscord.Webpack.getMangled(
+							patch.waitFor![0],
+							patch.mangled
+						);
+					})
+					.catch((e) =>
+						BetterDiscord.Logger.warn(
+							`[Patcher] Failed to load mangled for ${patch.name}`,
+							e
+						)
+					),
+			]
 			: []),
 	];
 
@@ -128,6 +145,7 @@ export function loadPatches() {
 
 		moduleCache.clear();
 		idCache.clear();
+		entryCache.clear();
 	};
 
 	const sortedPatches = patches.sort(

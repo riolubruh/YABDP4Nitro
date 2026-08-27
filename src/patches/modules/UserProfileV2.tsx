@@ -133,13 +133,15 @@ export function CustomSettingsTab() {
 export default {
 	name: "User Profile V2",
 	description: "skibidi toilet",
+	entrys: [
+		async () =>
+			await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
+				raw: true,
+			}).then((x) => Object.values(x.declarations).find((x: any) => x?.TOGGLE_SCREENSHARE)!.TOGGLE_SCREENSHARE.handler.toString())
+	],
 	ids: [
 		async () =>
 			await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
-				raw: true,
-			}).then((x) => x.id),
-		async () =>
-			await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {
 				raw: true,
 			}).then((x) => x.id),
 		async () =>
@@ -203,7 +205,9 @@ export default {
 			return originalFunction.apply(args);
 		});
 
-		Object.values(document.styleSheets).find(x => Object.values(x.rules).find(x => x.selectorText == ":root" && x.cssText.includes("--blue-new-78: hotpink")))!.deleteRule(":root")
+		// we no longer load the entire web file for a single module.
+		// Object.values(document.styleSheets).find(x => Object.values(x.rules).find(x => x.selectorText == ":root" && x.cssText.includes("--blue-new-78: hotpink")))!.deleteRule(":root")
+		// this only deletes the debug css file.
 
 		return;
 	},
