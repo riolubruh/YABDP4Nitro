@@ -1,0 +1,32 @@
+{
+	"name": "YABDP4Nitro",
+	"module": "src/index.tsx",
+	"type": "module",
+	"version": "7.0.0",
+	"private": true,
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"scripts": {
+		"prod": "bun run ./build/build.ts",
+		"dev": "bun run ./build/build.ts --debug",
+		"pretty": "npx prettier . --write"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"resolve": {
+		"alias": {
+			"react/jsx-dev-runtime": "react/jsx-dev-runtime.js",
+			"react/jsx-runtime": "react/jsx-runtime.js"
+		}
+	},
+	"dependencies": {
+		"@eslint/js": "^10.0.1",
+		"@iconify/react": "^6.0.2",
+		"@types/react": "^19.2.18",
+		"eslint": "^10.9.1",
+		"fflate": "^0.8.3",
+		"prettier": "^3.9.6"
+	}
+}

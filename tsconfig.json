@@ -1,0 +1,42 @@
+{
+	"compilerOptions": {
+		// Environment setup & latest features
+		"lib": ["ESNext", "DOM"],
+		"target": "ESNext",
+		"module": "Preserve",
+		"moduleDetection": "force",
+		"jsx": "react",
+		"allowJs": true,
+		"types": ["bun"],
+
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+
+		// Bundler mode
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true,
+		"noEmit": true,
+
+		"baseUrl": ".",
+		"paths": {
+			"@global/*": ["src/global"],
+			"@patches/*": ["src/patches"],
+			"@utils/*": ["src/utils"],
+			"@type/*": ["src/types"],
+			"@shared/*": ["src/global/shared"]
+		},
+
+		// Best practices
+		"strict": true,
+		"skipLibCheck": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+
+		// Some stricter flags (disabled by default)
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noPropertyAccessFromIndexSignature": false
+	}
+}
