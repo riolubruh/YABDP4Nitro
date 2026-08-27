@@ -98,7 +98,7 @@ export default {
 
 				if (!disableUserBadge && noBadgeFound && BadgesStore.check(ret?.userId)) {
 					if (!ret.badges) ret.badges = [];
-					ret.badges.push(...BadgesStore.findBadgesForUser(ret.userId));
+					ret.badges.push(...BadgesStore.returnRespondingBadges(ret.userId));
 				}
 			}
 		);

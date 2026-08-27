@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.0
+ * @version 7.0.1
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -795,9 +795,6 @@ var BadgesStore_default = new class BadgesStore {
   isImportant(id) {
     return Object.values(Badges).some((category) => category.ids.includes(id));
   }
-  findBadgesForUser(id) {
-    return Object.values(Badges).filter((category) => category.ids.includes(id)).map((category) => category.badge);
-  }
   returnRespondingBadges(id) {
     const categories = Object.values(Badges).filter((x) => x.ids.includes(id));
     return categories.length ? categories.map((x) => x.badge) : [defaultBadge];
@@ -1054,7 +1051,7 @@ var fakeUserProfile_default = {
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
         if (!ret.badges)
           ret.badges = [];
-        ret.badges.push(...BadgesStore_default.findBadgesForUser(ret.userId));
+        ret.badges.push(...BadgesStore_default.returnRespondingBadges(ret.userId));
       }
     });
   }
@@ -2924,6 +2921,9 @@ var GlobalModules = wpGetBulkKeyed({
   },
   Lodash: {
     filter: BetterDiscord.Webpack.Filters.bySource('="Expected a function",')
+  },
+  ProfileHelpers: {
+    filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators")
   }
 });
 function CloseAllContextMenus() {
@@ -5149,7 +5149,7 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
   const [visualColors, setVisualColors] = React9.useState(colors);
   const handleColorChange = (key, newValue) => {
     onChange({ ...colors, [key]: newValue });
-    setVisualColors({ ...colors, [key]: newValue });
+    setVisualColors({ ...visualColors, [key]: newValue });
   };
   const visibleKeys = Object.keys(colors).slice(0, renderCount);
   const visibleValues = visibleKeys.map((k) => colors[k]);
@@ -6065,11 +6065,13 @@ function CustomSettingsTab() {
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
+  entrys: [
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
+      raw: true
+    }).then((x2) => Object.values(x2.declarations).find((x3) => x3?.TOGGLE_SCREENSHARE).TOGGLE_SCREENSHARE.handler.toString())
+  ],
   ids: [
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
-      raw: true
-    }).then((x2) => x2.id),
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("StageChannelCall"), {
       raw: true
     }).then((x2) => x2.id),
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x2) => x2.id),
@@ -6105,7 +6107,6 @@ var UserProfileV2_default = {
         return null;
       return originalFunction.apply(args);
     });
-    Object.values(document.styleSheets).find((x2) => Object.values(x2.rules).find((x3) => x3.selectorText == ":root" && x3.cssText.includes("--blue-new-78: hotpink"))).deleteRule(":root");
     return;
   }
 };
@@ -6344,19 +6345,39 @@ var blockedUserContext_default = {
 };
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var { UserStore: UserStore10 } = BetterDiscord.Webpack.Stores;
+var DELAY_MS = 1000;
+var { UserStore: UserStore10, UserProfileStore: UserProfileStore4, SelectedGuildStore: SelectedGuildStore4 } = BetterDiscord.Webpack.Stores;
+var tail = Promise.resolve();
+var seen = new Set;
+function enqueueFetchProfile(id, options = {}) {
+  const key = `${id}:${options.guildId ?? ""}`;
+  if (seen.has(key))
+    return;
+  seen.add(key);
+  tail = tail.then(() => GlobalModules.ProfileHelpers.fetchProfile(id, options)).catch(() => {}).then(() => new Promise((r) => setTimeout(r, DELAY_MS)));
+  return tail;
+}
+function ensureGuildUserProfile(id, guildId) {
+  if (!guildId)
+    return;
+  let user = UserProfileStore4.getGuildMemberProfile(id, guildId);
+  if (!user) {
+    enqueueFetchProfile(id, { guildId, withMutualGuilds: true, withMutualFriends: true });
+  }
+}
 var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
     patcher.after(module2.Ay, "type", (_, args, res) => {
+      ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;
       const user = args[0]?.message?.author;
       if (!user)
         return res;
       if (!res.props.badges.find((x2) => x2.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
-        const badges = BadgesStore_default.findBadgesForUser(user.id);
+        const badges = BadgesStore_default.returnRespondingBadges(user.id);
         res.props.badges.push(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
           key: `yabd-${x2.id}`,
           height: "16px",
@@ -6521,18 +6542,19 @@ var streamContext_default = {
 var PatcherAPI = new BdApi("Patcher");
 var moduleCache = new Map;
 var idCache = new Map;
-async function resolveIds(ids) {
+var entryCache = new Map;
+async function resolveList(ids, loader, cache) {
   if (!ids)
     return [];
   const entries = typeof ids === "function" ? await ids() : ids;
   const results = await Promise.allSettled(entries.map(async (entry) => {
     const id = typeof entry === "function" ? await entry() : entry;
     const cacheKey = id.toString();
-    if (idCache.has(cacheKey)) {
-      return idCache.get(cacheKey);
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey);
     }
-    const resolvedId = await BdApi.Utils.forceLoad(id);
-    idCache.set(cacheKey, resolvedId);
+    const resolvedId = await loader?.(id);
+    cache.set(cacheKey, resolvedId);
     return resolvedId;
   }));
   const resolved = [];
@@ -6545,6 +6567,8 @@ async function resolveIds(ids) {
   });
   return resolved;
 }
+var resolveIds = (ids) => resolveList(ids, BdApi.Utils.forceLoad, idCache);
+var resolveEntries = (ids) => resolveList(ids, BdApi.Utils.loadEntry, entryCache);
 function withTimeout(p, ms, label) {
   return Promise.race([
     p,
@@ -6567,6 +6591,10 @@ async function loadPatch(patch) {
       if (ids.length)
         finale.ids = ids;
     }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
+    resolveEntries(patch.entrys).then((entrys) => {
+      if (entrys.length)
+        finale.entrys = entrys;
+    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load entries for ${patch.name}`, e)),
     ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
       try {
         const module2 = await getCachedModule(x2, patch.name);
@@ -6599,6 +6627,7 @@ function loadPatches() {
     PatcherAPI.Patcher.unpatchAll();
     moduleCache.clear();
     idCache.clear();
+    entryCache.clear();
   };
   const sortedPatches = patches.sort((a, b) => (b.priority || 0) - (a.priority || 0));
   sortedPatches.forEach(async (patch) => {
@@ -6638,6 +6667,22 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.1": [
+    {
+      changes: [
+        {
+          title: "Post-release hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed YABDP4Nitro User Badge not appearing despite 3y3 being detected.",
+            "Fixed a bug where the color pickers in the Display Name Styles modal could get stuck disabled.",
+            "Restored YABDP4Nitro start & stop logs in console.",
+            "Improved loading of User Profile Modal."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.0": [
     {
       banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
@@ -6689,7 +6734,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.0",
+  version: "7.0.1",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -7234,6 +7279,7 @@ This will reload the plugin and you can use it normally.`,
           }
         ]
       });
+    BetterDiscord.Logger.info(`(v${package_default.version}) has started.`);
     this.checkChangelog();
     startSet();
     const soundmojiEnabled = SettingsStore_default.get("soundmojiEnabled");
@@ -7309,6 +7355,7 @@ This will reload the plugin and you can use it normally.`,
     new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore_default.unload();
     UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+    BetterDiscord.Logger.info(`(v${package_default.version}) has stopped.`);
   }
   renderControl(def, value) {
     const onChange = (v) => {

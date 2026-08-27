@@ -1,4 +1,20 @@
 {
+	"7.0.1": [
+		{
+			"changes": [
+				{
+					"title": "Post-release hotfixes",
+					"type": "fixed",
+					"items": [
+						"Fixed YABDP4Nitro User Badge not appearing despite 3y3 being detected.",
+						"Fixed a bug where the color pickers in the Display Name Styles modal could get stuck disabled.",
+						"Restored YABDP4Nitro start & stop logs in console.",
+						"Improved loading of User Profile Modal."
+					]
+				}
+			]
+		}
+	],
 	"7.0.0": [
 		{
 			"banner": "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
