@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.0
+ * @version 7.0.1
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -6667,46 +6667,17 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
-  "7.0.0": [
+  "7.0.1": [
     {
-      banner: "https://i.kym-cdn.com/photos/images/original/001/652/630/6e8.jpg",
       changes: [
         {
-          title: "YABDP4Nitro Huge Revamp",
-          type: "improved",
+          title: "Post-release hotfixes",
+          type: "fixed",
           items: [
-            "Fully rewritten internals from the ground up.",
-            "Improved performance and stability.",
-            "Cleaner, more maintainable codebase for future updates.",
-            "Improved UI.",
-            "Moved 3y3 profile editing to a YABDP4Nitro tab in the profile editor.",
-            "Removed some redundant/unnecessary settings.",
-            "Removed data json - you can now delete it.",
-            "Limited edition, quest-only, off-sale, and developer collectibles are now consistently included in the 3y3 UI.",
-            "Download All Attachments button now zips the files when downloading.",
-            "Experiment override options (Clips, Soundmoji experiments) no longer put you into staff mode.",
-            "You no longer need to refresh to remove staff/experiments.",
-            "Changing min, target, max, or audio bitrate in the Quick Swapper now applies to the active stream / audio connection instantly upon pressing Apply.",
-            "Contributor badge is now red instead of being identical to the developer badge.",
-            "Fixed a bug with the Audio Clips bypass where the audio could sometimes end too early or too late by up to 10 seconds.",
-            "All kinds of Imgur URLs should now work."
-          ]
-        },
-        {
-          title: "Known Bugs/Issues",
-          type: "progress",
-          items: [
-            "Disabling and re-enabling the plugin may cause features to patch in slower than usual — this is intentional, for stability.",
-            '**"Opening the `Nameplates` and `Avatar Decorations` lags!"**, We know. That\'s because **Discord:tm:** loves money. Theres a lot of decorations...'
-          ]
-        },
-        {
-          title: "Extra",
-          type: "added",
-          items: [
-            "Added 3y3 Profile Frames.",
-            "You can now set a custom camera background 🥳🎉🎉🎉!!",
-            "<@917630027477159986> joins the team for future development of the plugin!"
+            "Fixed YABDP4Nitro User Badge not appearing despite 3y3 being detected.",
+            "Fixed a bug where the color pickers in the Display Name Styles modal could get stuck disabled.",
+            "Restored YABDP4Nitro start & stop logs in console.",
+            "Improved loading of User Profile Modal."
           ]
         }
       ]
@@ -6718,7 +6689,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.0",
+  version: "7.0.1",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
