@@ -135,7 +135,7 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
 
 	const handleColorChange = (key, newValue) => {
 		onChange({ ...colors, [key]: newValue });
-		setVisualColors({ ...colors, [key]: newValue });
+		setVisualColors({ ...visualColors, [key]: newValue });
 	};
 
 	const visibleKeys = Object.keys(colors).slice(0, renderCount);

@@ -5148,8 +5148,10 @@ function ColorSwatch({ colorKey, value, onChange, disabled, toggleDisabled }) {
 function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }) {
   const [visualColors, setVisualColors] = React9.useState(colors);
   const handleColorChange = (key, newValue) => {
+    console.log("key", key);
+    console.log("newValue", newValue);
     onChange({ ...colors, [key]: newValue });
-    setVisualColors({ ...colors, [key]: newValue });
+    setVisualColors({ ...visualColors, [key]: newValue });
   };
   const visibleKeys = Object.keys(colors).slice(0, renderCount);
   const visibleValues = visibleKeys.map((k) => colors[k]);
@@ -5157,6 +5159,8 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
   const gradientColors = setValues.length > 0 ? setValues : ["#3a3a3a", "#1e1e1e"];
   const background = gradientColors.length === 1 ? gradientColors[0] : `linear-gradient(90deg, ${gradientColors.join(", ")})`;
   const toggleDisable = (e, key) => {
+    console.log("colors", colors);
+    console.log("visualColors", visualColors);
     if (colors[key] != null)
       onChange({ ...colors, [key]: null });
     else
