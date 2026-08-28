@@ -69,13 +69,6 @@ export async function doClipsBypass(file) {
 	];
 	if (skippedFileTypes.includes(file.file.type)) return file;
 
-	//bit of explanation: for some reason, the API will not complain if the file is actually MOV but just has ".mp4" at the end,
-	//and since the MOV format has support for some more formats, we take advantage of that.
-	const movTypes = [
-		"video/flv","video/ogg","video/wmv","video/mov","audio/wav","audio/aiff","audio/x-ms-wma","audio/mpeg",
-	];
-	let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
-
 	const clipData = {
 		id: 0n,
 		createdAt: 0,
@@ -89,6 +82,13 @@ export async function doClipsBypass(file) {
 		filepath: "",
 		name: file.file.name.substring(0, file.file.name.lastIndexOf(".")),
 	};
+
+	//bit of explanation: for some reason, the API will not complain if the file is actually MOV but just has ".mp4" at the end,
+	//and since the MOV format has support for some more formats, we take advantage of that.
+	const movTypes = [
+		"video/flv","video/ogg","video/wmv","video/mov","audio/wav","audio/aiff","audio/x-ms-wma","audio/mpeg",
+	];
+	let outFileName = movTypes.includes(file.file.type) ? `${performance.now() + clipData.name}.mov` : `${performance.now() + clipData.name}.mp4`;
 
 	switch (clipTimestamp) {
 		default:

@@ -7,6 +7,7 @@ const BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/h
 export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
 	private ffmpeg: any;
 	private loaded: boolean = false;
+	private loading: boolean = false;
 
 	constructor() {
 		super();
@@ -14,6 +15,16 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
 
 	async ensureFFmpeg() {
 		if (this.loaded) return;
+
+		if (this.loading){
+			while (this.loading){
+				await new Promise(r => setTimeout(r, 200));
+				console.log(performance.now());
+			}
+			return;
+		}
+
+		this.loading = true;
 		const defineTemp = window.global.define;
 
 		let ffmpegScript = document.getElementById("ffmpegScript");
@@ -144,6 +155,7 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
 			if (ffmpegCoreURL) URL.revokeObjectURL(ffmpegCoreURL);
 			if (ffmpegCoreWasmURL) URL.revokeObjectURL(ffmpegCoreWasmURL);
 			if (ffmpegWorkerURL) URL.revokeObjectURL(ffmpegWorkerURL);
+			this.loading = false;
 		}
 	} //End of loadFFmpeg()
 
