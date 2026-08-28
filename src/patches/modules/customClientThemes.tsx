@@ -14,6 +14,7 @@ export default {
 	name: "customClientThemes",
 	description: "Adds an apply button to the custom client theme panel.",
 	waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
+	ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("`custom_themes_editor_footer`"),{raw:true}).then(x => x.id)],
 	apply(finale: any, patcher: any) {
 		wpWait(
 			BetterDiscord.Webpack.Filters.bySource(
@@ -36,10 +37,12 @@ export default {
 					}
 				);
 
+				console.log(ShareThemeButton)
+
 				const onSaveTheme = BetterDiscord.Utils.findInTree(
 					ret,
 					(x) => x?.onSaveTheme
-				).onSaveTheme;
+				);
 
 				ret.props.children[1] = (
 					<div
@@ -71,7 +74,7 @@ export default {
 								Back
 							</Components.Text>
 						</Components.Button>
-						<Components.Button onClick={(e) => onSaveTheme(e)}>
+						<Components.Button onClick={(e) => onSaveTheme.onSaveTheme(e)}>
 							<Components.Text
 								style={{
 									fontSize: "16px",
