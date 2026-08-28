@@ -37,8 +37,6 @@ export default {
 					}
 				);
 
-				console.log(ShareThemeButton)
-
 				const onSaveTheme = BetterDiscord.Utils.findInTree(
 					ret,
 					(x) => x?.onSaveTheme

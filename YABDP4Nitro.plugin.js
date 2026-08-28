@@ -3067,7 +3067,6 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
     if (this.loading) {
       while (this.loading) {
         await new Promise((r) => setTimeout(r, 200));
-        console.log(performance.now());
       }
       return;
     }
@@ -6208,7 +6207,6 @@ var customClientThemes_default = {
           declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
           raw: true
         });
-        console.log(ShareThemeButton);
         const onSaveTheme = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.onSaveTheme);
         ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
           style: {
