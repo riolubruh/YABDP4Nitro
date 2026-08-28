@@ -6564,10 +6564,36 @@ var PatcherAPI = new BdApi("Patcher");
 var moduleCache = new Map;
 var idCache = new Map;
 var entryCache = new Map;
-async function resolveList(ids, loader, cache) {
+var DebugLog = [];
+function log(level, message, patch, ...args) {
+  DebugLog.push({ level, message, patch, timestamp: Date.now() });
+  switch (level) {
+    case "info":
+      BetterDiscord.Logger.info(message, ...args);
+      break;
+    case "warn":
+      BetterDiscord.Logger.warn(message, ...args);
+      break;
+    case "error":
+      BetterDiscord.Logger.error(message, ...args);
+      break;
+  }
+}
+function emptyReport() {
+  return { requested: 0, resolved: 0, failed: [] };
+}
+var PatchReports = {};
+function getDebugSnapshot() {
+  return {
+    log: DebugLog,
+    reports: PatchReports
+  };
+}
+async function resolveList(ids, loader, cache, patchName, report) {
   if (!ids)
     return [];
   const entries = typeof ids === "function" ? await ids() : ids;
+  report.requested = entries.length;
   const results = await Promise.allSettled(entries.map(async (entry) => {
     const id = typeof entry === "function" ? await entry() : entry;
     const cacheKey = id.toString();
@@ -6582,14 +6608,17 @@ async function resolveList(ids, loader, cache) {
   results.forEach((r, i2) => {
     if (r.status === "fulfilled") {
       resolved.push(r.value);
+      report.resolved++;
     } else {
-      BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i2}`, r.reason);
+      const reason = r.reason?.message ?? String(r.reason);
+      log("warn", `[Patcher] Failed to resolve id at index ${i2}: ${reason}`, patchName, r.reason);
+      report.failed.push(`index ${i2}: ${reason}`);
     }
   });
   return resolved;
 }
-var resolveIds = (ids) => resolveList(ids, BdApi.Utils.forceLoad, idCache);
-var resolveEntries = (ids) => resolveList(ids, BdApi.Utils.loadEntry, entryCache);
+var resolveIds = (ids, patchName, report) => resolveList(ids, BdApi.Utils.forceLoad, idCache, patchName, report);
+var resolveEntries = (ids, patchName, report) => resolveList(ids, BdApi.Utils.loadEntry, entryCache, patchName, report);
 function withTimeout(p, ms, label) {
   return Promise.race([
     p,
@@ -6607,29 +6636,49 @@ async function getCachedModule(filter, patchName) {
 }
 async function loadPatch(patch) {
   const finale = {};
+  const report = {
+    name: patch.name,
+    ids: emptyReport(),
+    entries: emptyReport(),
+    modules: emptyReport(),
+    mangled: "not-used",
+    applied: false,
+    appliedError: null
+  };
+  PatchReports[patch.name] = report;
   const operations = [
-    resolveIds(patch.ids).then((ids) => {
+    resolveIds(patch.ids, patch.name, report.ids).then((ids) => {
       if (ids.length)
         finale.ids = ids;
-    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
-    resolveEntries(patch.entrys).then((entrys) => {
+    }).catch((e) => log("warn", `[Patcher] Failed to load IDs for ${patch.name}`, patch.name, e)),
+    resolveEntries(patch.entrys, patch.name, report.entries).then((entrys) => {
       if (entrys.length)
         finale.entrys = entrys;
-    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load entries for ${patch.name}`, e)),
-    ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
-      try {
-        const module2 = await getCachedModule(x2, patch.name);
-        if (!finale.modules)
-          finale.modules = [];
-        finale.modules[i2] = module2;
-      } catch (e) {
-        BetterDiscord.Logger.warn(`[Patcher] Failed to load module ${i2} for ${patch.name}`, e);
-      }
-    }) : [],
+    }).catch((e) => log("warn", `[Patcher] Failed to load entries for ${patch.name}`, patch.name, e)),
+    ...Array.isArray(patch.waitFor) ? (() => {
+      report.modules.requested = patch.waitFor.length;
+      return patch.waitFor.map(async (x2, i2) => {
+        try {
+          const module2 = await getCachedModule(x2, patch.name);
+          if (!finale.modules)
+            finale.modules = [];
+          finale.modules[i2] = module2;
+          report.modules.resolved++;
+        } catch (e) {
+          const reason = e?.message ?? String(e);
+          log("warn", `[Patcher] Failed to load module ${i2} for ${patch.name}: ${reason}`, patch.name, e);
+          report.modules.failed.push(`index ${i2}: ${reason}`);
+        }
+      });
+    })() : [],
     ...patch.mangled && patch.waitFor ? [
       getCachedModule(patch.waitFor[0], patch.name).then(() => {
         finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor[0], patch.mangled);
-      }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load mangled for ${patch.name}`, e))
+        report.mangled = "ok";
+      }).catch((e) => {
+        report.mangled = "failed";
+        log("warn", `[Patcher] Failed to load mangled for ${patch.name}`, patch.name, e);
+      })
     ] : []
   ];
   await Promise.allSettled(operations);
@@ -6660,8 +6709,13 @@ function loadPatches() {
         return;
       patch.apply(finale, PatcherAPI.Patcher);
       loaded.push(patch);
+      if (PatchReports[patch.name])
+        PatchReports[patch.name].applied = true;
     } catch (e) {
-      BetterDiscord.Logger.error(`[Patcher] "${patch.name}" failed`, e);
+      const reason = e?.message ?? String(e);
+      log("error", `[Patcher] "${patch.name}" failed: ${reason}`, patch.name, e);
+      if (PatchReports[patch.name])
+        PatchReports[patch.name].appliedError = reason;
     }
   });
   return cleanup;
@@ -7447,9 +7501,7 @@ This will reload the plugin and you can use it normally.`,
         name: def.label,
         note: def.note
       }, this.renderControl(def, values[def.key]))))), /* @__PURE__ */ React18.createElement("div", {
-        style: { padding: "5px", justifyContent: "space-between" }
-      }, /* @__PURE__ */ React18.createElement("div", {
-        style: { width: "24px" }
+        style: { padding: "5px", display: "flex", justifyContent: "space-between" }
       }, /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
         text: "Check recent changelog"
       }, (props) => {
@@ -7504,7 +7556,24 @@ This will reload the plugin and you can use it normally.`,
           width: 24,
           icon: "material-symbols:update"
         }));
-      }))));
+      }), /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+        text: "Copy debug info to clipboard"
+      }, (props) => /* @__PURE__ */ React18.createElement("div", {
+        ...props
+      }, /* @__PURE__ */ React18.createElement(Icon, {
+        onClick: () => {
+          const payload = {
+            version: package_default.version,
+            installedVersion: SettingsStore_default.get("installedVersion"),
+            config: SettingsStore_default.getAll(),
+            debug: getDebugSnapshot()
+          };
+          copyToClipboard(JSON.stringify(payload, null, 2));
+          BetterDiscord.UI.showToast("Debug info copied to clipboard!");
+        },
+        width: 24,
+        icon: "mdi:bug"
+      })))));
     };
   }
 }

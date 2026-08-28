@@ -85,3 +85,11 @@ export const LayerManager = {
 export function CloseAllContextMenus() {
 	GlobalModules.Dispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" });
 }
+
+export function copyToClipboard(text: string) {
+	navigator.clipboard?.writeText(text).catch(() => {
+		BetterDiscord.UI.showToast(
+			"Failed to copy debug info. You probably weren't focused into the app."
+		);
+	});
+}

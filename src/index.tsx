@@ -1,19 +1,17 @@
 import { BetterDiscord } from "@shared/";
-import { loadContextMenus, loadPatches } from "@patches/*";
+import { getDebugSnapshot, loadContextMenus, loadPatches } from "@patches/*";
 import SettingsStore, { defaultSettings } from "./global/stores/SettingsStore.ts";
 import { startChangelog } from "./global/changelog";
 import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import { GlobalModules } from "@global/*";
 import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "./global/stores/BadgesStore.tsx";
-import { getRevealedText, secondsightifyRevealOnly } from "@utils/*";
+import { copyToClipboard, getRevealedText, secondsightifyRevealOnly } from "@utils/*";
 import { Icon } from "@iconify/react";
 import { CustomSettingsTab } from "./patches/modules/UserProfileV2.tsx";
 import Meta from "../package.json";
 import varForcer from "../src/global/shared/varforcer";
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
-import UserProfilePictureStore from "./global/stores/UserProfilePictureStore.ts";
-import CustomUserProfileStore from "./global/stores/CustomUserProfileStore.ts";
 import changelog from "./global/changelog/changelog.json";
 
 const { Components } = BetterDiscord;
@@ -752,88 +750,105 @@ export default class Plugin {
 							))}
 						</Components.SettingGroup>
 					))}
-					<div style={{ padding: "5px", justifyContent: "space-between" }}>
-						<div style={{ width: "24px" }}>
-							<Components.Tooltip text={"Check recent changelog"}>
-								{(props) => {
-									return (
-										<div {...props}>
-											<Icon
-												onContextMenu={(event) => {
-													const versions = Object.keys(changelog);
+					<div
+						style={{ padding: "5px", display: "flex", justifyContent: "space-between" }}
+					>
+						<Components.Tooltip text={"Check recent changelog"}>
+							{(props) => {
+								return (
+									<div {...props}>
+										<Icon
+											onContextMenu={(event) => {
+												const versions = Object.keys(changelog);
 
-													const getMajor = (v: string) =>
-														parseInt(v.split(".")[0], 10) || 0;
+												const getMajor = (v: string) =>
+													parseInt(v.split(".")[0], 10) || 0;
 
-													const majors = new Map<number, string[]>();
-													for (const version of versions) {
-														const major = getMajor(version);
-														if (!majors.has(major))
-															majors.set(major, []);
-														majors.get(major)!.push(version);
-													}
+												const majors = new Map<number, string[]>();
+												for (const version of versions) {
+													const major = getMajor(version);
+													if (!majors.has(major)) majors.set(major, []);
+													majors.get(major)!.push(version);
+												}
 
-													const sortedMajors = [...majors.keys()].sort(
-														(a, b) => b - a
-													);
+												const sortedMajors = [...majors.keys()].sort(
+													(a, b) => b - a
+												);
 
-													const items = sortedMajors.map((major) => {
-														const versionsForMajor = majors
-															.get(major)!
-															.sort((a, b) =>
-																BetterDiscord.Utils.semverCompare(
-																	a,
-																	b
-																)
-															);
+												const items = sortedMajors.map((major) => {
+													const versionsForMajor = majors
+														.get(major)!
+														.sort((a, b) =>
+															BetterDiscord.Utils.semverCompare(a, b)
+														);
 
-														return {
-															type: "submenu",
-															label: `v${major}`,
-															items: versionsForMajor.map(
-																(version) => ({
-																	type: "text",
-																	label: `v${version}`,
-																	action: () => {
-																		const entry =
-																			changelog?.[version];
-																		if (!entry) return;
+													return {
+														type: "submenu",
+														label: `v${major}`,
+														items: versionsForMajor.map((version) => ({
+															type: "text",
+															label: `v${version}`,
+															action: () => {
+																const entry = changelog?.[version];
+																if (!entry) return;
 
-																		BetterDiscord.UI.showChangelogModal(
-																			{
-																				title: Meta.name,
-																				subtitle: `v${version}`,
-																				...entry[0],
-																			}
-																		);
-																	},
-																})
-															),
-														};
-													});
+																BetterDiscord.UI.showChangelogModal(
+																	{
+																		title: Meta.name,
+																		subtitle: `v${version}`,
+																		...entry[0],
+																	}
+																);
+															},
+														})),
+													};
+												});
 
-													const menu =
-														BetterDiscord.ContextMenu.buildMenu(items);
-													BetterDiscord.ContextMenu.open(event, menu);
-												}}
-												onClick={() => {
-													const entry = changelog?.[Meta.version];
-													if (!entry) return;
+												const menu =
+													BetterDiscord.ContextMenu.buildMenu(items);
+												BetterDiscord.ContextMenu.open(event, menu);
+											}}
+											onClick={() => {
+												const entry = changelog?.[Meta.version];
+												if (!entry) return;
 
-													BetterDiscord.UI.showChangelogModal({
-														title: Meta.name,
-														subtitle: `v${Meta.version}`,
-														...entry[0],
-													});
-												}}
-												width={24}
-												icon={"material-symbols:update"}
-											/>
-										</div>
-									);
-								}}
-							</Components.Tooltip>
-						</div>
+												BetterDiscord.UI.showChangelogModal({
+													title: Meta.name,
+													subtitle: `v${Meta.version}`,
+													...entry[0],
+												});
+											}}
+											width={24}
+											icon={"material-symbols:update"}
+										/>
+									</div>
+								);
+							}}
+						</Components.Tooltip>
+						<Components.Tooltip text={"Copy debug info to clipboard"}>
+							{(props) => (
+								<div {...props}>
+									<Icon
+										onClick={() => {
+											const payload = {
+												version: Meta.version,
+												installedVersion:
+													SettingsStore.get("installedVersion"),
+												config: SettingsStore.getAll(),
+												debug: getDebugSnapshot(),
+											};
+
+											copyToClipboard(JSON.stringify(payload, null, 2));
+											BetterDiscord.UI.showToast(
+												"Debug info copied to clipboard!"
+											);
+										}}
+										width={24}
+										icon={"mdi:bug"}
+									/>
+								</div>
+							)}
+						</Components.Tooltip>
 					</div>
 				</>
 			);
