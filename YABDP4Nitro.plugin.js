@@ -4974,7 +4974,7 @@ var goLiveModal_default = {
         return ret;
       if (removeScreenshareUpsell) {
         footer.children = footer.children.filter((x2) => !x2?.props?.className.startsWith("upsell"));
-        footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill"));
+        footerContent.children[1] && (footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill")));
       }
       if (SettingsStore_default.get("ResolutionSwapper")) {
         const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) => String(x2?.key).includes("gay"));
