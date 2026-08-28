@@ -17,8 +17,8 @@
 					"items": [
 						"Fixed incompatibility with FreeStickers.",
 						"Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds.",
-						"Fixed Discord crashing when selecting a System theme",
-						"Fixed Discord crashing when opening the custom theme selector.",
+						"Fixed Discord crashing when selecting a System theme.",
+						"Fixed Discord potentially crashing when opening the custom theme selector.",
 						"Fixed FFmpeg loading & muxing breaking if the very first thing you do is drag multiple clip files into Discord."
 					]
 				}
