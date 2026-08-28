@@ -813,6 +813,9 @@ var BadgesStore_default = new class BadgesStore {
   check(id) {
     return this.foundUsers.includes(id) || this.isImportant(id);
   }
+  isDeveloper(id) {
+    return Badges.developers.ids.includes(id);
+  }
   isImportant(id) {
     return Object.values(Badges).some((category) => category.ids.includes(id));
   }
@@ -6872,8 +6875,80 @@ function startChangelog(sourceVersion) {
 
 // src/index.tsx
 var import_varforcer = __toESM(require_varforcer(), 1);
-var { Components: Components12 } = BetterDiscord;
+
+// src/ui/Debug.tsx
 var { React: React18 } = BetterDiscord;
+var LEVEL_COLOR = { warn: "#f0b232", error: "#f23f43" };
+function DebugPanel() {
+  const [snapshot, setSnapshot] = React18.useState(getDebugSnapshot());
+  React18.useEffect(() => {
+    const id = setInterval(() => setSnapshot(getDebugSnapshot()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const { log: log2, patches, stillPending } = snapshot;
+  const patchEntries = Object.entries(patches);
+  return /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", flexDirection: "column", gap: 14, fontSize: 13 }
+  }, !!stillPending.length && /* @__PURE__ */ React18.createElement(Section, {
+    title: `Still Hanging (${stillPending.length})`
+  }, stillPending.map((p) => /* @__PURE__ */ React18.createElement(Row, {
+    key: p.label,
+    left: p.label,
+    right: `${(p.elapsedMs / 1000).toFixed(1)}s`,
+    color: "#f0b232"
+  }))), /* @__PURE__ */ React18.createElement(Section, {
+    title: `Patches (${patchEntries.length})`,
+    empty: "No patches have loaded yet."
+  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React18.createElement(Row, {
+    key: name,
+    left: name,
+    right: s.ok ? `${s.ms}ms` : "failed",
+    color: s.ok ? "#23a55a" : "#f23f43",
+    sub: s.error
+  }))), /* @__PURE__ */ React18.createElement(Section, {
+    title: `Log (${log2.length})`,
+    empty: "No warnings or errors — looking good."
+  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React18.createElement(Row, {
+    key: i2,
+    left: e.msg,
+    right: `+${e.t}ms`,
+    color: LEVEL_COLOR[e.level]
+  }))));
+}
+function Section({ title, children, empty }) {
+  const items = React18.Children.toArray(children).filter(Boolean);
+  return /* @__PURE__ */ React18.createElement("div", null, /* @__PURE__ */ React18.createElement("div", {
+    style: {
+      color: "var(--text-muted)",
+      fontWeight: 600,
+      marginBottom: 6,
+      textTransform: "uppercase",
+      fontSize: 11,
+      letterSpacing: 0.3
+    }
+  }, title), items.length ? /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", flexDirection: "column", gap: 2, maxHeight: 240, overflowY: "auto" }
+  }, items) : empty && /* @__PURE__ */ React18.createElement("div", {
+    style: { color: "var(--text-muted)", fontSize: 12, fontStyle: "italic" }
+  }, empty));
+}
+function Row({ left, right, color, sub }) {
+  return /* @__PURE__ */ React18.createElement("div", {
+    style: { padding: "6px 8px", borderRadius: 4 }
+  }, /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", gap: 8 }
+  }, /* @__PURE__ */ React18.createElement("span", {
+    style: { color: "var(--text-normal)", wordBreak: "break-word" }
+  }, left), /* @__PURE__ */ React18.createElement("span", {
+    style: { color, flexShrink: 0, fontFamily: "var(--font-code)" }
+  }, right)), sub && /* @__PURE__ */ React18.createElement("div", {
+    style: { color: "var(--text-muted)", fontSize: 11, marginTop: 2, wordBreak: "break-word" }
+  }, sub));
+}
+
+// src/index.tsx
+var { Components: Components12 } = BetterDiscord;
+var { React: React19 } = BetterDiscord;
 var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
@@ -7297,11 +7372,11 @@ var SettingsSchema = [
       const update = (patch) => {
         onChange({ link, type, ...patch });
       };
-      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(Components12.TextInput, {
         value: link,
         placeholder: "https://cdn.discordapp.com/attachments/...",
         onChange: (v) => update({ link: v })
-      }), /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+      }), /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
         value: type,
         options: [
           { label: "Image", value: "png" },
@@ -7389,7 +7464,7 @@ This will reload the plugin and you can use it normally.`,
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React18.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React19.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -7458,28 +7533,28 @@ This will reload the plugin and you can use it normally.`,
     };
     switch (def.type) {
       case "custom":
-        return /* @__PURE__ */ React18.createElement(def.Custom, {
+        return /* @__PURE__ */ React19.createElement(def.Custom, {
           value,
           options: def.options,
           onChange
         });
       case "boolean":
-        return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React18.createElement(Components12.NumberInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -7499,23 +7574,27 @@ This will reload the plugin and you can use it normally.`,
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React18.createElement(Components12.SettingGroup, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
         collapsible: true,
         shown: false
-      }, defs.map((def) => /* @__PURE__ */ React18.createElement(Components12.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React19.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note
-      }, this.renderControl(def, values[def.key]))))), /* @__PURE__ */ React18.createElement("div", {
+      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore12.getCurrentUser().id) && /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
+        name: "Debug",
+        collapsible: true,
+        shown: false
+      }, /* @__PURE__ */ React19.createElement(DebugPanel, null)), /* @__PURE__ */ React19.createElement("div", {
         style: { padding: "5px", display: "flex", justifyContent: "space-between" }
-      }, /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+      }, /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
         text: "Check recent changelog"
       }, (props) => {
-        return /* @__PURE__ */ React18.createElement("div", {
+        return /* @__PURE__ */ React19.createElement("div", {
           ...props
-        }, /* @__PURE__ */ React18.createElement(Icon, {
+        }, /* @__PURE__ */ React19.createElement(Icon, {
           onContextMenu: (event) => {
             const versions = Object.keys(changelog_default);
             const getMajor = (v) => parseInt(v.split(".")[0], 10) || 0;
@@ -7564,11 +7643,11 @@ This will reload the plugin and you can use it normally.`,
           width: 24,
           icon: "material-symbols:update"
         }));
-      }), /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+      }), /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
         text: "Copy debug info to clipboard"
-      }, (props) => /* @__PURE__ */ React18.createElement("div", {
+      }, (props) => /* @__PURE__ */ React19.createElement("div", {
         ...props
-      }, /* @__PURE__ */ React18.createElement(Icon, {
+      }, /* @__PURE__ */ React19.createElement(Icon, {
         onClick: () => {
           const payload = {
             version: package_default.version,
