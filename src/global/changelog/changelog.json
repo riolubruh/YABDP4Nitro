@@ -1,4 +1,26 @@
 {
+	"7.0.2": [
+		{
+			"changes": [
+				{
+					"title": "New debug system & changelog changes",
+					"type": "added",
+					"items": [
+						"Added a new debug system to assist developers with any issues you encounter while using the plugin. Can be found at the bottom of plugin settings.",
+						"You can now view previous changelogs starting with v7.0.0 by right-clicking the changelog button at the bottom-left of settings.",
+						"Added a button to go to the support server in the changelog modal."
+					]
+				},
+				{
+					"title": "Hotfix",
+					"type": "fixed",
+					"items": [
+						"Fixed incompatibility with FreeStickers."
+					]
+				}
+			]
+		}
+	],
 	"7.0.1": [
 		{
 			"changes": [
