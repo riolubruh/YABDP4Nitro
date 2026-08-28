@@ -16,7 +16,8 @@
 					"type": "fixed",
 					"items": [
 						"Fixed incompatibility with FreeStickers.",
-						"Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds."
+						"Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds.",
+						"Fixed Discord:tm: crashing when selecting a System theme"
 					]
 				}
 			]

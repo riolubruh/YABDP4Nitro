@@ -4689,6 +4689,12 @@ var editMessage_default = {
 var CustomUserThemeState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("setColors", "setChassisMixAmount", "setGradientAngle", "setAll", "colors:[],"), {
   state: (x2) => x2?.setState
 });
+var ThemeEnum = {
+  DARK: "dark",
+  LIGHT: "light",
+  MIDNIGHT: "midnight",
+  DARKER: "darker"
+};
 function applySavedClientTheme() {
   const customUserThemeSettings = SettingsStore_default.get("customUserThemeSettings");
   const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
@@ -4701,6 +4707,8 @@ function applySavedClientTheme() {
   } else {
     CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
   }
+  const isSystem = customUserThemeSettings.theme === "system";
+  const theme = !isSystem && Object.values(ThemeEnum).includes(customUserThemeSettings.theme) ? customUserThemeSettings.theme : ThemeEnum.DARK;
   GlobalModules.Dispatcher.dispatch({
     type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
     changes: {
@@ -4708,7 +4716,8 @@ function applySavedClientTheme() {
         shouldSync: false,
         settings: {
           clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? { backgroundGradientPresetId: gradientPresetId } : null,
-          theme: customUserThemeSettings.theme,
+          theme,
+          useSystemTheme: isSystem ? 2 : 1,
           developerMode: true
         }
       }
@@ -6781,7 +6790,8 @@ var changelog_default = {
           type: "fixed",
           items: [
             "Fixed incompatibility with FreeStickers.",
-            "Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds."
+            "Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds.",
+            "Fixed Discord:tm: crashing when selecting a System theme"
           ]
         }
       ]

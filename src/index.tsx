@@ -702,6 +702,36 @@ export default class Plugin {
         });
     }
 
+    // load()
+    // {
+    //     const customUserThemeSettings = SettingsStore.get("customUserThemeSettings");
+    //
+    //     const ThemeEnum = {
+    //         "DARK": "dark",
+    //         "LIGHT": "light",
+    //         "MIDNIGHT": "midnight",
+    //         "DARKER": "darker"
+    //     }
+    //     const validThemes = ["DARK", "DARKER", "LIGHT", "MIDNIGHT"];
+    //     const theme = validThemes.includes(customUserThemeSettings.theme)
+    //         ? ThemeEnum[customUserThemeSettings.theme]
+    //         : ThemeEnum.DARK;
+    //
+    //     GlobalModules.Dispatcher.dispatch({
+    //         type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+    //         changes: {
+    //             appearance: {
+    //                 shouldSync: false,
+    //                 settings: {
+    //                     theme,
+    //                     useSystemTheme: customUserThemeSettings.theme === "system" ? 2 : 1,
+    //                     developerMode: true,
+    //                 },
+    //             },
+    //         },
+    //     });
+    // }
+
     stop() {
         this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
