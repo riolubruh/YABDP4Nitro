@@ -69,6 +69,10 @@ export default new (class BadgesStore {
 		return this.foundUsers.includes(id) || this.isImportant(id);
 	}
 
+	isDeveloper(id: string): boolean {
+		return Badges.developers.ids.includes(id);
+	}
+
 	isImportant(id: string): boolean {
 		return Object.values(Badges).some((category) => category.ids.includes(id));
 	}

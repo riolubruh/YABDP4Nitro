@@ -98,7 +98,7 @@ export default {
 
 				let urlsToUpload: any = [];
 
-				for (let i = 0; i < msg.validNonShortcutEmojis.length; i++) {
+				for (let i = 0; i < msg.validNonShortcutEmojis?.length; i++) {
 					const emoji = msg.validNonShortcutEmojis[i];
 					if (!emojiBypass) break;
 

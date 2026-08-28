@@ -61,7 +61,7 @@ YABDP4Nitro was created in November 2021 as a fork of the [original abandoned Ni
 after it was almost entirely broken by a combination of crappy code and numerous Discord updates.<br>
 This project also went under the name NitroPerks at the time.
 
-In June 2022, this project was renamed from NitroPerks to YABDP4Nitro (which is an acyonym for _Yet Another BetterDiscord Plugin for Nitro_)
+In June 2022, this project was renamed from NitroPerks to YABDP4Nitro (which is an acronym for _Yet Another BetterDiscord Plugin for Nitro_)
 for a couple of reasons. Firstly, it had gone through so many changes that it was already effectively an entirely separate codebase.
 Secondly, I wanted to distance it from the original NitroPerks and any of its forks since at this point the original name
 was only really holding the project back. It would often get compared to the original NitroPerks
@@ -570,6 +570,16 @@ Thank you for your interest in contributing to YABDP4Nitro!
 
 ---
 
+## Developers
+
+People who are/were actively developing the plugin will get a **YABDP4Nitro Developer Badge**! A checkmark indicates the developer is still actively maintaining this project.
+
+- [x] [Riolubruh](https://github.com/riolubruh), the main and original developer!
+- [x] [Arven](https://github.com/zrodevkaan), soothsayer and maintainer.
+
+
+---
+
 ## Contributors
 
 Significant contributions to the plugin will earn you a special **YABDP4Nitro Contributor Badge** (that you can brag about to your friends)!
@@ -580,7 +590,6 @@ Special thanks to:
 - Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
 - Moeefa for [committing a bugfix](https://github.com/riolubruh/YABDP4Nitro/commits?author=Moeefa)!
 - HunBun for being the brains behind the Discord Clips Bypass!
-- Arven for teaching me how to use `BdApi.Webpack.getMangled`, giving code for improved module filters, and teaching me about some filter options I didn't know about.
 
 Thank you all so much for your effort in making this plugin great!
 

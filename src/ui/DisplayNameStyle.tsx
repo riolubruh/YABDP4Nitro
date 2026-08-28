@@ -150,9 +150,9 @@ function FiveGuys({ colors, onChange, renderCount = Object.keys(colors).length }
 
 	const toggleDisable = (e, key) => {
 		// e.stopPropagation(); // if the ctrl+click idea is added
-		if(colors[key] != null) onChange({ ...colors, [key]: null });
+		if (colors[key] != null) onChange({ ...colors, [key]: null });
 		else onChange({ ...colors, [key]: visualColors[key] });
-	}
+	};
 
 	return (
 		<div

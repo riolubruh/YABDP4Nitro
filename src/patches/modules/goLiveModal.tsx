@@ -271,10 +271,10 @@ export default {
 				footer.children = footer.children.filter(
 					(x) => !x?.props?.className.startsWith("upsell")
 				);
-				footerContent.children[1].props.children =
+				footerContent.children[1] ? footerContent.children[1].props.children =
 					footerContent.children[1].props.children.filter(
 						(x) => !x?.type?.toString?.()?.includes("pill")
-					);
+					) : footerContent
 			}
 
 			if (SettingsStore.get("ResolutionSwapper")) {

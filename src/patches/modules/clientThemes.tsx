@@ -17,6 +17,12 @@ const CustomUserThemeState = BetterDiscord.Webpack.getMangled(
 );
 
 // const {ClientThemesBackgroundStore} = BetterDiscord.Webpack.Stores;
+const ThemeEnum = {
+	"DARK": "dark",
+	"LIGHT": "light",
+	"MIDNIGHT": "midnight",
+	"DARKER": "darker"
+}
 
 function applySavedClientTheme() {
 	const customUserThemeSettings: any = SettingsStore.get("customUserThemeSettings");
@@ -32,6 +38,11 @@ function applySavedClientTheme() {
 		CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
 	}
 
+	const isSystem = customUserThemeSettings.theme === "system";
+	const theme = !isSystem && Object.values(ThemeEnum).includes(customUserThemeSettings.theme)
+		? customUserThemeSettings.theme
+		: ThemeEnum.DARK; // fallback for "system" AND for any unrecognized/bad value
+
 	GlobalModules.Dispatcher.dispatch({
 		type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
 		changes: {
@@ -43,7 +54,8 @@ function applySavedClientTheme() {
 						: gradientPresetId > -1
 							? { backgroundGradientPresetId: gradientPresetId }
 							: null,
-					theme: customUserThemeSettings.theme,
+					theme,
+					useSystemTheme: isSystem ? 2 : 1,
 					developerMode: true,
 				},
 			},

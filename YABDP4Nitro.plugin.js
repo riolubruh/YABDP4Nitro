@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.1
+ * @version 7.0.2
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -791,6 +791,9 @@ var BadgesStore_default = new class BadgesStore {
   }
   check(id) {
     return this.foundUsers.includes(id) || this.isImportant(id);
+  }
+  isDeveloper(id) {
+    return Badges.developers.ids.includes(id);
   }
   isImportant(id) {
     return Object.values(Badges).some((category) => category.ids.includes(id));
@@ -2924,6 +2927,9 @@ var GlobalModules = wpGetBulkKeyed({
   },
   ProfileHelpers: {
     filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators")
+  },
+  InviteActions: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("createInvite")
   }
 });
 function CloseAllContextMenus() {
@@ -3051,12 +3057,20 @@ var BASE_URL = `https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/hea
 var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Store {
   ffmpeg;
   loaded = false;
+  loading = false;
   constructor() {
     super();
   }
   async ensureFFmpeg() {
     if (this.loaded)
       return;
+    if (this.loading) {
+      while (this.loading) {
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return;
+    }
+    this.loading = true;
     const defineTemp = window.global.define;
     let ffmpegScript = document.getElementById("ffmpegScript");
     if (ffmpegScript) {
@@ -3164,6 +3178,7 @@ var FFmpegStore_default = new class FFmpegStore extends BetterDiscord.Utils.Stor
         URL.revokeObjectURL(ffmpegCoreWasmURL);
       if (ffmpegWorkerURL)
         URL.revokeObjectURL(ffmpegWorkerURL);
+      this.loading = false;
     }
   }
   unload() {
@@ -3842,7 +3857,15 @@ function concatArrayBuffers(buf1, buf2) {
   newArray.set(new Uint8Array(buf2), buf1.byteLength);
   return newArray.buffer;
 }
-var udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
+function base64ToUint8Array(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i2 = 0;i2 < binary.length; i2++) {
+    bytes[i2] = binary.charCodeAt(i2);
+  }
+  return bytes;
+}
+var udtaBuffer = base64ToUint8Array("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 var FREE_FILE_LIMIT = 20971520;
 var CLIPS_FILE_LIMIT = 104857600;
 async function doClipsBypass(file) {
@@ -3859,17 +3882,6 @@ async function doClipsBypass(file) {
   ];
   if (skippedFileTypes.includes(file.file.type))
     return file;
-  const movTypes = [
-    "video/flv",
-    "video/ogg",
-    "video/wmv",
-    "video/mov",
-    "audio/wav",
-    "audio/aiff",
-    "audio/x-ms-wma",
-    "audio/mpeg"
-  ];
-  let outFileName = movTypes.includes(file.file.type) ? "output.mov" : "output.mp4";
   const clipData = {
     id: 0n,
     createdAt: 0,
@@ -3883,6 +3895,17 @@ async function doClipsBypass(file) {
     filepath: "",
     name: file.file.name.substring(0, file.file.name.lastIndexOf("."))
   };
+  const movTypes = [
+    "video/flv",
+    "video/ogg",
+    "video/wmv",
+    "video/mov",
+    "audio/wav",
+    "audio/aiff",
+    "audio/x-ms-wma",
+    "audio/mpeg"
+  ];
+  let outFileName = movTypes.includes(file.file.type) ? `${performance.now() + clipData.name}.mov` : `${performance.now() + clipData.name}.mp4`;
   switch (clipTimestamp) {
     default:
     case 0:
@@ -4144,7 +4167,7 @@ var _sendMessage_default = {
         emojiBypass
       } = SettingsStore_default.getAll();
       let urlsToUpload = [];
-      for (let i2 = 0;i2 < msg.validNonShortcutEmojis.length; i2++) {
+      for (let i2 = 0;i2 < msg.validNonShortcutEmojis?.length; i2++) {
         const emoji = msg.validNonShortcutEmojis[i2];
         if (!emojiBypass)
           break;
@@ -4654,6 +4677,12 @@ var editMessage_default = {
 var CustomUserThemeState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("setColors", "setChassisMixAmount", "setGradientAngle", "setAll", "colors:[],"), {
   state: (x2) => x2?.setState
 });
+var ThemeEnum = {
+  DARK: "dark",
+  LIGHT: "light",
+  MIDNIGHT: "midnight",
+  DARKER: "darker"
+};
 function applySavedClientTheme() {
   const customUserThemeSettings = SettingsStore_default.get("customUserThemeSettings");
   const gradientPresetId = SettingsStore_default.get("lastGradientSettingStore");
@@ -4666,6 +4695,8 @@ function applySavedClientTheme() {
   } else {
     CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
   }
+  const isSystem = customUserThemeSettings.theme === "system";
+  const theme = !isSystem && Object.values(ThemeEnum).includes(customUserThemeSettings.theme) ? customUserThemeSettings.theme : ThemeEnum.DARK;
   GlobalModules.Dispatcher.dispatch({
     type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
     changes: {
@@ -4673,7 +4704,8 @@ function applySavedClientTheme() {
         shouldSync: false,
         settings: {
           clientThemeSettings: customUserThemeSettings.custom ? customUserThemeSettings.custom : gradientPresetId > -1 ? { backgroundGradientPresetId: gradientPresetId } : null,
-          theme: customUserThemeSettings.theme,
+          theme,
+          useSystemTheme: isSystem ? 2 : 1,
           developerMode: true
         }
       }
@@ -4930,7 +4962,7 @@ var goLiveModal_default = {
         return ret;
       if (removeScreenshareUpsell) {
         footer.children = footer.children.filter((x2) => !x2?.props?.className.startsWith("upsell"));
-        footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill"));
+        footerContent.children[1] && (footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill")));
       }
       if (SettingsStore_default.get("ResolutionSwapper")) {
         const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) => String(x2?.key).includes("gay"));
@@ -6164,6 +6196,7 @@ var customClientThemes_default = {
   name: "customClientThemes",
   description: "Adds an apply button to the custom client theme panel.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
+  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("`custom_themes_editor_footer`"), { raw: true }).then((x2) => x2.id)],
   apply(finale, patcher) {
     wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
       patcher.after(mod, "default", (_, [args], ret) => {
@@ -6174,7 +6207,7 @@ var customClientThemes_default = {
           declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
           raw: true
         });
-        const onSaveTheme = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.onSaveTheme).onSaveTheme;
+        const onSaveTheme = BetterDiscord.Utils.findInTree(ret, (x2) => x2?.onSaveTheme);
         ret.props.children[1] = /* @__PURE__ */ React15.createElement("div", {
           style: {
             display: "flex",
@@ -6196,7 +6229,7 @@ var customClientThemes_default = {
             fontWeight: "500"
           }
         }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
-          onClick: (e) => onSaveTheme(e)
+          onClick: (e) => onSaveTheme.onSaveTheme(e)
         }, /* @__PURE__ */ React15.createElement(Components11.Text, {
           style: {
             fontSize: "16px",
@@ -6543,17 +6576,46 @@ var PatcherAPI = new BdApi("Patcher");
 var moduleCache = new Map;
 var idCache = new Map;
 var entryCache = new Map;
-async function resolveList(ids, loader, cache) {
+var DEBUG = true;
+var bootTime = Date.now();
+var logBuf = [];
+var pending = new Map;
+var patchStatus = new Map;
+function log(level, msg) {
+  logBuf.push({ t: Date.now() - bootTime, level, msg });
+  if (DEBUG)
+    BetterDiscord.Logger[level]("[Patcher:debug]", msg);
+}
+function track(label, p) {
+  pending.set(label, Date.now());
+  return p.finally(() => pending.delete(label));
+}
+function getDebugSnapshot() {
+  const now = Date.now();
+  return {
+    generatedAt: new Date(now).toISOString(),
+    log: logBuf,
+    patches: Object.fromEntries(patchStatus),
+    stillPending: [...pending].map(([label, t]) => ({ label, elapsedMs: now - t }))
+  };
+}
+async function resolveList(ids, loader, cache, kind, patchName) {
   if (!ids)
     return [];
   const entries = typeof ids === "function" ? await ids() : ids;
   const results = await Promise.allSettled(entries.map(async (entry) => {
     const id = typeof entry === "function" ? await entry() : entry;
     const cacheKey = id.toString();
-    if (cache.has(cacheKey)) {
+    if (cache.has(cacheKey))
       return cache.get(cacheKey);
-    }
-    const resolvedId = await loader?.(id);
+    const label = `${patchName} ${kind} "${cacheKey}"`;
+    const t0 = Date.now();
+    const resolvedId = await track(label, loader?.(id));
+    const dt = Date.now() - t0;
+    if (resolvedId == null)
+      log("warn", `${label} resolved to undefined (${dt}ms)`);
+    else if (dt > 2000)
+      log("warn", `${label} took ${dt}ms`);
     cache.set(cacheKey, resolvedId);
     return resolvedId;
   }));
@@ -6562,57 +6624,84 @@ async function resolveList(ids, loader, cache) {
     if (r.status === "fulfilled") {
       resolved.push(r.value);
     } else {
-      BetterDiscord.Logger.warn(`[Patcher] Failed to resolve id at index ${i2}`, r.reason);
+      log("error", `${patchName} ${kind} at index ${i2} rejected: ${r.reason}`);
     }
   });
   return resolved;
 }
-var resolveIds = (ids) => resolveList(ids, BdApi.Utils.forceLoad, idCache);
-var resolveEntries = (ids) => resolveList(ids, BdApi.Utils.loadEntry, entryCache);
+var resolveIds = (ids, patchName) => resolveList(ids, BdApi.Utils.forceLoad, idCache, "id", patchName);
+var resolveEntries = (ids, patchName) => resolveList(ids, BdApi.Utils.loadEntry, entryCache, "entry", patchName);
 function withTimeout(p, ms, label) {
-  return Promise.race([
+  let settled = false;
+  p.then(() => settled = true, () => settled = true);
+  return track(label, Promise.race([
     p,
-    new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout waiting for ${label}`)), ms))
-  ]);
+    new Promise((_, rej) => setTimeout(() => {
+      if (!settled)
+        log("error", `TIMEOUT: "${label}" still hanging after ${ms}ms`);
+      rej(new Error(`timeout waiting for ${label}`));
+    }, ms))
+  ]));
 }
 async function getCachedModule(filter, patchName) {
   const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
-  if (moduleCache.has(cacheKey)) {
+  if (moduleCache.has(cacheKey))
     return moduleCache.get(cacheKey);
+  const t0 = Date.now();
+  let module2;
+  try {
+    module2 = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 1e4, `${patchName} module`);
+  } catch (e) {
+    log("error", `"${patchName}" waitForModule failed after ${Date.now() - t0}ms: ${e}`);
+    throw e;
   }
-  const module2 = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 1e4, patchName);
+  const dt = Date.now() - t0;
+  if (module2 == null)
+    log("warn", `"${patchName}" waitForModule resolved to undefined (${dt}ms)`);
+  else if (dt > 2000)
+    log("warn", `"${patchName}" waitForModule took ${dt}ms`);
   moduleCache.set(cacheKey, module2);
   return module2;
 }
 async function loadPatch(patch) {
   const finale = {};
+  const t0 = Date.now();
   const operations = [
-    resolveIds(patch.ids).then((ids) => {
+    resolveIds(patch.ids, patch.name).then((ids) => {
       if (ids.length)
         finale.ids = ids;
-    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load IDs for ${patch.name}`, e)),
-    resolveEntries(patch.entrys).then((entrys) => {
+      else if (patch.ids)
+        log("warn", `"${patch.name}" got zero resolved ids`);
+    }).catch((e) => log("error", `"${patch.name}" resolveIds threw: ${e}`)),
+    resolveEntries(patch.entrys, patch.name).then((entrys) => {
       if (entrys.length)
         finale.entrys = entrys;
-    }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load entries for ${patch.name}`, e)),
+      else if (patch.entrys)
+        log("warn", `"${patch.name}" got zero resolved entrys`);
+    }).catch((e) => log("error", `"${patch.name}" resolveEntries threw: ${e}`)),
     ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
       try {
-        const module2 = await getCachedModule(x2, patch.name);
+        const module2 = await getCachedModule(x2, `${patch.name}[waitFor:${i2}]`);
         if (!finale.modules)
           finale.modules = [];
         finale.modules[i2] = module2;
       } catch (e) {
-        BetterDiscord.Logger.warn(`[Patcher] Failed to load module ${i2} for ${patch.name}`, e);
+        log("error", `"${patch.name}" waitFor[${i2}] failed: ${e}`);
       }
     }) : [],
     ...patch.mangled && patch.waitFor ? [
-      getCachedModule(patch.waitFor[0], patch.name).then(() => {
+      getCachedModule(patch.waitFor[0], `${patch.name}[mangled]`).then(() => {
         finale.mangled = BetterDiscord.Webpack.getMangled(patch.waitFor[0], patch.mangled);
-      }).catch((e) => BetterDiscord.Logger.warn(`[Patcher] Failed to load mangled for ${patch.name}`, e))
+        if (!finale.mangled)
+          log("warn", `"${patch.name}" getMangled returned undefined`);
+      }).catch((e) => log("error", `"${patch.name}" mangled resolution failed: ${e}`))
     ] : []
   ];
   await Promise.allSettled(operations);
-  return finale;
+  const dt = Date.now() - t0;
+  if (dt > 5000)
+    log("warn", `"${patch.name}" total load took ${dt}ms`);
+  return { finale, dt };
 }
 function loadPatches() {
   const patches = Object.values(exports_modules);
@@ -6634,13 +6723,15 @@ function loadPatches() {
     if (isCleanedUp)
       return;
     try {
-      const finale = await loadPatch(patch);
+      const { finale, dt } = await loadPatch(patch);
       if (isCleanedUp)
         return;
       patch.apply(finale, PatcherAPI.Patcher);
       loaded.push(patch);
+      patchStatus.set(patch.name, { ok: true, ms: dt });
     } catch (e) {
-      BetterDiscord.Logger.error(`[Patcher] "${patch.name}" failed`, e);
+      log("error", `"${patch.name}" failed to apply: ${e}`);
+      patchStatus.set(patch.name, { ok: false, ms: Date.now() - bootTime, error: String(e) });
     }
   });
   return cleanup;
@@ -6659,14 +6750,44 @@ function loadContextMenus() {
   for (const module2 of Object.values(exports_contextMenus)) {
     if (isCleanedUp)
       break;
-    const patch = BetterDiscord.ContextMenu.patch(module2.id, (res, props) => module2.callback(res, props));
-    loaded.push(patch);
+    try {
+      const patch = BetterDiscord.ContextMenu.patch(module2.id, (res, props) => module2.callback(res, props));
+      loaded.push(patch);
+    } catch (e) {
+      log("error", `context menu "${module2.id}" failed to patch: ${e}`);
+    }
   }
   return cleanup;
 }
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.2": [
+    {
+      changes: [
+        {
+          title: "New debug system & changelog changes",
+          type: "added",
+          items: [
+            "Added a new debug system to assist developers with any issues you encounter while using the plugin. Can be found at the bottom of plugin settings.",
+            "You can now view previous changelogs starting with v7.0.0 by right-clicking the changelog button at the bottom-left of settings.",
+            "Added a button to go to the support server in the changelog modal."
+          ]
+        },
+        {
+          title: "Hotfix",
+          type: "fixed",
+          items: [
+            "Fixed incompatibility with FreeStickers.",
+            "Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds.",
+            "Fixed Discord crashing when selecting a System theme.",
+            "Fixed Discord potentially crashing when opening the custom theme selector.",
+            "Fixed FFmpeg loading & muxing breaking if the very first thing you do is drag multiple clip files into Discord."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.1": [
     {
       changes: [
@@ -6734,7 +6855,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.1",
+  version: "7.0.2",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -6763,6 +6884,18 @@ var package_default = {
   }
 };
 
+// src/ui/ChangelogFooter.tsx
+var SUPPORT_INVITE_CODE = "HfFxUbgsBc";
+var CHANGELOG_FOOTER = /* @__PURE__ */ React.createElement("div", {
+  style: { color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }
+}, /* @__PURE__ */ React.createElement(Icon, {
+  icon: "ic:baseline-discord",
+  width: 24,
+  color: "white",
+  style: { cursor: "pointer" },
+  onClick: () => GlobalModules.InviteActions.resolveInvite(SUPPORT_INVITE_CODE)
+}));
+
 // src/global/changelog/index.tsx
 var Meta = package_default;
 function normalizeVersion(v) {
@@ -6782,6 +6915,7 @@ function startChangelog(sourceVersion) {
   BetterDiscord.UI.showChangelogModal({
     title: Meta.name,
     subtitle: `v${currentVersion}`,
+    footer: CHANGELOG_FOOTER,
     ...entry
   });
   SettingsStore_default.set("lastChangelogVersion", currentVersion);
@@ -6789,8 +6923,80 @@ function startChangelog(sourceVersion) {
 
 // src/index.tsx
 var import_varforcer = __toESM(require_varforcer(), 1);
-var { Components: Components12 } = BetterDiscord;
+
+// src/ui/Debug.tsx
 var { React: React18 } = BetterDiscord;
+var LEVEL_COLOR = { warn: "#f0b232", error: "#f23f43" };
+function DebugPanel() {
+  const [snapshot, setSnapshot] = React18.useState(getDebugSnapshot());
+  React18.useEffect(() => {
+    const id = setInterval(() => setSnapshot(getDebugSnapshot()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const { log: log2, patches, stillPending } = snapshot;
+  const patchEntries = Object.entries(patches);
+  return /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", flexDirection: "column", gap: 14, fontSize: 13 }
+  }, !!stillPending.length && /* @__PURE__ */ React18.createElement(Section, {
+    title: `Still Hanging (${stillPending.length})`
+  }, stillPending.map((p) => /* @__PURE__ */ React18.createElement(Row, {
+    key: p.label,
+    left: p.label,
+    right: `${(p.elapsedMs / 1000).toFixed(1)}s`,
+    color: "#f0b232"
+  }))), /* @__PURE__ */ React18.createElement(Section, {
+    title: `Patches (${patchEntries.length})`,
+    empty: "No patches have loaded yet."
+  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React18.createElement(Row, {
+    key: name,
+    left: name,
+    right: s.ok ? `${s.ms}ms` : "failed",
+    color: s.ok ? "#23a55a" : "#f23f43",
+    sub: s.error
+  }))), /* @__PURE__ */ React18.createElement(Section, {
+    title: `Log (${log2.length})`,
+    empty: "No warnings or errors — looking good."
+  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React18.createElement(Row, {
+    key: i2,
+    left: e.msg,
+    right: `+${e.t}ms`,
+    color: LEVEL_COLOR[e.level]
+  }))));
+}
+function Section({ title, children, empty }) {
+  const items = React18.Children.toArray(children).filter(Boolean);
+  return /* @__PURE__ */ React18.createElement("div", null, /* @__PURE__ */ React18.createElement("div", {
+    style: {
+      color: "var(--text-muted)",
+      fontWeight: 600,
+      marginBottom: 6,
+      textTransform: "uppercase",
+      fontSize: 11,
+      letterSpacing: 0.3
+    }
+  }, title), items.length ? /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", flexDirection: "column", gap: 2, maxHeight: 240, overflowY: "auto" }
+  }, items) : empty && /* @__PURE__ */ React18.createElement("div", {
+    style: { color: "var(--text-muted)", fontSize: 12, fontStyle: "italic" }
+  }, empty));
+}
+function Row({ left, right, color, sub }) {
+  return /* @__PURE__ */ React18.createElement("div", {
+    style: { padding: "6px 8px", borderRadius: 4 }
+  }, /* @__PURE__ */ React18.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", gap: 8 }
+  }, /* @__PURE__ */ React18.createElement("span", {
+    style: { color: "var(--text-normal)", wordBreak: "break-word" }
+  }, left), /* @__PURE__ */ React18.createElement("span", {
+    style: { color, flexShrink: 0, fontFamily: "var(--font-code)" }
+  }, right)), sub && /* @__PURE__ */ React18.createElement("div", {
+    style: { color: "var(--text-muted)", fontSize: 11, marginTop: 2, wordBreak: "break-word" }
+  }, sub));
+}
+
+// src/index.tsx
+var { Components: Components12 } = BetterDiscord;
+var { React: React19 } = BetterDiscord;
 var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
@@ -7214,11 +7420,11 @@ var SettingsSchema = [
       const update = (patch) => {
         onChange({ link, type, ...patch });
       };
-      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(Components12.TextInput, {
         value: link,
         placeholder: "https://cdn.discordapp.com/attachments/...",
         onChange: (v) => update({ link: v })
-      }), /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+      }), /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
         value: type,
         options: [
           { label: "Image", value: "png" },
@@ -7306,7 +7512,7 @@ This will reload the plugin and you can use it normally.`,
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React18.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React19.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -7350,6 +7556,41 @@ This will reload the plugin and you can use it normally.`,
       SettingsStore_default.set("installedVersion", currentVersion);
     }
   }
+  showChangelogFor(version2) {
+    const entry = changelog_default?.[version2];
+    if (!entry)
+      return;
+    BetterDiscord.UI.showChangelogModal({
+      title: package_default.name,
+      subtitle: `v${version2}`,
+      footer: CHANGELOG_FOOTER,
+      ...entry[0]
+    });
+  }
+  buildChangelogMenu() {
+    const versions = Object.keys(changelog_default);
+    const getMajor = (v) => parseInt(v.split(".")[0], 10) || 0;
+    const majors = new Map;
+    for (const version2 of versions) {
+      const major = getMajor(version2);
+      if (!majors.has(major))
+        majors.set(major, []);
+      majors.get(major).push(version2);
+    }
+    const sortedMajors = [...majors.keys()].sort((a, b) => b - a);
+    return sortedMajors.map((major) => {
+      const versionsForMajor = majors.get(major).sort((a, b) => BetterDiscord.Utils.semverCompare(a, b));
+      return {
+        type: "submenu",
+        label: `v${major}`,
+        items: versionsForMajor.map((version2) => ({
+          type: "text",
+          label: `v${version2}`,
+          action: () => this.showChangelogFor(version2)
+        }))
+      };
+    });
+  }
   stop() {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
@@ -7375,28 +7616,28 @@ This will reload the plugin and you can use it normally.`,
     };
     switch (def.type) {
       case "custom":
-        return /* @__PURE__ */ React18.createElement(def.Custom, {
+        return /* @__PURE__ */ React19.createElement(def.Custom, {
           value,
           options: def.options,
           onChange
         });
       case "boolean":
-        return /* @__PURE__ */ React18.createElement(Components12.SwitchInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React18.createElement(Components12.NumberInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React18.createElement(Components12.TextInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React18.createElement(Components12.DropdownInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -7416,39 +7657,53 @@ This will reload the plugin and you can use it normally.`,
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React18.createElement(React18.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React18.createElement(Components12.SettingGroup, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
         collapsible: true,
         shown: false
-      }, defs.map((def) => /* @__PURE__ */ React18.createElement(Components12.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React19.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note
-      }, this.renderControl(def, values[def.key]))))), /* @__PURE__ */ React18.createElement("div", {
-        style: { padding: "5px", justifyContent: "space-between" }
-      }, /* @__PURE__ */ React18.createElement("div", {
-        style: { width: "24px" }
-      }, /* @__PURE__ */ React18.createElement(Components12.Tooltip, {
+      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore12.getCurrentUser().id) && /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
+        name: "Debug",
+        collapsible: true,
+        shown: false
+      }, /* @__PURE__ */ React19.createElement(DebugPanel, null)), /* @__PURE__ */ React19.createElement("div", {
+        style: { padding: "5px", display: "flex", justifyContent: "space-between" }
+      }, /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
         text: "Check recent changelog"
       }, (props) => {
-        return /* @__PURE__ */ React18.createElement("div", {
+        return /* @__PURE__ */ React19.createElement("div", {
           ...props
-        }, /* @__PURE__ */ React18.createElement(Icon, {
-          onClick: () => {
-            const entry = changelog_default?.[package_default.version];
-            if (!entry)
-              return;
-            BetterDiscord.UI.showChangelogModal({
-              title: package_default.name,
-              subtitle: `v${package_default.version}`,
-              ...entry[0]
-            });
+        }, /* @__PURE__ */ React19.createElement(Icon, {
+          onContextMenu: (event) => {
+            const menu = BetterDiscord.ContextMenu.buildMenu(this.buildChangelogMenu());
+            BetterDiscord.ContextMenu.open(event, menu);
           },
+          onClick: () => this.showChangelogFor(package_default.version),
           width: 24,
           icon: "material-symbols:update"
         }));
-      }))));
+      }), /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
+        text: "Copy debug info to clipboard"
+      }, (props) => /* @__PURE__ */ React19.createElement("div", {
+        ...props
+      }, /* @__PURE__ */ React19.createElement(Icon, {
+        onClick: () => {
+          const payload = {
+            version: package_default.version,
+            installedVersion: SettingsStore_default.get("installedVersion"),
+            config: SettingsStore_default.getAll(),
+            debug: getDebugSnapshot()
+          };
+          copyToClipboard(JSON.stringify(payload, null, 2));
+          BetterDiscord.UI.showToast("Debug info copied to clipboard!");
+        },
+        width: 24,
+        icon: "mdi:bug"
+      })))));
     };
   }
 }

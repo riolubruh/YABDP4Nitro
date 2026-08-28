@@ -2,6 +2,7 @@ import changelog from "./changelog.json";
 import { BetterDiscord } from "@shared/";
 import Metadata from "../../../package.json";
 import SettingsStore from "../stores/SettingsStore.ts";
+import {CHANGELOG_FOOTER} from "../../ui/ChangelogFooter.tsx";
 
 const Meta = Metadata;
 
@@ -23,6 +24,7 @@ export function startChangelog(sourceVersion) {
 	BetterDiscord.UI.showChangelogModal({
 		title: Meta.name,
 		subtitle: `v${currentVersion}`,
+		footer: CHANGELOG_FOOTER,
 		...entry,
 	});
 
