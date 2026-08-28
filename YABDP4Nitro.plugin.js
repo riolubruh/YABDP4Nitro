@@ -6781,7 +6781,7 @@ var changelog_default = {
           type: "fixed",
           items: [
             "Fixed incompatibility with FreeStickers.",
-            "Fixed a incompatibility issue with Nobara/Bad package managers uploading 5 year old Electrons."
+            "Fixed an incompatibility caused by some package managers (looking at you, Fedora) shipping 5-year-old Electron builds."
           ]
         }
       ]
