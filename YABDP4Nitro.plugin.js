@@ -2948,6 +2948,9 @@ var GlobalModules = wpGetBulkKeyed({
   },
   ProfileHelpers: {
     filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators")
+  },
+  InviteActions: {
+    filter: BetterDiscord.Webpack.Filters.byKeys("createInvite")
   }
 });
 function CloseAllContextMenus() {
@@ -6849,6 +6852,18 @@ var package_default = {
   }
 };
 
+// src/ui/ChangelogFooter.tsx
+var SUPPORT_INVITE_CODE = "HfFxUbgsBc";
+var CHANGELOG_FOOTER = /* @__PURE__ */ React.createElement("div", {
+  style: { color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }
+}, /* @__PURE__ */ React.createElement(Icon, {
+  icon: "ic:baseline-discord",
+  width: 24,
+  color: "white",
+  style: { cursor: "pointer" },
+  onClick: () => GlobalModules.InviteActions.resolveInvite(SUPPORT_INVITE_CODE)
+}));
+
 // src/global/changelog/index.tsx
 var Meta = package_default;
 function normalizeVersion(v) {
@@ -6868,6 +6883,7 @@ function startChangelog(sourceVersion) {
   BetterDiscord.UI.showChangelogModal({
     title: Meta.name,
     subtitle: `v${currentVersion}`,
+    footer: CHANGELOG_FOOTER,
     ...entry
   });
   SettingsStore_default.set("lastChangelogVersion", currentVersion);
@@ -7508,6 +7524,41 @@ This will reload the plugin and you can use it normally.`,
       SettingsStore_default.set("installedVersion", currentVersion);
     }
   }
+  showChangelogFor(version2) {
+    const entry = changelog_default?.[version2];
+    if (!entry)
+      return;
+    BetterDiscord.UI.showChangelogModal({
+      title: package_default.name,
+      subtitle: `v${version2}`,
+      footer: CHANGELOG_FOOTER,
+      ...entry[0]
+    });
+  }
+  buildChangelogMenu() {
+    const versions = Object.keys(changelog_default);
+    const getMajor = (v) => parseInt(v.split(".")[0], 10) || 0;
+    const majors = new Map;
+    for (const version2 of versions) {
+      const major = getMajor(version2);
+      if (!majors.has(major))
+        majors.set(major, []);
+      majors.get(major).push(version2);
+    }
+    const sortedMajors = [...majors.keys()].sort((a, b) => b - a);
+    return sortedMajors.map((major) => {
+      const versionsForMajor = majors.get(major).sort((a, b) => BetterDiscord.Utils.semverCompare(a, b));
+      return {
+        type: "submenu",
+        label: `v${major}`,
+        items: versionsForMajor.map((version2) => ({
+          type: "text",
+          label: `v${version2}`,
+          action: () => this.showChangelogFor(version2)
+        }))
+      };
+    });
+  }
   stop() {
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
@@ -7596,50 +7647,10 @@ This will reload the plugin and you can use it normally.`,
           ...props
         }, /* @__PURE__ */ React19.createElement(Icon, {
           onContextMenu: (event) => {
-            const versions = Object.keys(changelog_default);
-            const getMajor = (v) => parseInt(v.split(".")[0], 10) || 0;
-            const majors = new Map;
-            for (const version2 of versions) {
-              const major = getMajor(version2);
-              if (!majors.has(major))
-                majors.set(major, []);
-              majors.get(major).push(version2);
-            }
-            const sortedMajors = [...majors.keys()].sort((a, b) => b - a);
-            const items = sortedMajors.map((major) => {
-              const versionsForMajor = majors.get(major).sort((a, b) => BetterDiscord.Utils.semverCompare(a, b));
-              return {
-                type: "submenu",
-                label: `v${major}`,
-                items: versionsForMajor.map((version2) => ({
-                  type: "text",
-                  label: `v${version2}`,
-                  action: () => {
-                    const entry = changelog_default?.[version2];
-                    if (!entry)
-                      return;
-                    BetterDiscord.UI.showChangelogModal({
-                      title: package_default.name,
-                      subtitle: `v${version2}`,
-                      ...entry[0]
-                    });
-                  }
-                }))
-              };
-            });
-            const menu = BetterDiscord.ContextMenu.buildMenu(items);
+            const menu = BetterDiscord.ContextMenu.buildMenu(this.buildChangelogMenu());
             BetterDiscord.ContextMenu.open(event, menu);
           },
-          onClick: () => {
-            const entry = changelog_default?.[package_default.version];
-            if (!entry)
-              return;
-            BetterDiscord.UI.showChangelogModal({
-              title: package_default.name,
-              subtitle: `v${package_default.version}`,
-              ...entry[0]
-            });
-          },
+          onClick: () => this.showChangelogFor(package_default.version),
           width: 24,
           icon: "material-symbols:update"
         }));

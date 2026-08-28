@@ -61,6 +61,9 @@ export const GlobalModules = wpGetBulkKeyed({
 	ProfileHelpers: {
 		filter: BetterDiscord.Webpack.Filters.bySource("UserProfileModalActionCreators"),
 	},
+	InviteActions: {
+		filter: BetterDiscord.Webpack.Filters.byKeys("createInvite")
+	}
 });
 
 export const LayerManager = {

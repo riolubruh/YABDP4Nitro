@@ -15,6 +15,7 @@ import FFmpegStore from "./global/stores/FFmpegStore.ts";
 import changelog from "./global/changelog/changelog.json";
 import DebugPanel from "./ui/Debug.tsx";
 import badgesStore from "./global/stores/BadgesStore.tsx";
+import {CHANGELOG_FOOTER} from "./ui/ChangelogFooter.tsx";
 
 const {Components} = BetterDiscord;
 const {React} = BetterDiscord;
@@ -659,6 +660,48 @@ export default class Plugin {
         }
     }
 
+    private showChangelogFor(version: string) {
+        const entry = changelog?.[version];
+        if (!entry) return;
+
+        BetterDiscord.UI.showChangelogModal({
+            title: Meta.name,
+            subtitle: `v${version}`,
+            footer: CHANGELOG_FOOTER,
+            ...entry[0],
+        });
+    }
+
+    private buildChangelogMenu() {
+        const versions = Object.keys(changelog);
+        const getMajor = (v: string) => parseInt(v.split(".")[0], 10) || 0;
+
+        const majors = new Map<number, string[]>();
+        for (const version of versions) {
+            const major = getMajor(version);
+            if (!majors.has(major)) majors.set(major, []);
+            majors.get(major)!.push(version);
+        }
+
+        const sortedMajors = [...majors.keys()].sort((a, b) => b - a);
+
+        return sortedMajors.map((major) => {
+            const versionsForMajor = majors
+                .get(major)!
+                .sort((a, b) => BetterDiscord.Utils.semverCompare(a, b));
+
+            return {
+                type: "submenu",
+                label: `v${major}`,
+                items: versionsForMajor.map((version) => ({
+                    type: "text",
+                    label: `v${version}`,
+                    action: () => this.showChangelogFor(version),
+                })),
+            };
+        });
+    }
+
     stop() {
         this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
@@ -764,65 +807,12 @@ export default class Plugin {
                                     <div {...props}>
                                         <Icon
                                             onContextMenu={(event) => {
-                                                const versions = Object.keys(changelog);
-
-                                                const getMajor = (v: string) =>
-                                                    parseInt(v.split(".")[0], 10) || 0;
-
-                                                const majors = new Map<number, string[]>();
-                                                for (const version of versions) {
-                                                    const major = getMajor(version);
-                                                    if (!majors.has(major)) majors.set(major, []);
-                                                    majors.get(major)!.push(version);
-                                                }
-
-                                                const sortedMajors = [...majors.keys()].sort(
-                                                    (a, b) => b - a
+                                                const menu = BetterDiscord.ContextMenu.buildMenu(
+                                                    this.buildChangelogMenu()
                                                 );
-
-                                                const items = sortedMajors.map((major) => {
-                                                    const versionsForMajor = majors
-                                                        .get(major)!
-                                                        .sort((a, b) =>
-                                                            BetterDiscord.Utils.semverCompare(a, b)
-                                                        );
-
-                                                    return {
-                                                        type: "submenu",
-                                                        label: `v${major}`,
-                                                        items: versionsForMajor.map((version) => ({
-                                                            type: "text",
-                                                            label: `v${version}`,
-                                                            action: () => {
-                                                                const entry = changelog?.[version];
-                                                                if (!entry) return;
-
-                                                                BetterDiscord.UI.showChangelogModal(
-                                                                    {
-                                                                        title: Meta.name,
-                                                                        subtitle: `v${version}`,
-                                                                        ...entry[0],
-                                                                    }
-                                                                );
-                                                            },
-                                                        })),
-                                                    };
-                                                });
-
-                                                const menu =
-                                                    BetterDiscord.ContextMenu.buildMenu(items);
                                                 BetterDiscord.ContextMenu.open(event, menu);
                                             }}
-                                            onClick={() => {
-                                                const entry = changelog?.[Meta.version];
-                                                if (!entry) return;
-
-                                                BetterDiscord.UI.showChangelogModal({
-                                                    title: Meta.name,
-                                                    subtitle: `v${Meta.version}`,
-                                                    ...entry[0],
-                                                });
-                                            }}
+                                            onClick={() => this.showChangelogFor(Meta.version)}
                                             width={24}
                                             icon={"material-symbols:update"}
                                         />
