@@ -15,7 +15,8 @@
 					"title": "Hotfix",
 					"type": "fixed",
 					"items": [
-						"Fixed incompatibility with FreeStickers."
+						"Fixed incompatibility with FreeStickers.",
+						"Fixed a incompatibility issue with Nobara/Bad package managers uploading 5 year old Electrons."
 					]
 				}
 			]

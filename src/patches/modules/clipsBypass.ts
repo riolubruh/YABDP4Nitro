@@ -44,7 +44,18 @@ function concatArrayBuffers(buf1, buf2) {
 	return newArray.buffer;
 }
 
-const udtaBuffer = Uint8Array.fromBase64("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
+function base64ToUint8Array(base64) {
+	const binary = atob(base64);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+	return bytes;
+}
+
+// WHO THE HELL IS USING NOBARA IN 2026!!!?!??!?!
+// fromBase64 was released last year.. some linux dudes/gals have host updates from 5 year old electrons :sob:.
+const udtaBuffer = base64ToUint8Array("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 
 const FREE_FILE_LIMIT = 20971520; //20MB
 const CLIPS_FILE_LIMIT = 104857600; //100MB
