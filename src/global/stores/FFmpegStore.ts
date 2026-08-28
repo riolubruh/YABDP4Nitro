@@ -18,7 +18,8 @@ export default new (class FFmpegStore extends BetterDiscord.Utils.Store {
 
 		if (this.loading){
 			while (this.loading){
-				await new Promise(r => setTimeout(r, 10));
+				await new Promise(r => setTimeout(r, 200));
+				console.log(performance.now());
 			}
 			return;
 		}
