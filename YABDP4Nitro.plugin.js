@@ -44,39 +44,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -213,7 +234,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -403,7 +424,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw new TypeError('"ext" argument must be a string');
+    throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -475,7 +496,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -7435,6 +7456,41 @@ This will reload the plugin and you can use it normally.`,
         return /* @__PURE__ */ React18.createElement("div", {
           ...props
         }, /* @__PURE__ */ React18.createElement(Icon, {
+          onContextMenu: (event) => {
+            const versions = Object.keys(changelog_default);
+            const getMajor = (v) => parseInt(v.split(".")[0], 10) || 0;
+            const majors = new Map;
+            for (const version2 of versions) {
+              const major = getMajor(version2);
+              if (!majors.has(major))
+                majors.set(major, []);
+              majors.get(major).push(version2);
+            }
+            const sortedMajors = [...majors.keys()].sort((a, b) => b - a);
+            const items = sortedMajors.map((major) => {
+              const versionsForMajor = majors.get(major).sort((a, b) => BetterDiscord.Utils.semverCompare(a, b));
+              return {
+                type: "submenu",
+                label: `v${major}`,
+                items: versionsForMajor.map((version2) => ({
+                  type: "text",
+                  label: `v${version2}`,
+                  action: () => {
+                    const entry = changelog_default?.[version2];
+                    if (!entry)
+                      return;
+                    BetterDiscord.UI.showChangelogModal({
+                      title: package_default.name,
+                      subtitle: `v${version2}`,
+                      ...entry[0]
+                    });
+                  }
+                }))
+              };
+            });
+            const menu = BetterDiscord.ContextMenu.buildMenu(items);
+            BetterDiscord.ContextMenu.open(event, menu);
+          },
           onClick: () => {
             const entry = changelog_default?.[package_default.version];
             if (!entry)

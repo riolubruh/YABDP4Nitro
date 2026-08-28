@@ -137,7 +137,11 @@ export default {
 		async () =>
 			await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
 				raw: true,
-			}).then((x) => Object.values(x.declarations).find((x: any) => x?.TOGGLE_SCREENSHARE)!.TOGGLE_SCREENSHARE.handler.toString())
+			}).then((x) =>
+				Object.values(x.declarations)
+					.find((x: any) => x?.TOGGLE_SCREENSHARE)!
+					.TOGGLE_SCREENSHARE.handler.toString()
+			),
 	],
 	ids: [
 		async () =>

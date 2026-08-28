@@ -95,35 +95,35 @@ async function loadPatch(patch: Patch) {
 
 		...(Array.isArray(patch.waitFor)
 			? patch.waitFor.map(async (x, i) => {
-				try {
-					const module = await getCachedModule(x, patch.name);
-					if (!finale.modules) finale.modules = [];
-					finale.modules[i] = module;
-				} catch (e) {
-					BetterDiscord.Logger.warn(
-						`[Patcher] Failed to load module ${i} for ${patch.name}`,
-						e
-					);
-				}
-			})
+					try {
+						const module = await getCachedModule(x, patch.name);
+						if (!finale.modules) finale.modules = [];
+						finale.modules[i] = module;
+					} catch (e) {
+						BetterDiscord.Logger.warn(
+							`[Patcher] Failed to load module ${i} for ${patch.name}`,
+							e
+						);
+					}
+				})
 			: []),
 
 		...(patch.mangled && patch.waitFor
 			? [
-				getCachedModule(patch.waitFor[0], patch.name)
-					.then(() => {
-						finale.mangled = BetterDiscord.Webpack.getMangled(
-							patch.waitFor![0],
-							patch.mangled
-						);
-					})
-					.catch((e) =>
-						BetterDiscord.Logger.warn(
-							`[Patcher] Failed to load mangled for ${patch.name}`,
-							e
-						)
-					),
-			]
+					getCachedModule(patch.waitFor[0], patch.name)
+						.then(() => {
+							finale.mangled = BetterDiscord.Webpack.getMangled(
+								patch.waitFor![0],
+								patch.mangled
+							);
+						})
+						.catch((e) =>
+							BetterDiscord.Logger.warn(
+								`[Patcher] Failed to load mangled for ${patch.name}`,
+								e
+							)
+						),
+				]
 			: []),
 	];
 
