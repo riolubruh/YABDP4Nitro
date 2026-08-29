@@ -26,7 +26,7 @@ export default new (class UserBackgroundStore extends BetterDiscord.Utils.Store 
 	}
 
 	async fetch() {
-		const data = await BetterDiscord.Net.fetch(USER_BG);
+		const data = await BetterDiscord.Net.fetch(USER_BG, {timeout:120000});
 		const response = await data.json();
 
 		this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };

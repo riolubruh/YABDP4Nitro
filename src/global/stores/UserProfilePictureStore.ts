@@ -26,7 +26,10 @@ export default new (class UserProfilePictureStore extends BetterDiscord.Utils.St
 	}
 
 	async fetch() {
-		const data = await BetterDiscord.Net.fetch(USER_PFP);
+		const data = await BetterDiscord.Net.fetch(USER_PFP, {timeout: 120000});
+		if(!data.ok || data.status != 200){
+			return BetterDiscord.Logger.error("Failed to download UserPFP database!", data);
+		}
 		const response = await data.json();
 
 		this.users = response.avatars;

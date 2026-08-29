@@ -531,6 +531,11 @@ export default class Plugin {
     private unpatch = loadContextMenus();
     private source: string = "";
 
+    load()
+    {
+        loadPatches();
+    }
+
     async start() {
         const version =
             BetterDiscord.Utils.semverCompare(normalizeVersion(BdApi.version), "1.14.0") <= 0;
@@ -563,7 +568,7 @@ export default class Plugin {
         overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
 
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
-        checkForUpdatesEnabled && (await this.checkUpdate());
+        checkForUpdatesEnabled && (this.checkUpdate());
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) =>
             SettingsStore.set("appIcon", id)
@@ -581,8 +586,7 @@ export default class Plugin {
             };
         }
 
-        await UserBackgroundStore.fetch();
-        await loadPatches();
+        UserBackgroundStore.fetch();
     }
 
     exposed = {
@@ -591,8 +595,16 @@ export default class Plugin {
 
     async checkUpdate() {
         const res = await BetterDiscord.Net.fetch(
-            "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js"
+            "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js",
+            {timeout: 10000}
         );
+
+        if(!res.ok || res.status != 200){
+            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+            BetterDiscord.Logger.error("Failed to check for updates!", res);
+            return;
+        }
+
         this.source = await res.text();
 
         const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];

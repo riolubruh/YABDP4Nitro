@@ -2,7 +2,7 @@
 	"name": "YABDP4Nitro",
 	"module": "src/index.tsx",
 	"type": "module",
-	"version": "7.0.2",
+	"version": "7.0.3",
 	"private": true,
 	"devDependencies": {
 		"@types/bun": "latest"
@@ -22,6 +22,7 @@
 		}
 	},
 	"dependencies": {
+		"@betterdiscord/types": "^1.14.1",
 		"@eslint/js": "^10.0.1",
 		"@iconify/react": "^6.0.2",
 		"@types/react": "^19.2.18",

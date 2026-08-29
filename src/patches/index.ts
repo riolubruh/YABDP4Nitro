@@ -81,9 +81,9 @@ async function resolveList(
 }
 
 const resolveIds = (ids: Ids | undefined, patchName: string) =>
-	resolveList(ids, BdApi.Utils.forceLoad, idCache, "id", patchName);
+	resolveList(ids, BetterDiscord.Utils.forceLoad, idCache, "id", patchName);
 const resolveEntries = (ids: Ids | undefined, patchName: string) =>
-	resolveList(ids, BdApi.Utils.loadEntry, entryCache, "entry", patchName);
+	resolveList(ids, BetterDiscord.Utils.loadEntry, entryCache, "entry", patchName);
 
 export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 	let settled = false;

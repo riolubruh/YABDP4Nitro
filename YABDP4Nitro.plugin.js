@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.2
+ * @version 7.0.3
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -722,7 +722,7 @@ var UserBackgroundStore_default = new class UserBackgroundStore extends BetterDi
     return Boolean(this.users[id]);
   }
   async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_BG);
+    const data = await BetterDiscord.Net.fetch(USER_BG, { timeout: 120000 });
     const response = await data.json();
     this.meta = { ...this.meta, ["bucket"]: response.bucket, ["prefix"]: response.prefix };
     this.users = response.users;
@@ -2957,7 +2957,10 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
     return Boolean(this.users[id]);
   }
   async fetch() {
-    const data = await BetterDiscord.Net.fetch(USER_PFP);
+    const data = await BetterDiscord.Net.fetch(USER_PFP, { timeout: 120000 });
+    if (!data.ok || data.status != 200) {
+      return BetterDiscord.Logger.error("Failed to download UserPFP database!", data);
+    }
     const response = await data.json();
     this.users = response.avatars;
   }
@@ -4126,7 +4129,7 @@ async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData,
   const preexisting = extraData.attachmentsToUpload ?? [];
   extraData.attachmentsToUpload = preexisting;
   const uploads = await Promise.all(filesToDownload.map(async (f) => {
-    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+    const blob = await BetterDiscord.Net.fetch(f.url, { timeout: 3000000 }).then((r) => r.blob());
     return new CloudUploader({
       file: new File([blob], f.filename),
       isClip: false,
@@ -5329,8 +5332,8 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
   }
   async fetch() {
     const [collections, quests] = await Promise.all([
-      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json").then((r) => r.json()),
-      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json").then((r) => r.json())
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json", { timeout: 120000 }).then((r) => r.json()),
+      BetterDiscord.Net.fetch("https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json", { timeout: 120000 }).then((r) => r.json())
     ]);
     this.collections = collections;
     this.quests = quests;
@@ -6279,7 +6282,7 @@ var CUSTOM_ID = 69;
 var TARGET_WIDTH = 1280;
 var TARGET_HEIGHT = 720;
 async function fetchAsBytes(link) {
-  const res = await BetterDiscord.Net.fetch(link);
+  const res = await BetterDiscord.Net.fetch(link, { timeout: 300000 });
   const buf = await res.arrayBuffer();
   return new Uint8ClampedArray(buf);
 }
@@ -6453,7 +6456,7 @@ var message_default = {
         return;
       }
       let files = await Promise.all(attachments.map(async (attachment) => ({
-        blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
+        blob: await (await BetterDiscord.Net.fetch(attachment.url, { timeout: 3000000 })).arrayBuffer(),
         fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z")
       })));
       const zipped = {};
@@ -6629,8 +6632,8 @@ async function resolveList(ids, loader, cache, kind, patchName) {
   });
   return resolved;
 }
-var resolveIds = (ids, patchName) => resolveList(ids, BdApi.Utils.forceLoad, idCache, "id", patchName);
-var resolveEntries = (ids, patchName) => resolveList(ids, BdApi.Utils.loadEntry, entryCache, "entry", patchName);
+var resolveIds = (ids, patchName) => resolveList(ids, BetterDiscord.Utils.forceLoad, idCache, "id", patchName);
+var resolveEntries = (ids, patchName) => resolveList(ids, BetterDiscord.Utils.loadEntry, entryCache, "entry", patchName);
 function withTimeout(p, ms, label) {
   let settled = false;
   p.then(() => settled = true, () => settled = true);
@@ -6762,6 +6765,20 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.3": [
+    {
+      changes: [
+        {
+          title: "ZAPRET / Networking Issue Fixes",
+          type: "fixed",
+          items: [
+            "Fixed an issue Russian users running ZAPRET were having where patches would not load, i.e. the plugin would not work, because `Net.fetch` calls would hang indefinitely.",
+            "Fixed regression in 7.0.0 - re-added toast to warn the user if the plugin fails to check for updates."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.2": [
     {
       changes: [
@@ -6855,7 +6872,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.2",
+  version: "7.0.3",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -6875,6 +6892,7 @@ var package_default = {
     }
   },
   dependencies: {
+    "@betterdiscord/types": "^1.14.1",
     "@eslint/js": "^10.0.1",
     "@iconify/react": "^6.0.2",
     "@types/react": "^19.2.18",
@@ -7465,6 +7483,9 @@ function overrideVariant(experimentName, variantId) {
 class Plugin {
   unpatch = loadContextMenus();
   source = "";
+  load() {
+    loadPatches();
+  }
   async start() {
     const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
     if (!version2 && !SettingsStore_default.get("dontUpdate"))
@@ -7492,17 +7513,21 @@ This will reload the plugin and you can use it normally.`,
     overrideVariant("2026-03-soundmoji-rendering", soundmojiEnabled ? 1 : 0);
     overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
-    checkForUpdatesEnabled && await this.checkUpdate();
+    checkForUpdatesEnabled && this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (false) {}
-    await UserBackgroundStore_default.fetch();
-    await loadPatches();
+    UserBackgroundStore_default.fetch();
   }
   exposed = {
     YABDNitroPanel: CustomSettingsTab
   };
   async checkUpdate() {
-    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js");
+    const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", { timeout: 1e4 });
+    if (!res.ok || res.status != 200) {
+      BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+      BetterDiscord.Logger.error("Failed to check for updates!", res);
+      return;
+    }
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion = SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";

@@ -1,4 +1,18 @@
 {
+	"7.0.3": [
+		{
+			"changes": [
+				{
+					"title": "ZAPRET / Networking Issue Fixes",
+					"type": "fixed",
+					"items": [
+						"Fixed an issue Russian users running ZAPRET were having where patches would not load, i.e. the plugin would not work, because `Net.fetch` calls would hang indefinitely.",
+						"Fixed regression in 7.0.0 - re-added toast to warn the user if the plugin fails to check for updates."
+					]
+				}
+			]
+		}
+	],
 	"7.0.2": [
 		{
 			"changes": [
