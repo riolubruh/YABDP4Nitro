@@ -563,7 +563,7 @@ export default class Plugin {
         overrideVariant("2026-03-soundmoji-sending", soundmojiEnabled ? 2 : 0);
 
         const checkForUpdatesEnabled = SettingsStore.get("checkForUpdates");
-        checkForUpdatesEnabled && (await this.checkUpdate());
+        checkForUpdatesEnabled && (this.checkUpdate());
 
         GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({id}) =>
             SettingsStore.set("appIcon", id)
@@ -581,8 +581,8 @@ export default class Plugin {
             };
         }
 
-        await UserBackgroundStore.fetch();
-        await loadPatches();
+        UserBackgroundStore.fetch();
+        loadPatches();
     }
 
     exposed = {
@@ -591,7 +591,8 @@ export default class Plugin {
 
     async checkUpdate() {
         const res = await BetterDiscord.Net.fetch(
-            "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js"
+            "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js",
+            {timeout: 10000}
         );
         this.source = await res.text();
 

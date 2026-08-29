@@ -8,7 +8,7 @@ const TARGET_WIDTH = 1280;
 const TARGET_HEIGHT = 720;
 
 async function fetchAsBytes(link: string): Promise<Uint8ClampedArray> {
-	const res = await BetterDiscord.Net.fetch(link);
+	const res = await BetterDiscord.Net.fetch(link, {timeout:300000});
 	const buf = await res.arrayBuffer();
 	return new Uint8ClampedArray(buf);
 }

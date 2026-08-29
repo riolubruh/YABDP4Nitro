@@ -37,7 +37,7 @@ async function downloadAndUploadUrls(
 
 	const uploads = await Promise.all(
 		filesToDownload.map(async (f) => {
-			const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+			const blob = await BetterDiscord.Net.fetch(f.url, {timeout:300000}).then((r) => r.blob());
 			return new CloudUploader(
 				{
 					file: new File([blob], f.filename),

@@ -41,10 +41,12 @@ export default new (class ShopCollectiblesStore extends BetterDiscord.Utils.Stor
 	async fetch() {
 		const [collections, quests] = await Promise.all([
 			BetterDiscord.Net.fetch(
-				"https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json"
+				"https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/collectibles.json",
+				{timeout: 100000}
 			).then((r) => r.json() as Promise<ShopCollection[]>),
 			BetterDiscord.Net.fetch(
-				"https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json"
+				"https://raw.githubusercontent.com/aamiaa/discord-api-diff/refs/heads/main/quests.json",
+				{timeout: 100000}
 			).then((r) => r.json() as Promise<Quest[]>),
 		]);
 
