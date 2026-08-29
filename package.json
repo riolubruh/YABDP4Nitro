@@ -22,6 +22,7 @@
 		}
 	},
 	"dependencies": {
+		"@betterdiscord/types": "^1.14.1",
 		"@eslint/js": "^10.0.1",
 		"@iconify/react": "^6.0.2",
 		"@types/react": "^19.2.18",
