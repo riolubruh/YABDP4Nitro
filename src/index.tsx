@@ -594,6 +594,13 @@ export default class Plugin {
             "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js",
             {timeout: 10000}
         );
+
+        if(!res.ok || res.status != 200){
+            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+            BetterDiscord.Logger.error("Failed to check for updates!", res);
+            return;
+        }
+
         this.source = await res.text();
 
         const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
