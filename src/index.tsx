@@ -531,6 +531,11 @@ export default class Plugin {
     private unpatch = loadContextMenus();
     private source: string = "";
 
+    load()
+    {
+        loadPatches();
+    }
+
     async start() {
         const version =
             BetterDiscord.Utils.semverCompare(normalizeVersion(BdApi.version), "1.14.0") <= 0;
@@ -582,7 +587,6 @@ export default class Plugin {
         }
 
         UserBackgroundStore.fetch();
-        loadPatches();
     }
 
     exposed = {

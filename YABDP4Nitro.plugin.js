@@ -44,39 +44,60 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
   const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
   for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
-        get: () => mod[key],
+        get: __accessProp.bind(mod, key),
         enumerable: true
       });
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
-var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = __moduleCache.get(from), desc;
+  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function")
-    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-      get: () => from[key],
-      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-    }));
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (var key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(entry, key))
+        __defProp(entry, key, {
+          get: __accessProp.bind(from, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+        });
+  }
   __moduleCache.set(from, entry);
   return entry;
 };
+var __moduleCache;
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => all[name] = () => newValue
+      set: __exportSetter.bind(all, name)
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -213,7 +234,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -403,7 +424,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw new TypeError('"ext" argument must be a string');
+    throw TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -475,7 +496,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -2958,6 +2979,9 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
   }
   async fetch() {
     const data = await BetterDiscord.Net.fetch(USER_PFP, { timeout: 1e5 });
+    if (!data.ok || data.status != 200) {
+      return BetterDiscord.Logger.error("Failed to download UserPFP database!", data);
+    }
     const response = await data.json();
     this.users = response.avatars;
   }
@@ -4126,7 +4150,7 @@ async function downloadAndUploadUrls(filesToDownload, channelId, msg, extraData,
   const preexisting = extraData.attachmentsToUpload ?? [];
   extraData.attachmentsToUpload = preexisting;
   const uploads = await Promise.all(filesToDownload.map(async (f) => {
-    const blob = await BetterDiscord.Net.fetch(f.url).then((r) => r.blob());
+    const blob = await BetterDiscord.Net.fetch(f.url, { timeout: 300000 }).then((r) => r.blob());
     return new CloudUploader({
       file: new File([blob], f.filename),
       isClip: false,
@@ -6279,7 +6303,7 @@ var CUSTOM_ID = 69;
 var TARGET_WIDTH = 1280;
 var TARGET_HEIGHT = 720;
 async function fetchAsBytes(link) {
-  const res = await BetterDiscord.Net.fetch(link);
+  const res = await BetterDiscord.Net.fetch(link, { timeout: 300000 });
   const buf = await res.arrayBuffer();
   return new Uint8ClampedArray(buf);
 }
@@ -6453,7 +6477,7 @@ var message_default = {
         return;
       }
       let files = await Promise.all(attachments.map(async (attachment) => ({
-        blob: await (await BetterDiscord.Net.fetch(attachment.url)).arrayBuffer(),
+        blob: await (await BetterDiscord.Net.fetch(attachment.url, { timeout: 300000 })).arrayBuffer(),
         fileName: attachment.filename.replace(".zip.mp4", ".zip").replace(".7z.mp4", ".7z")
       })));
       const zipped = {};
@@ -7466,6 +7490,9 @@ function overrideVariant(experimentName, variantId) {
 class Plugin {
   unpatch = loadContextMenus();
   source = "";
+  load() {
+    loadPatches();
+  }
   async start() {
     const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
     if (!version2 && !SettingsStore_default.get("dontUpdate"))
@@ -7497,13 +7524,17 @@ This will reload the plugin and you can use it normally.`,
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (false) {}
     UserBackgroundStore_default.fetch();
-    loadPatches();
   }
   exposed = {
     YABDNitroPanel: CustomSettingsTab
   };
   async checkUpdate() {
     const res = await BetterDiscord.Net.fetch("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", { timeout: 1e4 });
+    if (!res.ok || res.status != 200) {
+      BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+      BetterDiscord.Logger.error("Failed to check for updates!", res);
+      return;
+    }
     this.source = await res.text();
     const sourceVersion = this.source.match(/@version\s+(\d+\.\d+\.\d+)/)?.[1];
     const installedVersion = SettingsStore_default.get("installedVersion") ?? package_default.version ?? "0.0.0";
