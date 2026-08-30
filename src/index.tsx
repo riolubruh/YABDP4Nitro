@@ -239,6 +239,13 @@ const SettingsSchema: SettingDef[] = [
         type: "boolean",
     },
     {
+        key: "fetchMemberOnScroll",
+        label: "Fetch Members on Scroll",
+        note: "Allows you to fetch a users profile every five seconds so you don't have to load peoples profiles individually for their customization.",
+        category: "Profile",
+        type: "boolean",
+    },
+    {
         key: "fakeProfileBanners",
         label: "Fake Profile Banners",
         note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.",

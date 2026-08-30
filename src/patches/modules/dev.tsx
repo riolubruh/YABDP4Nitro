@@ -3,9 +3,10 @@ import { BetterDiscord } from "@shared/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import { getKey } from "../../global/webpack";
 import { GlobalModules } from "@global/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const React = BetterDiscord.React;
-const DELAY_MS = 1000;
+const DELAY_MS = 5000;
 
 const { UserStore, UserProfileStore, SelectedGuildStore } = BetterDiscord.Webpack.Stores;
 
@@ -39,7 +40,8 @@ export default {
 		const module = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
 
 		patcher.after(module.Ay, "type", (_, args, res) => {
-			ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
+
+			SettingsStore.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
 
 			if (!BadgesStore.isImportant(UserStore.getCurrentUser().id)) return res;
 
