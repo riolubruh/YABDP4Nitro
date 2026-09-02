@@ -7,6 +7,7 @@ import {
 	extractDecoration,
 	extractNameplate,
 } from "../../global/shared/regexHelpers.ts";
+import IgnoreStore from "../../global/stores/IgnoreStore.tsx";
 
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
@@ -33,6 +34,14 @@ export default {
 			const dnsEnabled = SettingsStore.get("displayNameStyles");
 			const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
 			const nameplatesEnabled = SettingsStore.get("nameplatesEnabled");
+
+			if (IgnoreStore.isIgnored(userId)) {
+				ret.displayNameStyles = {colors:[]};
+				ret.avatarDecorationData = {};
+				ret.avatarDecoration = {};
+				ret.collectibles = {};
+				return;
+			}
 
 			if (dnsEnabled) {
 				const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);

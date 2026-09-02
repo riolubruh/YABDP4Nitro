@@ -1,4 +1,17 @@
 {
+	"7.0.4": [
+		{
+			"changes": [
+				{
+					"title": "New Features",
+					"type": "added",
+					"items": [
+						"Added the ability to completely ignore peoples profile customization features."
+					]
+				}
+			]
+		}
+	],
 	"7.0.3": [
 		{
 			"changes": [

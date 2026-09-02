@@ -1019,6 +1019,28 @@ function containsProfileFrame(revealedSurrogate) {
   return revealedSurrogate?.includes("pf") || false;
 }
 
+// src/global/stores/IgnoreStore.tsx
+var IgnoreStore_default = new class IgnoreStore extends BetterDiscord.Utils.Store {
+  data = BetterDiscord.Data.load("ignores") ?? {};
+  set(id, value) {
+    this.data[id] = value;
+    this.emitChange();
+    BetterDiscord.Data.save("ignores", this.data);
+  }
+  ignore(id) {
+    this.set(id, true);
+  }
+  unIgnore(id) {
+    this.set(id, false);
+  }
+  toggleIgnored(id) {
+    this.set(id, !this.isIgnored(id));
+  }
+  isIgnored(id) {
+    return !!this.data?.[id];
+  }
+};
+
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 function extractProfileColors(string) {
@@ -1042,6 +1064,12 @@ var fakeUserProfile_default = {
       const disableUserBadge = SettingsStore_default.get("disableUserBadge");
       const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
       const profileFramesEnabled = SettingsStore_default.get("profileFrames");
+      if (IgnoreStore_default.isIgnored(userId)) {
+        ret.collectibles = undefined;
+        ret.profileEffect = undefined;
+        ret.profileFrame = undefined;
+        return;
+      }
       if (!ret)
         return;
       const userBio = ret.bio;
@@ -1104,6 +1132,13 @@ var fakeUser_default = {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");
       const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
+      if (IgnoreStore_default.isIgnored(userId)) {
+        ret.displayNameStyles = { colors: [] };
+        ret.avatarDecorationData = {};
+        ret.avatarDecoration = {};
+        ret.collectibles = {};
+        return;
+      }
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
         const match = extractDisplayNameStyles(revealedText);
@@ -6455,6 +6490,7 @@ var exports_contextMenus = {};
 __export(exports_contextMenus, {
   StreamContextMenu: () => streamContext_default,
   MessageContextMenu: () => message_default,
+  IgnoreUserContextMenu: () => user_default,
   ExpressionPickerContextMenu: () => expressionPicker_default
 });
 
@@ -6595,6 +6631,29 @@ var streamContext_default = {
       })
     });
     res.props.children.props.children.splice(2, 0, ContextMenuSlider);
+  }
+};
+// src/patches/contextMenus/user.tsx
+var user_default = {
+  id: "user-context",
+  callback: (res, props) => {
+    const user = props.user;
+    const isIgnored = IgnoreStore_default.isIgnored(user.id);
+    const Menu = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      action: () => IgnoreStore_default.toggleIgnored(user.id),
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "proicons:dark-theme"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isIgnored ? "Unignore" : "Ignored", " Customizations")),
+      id: "yabdp4nitro-download-attachments"
+    });
+    const Sep = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Separator, null);
+    res.props.children.push([Menu, Sep]);
   }
 };
 // src/patches/index.ts
@@ -6788,6 +6847,19 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.4": [
+    {
+      changes: [
+        {
+          title: "New Features",
+          type: "added",
+          items: [
+            "Added the ability to completely ignore peoples profile customization features."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.3": [
     {
       changes: [

@@ -9,6 +9,7 @@ import {
 	containsProfileEffects,
 } from "../../global/shared/regexHelpers.ts";
 import regexReveals from "../../global/shared/regexReveals.ts";
+import IgnoreStore from "../../global/stores/IgnoreStore.tsx";
 
 const { UserProfileStore, SelectedGuildStore } = BetterDiscord.Webpack.Stores;
 
@@ -39,6 +40,13 @@ export default {
 				const disableUserBadge = SettingsStore.get("disableUserBadge");
 				const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
 				const profileFramesEnabled = SettingsStore.get("profileFrames");
+
+				if (IgnoreStore.isIgnored(userId)) {
+					ret.collectibles = undefined;
+					ret.profileEffect = undefined;
+					ret.profileFrame = undefined;
+					return;
+				}
 
 				if (!ret) return;
 
