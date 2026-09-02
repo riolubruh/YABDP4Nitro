@@ -7554,6 +7554,26 @@ This will reload the plugin and you can use it normally.`,
     if (!res.ok || res.status != 200) {
       BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
       BetterDiscord.Logger.error("Failed to check for updates!", res);
+      if (navigator.language.includes("ru") || navigator.languages.some((x2) => x2.includes("ru"))) {
+        BetterDiscord.UI.showNotification({
+          title: "Automatic Updater",
+          content: `We have detected that you may be in a russian area. Unfortunately we cannot do automatic updates if you are in a russian location. You will have to update manually or turn on a VPN and restart your client. Please be warned, we cannot detect versions either.
+
+Select VPN Mode if you have enabled a VPN.`,
+          actions: [
+            {
+              label: "Open Manually.",
+              onClick: () => window.open("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", "_blank")
+            },
+            {
+              label: "VPN Mode",
+              onClick: () => window.location.reload()
+            }
+          ],
+          duration: Infinity
+        });
+        return;
+      }
       return;
     }
     this.source = await res.text();

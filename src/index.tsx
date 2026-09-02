@@ -6,6 +6,7 @@ import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import {GlobalModules} from "@global/*";
 import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "./global/stores/BadgesStore.tsx";
+import badgesStore from "./global/stores/BadgesStore.tsx";
 import {copyToClipboard, getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
@@ -14,7 +15,6 @@ import varForcer from "../src/global/shared/varforcer";
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
 import changelog from "./global/changelog/changelog.json";
 import DebugPanel from "./ui/Debug.tsx";
-import badgesStore from "./global/stores/BadgesStore.tsx";
 import {CHANGELOG_FOOTER} from "./ui/ChangelogFooter.tsx";
 
 const {Components} = BetterDiscord;
@@ -603,9 +603,35 @@ export default class Plugin {
             {timeout: 10000}
         );
 
-        if(!res.ok || res.status != 200){
-            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+        if (!res.ok || res.status != 200) {
+            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", {type: "error"});
             BetterDiscord.Logger.error("Failed to check for updates!", res);
+
+            // ru_RU.KOI8-R KOI8-R
+            // ru_RU.UTF-8 UTF-8
+            // ru_RU ISO-8859-5
+            // ru_UA.UTF-8 UTF-8
+            // ru_UA KOI8-U
+
+            if (navigator.language.includes("ru") || navigator.languages.some(x => x.includes("ru"))) {
+                BetterDiscord.UI.showNotification({
+                    title: "Automatic Updater",
+                    content: "We have detected that you may be in a russian area. Unfortunately we cannot do automatic updates if you are in a russian location. You will have to update manually or turn on a VPN and restart your client. Please be warned, we cannot detect versions either.\n\nSelect VPN Mode if you have enabled a VPN.",
+                    actions: [
+                        {
+                            label: "Open Manually.",
+                            onClick: () => window.open("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", "_blank")
+                        },
+                        {
+                            label: "VPN Mode",
+                            onClick: () => window.location.reload()
+                            // lmao VPN mode, ACTIVATE!!;
+                        }
+                    ],
+                    duration: Infinity
+                })
+                return;
+            }
             return;
         }
 
@@ -841,9 +867,10 @@ export default class Plugin {
                             ))}
                         </Components.SettingGroup>
                     ))}
-                    {badgesStore.isDeveloper(UserStore.getCurrentUser().id) && <Components.SettingGroup name="Debug" collapsible shown={false}>
-                        <DebugPanel/>
-                    </Components.SettingGroup>}
+                    {badgesStore.isDeveloper(UserStore.getCurrentUser().id) &&
+                        <Components.SettingGroup name="Debug" collapsible shown={false}>
+                            <DebugPanel/>
+                        </Components.SettingGroup>}
                     <div
                         style={{padding: "5px", display: "flex", justifyContent: "space-between"}}
                     >
