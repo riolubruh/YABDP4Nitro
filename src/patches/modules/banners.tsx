@@ -105,6 +105,9 @@ export default {
 			const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, {
 				walkable: ["props", "children"],
 			});
+
+			BadgesStore.isImportant(UserStore.getCurrentUser().id) && (ret = [<Debug user={props.user} />, ret])
+
 			try {
 				NodePatcher.patch(newRet ?? ret, (props, res) => {
 					const bannerUrl = getBannerUrl(props.user.id);
@@ -113,9 +116,7 @@ export default {
 			} catch (e) {
 				BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
 			}
-			return BadgesStore.isImportant(UserStore.getCurrentUser().id)
-				? [<Debug user={props.user} />, ret]
-				: ret;
+			return ret
 		});
 	},
 };

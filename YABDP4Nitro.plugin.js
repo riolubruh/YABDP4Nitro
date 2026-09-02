@@ -3062,6 +3062,9 @@ var banners_default = {
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, {
         walkable: ["props", "children"]
       });
+      BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) && (ret = [/* @__PURE__ */ React.createElement(Debug, {
+        user: props.user
+      }), ret]);
       try {
         NodePatcher.patch(newRet ?? ret, (props2, res) => {
           const bannerUrl = getBannerUrl(props2.user.id);
@@ -3070,9 +3073,7 @@ var banners_default = {
       } catch (e) {
         BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
       }
-      return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
-        user: props.user
-      }), ret] : ret;
+      return ret;
     });
   }
 };
@@ -7512,10 +7513,8 @@ function overrideVariant(experimentName, variantId) {
 class Plugin {
   unpatch = loadContextMenus();
   source = "";
-  load() {
-    loadPatches();
-  }
   async start() {
+    loadPatches();
     const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
     if (!version2 && !SettingsStore_default.get("dontUpdate"))
       return BetterDiscord.UI.showNotification({
