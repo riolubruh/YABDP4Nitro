@@ -615,20 +615,25 @@ export default class Plugin {
 
             if (navigator.language.includes("ru") || navigator.languages.some(x => x.includes("ru"))) {
                 BetterDiscord.UI.showNotification({
-                    title: "Automatic Updater",
-                    content: "We have detected that you may be in a russian area. Unfortunately we cannot do automatic updates if you are in a russian location. You will have to update manually or turn on a VPN and restart your client. Please be warned, we cannot detect versions either.\n\nSelect VPN Mode if you have enabled a VPN.",
+                    title: "YABDP4Nitro Automatic Updater",
+                    content: "We have detected that you may be in a Russian area. Unfortunately we cannot do automatic updates due to network blocking. You will have to update manually or turn on a VPN and reload the plugin. Please be warned, we cannot detect versions either.\n\nSelect VPN Mode if you have enabled a VPN.",
                     actions: [
-                        {
-                            label: "Open Manually.",
+                        /*{
+                            label: "Manual Update",
                             onClick: () => window.open("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", "_blank")
+                        },*/
+                        {
+                            label: "Disable",
+                            onClick: () => SettingsStore.set("checkForUpdates", false)
                         },
                         {
                             label: "VPN Mode",
-                            onClick: () => window.location.reload()
+                            onClick: () => BetterDiscord.Plugins.reload(Meta.name)
                             // lmao VPN mode, ACTIVATE!!;
                         }
                     ],
-                    duration: Infinity
+                    duration: Infinity,
+                    type: "warning"
                 })
                 return;
             }

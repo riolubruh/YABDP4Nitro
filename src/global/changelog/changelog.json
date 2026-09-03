@@ -6,7 +6,15 @@
 					"title": "New Features",
 					"type": "added",
 					"items": [
-						"Added the ability to completely ignore peoples profile customization features. You can ignore a users 3y3 encoding or their normal nitro perks!\nHaha get it?"
+						"Added the ability to completely ignore peoples profile customization features. You can ignore a user's 3y3 and/or normal Nitro profile customization.",
+						"Added Fetch Members on Scroll option which will automatically fetch user profiles so that 3y3 in the user's bio can affect their fake profile without opening their profile."
+					]
+				},
+				{
+					"title": "Russian User Update Checker Notice",
+					"type": "improved",
+					"items": [
+						"Added a notice if the update checker fails and the user is Russian explaining the problem and prompting the user to either disable the update checker or enable a VPN."
 					]
 				}
 			]
