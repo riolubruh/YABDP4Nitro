@@ -35,11 +35,15 @@ export default {
 			const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
 			const nameplatesEnabled = SettingsStore.get("nameplatesEnabled");
 
-			if (IgnoreStore.isIgnored(userId)) {
+			if (IgnoreStore.isIgnored(userId, "nitro")) {
 				ret.displayNameStyles = {colors:[]};
 				ret.avatarDecorationData = {};
 				ret.avatarDecoration = {};
 				ret.collectibles = {};
+				return;
+			}
+
+			if (IgnoreStore.isIgnored(userId, "encoding")) {
 				return;
 			}
 

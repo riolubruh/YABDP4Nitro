@@ -1022,22 +1022,35 @@ function containsProfileFrame(revealedSurrogate) {
 // src/global/stores/IgnoreStore.tsx
 var IgnoreStore_default = new class IgnoreStore extends BetterDiscord.Utils.Store {
   data = BetterDiscord.Data.load("ignores") ?? {};
-  set(id, value) {
-    this.data[id] = value;
+  persist() {
     this.emitChange();
     BetterDiscord.Data.save("ignores", this.data);
   }
-  ignore(id) {
-    this.set(id, true);
+  getEntry(id) {
+    return this.data[id] ?? { nitro: false, encoding: false };
   }
-  unIgnore(id) {
-    this.set(id, false);
+  ignore(id, flags = { nitro: true, encoding: true }) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, ...flags };
+    this.persist();
   }
-  toggleIgnored(id) {
-    this.set(id, !this.isIgnored(id));
+  unIgnore(id, flags = { nitro: false, encoding: false }) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, ...flags };
+    this.persist();
   }
-  isIgnored(id) {
-    return !!this.data?.[id];
+  toggleIgnored(id, key) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, [key]: !entry[key] };
+    this.persist();
+  }
+  isIgnored(id, key) {
+    const entry = this.data?.[id];
+    if (!entry)
+      return false;
+    if (key)
+      return !!entry[key];
+    return !!(entry.nitro || entry.encoding);
   }
 };
 
@@ -1064,41 +1077,44 @@ var fakeUserProfile_default = {
       const disableUserBadge = SettingsStore_default.get("disableUserBadge");
       const profileThemesEnabled = SettingsStore_default.get("fakeProfileThemes");
       const profileFramesEnabled = SettingsStore_default.get("profileFrames");
-      if (IgnoreStore_default.isIgnored(userId)) {
+      if (!ret)
+        return;
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
         ret.collectibles = undefined;
         ret.profileEffect = undefined;
         ret.profileFrame = undefined;
         return;
       }
-      if (!ret)
-        return;
+      const encodingIgnored = IgnoreStore_default.isIgnored(userId, "encoding");
       const userBio = ret.bio;
-      (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
       const revealedGlobalBio = secondsightifyRevealOnly(userBio);
-      if (!killProfileEffects && profileEffectsEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-        const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
-        if (parsed && containsProfileEffects(parsed)) {
-          const skuId = extractProfileEffects(parsed);
-          skuId && (ret.profileEffect = {
-            skuId,
-            expiresAt: undefined
-          });
+      if (!encodingIgnored) {
+        (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
+        if (!killProfileEffects && profileEffectsEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+          const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
+          if (parsed && containsProfileEffects(parsed)) {
+            const skuId = extractProfileEffects(parsed);
+            skuId && (ret.profileEffect = {
+              skuId,
+              expiresAt: undefined
+            });
+          }
+        }
+        if (profileThemesEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
+          const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
+          match && (ret.themeColors = match);
+        }
+        if (profileFramesEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+          const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
+          const match = extractProfileFrame(revealedSurrogate);
+          match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
         }
       }
       if (killProfileEffects) {
         ret.profileEffect = {};
-      }
-      if (profileThemesEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
-        const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
-        match && (ret.themeColors = match);
-      }
-      if (profileFramesEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
-        const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
-        const match = extractProfileFrame(revealedSurrogate);
-        match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
       }
       const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) => x?.id?.startsWith("yabdp"));
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
@@ -1132,11 +1148,14 @@ var fakeUser_default = {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");
       const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
-      if (IgnoreStore_default.isIgnored(userId)) {
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
         ret.displayNameStyles = { colors: [] };
         ret.avatarDecorationData = {};
         ret.avatarDecoration = {};
         ret.collectibles = {};
+        return;
+      }
+      if (IgnoreStore_default.isIgnored(userId, "encoding")) {
         return;
       }
       if (dnsEnabled) {
@@ -6212,6 +6231,9 @@ var getAvatarURL_default = {
       if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration")) {
         return originalFunction.apply(thisContext, args);
       }
+      if (IgnoreStore_default.isIgnored(thisContext.id, "encoding")) {
+        return originalFunction.apply(thisContext, args);
+      }
       const userPfp = UserProfilePictureStore_default.get(thisContext.id);
       if (userPfp)
         return userPfp;
@@ -6638,10 +6660,36 @@ var user_default = {
   id: "user-context",
   callback: (res, props) => {
     const user = props.user;
-    const isIgnored = IgnoreStore_default.isIgnored(user.id);
-    const Menu = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+    const isNitroIgnored = IgnoreStore_default.isIgnored(user.id, "nitro");
+    const isEncodingIgnored = IgnoreStore_default.isIgnored(user.id, "encoding");
+    const NitroItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
       onClose: CloseAllContextMenus,
-      action: () => IgnoreStore_default.toggleIgnored(user.id),
+      action: () => IgnoreStore_default.toggleIgnored(user.id, "nitro"),
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "solar:gift-bold"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isNitroIgnored ? "Unignore" : "Ignore", " Nitro Customizations")),
+      id: "yabdp4nitro-ignore-nitro"
+    });
+    const EncodingItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      action: () => IgnoreStore_default.toggleIgnored(user.id, "encoding"),
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "solar:code-bold"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isEncodingIgnored ? "Unignore" : "Ignore", " 3y3 Encoding")),
+      id: "yabdp4nitro-ignore-encoding"
+    });
+    const IgnoreGroup = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      id: "yabdp4nitro-ignore-group",
       leadingAccessory: {
         type: "icon",
         icon: () => /* @__PURE__ */ React.createElement(Icon, {
@@ -6649,11 +6697,9 @@ var user_default = {
           icon: "proicons:dark-theme"
         })
       },
-      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isIgnored ? "Unignore" : "Ignored", " Customizations")),
-      id: "yabdp4nitro-download-attachments"
-    });
-    const Sep = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Separator, null);
-    res.props.children.push([Menu, Sep]);
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Ignore Customizations"))
+    }, NitroItem, EncodingItem);
+    res.props.children.push([IgnoreGroup]);
   }
 };
 // src/patches/index.ts
@@ -6854,7 +6900,8 @@ var changelog_default = {
           title: "New Features",
           type: "added",
           items: [
-            "Added the ability to completely ignore peoples profile customization features."
+            `Added the ability to completely ignore peoples profile customization features. You can ignore a users 3y3 encoding or their normal nitro perks!
+Haha get it?`
           ]
         }
       ]

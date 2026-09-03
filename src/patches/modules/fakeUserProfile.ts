@@ -41,63 +41,67 @@ export default {
 				const profileThemesEnabled = SettingsStore.get("fakeProfileThemes");
 				const profileFramesEnabled = SettingsStore.get("profileFrames");
 
-				if (IgnoreStore.isIgnored(userId)) {
+				if (!ret) return;
+
+				if (IgnoreStore.isIgnored(userId, "nitro")) {
 					ret.collectibles = undefined;
 					ret.profileEffect = undefined;
 					ret.profileFrame = undefined;
 					return;
 				}
 
-				if (!ret) return;
+				const encodingIgnored = IgnoreStore.isIgnored(userId, "encoding");
 
 				const userBio = ret.bio;
-				(shouldProfileV2 ||
-					userBio?.includes?.(`\uDB40`) ||
-					getRevealedTextPerServer(userId, `\uDB40`)) &&
-					(ret.premiumType = 2);
-
 				const revealedGlobalBio = secondsightifyRevealOnly(userBio);
 
-				if (!killProfileEffects && profileEffectsEnabled) {
-					const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-					const parsed =
-						perServer ??
-						(userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`)
-							? revealedGlobalBio
-							: null);
+				if (!encodingIgnored) {
+					(shouldProfileV2 ||
+						userBio?.includes?.(`\uDB40`) ||
+						getRevealedTextPerServer(userId, `\uDB40`)) &&
+					(ret.premiumType = 2);
 
-					if (parsed && containsProfileEffects(parsed)) {
-						const skuId = extractProfileEffects(parsed);
-						skuId &&
+					if (!killProfileEffects && profileEffectsEnabled) {
+						const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+						const parsed =
+							perServer ??
+							(userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`)
+								? revealedGlobalBio
+								: null);
+
+						if (parsed && containsProfileEffects(parsed)) {
+							const skuId = extractProfileEffects(parsed);
+							skuId &&
 							(ret.profileEffect = {
 								skuId: skuId,
 								expiresAt: undefined,
 							});
+						}
+					}
+
+					if (profileThemesEnabled) {
+						const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
+						const match = perServer
+							? extractProfileColors(perServer)
+							: extractProfileColors(revealedGlobalBio);
+
+						match && (ret.themeColors = match);
+					}
+
+					if (profileFramesEnabled) {
+						const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+						const revealedSurrogate =
+							perServer ??
+							(userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`)
+								? revealedGlobalBio
+								: null);
+						const match = extractProfileFrame(revealedSurrogate);
+						match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
 					}
 				}
 
 				if (killProfileEffects) {
 					ret.profileEffect = {};
-				}
-
-				if (profileThemesEnabled) {
-					const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
-					const match = perServer
-						? extractProfileColors(perServer)
-						: extractProfileColors(revealedGlobalBio);
-
-					match && (ret.themeColors = match);
-				}
-
-				if (profileFramesEnabled) {
-					const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
-					const revealedSurrogate =
-						perServer ??
-						(userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`)
-							? revealedGlobalBio
-							: null);
-					const match = extractProfileFrame(revealedSurrogate);
-					match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
 				}
 
 				const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) =>

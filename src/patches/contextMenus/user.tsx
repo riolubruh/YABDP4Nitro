@@ -8,12 +8,48 @@ export default {
     id: "user-context",
     callback: (res, props) => {
         const user = props.user;
-        const isIgnored = IgnoreStore.isIgnored(user.id);
+        const isNitroIgnored = IgnoreStore.isIgnored(user.id, "nitro");
+        const isEncodingIgnored = IgnoreStore.isIgnored(user.id, "encoding");
 
-        const Menu = (
+        const NitroItem = (
             <BetterDiscord.ContextMenu.Item
                 onClose={CloseAllContextMenus}
-                action={() => IgnoreStore.toggleIgnored(user.id)}
+                action={() => IgnoreStore.toggleIgnored(user.id, "nitro")}
+                leadingAccessory={{
+                    type: "icon",
+                    icon: () => <Icon width={"22"} icon={"solar:gift-bold"}/>,
+                }}
+                label={
+                    <ContextMenuWrapper>
+                        <ContextMenuLabel/>
+                        <span>{isNitroIgnored ? "Unignore" : "Ignore"} Nitro Customizations</span>
+                    </ContextMenuWrapper>
+                }
+                id={"yabdp4nitro-ignore-nitro"}
+            />
+        );
+
+        const EncodingItem = (
+            <BetterDiscord.ContextMenu.Item
+                onClose={CloseAllContextMenus}
+                action={() => IgnoreStore.toggleIgnored(user.id, "encoding")}
+                leadingAccessory={{
+                    type: "icon",
+                    icon: () => <Icon width={"22"} icon={"solar:code-bold"}/>,
+                }}
+                label={
+                    <ContextMenuWrapper>
+                        <ContextMenuLabel/>
+                        <span>{isEncodingIgnored ? "Unignore" : "Ignore"} 3y3 Encoding</span>
+                    </ContextMenuWrapper>
+                }
+                id={"yabdp4nitro-ignore-encoding"}
+            />
+        );
+
+        const IgnoreGroup = (
+            <BetterDiscord.ContextMenu.Item
+                id={"yabdp4nitro-ignore-group"}
                 leadingAccessory={{
                     type: "icon",
                     icon: () => <Icon width={"22"} icon={"proicons:dark-theme"}/>,
@@ -21,14 +57,15 @@ export default {
                 label={
                     <ContextMenuWrapper>
                         <ContextMenuLabel/>
-                        <span>{isIgnored ? "Unignore" : "Ignored"} Customizations</span>
+                        <span>Ignore Customizations</span>
                     </ContextMenuWrapper>
                 }
-                id={"yabdp4nitro-download-attachments"}
-            />
+            >
+                {NitroItem}
+                {EncodingItem}
+            </BetterDiscord.ContextMenu.Item>
         );
 
-        const Sep = <BetterDiscord.ContextMenu.Separator/>;
-        res.props.children.push([Menu, Sep]);
+        res.props.children.push([IgnoreGroup]);
     }
 }

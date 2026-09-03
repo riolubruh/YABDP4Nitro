@@ -1,27 +1,44 @@
 import {BetterDiscord} from "@shared/*";
 
-export default new class IgnoreStore extends BetterDiscord.Utils.Store {
-    private data: Record<string, boolean> = BetterDiscord.Data.load("ignores") ?? {};
+interface IgnoreFlags {
+    nitro: boolean;
+    encoding: boolean;
+}
 
-    private set(id: string, value: boolean) {
-        this.data[id] = value;
+export default new class IgnoreStore extends BetterDiscord.Utils.Store {
+    private data: Record<string, IgnoreFlags> = BetterDiscord.Data.load("ignores") ?? {};
+
+    private persist() {
         this.emitChange();
         BetterDiscord.Data.save("ignores", this.data);
     }
 
-    ignore(id: string) {
-        this.set(id, true);
+    private getEntry(id: string): IgnoreFlags {
+        return this.data[id] ?? {nitro: false, encoding: false};
     }
 
-    unIgnore(id: string) {
-        this.set(id, false);
+    ignore(id: string, flags: Partial<IgnoreFlags> = {nitro: true, encoding: true}) {
+        const entry = this.getEntry(id);
+        this.data[id] = {...entry, ...flags};
+        this.persist();
     }
 
-    toggleIgnored(id: string) {
-        this.set(id, !this.isIgnored(id));
+    unIgnore(id: string, flags: Partial<IgnoreFlags> = {nitro: false, encoding: false}) {
+        const entry = this.getEntry(id);
+        this.data[id] = {...entry, ...flags};
+        this.persist();
     }
 
-    isIgnored(id: string): boolean {
-        return !!this.data?.[id];
+    toggleIgnored(id: string, key: keyof IgnoreFlags) {
+        const entry = this.getEntry(id);
+        this.data[id] = {...entry, [key]: !entry[key]};
+        this.persist();
+    }
+
+    isIgnored(id: string, key?: keyof IgnoreFlags): boolean {
+        const entry = this.data?.[id];
+        if (!entry) return false;
+        if (key) return !!entry[key];
+        return !!(entry.nitro || entry.encoding);
     }
 }
