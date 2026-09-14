@@ -6464,7 +6464,8 @@ var dev_default = {
   name: "dev",
   apply(finale, patcher) {
     const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
-    patcher.after(module2.Ay, "type", (_, args, res) => {
+    const mod = getKey(module2, (x2) => x2?.type);
+    patcher.after(mod.module, mod.key, (_, args, res) => {
       SettingsStore_default.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;

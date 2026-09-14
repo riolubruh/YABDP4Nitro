@@ -38,8 +38,9 @@ export default {
 	name: "dev",
 	apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
 		const module = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+		const mod = getKey(module, x=>x?.type);
 
-		patcher.after(module.Ay, "type", (_, args, res) => {
+		patcher.after(mod.module, mod.key, (_, args, res) => {
 
 			SettingsStore.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
 
