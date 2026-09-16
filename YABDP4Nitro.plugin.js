@@ -6441,6 +6441,7 @@ var blockedUserContext_default = {
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
 var DELAY_MS = 5000;
+var NOT_STAFF_WARNING_FILTER = BetterDiscord.Webpack.Filters.bySource(".NOT_STAFF_WARNING})");
 var { UserStore: UserStore10, UserProfileStore: UserProfileStore4, SelectedGuildStore: SelectedGuildStore4 } = BetterDiscord.Webpack.Stores;
 var tail = Promise.resolve();
 var seen = new Set;
@@ -6462,9 +6463,12 @@ function ensureGuildUserProfile(id, guildId) {
 }
 var dev_default = {
   name: "dev",
+  waitFor: [
+    BetterDiscord.Webpack.Filters.bySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?"),
+    NOT_STAFF_WARNING_FILTER
+  ],
   apply(finale, patcher) {
-    const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
-    const mod = getKey(module2, (x2) => x2?.type);
+    const mod = getKey(finale.modules[0], (x2) => x2?.type);
     patcher.after(mod.module, mod.key, (_, args, res) => {
       SettingsStore_default.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
@@ -6483,7 +6487,7 @@ var dev_default = {
       }
       return res;
     });
-    const title = getKey(BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations, (x2) => String(x2).includes(".NOT_STAFF_WARNING})"));
+    const title = getKey(BetterDiscord.Webpack.getModule(NOT_STAFF_WARNING_FILTER, { raw: true }).declarations, (x2) => String(x2).includes(".NOT_STAFF_WARNING})"));
     patcher.instead(title.module, title.key, () => null);
   }
 };
