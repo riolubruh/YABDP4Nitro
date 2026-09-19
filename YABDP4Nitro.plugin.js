@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.5
+ * @version 7.0.4
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -6877,19 +6877,6 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
-  "7.0.5": [
-    {
-      changes: [
-        {
-          title: "Hotfixes",
-          type: "fixed",
-          items: [
-            "Fixed Fetch Members on Scroll not working after a Discord update."
-          ]
-        }
-      ]
-    }
-  ],
   "7.0.4": [
     {
       changes: [
@@ -7018,7 +7005,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.5",
+  version: "7.0.4",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
