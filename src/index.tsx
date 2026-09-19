@@ -6,6 +6,7 @@ import UserBackgroundStore from "./global/stores/UserBackgroundStore.ts";
 import {GlobalModules} from "@global/*";
 import ShopCollectiblesStore from "./global/stores/ShopCollectiblesStore.tsx";
 import BadgesStore from "./global/stores/BadgesStore.tsx";
+import badgesStore from "./global/stores/BadgesStore.tsx";
 import {copyToClipboard, getRevealedText, secondsightifyRevealOnly} from "@utils/*";
 import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
@@ -14,7 +15,6 @@ import varForcer from "../src/global/shared/varforcer";
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
 import changelog from "./global/changelog/changelog.json";
 import DebugPanel from "./ui/Debug.tsx";
-import badgesStore from "./global/stores/BadgesStore.tsx";
 import {CHANGELOG_FOOTER} from "./ui/ChangelogFooter.tsx";
 
 const {Components} = BetterDiscord;
@@ -235,6 +235,13 @@ const SettingsSchema: SettingDef[] = [
         key: "fakeProfileThemes",
         label: "Fake Profile Themes",
         note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.",
+        category: "Profile",
+        type: "boolean",
+    },
+    {
+        key: "fetchMemberOnScroll",
+        label: "Fetch Members on Scroll",
+        note: "Allows you to fetch a users profile every five seconds so you don't have to load peoples profiles individually for their customization.",
         category: "Profile",
         type: "boolean",
     },
@@ -537,6 +544,8 @@ export default class Plugin {
     }
 
     async start() {
+        loadPatches();
+
         const version =
             BetterDiscord.Utils.semverCompare(normalizeVersion(BdApi.version), "1.14.0") <= 0;
 
@@ -599,9 +608,40 @@ export default class Plugin {
             {timeout: 10000}
         );
 
-        if(!res.ok || res.status != 200){
-            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
+        if (!res.ok || res.status != 200) {
+            BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", {type: "error"});
             BetterDiscord.Logger.error("Failed to check for updates!", res);
+
+            // ru_RU.KOI8-R KOI8-R
+            // ru_RU.UTF-8 UTF-8
+            // ru_RU ISO-8859-5
+            // ru_UA.UTF-8 UTF-8
+            // ru_UA KOI8-U
+
+            if (navigator.language.includes("ru") || navigator.languages.some(x => x.includes("ru"))) {
+                BetterDiscord.UI.showNotification({
+                    title: "YABDP4Nitro Automatic Updater",
+                    content: "We have detected that you may be in a Russian area. Unfortunately we cannot do automatic updates due to network blocking. You will have to update manually or turn on a VPN and reload the plugin. Please be warned, we cannot detect versions either.\n\nSelect VPN Mode if you have enabled a VPN.",
+                    actions: [
+                        /*{
+                            label: "Manual Update",
+                            onClick: () => window.open("https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js", "_blank")
+                        },*/
+                        {
+                            label: "Disable",
+                            onClick: () => SettingsStore.set("checkForUpdates", false)
+                        },
+                        {
+                            label: "VPN Mode",
+                            onClick: () => BetterDiscord.Plugins.reload(Meta.name)
+                            // lmao VPN mode, ACTIVATE!!;
+                        }
+                    ],
+                    duration: Infinity,
+                    type: "warning"
+                })
+                return;
+            }
             return;
         }
 
@@ -837,9 +877,10 @@ export default class Plugin {
                             ))}
                         </Components.SettingGroup>
                     ))}
-                    {badgesStore.isDeveloper(UserStore.getCurrentUser().id) && <Components.SettingGroup name="Debug" collapsible shown={false}>
-                        <DebugPanel/>
-                    </Components.SettingGroup>}
+                    {badgesStore.isDeveloper(UserStore.getCurrentUser().id) &&
+                        <Components.SettingGroup name="Debug" collapsible shown={false}>
+                            <DebugPanel/>
+                        </Components.SettingGroup>}
                     <div
                         style={{padding: "5px", display: "flex", justifyContent: "space-between"}}
                     >

@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.3
+ * @version 7.0.4
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -660,7 +660,8 @@ var defaultSettings = {
     type: "mp4"
   },
   customVideoFilterEnabled: false,
-  dontUpdate: false
+  dontUpdate: false,
+  fetchMemberOnScroll: false
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
@@ -997,6 +998,41 @@ function containsProfileFrame(revealedSurrogate) {
   return revealedSurrogate?.includes("pf") || false;
 }
 
+// src/global/stores/IgnoreStore.tsx
+var IgnoreStore_default = new class IgnoreStore extends BetterDiscord.Utils.Store {
+  data = BetterDiscord.Data.load("ignores") ?? {};
+  persist() {
+    this.emitChange();
+    BetterDiscord.Data.save("ignores", this.data);
+  }
+  getEntry(id) {
+    return this.data[id] ?? { nitro: false, encoding: false };
+  }
+  ignore(id, flags = { nitro: true, encoding: true }) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, ...flags };
+    this.persist();
+  }
+  unIgnore(id, flags = { nitro: false, encoding: false }) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, ...flags };
+    this.persist();
+  }
+  toggleIgnored(id, key) {
+    const entry = this.getEntry(id);
+    this.data[id] = { ...entry, [key]: !entry[key] };
+    this.persist();
+  }
+  isIgnored(id, key) {
+    const entry = this.data?.[id];
+    if (!entry)
+      return false;
+    if (key)
+      return !!entry[key];
+    return !!(entry.nitro || entry.encoding);
+  }
+};
+
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 function extractProfileColors(string) {
@@ -1022,33 +1058,42 @@ var fakeUserProfile_default = {
       const profileFramesEnabled = SettingsStore_default.get("profileFrames");
       if (!ret)
         return;
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
+        ret.collectibles = undefined;
+        ret.profileEffect = undefined;
+        ret.profileFrame = undefined;
+        return;
+      }
+      const encodingIgnored = IgnoreStore_default.isIgnored(userId, "encoding");
       const userBio = ret.bio;
-      (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
       const revealedGlobalBio = secondsightifyRevealOnly(userBio);
-      if (!killProfileEffects && profileEffectsEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
-        const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
-        if (parsed && containsProfileEffects(parsed)) {
-          const skuId = extractProfileEffects(parsed);
-          skuId && (ret.profileEffect = {
-            skuId,
-            expiresAt: undefined
-          });
+      if (!encodingIgnored) {
+        (shouldProfileV2 || userBio?.includes?.(`\uDB40`) || getRevealedTextPerServer(userId, `\uDB40`)) && (ret.premiumType = 2);
+        if (!killProfileEffects && profileEffectsEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+          const parsed = perServer ?? (userBio?.includes?.(`\uDB40\uDC66\uDB40\uDC78`) ? revealedGlobalBio : null);
+          if (parsed && containsProfileEffects(parsed)) {
+            const skuId = extractProfileEffects(parsed);
+            skuId && (ret.profileEffect = {
+              skuId,
+              expiresAt: undefined
+            });
+          }
+        }
+        if (profileThemesEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
+          const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
+          match && (ret.themeColors = match);
+        }
+        if (profileFramesEnabled) {
+          const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
+          const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
+          const match = extractProfileFrame(revealedSurrogate);
+          match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
         }
       }
       if (killProfileEffects) {
         ret.profileEffect = {};
-      }
-      if (profileThemesEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC5B\uDB40\uDC23`);
-        const match = perServer ? extractProfileColors(perServer) : extractProfileColors(revealedGlobalBio);
-        match && (ret.themeColors = match);
-      }
-      if (profileFramesEnabled) {
-        const perServer = getRevealedTextPerServer(userId, `\uDB40\uDC70\uDB40\uDC66`);
-        const revealedSurrogate = perServer ?? (userBio?.includes?.(`\uDB40\uDC70\uDB40\uDC66`) ? revealedGlobalBio : null);
-        const match = extractProfileFrame(revealedSurrogate);
-        match && (ret.profileFrame = { skuId: match, expiresAt: undefined });
       }
       const noBadgeFound = !Object.values(ret?.badges ?? {}).find((x) => x?.id?.startsWith("yabdp"));
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
@@ -1082,6 +1127,16 @@ var fakeUser_default = {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");
       const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
+        ret.displayNameStyles = { colors: [] };
+        ret.avatarDecorationData = {};
+        ret.avatarDecoration = {};
+        ret.collectibles = {};
+        return;
+      }
+      if (IgnoreStore_default.isIgnored(userId, "encoding")) {
+        return;
+      }
       if (dnsEnabled) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
         const match = extractDisplayNameStyles(revealedText);
@@ -3040,6 +3095,9 @@ var banners_default = {
       const newRet = BetterDiscord.Utils.findInTree(ret, (x) => x?.props?.displayProfile, {
         walkable: ["props", "children"]
       });
+      BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) && (ret = [/* @__PURE__ */ React.createElement(Debug, {
+        user: props.user
+      }), ret]);
       try {
         NodePatcher.patch(newRet ?? ret, (props2, res) => {
           const bannerUrl = getBannerUrl(props2.user.id);
@@ -3048,9 +3106,7 @@ var banners_default = {
       } catch (e) {
         BetterDiscord.Logger.error("Opened profile was not a valid user profile banner");
       }
-      return BadgesStore_default.isImportant(UserStore2.getCurrentUser().id) ? [/* @__PURE__ */ React.createElement(Debug, {
-        user: props.user
-      }), ret] : ret;
+      return ret;
     });
   }
 };
@@ -6154,6 +6210,9 @@ var getAvatarURL_default = {
       if (!SettingsStore_default.get("customPFPs") || !SettingsStore_default.get("userPfpIntegration")) {
         return originalFunction.apply(thisContext, args);
       }
+      if (IgnoreStore_default.isIgnored(thisContext.id, "encoding")) {
+        return originalFunction.apply(thisContext, args);
+      }
       const userPfp = UserProfilePictureStore_default.get(thisContext.id);
       if (userPfp)
         return userPfp;
@@ -6381,7 +6440,8 @@ var blockedUserContext_default = {
 };
 // src/patches/modules/dev.tsx
 var React16 = BetterDiscord.React;
-var DELAY_MS = 1000;
+var DELAY_MS = 5000;
+var NOT_STAFF_WARNING_FILTER = BetterDiscord.Webpack.Filters.bySource(".NOT_STAFF_WARNING})");
 var { UserStore: UserStore10, UserProfileStore: UserProfileStore4, SelectedGuildStore: SelectedGuildStore4 } = BetterDiscord.Webpack.Stores;
 var tail = Promise.resolve();
 var seen = new Set;
@@ -6403,10 +6463,14 @@ function ensureGuildUserProfile(id, guildId) {
 }
 var dev_default = {
   name: "dev",
+  waitFor: [
+    BetterDiscord.Webpack.Filters.bySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?"),
+    NOT_STAFF_WARNING_FILTER
+  ],
   apply(finale, patcher) {
-    const module2 = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
-    patcher.after(module2.Ay, "type", (_, args, res) => {
-      ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
+    const mod = getKey(finale.modules[0], (x2) => x2?.type);
+    patcher.after(mod.module, mod.key, (_, args, res) => {
+      SettingsStore_default.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore4.getGuildId());
       if (!BadgesStore_default.isImportant(UserStore10.getCurrentUser().id))
         return res;
       const user = args[0]?.message?.author;
@@ -6423,7 +6487,7 @@ var dev_default = {
       }
       return res;
     });
-    const title = getKey(BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations, (x2) => String(x2).includes(".NOT_STAFF_WARNING})"));
+    const title = getKey(BetterDiscord.Webpack.getModule(NOT_STAFF_WARNING_FILTER, { raw: true }).declarations, (x2) => String(x2).includes(".NOT_STAFF_WARNING})"));
     patcher.instead(title.module, title.key, () => null);
   }
 };
@@ -6432,6 +6496,7 @@ var exports_contextMenus = {};
 __export(exports_contextMenus, {
   StreamContextMenu: () => streamContext_default,
   MessageContextMenu: () => message_default,
+  IgnoreUserContextMenu: () => user_default,
   ExpressionPickerContextMenu: () => expressionPicker_default
 });
 
@@ -6572,6 +6637,53 @@ var streamContext_default = {
       })
     });
     res.props.children.props.children.splice(2, 0, ContextMenuSlider);
+  }
+};
+// src/patches/contextMenus/user.tsx
+var user_default = {
+  id: "user-context",
+  callback: (res, props) => {
+    const user = props.user;
+    const isNitroIgnored = IgnoreStore_default.isIgnored(user.id, "nitro");
+    const isEncodingIgnored = IgnoreStore_default.isIgnored(user.id, "encoding");
+    const NitroItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      action: () => IgnoreStore_default.toggleIgnored(user.id, "nitro"),
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "solar:gift-bold"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isNitroIgnored ? "Unignore" : "Ignore", " Nitro Customizations")),
+      id: "yabdp4nitro-ignore-nitro"
+    });
+    const EncodingItem = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      onClose: CloseAllContextMenus,
+      action: () => IgnoreStore_default.toggleIgnored(user.id, "encoding"),
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "solar:code-bold"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, isEncodingIgnored ? "Unignore" : "Ignore", " 3y3 Encoding")),
+      id: "yabdp4nitro-ignore-encoding"
+    });
+    const IgnoreGroup = /* @__PURE__ */ React.createElement(BetterDiscord.ContextMenu.Item, {
+      id: "yabdp4nitro-ignore-group",
+      leadingAccessory: {
+        type: "icon",
+        icon: () => /* @__PURE__ */ React.createElement(Icon, {
+          width: "22",
+          icon: "proicons:dark-theme"
+        })
+      },
+      label: /* @__PURE__ */ React.createElement(ContextMenuWrapper, null, /* @__PURE__ */ React.createElement(ContextMenuLabel, null), /* @__PURE__ */ React.createElement("span", null, "Ignore Customizations"))
+    }, NitroItem, EncodingItem);
+    res.props.children.push([IgnoreGroup]);
   }
 };
 // src/patches/index.ts
@@ -6765,6 +6877,27 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.4": [
+    {
+      changes: [
+        {
+          title: "New Features",
+          type: "added",
+          items: [
+            "Added the ability to completely ignore peoples profile customization features. You can ignore a user's 3y3 and/or normal Nitro profile customization.",
+            "Added Fetch Members on Scroll option which will automatically fetch user profiles so that 3y3 in the user's bio can affect their fake profile without opening their profile."
+          ]
+        },
+        {
+          title: "Russian User Update Checker Notice",
+          type: "improved",
+          items: [
+            "Added a notice if the update checker fails and the user is Russian explaining the problem and prompting the user to either disable the update checker or enable a VPN."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.3": [
     {
       changes: [
@@ -6872,7 +7005,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.3",
+  version: "7.0.4",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -7212,6 +7345,13 @@ var SettingsSchema = [
     type: "boolean"
   },
   {
+    key: "fetchMemberOnScroll",
+    label: "Fetch Members on Scroll",
+    note: "Allows you to fetch a users profile every five seconds so you don't have to load peoples profiles individually for their customization.",
+    category: "Profile",
+    type: "boolean"
+  },
+  {
     key: "fakeProfileBanners",
     label: "Fake Profile Banners",
     note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.",
@@ -7487,6 +7627,7 @@ class Plugin {
     loadPatches();
   }
   async start() {
+    loadPatches();
     const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
     if (!version2 && !SettingsStore_default.get("dontUpdate"))
       return BetterDiscord.UI.showNotification({
@@ -7526,6 +7667,27 @@ This will reload the plugin and you can use it normally.`,
     if (!res.ok || res.status != 200) {
       BetterDiscord.UI.showToast("[YABDP4Nitro] Failed to check for updates!", { type: "error" });
       BetterDiscord.Logger.error("Failed to check for updates!", res);
+      if (navigator.language.includes("ru") || navigator.languages.some((x2) => x2.includes("ru"))) {
+        BetterDiscord.UI.showNotification({
+          title: "YABDP4Nitro Automatic Updater",
+          content: `We have detected that you may be in a Russian area. Unfortunately we cannot do automatic updates due to network blocking. You will have to update manually or turn on a VPN and reload the plugin. Please be warned, we cannot detect versions either.
+
+Select VPN Mode if you have enabled a VPN.`,
+          actions: [
+            {
+              label: "Disable",
+              onClick: () => SettingsStore_default.set("checkForUpdates", false)
+            },
+            {
+              label: "VPN Mode",
+              onClick: () => BetterDiscord.Plugins.reload(package_default.name)
+            }
+          ],
+          duration: Infinity,
+          type: "warning"
+        });
+        return;
+      }
       return;
     }
     this.source = await res.text();

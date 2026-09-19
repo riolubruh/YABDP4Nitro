@@ -3,9 +3,11 @@ import { BetterDiscord } from "@shared/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import { getKey } from "../../global/webpack";
 import { GlobalModules } from "@global/*";
+import SettingsStore from "../../global/stores/SettingsStore.ts";
 
 const React = BetterDiscord.React;
-const DELAY_MS = 1000;
+const DELAY_MS = 5000;
+const NOT_STAFF_WARNING_FILTER = BetterDiscord.Webpack.Filters.bySource(".NOT_STAFF_WARNING})");
 
 const { UserStore, UserProfileStore, SelectedGuildStore } = BetterDiscord.Webpack.Stores;
 
@@ -35,11 +37,14 @@ function ensureGuildUserProfile(id: string, guildId: string) {
 
 export default {
 	name: "dev",
+	waitFor:[BetterDiscord.Webpack.Filters.bySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?"),
+			NOT_STAFF_WARNING_FILTER],
 	apply(finale: any, patcher: typeof BetterDiscord.Patcher) {
-		const module = BetterDiscord.Webpack.getBySource(".SENT_BY_SOCIAL_LAYER_INTEGRATION)?");
+		const mod = getKey(finale.modules[0], x=>x?.type);
 
-		patcher.after(module.Ay, "type", (_, args, res) => {
-			ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
+		patcher.after(mod.module, mod.key, (_, args, res) => {
+
+			SettingsStore.get("fetchMemberOnScroll") && ensureGuildUserProfile(args[0].message.author.id, SelectedGuildStore.getGuildId());
 
 			if (!BadgesStore.isImportant(UserStore.getCurrentUser().id)) return res;
 
@@ -62,7 +67,7 @@ export default {
 		});
 
 		const title = getKey(
-			BetterDiscord.Webpack.getBySource(".NOT_STAFF_WARNING})", { raw: true }).declarations,
+			BetterDiscord.Webpack.getModule(NOT_STAFF_WARNING_FILTER, { raw: true }).declarations,
 			(x) => String(x).includes(".NOT_STAFF_WARNING})")
 		);
 		patcher.instead(title.module, title.key, () => null);
