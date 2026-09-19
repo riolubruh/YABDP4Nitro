@@ -6877,6 +6877,19 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.5": [
+    {
+      changes: [
+        {
+          title: "Hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed Fetch Members on Scroll not working after a Discord update."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.4": [
     {
       changes: [
