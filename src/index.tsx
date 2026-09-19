@@ -538,6 +538,11 @@ export default class Plugin {
     private unpatch = loadContextMenus();
     private source: string = "";
 
+    load()
+    {
+        loadPatches();
+    }
+
     async start() {
         loadPatches();
 

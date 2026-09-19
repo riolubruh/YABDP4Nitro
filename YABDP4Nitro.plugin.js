@@ -7623,6 +7623,9 @@ function overrideVariant(experimentName, variantId) {
 class Plugin {
   unpatch = loadContextMenus();
   source = "";
+  load() {
+    loadPatches();
+  }
   async start() {
     loadPatches();
     const version2 = BetterDiscord.Utils.semverCompare(normalizeVersion2(BdApi.version), "1.14.0") <= 0;
