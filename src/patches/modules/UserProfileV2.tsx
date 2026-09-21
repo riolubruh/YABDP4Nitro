@@ -1,4 +1,4 @@
-import { BetterDiscord } from "@shared/*";
+import {BetterDiscord} from "@shared/*";
 import {
 	AccentColors,
 	AvatarDecorations,
@@ -9,10 +9,11 @@ import {
 	ProfileEffects,
 	ProfileFrames,
 } from "../../ui";
-import { getKey, wpGet, wpWait } from "../../global/webpack";
-import { copyToClipboard, secondsightifyEncodeOnly, styled } from "@utils/*";
+import {getKey, wpGet, wpWait} from "../../global/webpack";
+import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
+import StyleDots from "../../ui/TypingStyleDots.tsx";
 
 const { React, Components } = BetterDiscord;
 const { UserStore } = BetterDiscord.Webpack.Stores;
@@ -101,6 +102,11 @@ export function CustomSettingsTab() {
 				<Card style={{ gridColumn: "span 2" }}>
 					<CardLabel>Profile Frame</CardLabel>
 					<ProfileFrames />
+				</Card>
+
+				<Card>
+					<CardLabel>Typing Style Dots</CardLabel>
+					<StyleDots/>
 				</Card>
 
 				{isDeveloper || advancedProfileCustomization ? (

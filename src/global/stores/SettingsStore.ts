@@ -69,7 +69,9 @@ export const defaultSettings = {
 	},
 	customVideoFilterEnabled: false,
 	dontUpdate: false,
-	fetchMemberOnScroll: false
+	fetchMemberOnScroll: false,
+	oAuthToken: "",
+	typingIndicatorStyles: true,
 } as const satisfies Record<string, unknown>;
 
 type SettingsResult = { [K in keyof typeof defaultSettings]: (typeof defaultSettings)[K] };

@@ -9,18 +9,23 @@ const EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
 const FONTS = [
-	{ name: "GG Sans", id: 11 },
-	{ name: "Tempo", id: 12 },
-	{ name: "Sakura", id: 3 },
-	{ name: "Jellybean", id: 4 },
-	{ name: "Modern", id: 6 },
-	{ name: "Medieval", id: 7 },
-	{ name: "8Bit", id: 8 },
-	{ name: "Vampyre", id: 10 },
-	{ name: "Monkey Bars", id: 13 },
-	{ name: "Mainframe", id: 14 },
-	{ name: "Headbang", id: 15 },
-	{ name: "Journal", id: 16 },
+	// { name: "Unspecified", id: 0 },   // UNSPECIFIED
+	{ name: "Bangers", id: 1 },       // BANGERS
+	// { name: "Bio Rhyme", id: 2 },     // BIO_RHYME
+	{ name: "Sakura", id: 3 },        // CHERRY_BOMB
+	{ name: "Jellybean", id: 4 },     // CHICLE
+	{ name: "Compagnon", id: 5 },     // COMPAGNON
+	{ name: "Modern", id: 6 },        // MUSEO_MODERNO
+	{ name: "Medieval", id: 7 },      // NEO_CASTEL
+	{ name: "8Bit", id: 8 },          // PIXELIFY
+	// { name: "Ribes", id: 9 },         // RIBES
+	{ name: "Vampyre", id: 10 },      // SINISTRE
+	{ name: "GG Sans", id: 11 },      // DEFAULT
+	{ name: "Tempo", id: 12 },        // ZILLA_SLAB
+	{ name: "Monkey Bars", id: 13 },  // PLAYPEN_SANS
+	{ name: "Mainframe", id: 14 },    // ORBITRON
+	{ name: "Headbang", id: 15 },     // NEW_ROCKER
+	{ name: "Journal", id: 16 },      // KALAM
 ];
 
 const EFFECTS = {
@@ -31,6 +36,9 @@ const EFFECTS = {
 	Pop: [1036166],
 	Gummy: [15724529, 2797222 /*16762000, 15999128, 1036166*/], // for fuck sake...
 	Prism: [15724529, 2797222 /*16762000, 15999128, 1036166*/], // for fuck sake...
+
+	// discord also has TEST_1, TEST_2, TEST_3, TEST_4.
+	// they all return `TEXT_DEFAULT`
 
 	// thank you, Discord:tm:
 	// Not affiliated with Discord Inc.
