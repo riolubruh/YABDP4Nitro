@@ -6872,6 +6872,7 @@ var changelog_default = {
           title: "Hotfixes",
           type: "fixed",
           items: [
+            "Added new Display Name Styles fonts.",
             "Fixed YABDP4Nitro profile tab not appearing.",
             "Fixed error appearing in console for the Clips max file size patch."
           ]
