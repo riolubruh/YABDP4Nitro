@@ -24,9 +24,5 @@ export default {
 				return Math.max(100 * 1024 * 1024, normal); //100 MB or normal/server's file size if greater
 			else return normal;
 		});
-
-		patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
-			return false;
-		});
 	},
 };
