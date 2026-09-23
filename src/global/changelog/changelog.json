@@ -1,4 +1,18 @@
 {
+	"7.0.5": [
+		{
+			"changes": [
+				{
+					"title": "Hotfixes",
+					"type": "fixed",
+					"items": [
+						"Fixed YABDP4Nitro profile tab not appearing.",
+						"Fixed error appearing in console for the Clips max file size patch"
+					]
+				}
+			]
+		}
+	],
 	"7.0.4": [
 		{
 			"changes": [

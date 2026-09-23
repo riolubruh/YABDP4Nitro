@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.4
+ * @version 7.0.5
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -42,37 +42,27 @@ var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-function __accessProp(key) {
-  return this[key];
-}
+var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
-  var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+  var entry = __moduleCache.get(from), desc;
   if (entry)
     return entry;
   entry = __defProp({}, "__esModule", { value: true });
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (var key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(entry, key))
-        __defProp(entry, key, {
-          get: __accessProp.bind(from, key),
-          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-        });
-  }
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
   __moduleCache.set(from, entry);
   return entry;
 };
-var __moduleCache;
-var __returnValue = (v) => v;
-function __exportSetter(name, newValue) {
-  this[name] = __returnValue.bind(null, newValue);
-}
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: __exportSetter.bind(all, name)
+      set: (newValue) => all[name] = () => newValue
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
@@ -98,7 +88,7 @@ __export(exports_path, {
 });
 function assertPath(path) {
   if (typeof path !== "string")
-    throw TypeError("Path must be a string. Received " + JSON.stringify(path));
+    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
 }
 function normalizeStringPosix(path, allowAboveRoot) {
   var res = "", lastSegmentLength = 0, lastSlash = -1, dots = 0, code;
@@ -288,7 +278,7 @@ function dirname(path) {
 }
 function basename(path, ext) {
   if (ext !== undefined && typeof ext !== "string")
-    throw TypeError('"ext" argument must be a string');
+    throw new TypeError('"ext" argument must be a string');
   assertPath(path);
   var start = 0, end = -1, matchedSlash = true, i2;
   if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
@@ -360,7 +350,7 @@ function extname(path) {
 }
 function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object")
-    throw TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
+    throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
   return _format("/", pathObject);
 }
 function parse(path) {
@@ -421,7 +411,7 @@ var init_path = __esm(() => {
 var exports_src = {};
 __export(exports_src, {
   fs: () => fs,
-  default: () => Plugin2,
+  default: () => Plugin,
   _path: () => _path
 });
 module.exports = __toCommonJS(exports_src);
@@ -4451,9 +4441,6 @@ var maxFileSize_default = {
       else
         return normal;
     });
-    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
-      return false;
-    });
   }
 };
 // src/patches/modules/sharpenStreams.tsx
@@ -6250,18 +6237,15 @@ var UserProfileV2_default = {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs"));
-    console.log(tabSectionReturn);
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
     const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
-      console.log("tabReturn: ", args);
       if (args.section == "YABDP4Nitro") {
         return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
       }
       return callback;
     });
     patcher.before(tabSectionReturn.module, tabSectionReturn.key, (a, [args], res) => {
-      console.log("tabPush: ", args);
       if (args?.displayProfile?.userId != UserStore9.getCurrentUser().id)
         return res;
       if (args?.items && args.items.find((x2) => x2.text.includes("YABD")))
@@ -7003,6 +6987,20 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.5": [
+    {
+      changes: [
+        {
+          title: "Hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed YABDP4Nitro profile tab not appearing.",
+            "Fixed error appearing in console for the Clips max file size patch"
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.4": [
     {
       changes: [
@@ -7131,7 +7129,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.4",
+  version: "7.0.5",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -7198,396 +7196,39 @@ function startChangelog(sourceVersion) {
   SettingsStore_default.set("lastChangelogVersion", currentVersion);
 }
 
-// ../../BDPlugins/src/AllowedMentions/shared.tsx
-var BetterDiscord2 = new BdApi("AllowedMentions");
-var Buttons = BetterDiscord2.Webpack.getBySource("isSubmitButtonEnabled", ".A.getActiveOption(");
-var HeaderComponents = BetterDiscord2.Webpack.getModule((x2) => x2.Icon && x2.Title);
-var Popout = BetterDiscord2.Webpack.getModule((m) => m?.Animation, {
-  searchExports: true,
-  raw: true
-})?.exports?.Y;
-var MessageActions = BetterDiscord2.Webpack.getModule((m) => m._sendMessage);
-function MentionSVG() {
-  return /* @__PURE__ */ React.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "24px",
-    height: "24px",
-    viewBox: "0 0 24 24"
-  }, /* @__PURE__ */ React.createElement("path", {
-    fill: "none",
-    stroke: "var(--interactive-icon-default)",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    strokeWidth: 2,
-    d: "M15 12.002V13a2 2 0 1 0 4 0v-1a7 7 0 1 0-4.406 6.502m.406-6.5a3 3 0 1 1 0-.004m0 .004v-.004m0 0V9"
-  }));
-}
-
-// ../../BDPlugins/src/AllowedMentions/index.tsx
-var { ContextMenu, React: React18, Hooks, Webpack: Webpack3, Utils: Utils2 } = BetterDiscord2;
-var { DraftStore, UserStore: UserStore12, GuildRoleStore, SelectedGuildStore: SelectedGuildStore5, SelectedChannelStore: SelectedChannelStore2, MessageStore } = Webpack3.Stores;
-var ALLOWED_FLAGS = {
-  ["Remove Embeds"]: 1 << 2
-};
-var MENTION_GROUP = "allowedmentions-scope";
-var REFERENCE_GROUP = "allowedmentions-reference";
-var MENTION_OPTIONS = [
-  { id: "everyone", label: "@everyone" },
-  { id: "none", label: "None" }
-];
-var DEFAULT_CHANNEL_STATE = {
-  selected: "none",
-  selectedUsers: new Set,
-  selectedRoles: new Set,
-  knownUsers: new Set,
-  knownRoles: new Set,
-  selectedFlag: 0,
-  referenceMessageId: null,
-  mentionRepliedUser: false
-};
-var AllowedMentionsStore = new class AllowedMentionsStoreClass extends Utils2.Store {
-  channelState = new Map;
-  getState(channelId) {
-    return this.channelState.get(channelId) ?? DEFAULT_CHANNEL_STATE;
-  }
-  updateState(channelId, updates) {
-    this.channelState.set(channelId, { ...this.getState(channelId), ...updates });
-    this.emitChange();
-  }
-  setSelected(channelId, selected) {
-    this.updateState(channelId, { selected });
-  }
-  toggleUser(channelId, userId) {
-    const state = this.getState(channelId);
-    const next = new Set(state.selectedUsers);
-    next.has(userId) ? next.delete(userId) : next.add(userId);
-    this.updateState(channelId, { selectedUsers: next });
-  }
-  toggleRole(channelId, roleId) {
-    const state = this.getState(channelId);
-    const next = new Set(state.selectedRoles);
-    next.has(roleId) ? next.delete(roleId) : next.add(roleId);
-    this.updateState(channelId, { selectedRoles: next });
-  }
-  registerMentions(channelId, userIds, roleIds) {
-    const state = this.getState(channelId);
-    let changed = false;
-    const knownUsers = new Set(state.knownUsers);
-    const selectedUsers = new Set(state.selectedUsers);
-    for (const userId of userIds) {
-      if (!knownUsers.has(userId)) {
-        knownUsers.add(userId);
-        selectedUsers.add(userId);
-        changed = true;
-      }
-    }
-    const knownRoles = new Set(state.knownRoles);
-    const selectedRoles = new Set(state.selectedRoles);
-    for (const roleId of roleIds) {
-      if (!knownRoles.has(roleId)) {
-        knownRoles.add(roleId);
-        selectedRoles.add(roleId);
-        changed = true;
-      }
-    }
-    if (changed) {
-      this.updateState(channelId, { knownUsers, selectedUsers, knownRoles, selectedRoles });
-    }
-  }
-  clearChannel(channelId) {
-    this.channelState.delete(channelId);
-    this.emitChange();
-  }
-  setFlag(channelId, flag) {
-    this.updateState(channelId, { selectedFlag: flag });
-  }
-  setReferenceMessage(channelId, messageId) {
-    this.updateState(channelId, { referenceMessageId: messageId });
-  }
-  toggleMentionRepliedUser(channelId) {
-    const state = this.getState(channelId);
-    this.updateState(channelId, { mentionRepliedUser: !state.mentionRepliedUser });
-  }
-};
-function extractUserIds(draft) {
-  return [...draft.matchAll(/<@!?(\d+)>/g)].map((m) => m[1]);
-}
-function extractRoleIds(draft) {
-  return [...draft.matchAll(/<@&(\d+)>/g)].map((m) => m[1]);
-}
-function getAllUsers(draft) {
-  const ids = [...new Set(extractUserIds(draft))];
-  const users = {};
-  for (const id of ids) {
-    const user = UserStore12.getUser(id);
-    if (user)
-      users[user.id] = user;
-  }
-  return users;
-}
-function getAllRoles(draft) {
-  const ids = [...new Set(extractRoleIds(draft))];
-  const guildId = SelectedGuildStore5.getGuildId();
-  if (!guildId)
-    return [];
-  const roles = GuildRoleStore.getManyRoles(guildId, ids) ?? {};
-  return Object.values(roles).filter(Boolean);
-}
-function getRecentMessages(channelId, limit = 10) {
-  const list = MessageStore.getMessages(channelId);
-  const all = Array.isArray(list) ? list : list?.toArray?.() ?? [];
-  return all.slice(-limit).reverse().filter((x2) => x2.author.id != "1" || x2.loggingName);
-}
-function truncate(text, max = 40) {
-  if (!text)
-    return "[no content]";
-  return text.length > max ? `${text.slice(0, max)}…` : text;
-}
-function ContextMenuUserWithIcon({ user }) {
-  return /* @__PURE__ */ React18.createElement("div", {
-    style: { display: "flex", alignItems: "center", gap: "8px" }
-  }, /* @__PURE__ */ React18.createElement("img", {
-    style: { borderRadius: "50%", width: "24px", height: "24px" },
-    src: user.getAvatarURL(SelectedGuildStore5.getGuildId() ?? null, 4096)
-  }), /* @__PURE__ */ React18.createElement("span", null, user.username));
-}
-function ContextMenuRoleWithIcon({ role }) {
-  return /* @__PURE__ */ React18.createElement("div", {
-    style: { display: "flex", alignItems: "center", gap: "8px" }
-  }, role.icon ? /* @__PURE__ */ React18.createElement("img", {
-    style: { borderRadius: "50%", width: "24px", height: "24px" },
-    src: `https://cdn.discordapp.com/role-icons/${role.id}/${role.icon}.webp?size=4096&quality=lossless`
-  }) : /* @__PURE__ */ React18.createElement("div", {
-    style: {
-      width: "18px",
-      borderRadius: "1000px",
-      height: "18px",
-      backgroundColor: role.colorString ?? role.colorStrings.primaryColor
-    }
-  }), /* @__PURE__ */ React18.createElement("span", null, role.name));
-}
-function ContextMenuMessagePreview({ message }) {
-  const author = UserStore12.getUser(message.author?.id);
-  return /* @__PURE__ */ React18.createElement("div", {
-    style: { display: "flex", flexDirection: "column", gap: "2px" }
-  }, /* @__PURE__ */ React18.createElement("div", {
-    style: { display: "flex", alignItems: "center", gap: "8px" }
-  }, author && /* @__PURE__ */ React18.createElement("img", {
-    style: { borderRadius: "50%", width: "24px", height: "24px" },
-    src: author.getAvatarURL(SelectedGuildStore5.getGuildId() ?? null, 4096)
-  }), /* @__PURE__ */ React18.createElement("span", {
-    style: { fontWeight: 600 }
-  }, author?.username ?? "Unknown")), /* @__PURE__ */ React18.createElement("span", {
-    style: { opacity: 0.7, fontSize: "12px" }
-  }, truncate(message.content)));
-}
-function CheckMark() {
-  return /* @__PURE__ */ React18.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "24px",
-    height: "24px",
-    viewBox: "0 0 16 16"
-  }, /* @__PURE__ */ React18.createElement("path", {
-    fill: "var(--status-online)",
-    d: "M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14l.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"
-  }));
-}
-function FC({ id }) {
-  const [isShifting, setIsShifting] = React18.useState(false);
-  const ref = React18.useRef(null);
-  const {
-    selected,
-    selectedUsers,
-    selectedRoles,
-    selectedFlag,
-    referenceMessageId,
-    mentionRepliedUser
-  } = Hooks.useStateFromStores([AllowedMentionsStore], () => AllowedMentionsStore.getState(id), [id]);
-  const draft = Hooks.useStateFromStores([DraftStore], () => DraftStore.getDraft(id, 0) ?? "");
-  const recentMessages = Hooks.useStateFromStores([MessageStore], () => getRecentMessages(id), [id]);
-  const users = React18.useMemo(() => getAllUsers(draft), [draft]);
-  const roles = React18.useMemo(() => getAllRoles(draft), [draft]);
-  React18.useEffect(() => {
-    AllowedMentionsStore.registerMentions(id, Object.keys(users), roles.map((role) => role.id));
-  }, [users, roles, id]);
-  return /* @__PURE__ */ React18.createElement("div", {
-    ref
-  }, /* @__PURE__ */ React18.createElement(Popout, {
-    targetElementRef: ref,
-    position: "top",
-    children: (e) => {
-      setIsShifting(e.shiftKey);
-      return /* @__PURE__ */ React18.createElement("div", {
-        ...e
-      }, /* @__PURE__ */ React18.createElement(HeaderComponents.Icon, {
-        icon: () => /* @__PURE__ */ React18.createElement(MentionSVG, null)
-      }));
-    },
-    renderPopout: (e) => {
-      return /* @__PURE__ */ React18.createElement("div", {
-        style: { minWidth: "200px" },
-        ...e
-      }, /* @__PURE__ */ React18.createElement(ContextMenu.Menu, {
-        navId: "dick-cheeze"
-      }, MENTION_OPTIONS.map((opt) => ContextMenu.buildItem({
-        type: "radio",
-        group: MENTION_GROUP,
-        id: opt.id,
-        label: opt.label,
-        checked: selected === opt.id,
-        action: () => AllowedMentionsStore.setSelected(id, opt.id)
-      })), Object.values(users).length > 0 ? /* @__PURE__ */ React18.createElement(ContextMenu.Group, {
-        label: "Users"
-      }, Object.values(users).map((user) => ContextMenu.buildItem({
-        type: "toggle",
-        group: `allowedmentions-user-${user.id}`,
-        id: user.id,
-        label: () => /* @__PURE__ */ React18.createElement(ContextMenuUserWithIcon, {
-          user
-        }),
-        checked: selectedUsers.has(user.id),
-        action: () => AllowedMentionsStore.toggleUser(id, user.id)
-      }))) : null, roles.length > 0 ? /* @__PURE__ */ React18.createElement(ContextMenu.Group, {
-        label: "Roles"
-      }, roles.map((role) => ContextMenu.buildItem({
-        type: "toggle",
-        group: `allowedmentions-role-${role.id}`,
-        id: role.id,
-        label: () => /* @__PURE__ */ React18.createElement(ContextMenuRoleWithIcon, {
-          role
-        }),
-        checked: selectedRoles.has(role.id),
-        action: () => AllowedMentionsStore.toggleRole(id, role.id)
-      }))) : null, /* @__PURE__ */ React18.createElement(ContextMenu.Separator, null), ContextMenu.buildItem({
-        type: "submenu",
-        ...referenceMessageId && {
-          leadingAccessory: {
-            type: "icon",
-            icon: CheckMark
-          }
-        },
-        label: "Reply to message",
-        children: [
-          ContextMenu.buildItem({
-            type: "radio",
-            group: REFERENCE_GROUP,
-            label: "None",
-            checked: !referenceMessageId,
-            action: () => AllowedMentionsStore.setReferenceMessage(id, null)
-          }),
-          ...recentMessages.map((message) => ContextMenu.buildItem({
-            type: "radio",
-            group: REFERENCE_GROUP,
-            id: message.id,
-            label: () => /* @__PURE__ */ React18.createElement(ContextMenuMessagePreview, {
-              message
-            }),
-            checked: referenceMessageId === message.id,
-            action: () => AllowedMentionsStore.setReferenceMessage(id, message.id)
-          }))
-        ]
-      }), referenceMessageId && ContextMenu.buildItem({
-        type: "toggle",
-        label: "Mention on reply",
-        checked: mentionRepliedUser,
-        action: () => AllowedMentionsStore.toggleMentionRepliedUser(id)
-      }), /* @__PURE__ */ React18.createElement(ContextMenu.Separator, null), Object.entries(ALLOWED_FLAGS).map(([key, value]) => ContextMenu.buildItem({
-        type: "radio",
-        group: `allowedmentions-flags-${value}`,
-        id: value,
-        label: key,
-        checked: (selectedFlag & value) === value && value !== 0,
-        action: () => {
-          AllowedMentionsStore.setFlag(id, selectedFlag ^ value);
-        }
-      }))));
-    }
-  }));
-}
-function buildAllowedMentions(state) {
-  const users = Array.from(state.selectedUsers);
-  const roles = Array.from(state.selectedRoles);
-  const allowedMentions = {
-    parse: state.selected === "everyone" ? ["everyone"] : []
-  };
-  if (users.length > 0)
-    allowedMentions.users = users;
-  if (roles.length > 0)
-    allowedMentions.roles = roles;
-  if (state.referenceMessageId)
-    allowedMentions.replied_user = state.mentionRepliedUser;
-  return allowedMentions;
-}
-
-class Plugin {
-  start() {
-    BetterDiscord2.Patcher.after(Buttons.A, "type", (_, buttonArgs, returnValue) => {
-      const [props] = buttonArgs;
-      const channelId = props?.channel?.id;
-      if (!channelId)
-        return returnValue;
-      returnValue.props.children.unshift(/* @__PURE__ */ React18.createElement(FC, {
-        id: channelId
-      }));
-    });
-    BetterDiscord2.Patcher.before(MessageActions, "_sendMessage", (_, args) => {
-      const options = args[2];
-      if (!options)
-        return;
-      const channelId = SelectedChannelStore2.getChannelId();
-      const state = AllowedMentionsStore.getState(channelId);
-      options.allowedMentions = buildAllowedMentions(state);
-      options.flags = state.selectedFlag;
-      if (state.referenceMessageId) {
-        const message = MessageStore.getMessage(channelId, state.referenceMessageId);
-        if (message) {
-          options.messageReference = {
-            message_id: message.id,
-            channel_id: message.channel_id ?? channelId,
-            guild_id: SelectedGuildStore5.getGuildId() ?? undefined
-          };
-        }
-      }
-    });
-  }
-  stop() {
-    BetterDiscord2.Patcher.unpatchAll();
-  }
-}
-
 // src/ui/Debug.tsx
-var { React: React19 } = BetterDiscord;
+var { React: React18 } = BetterDiscord;
 var LEVEL_COLOR = { warn: "#f0b232", error: "#f23f43" };
 function DebugPanel() {
-  const [snapshot, setSnapshot] = React19.useState(getDebugSnapshot());
-  React19.useEffect(() => {
+  const [snapshot, setSnapshot] = React18.useState(getDebugSnapshot());
+  React18.useEffect(() => {
     const id = setInterval(() => setSnapshot(getDebugSnapshot()), 1000);
     return () => clearInterval(id);
   }, []);
   const { log: log2, patches, stillPending } = snapshot;
   const patchEntries = Object.entries(patches);
-  return /* @__PURE__ */ React19.createElement("div", {
+  return /* @__PURE__ */ React18.createElement("div", {
     style: { display: "flex", flexDirection: "column", gap: 14, fontSize: 13 }
-  }, !!stillPending.length && /* @__PURE__ */ React19.createElement(Section2, {
+  }, !!stillPending.length && /* @__PURE__ */ React18.createElement(Section2, {
     title: `Still Hanging (${stillPending.length})`
-  }, stillPending.map((p) => /* @__PURE__ */ React19.createElement(Row2, {
+  }, stillPending.map((p) => /* @__PURE__ */ React18.createElement(Row2, {
     key: p.label,
     left: p.label,
     right: `${(p.elapsedMs / 1000).toFixed(1)}s`,
     color: "#f0b232"
-  }))), /* @__PURE__ */ React19.createElement(Section2, {
+  }))), /* @__PURE__ */ React18.createElement(Section2, {
     title: `Patches (${patchEntries.length})`,
     empty: "No patches have loaded yet."
-  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React19.createElement(Row2, {
+  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React18.createElement(Row2, {
     key: name,
     left: name,
     right: s.ok ? `${s.ms}ms` : "failed",
     color: s.ok ? "#23a55a" : "#f23f43",
     sub: s.error
-  }))), /* @__PURE__ */ React19.createElement(Section2, {
+  }))), /* @__PURE__ */ React18.createElement(Section2, {
     title: `Log (${log2.length})`,
     empty: "No warnings or errors — looking good."
-  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React19.createElement(Row2, {
+  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React18.createElement(Row2, {
     key: i2,
     left: e.msg,
     right: `+${e.t}ms`,
@@ -7595,8 +7236,8 @@ function DebugPanel() {
   }))));
 }
 function Section2({ title, children, empty }) {
-  const items = React19.Children.toArray(children).filter(Boolean);
-  return /* @__PURE__ */ React19.createElement("div", null, /* @__PURE__ */ React19.createElement("div", {
+  const items = React18.Children.toArray(children).filter(Boolean);
+  return /* @__PURE__ */ React18.createElement("div", null, /* @__PURE__ */ React18.createElement("div", {
     style: {
       color: "var(--text-muted)",
       fontWeight: 600,
@@ -7605,30 +7246,30 @@ function Section2({ title, children, empty }) {
       fontSize: 11,
       letterSpacing: 0.3
     }
-  }, title), items.length ? /* @__PURE__ */ React19.createElement("div", {
+  }, title), items.length ? /* @__PURE__ */ React18.createElement("div", {
     style: { display: "flex", flexDirection: "column", gap: 2, maxHeight: 240, overflowY: "auto" }
-  }, items) : empty && /* @__PURE__ */ React19.createElement("div", {
+  }, items) : empty && /* @__PURE__ */ React18.createElement("div", {
     style: { color: "var(--text-muted)", fontSize: 12, fontStyle: "italic" }
   }, empty));
 }
 function Row2({ left, right, color, sub }) {
-  return /* @__PURE__ */ React19.createElement("div", {
+  return /* @__PURE__ */ React18.createElement("div", {
     style: { padding: "6px 8px", borderRadius: 4 }
-  }, /* @__PURE__ */ React19.createElement("div", {
+  }, /* @__PURE__ */ React18.createElement("div", {
     style: { display: "flex", justifyContent: "space-between", gap: 8 }
-  }, /* @__PURE__ */ React19.createElement("span", {
+  }, /* @__PURE__ */ React18.createElement("span", {
     style: { color: "var(--text-normal)", wordBreak: "break-word" }
-  }, left), /* @__PURE__ */ React19.createElement("span", {
+  }, left), /* @__PURE__ */ React18.createElement("span", {
     style: { color, flexShrink: 0, fontFamily: "var(--font-code)" }
-  }, right)), sub && /* @__PURE__ */ React19.createElement("div", {
+  }, right)), sub && /* @__PURE__ */ React18.createElement("div", {
     style: { color: "var(--text-muted)", fontSize: 11, marginTop: 2, wordBreak: "break-word" }
   }, sub));
 }
 
 // src/index.tsx
 var { Components: Components13 } = BetterDiscord;
-var { React: React20 } = BetterDiscord;
-var { UserStore: UserStore13, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
+var { React: React19 } = BetterDiscord;
+var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
   {
     key: "screenSharing",
@@ -8058,11 +7699,11 @@ var SettingsSchema = [
       const update = (patch) => {
         onChange({ link, type, ...patch });
       };
-      return /* @__PURE__ */ React20.createElement(React20.Fragment, null, /* @__PURE__ */ React20.createElement(Components13.TextInput, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(Components13.TextInput, {
         value: link,
         placeholder: "https://cdn.discordapp.com/attachments/...",
         onChange: (v) => update({ link: v })
-      }), /* @__PURE__ */ React20.createElement(Components13.DropdownInput, {
+      }), /* @__PURE__ */ React19.createElement(Components13.DropdownInput, {
         value: type,
         options: [
           { label: "Image", value: "png" },
@@ -8100,7 +7741,7 @@ function overrideVariant(experimentName, variantId) {
   ApexExperimentStore.emitChange();
 }
 
-class Plugin2 {
+class Plugin {
   unpatch = loadContextMenus();
   source = "";
   load() {
@@ -8136,17 +7777,7 @@ This will reload the plugin and you can use it normally.`,
     const checkForUpdatesEnabled = SettingsStore_default.get("checkForUpdates");
     checkForUpdatesEnabled && this.checkUpdate();
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
-    if (true) {
-      BetterDiscord.Logger.log("Welcome back, Developer.");
-      window.YABD_DEBUG = {
-        ShopCollectiblesStore: ShopCollectiblesStore_default,
-        BadgesStore: BadgesStore_default,
-        getRevealedText,
-        secondsightifyRevealOnly,
-        SettingsStore: SettingsStore_default,
-        varForcer: Plugin
-      };
-    }
+    if (false) {}
     UserBackgroundStore_default.fetch();
   }
   exposed = {
@@ -8189,7 +7820,7 @@ Select VPN Mode if you have enabled a VPN.`,
       BetterDiscord.Logger.log("New update version found!");
       this.notification = BetterDiscord.UI.showNotification({
         title: "YABDP4Nitro Update Available",
-        icon: () => /* @__PURE__ */ React20.createElement(Icon, {
+        icon: () => /* @__PURE__ */ React19.createElement(Icon, {
           icon: "mdi:update",
           width: "20"
         }),
@@ -8272,14 +7903,14 @@ Select VPN Mode if you have enabled a VPN.`,
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore_default.unload();
-    UserStore13.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+    UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
     BetterDiscord.Logger.info(`(v${package_default.version}) has stopped.`);
   }
   renderControl(def, value) {
     const onChange = (v) => {
       SettingsStore_default.set(def.key, v);
       if (def.key == "changePremiumType2" && v != -1)
-        UserStore13.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
+        UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
       if (def.key == "experiments")
         startSet();
       if (def.key == "enableClipsExperiment") {
@@ -8293,28 +7924,28 @@ Select VPN Mode if you have enabled a VPN.`,
     };
     switch (def.type) {
       case "custom":
-        return /* @__PURE__ */ React20.createElement(def.Custom, {
+        return /* @__PURE__ */ React19.createElement(def.Custom, {
           value,
           options: def.options,
           onChange
         });
       case "boolean":
-        return /* @__PURE__ */ React20.createElement(Components13.SwitchInput, {
+        return /* @__PURE__ */ React19.createElement(Components13.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React20.createElement(Components13.NumberInput, {
+        return /* @__PURE__ */ React19.createElement(Components13.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React20.createElement(Components13.TextInput, {
+        return /* @__PURE__ */ React19.createElement(Components13.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React20.createElement(Components13.DropdownInput, {
+        return /* @__PURE__ */ React19.createElement(Components13.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -8334,27 +7965,27 @@ Select VPN Mode if you have enabled a VPN.`,
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React20.createElement(React20.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React20.createElement(Components13.SettingGroup, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React19.createElement(Components13.SettingGroup, {
         key: category,
         name: category,
         collapsible: true,
         shown: false
-      }, defs.map((def) => /* @__PURE__ */ React20.createElement(Components13.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React19.createElement(Components13.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note
-      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore13.getCurrentUser().id) && /* @__PURE__ */ React20.createElement(Components13.SettingGroup, {
+      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore12.getCurrentUser().id) && /* @__PURE__ */ React19.createElement(Components13.SettingGroup, {
         name: "Debug",
         collapsible: true,
         shown: false
-      }, /* @__PURE__ */ React20.createElement(DebugPanel, null)), /* @__PURE__ */ React20.createElement("div", {
+      }, /* @__PURE__ */ React19.createElement(DebugPanel, null)), /* @__PURE__ */ React19.createElement("div", {
         style: { padding: "5px", display: "flex", justifyContent: "space-between" }
-      }, /* @__PURE__ */ React20.createElement(Components13.Tooltip, {
+      }, /* @__PURE__ */ React19.createElement(Components13.Tooltip, {
         text: "Check recent changelog"
       }, (props) => {
-        return /* @__PURE__ */ React20.createElement("div", {
+        return /* @__PURE__ */ React19.createElement("div", {
           ...props
-        }, /* @__PURE__ */ React20.createElement(Icon, {
+        }, /* @__PURE__ */ React19.createElement(Icon, {
           onContextMenu: (event) => {
             const menu = BetterDiscord.ContextMenu.buildMenu(this.buildChangelogMenu());
             BetterDiscord.ContextMenu.open(event, menu);
@@ -8363,11 +7994,11 @@ Select VPN Mode if you have enabled a VPN.`,
           width: 24,
           icon: "material-symbols:update"
         }));
-      }), /* @__PURE__ */ React20.createElement(Components13.Tooltip, {
+      }), /* @__PURE__ */ React19.createElement(Components13.Tooltip, {
         text: "Copy debug info to clipboard"
-      }, (props) => /* @__PURE__ */ React20.createElement("div", {
+      }, (props) => /* @__PURE__ */ React19.createElement("div", {
         ...props
-      }, /* @__PURE__ */ React20.createElement(Icon, {
+      }, /* @__PURE__ */ React19.createElement(Icon, {
         onClick: () => {
           const payload = {
             version: package_default.version,
