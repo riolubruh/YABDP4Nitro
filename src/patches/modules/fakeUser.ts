@@ -78,6 +78,18 @@ export default {
 				return;
 			}
 
+			if (IgnoreStore.isIgnored(userId, "nitro")) {
+				ret.displayNameStyles = {colors:[]};
+				ret.avatarDecorationData = {};
+				ret.avatarDecoration = {};
+				ret.collectibles = {};
+				return;
+			}
+
+			if (IgnoreStore.isIgnored(userId, "encoding")) {
+				return;
+			}
+
 			if (dnsEnabled) {
 				const revealedText = getRevealedText(userId, `\uDB40\uDC53\uDB40\uDC7B`);
 				const match = extractDisplayNameStyles(revealedText);
