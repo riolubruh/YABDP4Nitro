@@ -6863,7 +6863,7 @@ var changelog_default = {
           type: "fixed",
           items: [
             "Fixed YABDP4Nitro profile tab not appearing.",
-            "Fixed error appearing in console for the Clips max file size patch"
+            "Fixed error appearing in console for the Clips max file size patch."
           ]
         }
       ]
