@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.4
+ * @version 7.0.5
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -38,23 +38,10 @@
 */
  
 const React = window.BdApi.React
-var __create = Object.create;
-var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __toESM = (mod, isNodeMode, target) => {
-  target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
-  return to;
-};
 var __moduleCache = /* @__PURE__ */ new WeakMap;
 var __toCommonJS = (from) => {
   var entry = __moduleCache.get(from), desc;
@@ -69,7 +56,6 @@ var __toCommonJS = (from) => {
   __moduleCache.set(from, entry);
   return entry;
 };
-var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
@@ -80,117 +66,6 @@ var __export = (target, all) => {
     });
 };
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
-
-// src/global/shared/varforcer/index.ts
-var require_varforcer = __commonJS((exports2, module2) => {
-  function normalizeFunctionSource(str) {
-    const trimmed = str.trimStart();
-    if (/^function\b/.test(trimmed))
-      return str;
-    const arrowIdx = str.indexOf("=>");
-    const braceIdx = str.indexOf("{");
-    if (arrowIdx !== -1 && (braceIdx === -1 || arrowIdx < braceIdx))
-      return str;
-    let rest = trimmed;
-    let isAsync = false;
-    let isGenerator = false;
-    if (rest.startsWith("async")) {
-      isAsync = true;
-      rest = rest.slice(5).trimStart();
-    }
-    if (rest.startsWith("*")) {
-      isGenerator = true;
-      rest = rest.slice(1).trimStart();
-    }
-    const parenIdx = rest.indexOf("(");
-    if (parenIdx === -1)
-      throw new Error("[varForcer] Could not normalize function source (no `(` found).");
-    rest = rest.slice(parenIdx);
-    return `${isAsync ? "async " : ""}function${isGenerator ? "*" : ""} ${rest}`;
-  }
-  function parseDestructuredVars(fnStr) {
-    const letIndex = fnStr.indexOf("let{");
-    if (letIndex === -1) {
-      throw new Error("[varForcer] Could not find a `let{...}` destructure in the given function.");
-    }
-    const openBrace = letIndex + 4;
-    const closeBrace = fnStr.indexOf("}", openBrace);
-    if (closeBrace === -1) {
-      throw new Error("[varForcer] Found `let{` but no matching closing `}`.");
-    }
-    const body = fnStr.slice(openBrace, closeBrace);
-    const entries = body.split(",").map((chunk) => chunk.trim()).filter(Boolean).map((chunk) => {
-      const [remote, local] = chunk.split(":").map((s) => s.trim());
-      return [remote, local || remote];
-    });
-    return Object.fromEntries(entries);
-  }
-  function serializeValue(value) {
-    if (typeof value === "string")
-      return JSON.stringify(value);
-    if (value === undefined)
-      return "undefined";
-    if (typeof value === "object" && value !== null)
-      return JSON.stringify(value);
-    return String(value);
-  }
-  function forceFunctionVars(fn, declarations, options) {
-    const { after, offset = 0, sets, throwIfMissingAnchor = true } = options;
-    if (!after)
-      throw new Error("[varForcer] `options.after` (anchor string) is required.");
-    if (!sets || Object.keys(sets).length === 0)
-      throw new Error("[varForcer] `options.sets` must have at least one entry.");
-    const str = normalizeFunctionSource(fn.toString());
-    const vars = parseDestructuredVars(str);
-    const missing = Object.keys(sets).filter((name) => !vars[name]);
-    if (missing.length) {
-      throw new Error(`[varForcer] Could not resolve destructured var(s): ${missing.join(", ")}. Found: ${Object.keys(vars).join(", ")}`);
-    }
-    const anchorIndex = str.indexOf(after);
-    if (anchorIndex === -1) {
-      if (throwIfMissingAnchor)
-        throw new Error(`[varForcer] Could not find anchor string: "${after}"`);
-      return null;
-    }
-    const insertAt = anchorIndex + after.length + offset;
-    const before = str.slice(0, insertAt);
-    const rest = str.slice(insertAt);
-    const assignments = Object.entries(sets).map(([name, value]) => `${vars[name]}=${serializeValue(value)};`).join("");
-    const source = `with (__DECLARATIONS__) return (${before}${assignments}${rest});`;
-    try {
-      return new Function("__DECLARATIONS__", source)(declarations);
-    } catch (err2) {
-      throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
-
-Generated source:
-${source}`);
-    }
-  }
-  function replaceFunctionLiteral(fn, declarations, options) {
-    const { find, replace, throwIfMissing = true } = options;
-    const str = normalizeFunctionSource(fn.toString());
-    const found = typeof find === "string" ? str.includes(find) : find.test(str);
-    if (!found && throwIfMissing)
-      throw new Error(`[varForcer] Pattern not found: ${find}`);
-    const patched = str.replace(find, replace);
-    const source = `with (__DECLARATIONS__) return (${patched});`;
-    try {
-      return new Function("__DECLARATIONS__", source)(declarations);
-    } catch (err2) {
-      throw new Error(`[varForcer] Failed to compile patched function: ${err2.message}
-
-Generated source:
-${source}`);
-    }
-  }
-  module2.exports = {
-    forceFunctionVars,
-    replaceFunctionLiteral,
-    parseDestructuredVars,
-    serializeValue,
-    normalizeFunctionSource
-  };
-});
 
 // node:path
 var exports_path = {};
@@ -575,7 +450,8 @@ __export(exports_modules, {
   BlockedUserContext: () => blockedUserContext_default,
   AppIcons: () => appIcons_default,
   AnimatedUserBanner: () => getUserBannerURL_default,
-  AllowClips: () => allowClips_default
+  AllowClips: () => allowClips_default,
+  Adorn: () => collectiblesPatch_default
 });
 
 // src/global/stores/CustomUserProfileStore.ts
@@ -661,7 +537,9 @@ var defaultSettings = {
   },
   customVideoFilterEnabled: false,
   dontUpdate: false,
-  fetchMemberOnScroll: false
+  fetchMemberOnScroll: false,
+  oAuthToken: "",
+  typingIndicatorStyles: true
 };
 var SettingsStore_default = new class SettingsStore extends Utils.Store {
   settings = {
@@ -948,7 +826,8 @@ var regexReveals_default = {
   NAMEPLATE: /n\{[^}]*?\}/,
   PROFILE_PICTURE: /P\{[^}]*?\}/,
   PROFILE_FRAME: /pf\d+/,
-  PROFILE_COLORS: /\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/
+  PROFILE_COLORS: /\[#([a-fA-F0-9]+),#([a-fA-F0-9]+)\]/,
+  TYPING_STYLES: /t\{([0-9a-f]{2})(?:,([^}]*))?}/i
 };
 
 // src/global/shared/regexHelpers.ts
@@ -996,6 +875,26 @@ function containsProfileEffects(revealedSurrogate) {
 }
 function containsProfileFrame(revealedSurrogate) {
   return revealedSurrogate?.includes("pf") || false;
+}
+function extractTypingStyles(revealedText) {
+  if (!revealedText)
+    return null;
+  const m = revealedText.match(regexReveals_default.TYPING_STYLES);
+  if (!m)
+    return null;
+  const byte = parseInt(m[1], 16);
+  const animation = byte >> 4 & 15;
+  const typingSuggestion = byte & 15;
+  const emojis = m[2] ? m[2].split("|").map((s) => {
+    if (s.startsWith(":")) {
+      const rest = s.slice(1);
+      const animated = rest.startsWith("a");
+      const customEmojiId = animated ? rest.slice(1) : rest;
+      return { emoji: { oneofKind: "customEmojiId", customEmojiId }, animated };
+    }
+    return { emoji: { oneofKind: "unicodeEmoji", unicodeEmoji: s }, animated: false };
+  }) : [];
+  return { animation, typingSuggestion, emojis };
 }
 
 // src/global/stores/IgnoreStore.tsx
@@ -1104,6 +1003,25 @@ var fakeUserProfile_default = {
     });
   }
 };
+// src/global/stores/AdornStore.ts
+var API_URL = "http://localhost:3000/api/v1/users/";
+var AdornStore_default = new class AdornStore extends BetterDiscord.Utils.Store {
+  Adorns = [];
+  constructor() {
+    super();
+    BetterDiscord.Net.fetch(API_URL).then((res) => res.json()).then((data) => {
+      this.Adorns = data;
+      this.emitChange();
+    }).catch((e) => console.error("AdornStore: failed to fetch users", e));
+  }
+  get(userId) {
+    return this.Adorns.find((x) => x.discord_id == userId);
+  }
+  has(userId) {
+    return !!this.Adorns.find((x) => x.discord_id == userId);
+  }
+};
+
 // src/patches/modules/fakeUser.ts
 var { UserStore } = BetterDiscord.Webpack.Stores;
 function getStyleData(surrogate) {
@@ -1127,6 +1045,30 @@ var fakeUser_default = {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");
       const decorEnabled = SettingsStore_default.get("fakeAvatarDecorations");
       const nameplatesEnabled = SettingsStore_default.get("nameplatesEnabled");
+      const isAdorn = AdornStore_default.has(userId);
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
+        ret.displayNameStyles = { colors: [] };
+        ret.avatarDecorationData = {};
+        ret.avatarDecoration = {};
+        ret.collectibles = {};
+        return;
+      }
+      const typingEnabled = SettingsStore_default.get("typingIndicatorStyles");
+      if (typingEnabled) {
+        const revealedText = getRevealedText(userId, `\uDB40\uDC74\uDB40\uDC7B`);
+        const parsed = extractTypingStyles(revealedText);
+        if (parsed) {
+          Object.defineProperty(ret, "typingIndicatorStyle", {
+            value: parsed,
+            enumerable: true,
+            writable: true,
+            configurable: true
+          });
+        }
+      }
+      if (IgnoreStore_default.isIgnored(userId, "encoding")) {
+        return;
+      }
       if (IgnoreStore_default.isIgnored(userId, "nitro")) {
         ret.displayNameStyles = { colors: [] };
         ret.avatarDecorationData = {};
@@ -1156,7 +1098,7 @@ var fakeUser_default = {
           }
         }
       }
-      if (decorEnabled) {
+      if (decorEnabled && !isAdorn) {
         const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
         const skuId = extractDecoration(revealedText);
         if (skuId) {
@@ -4499,9 +4441,6 @@ var maxFileSize_default = {
       else
         return normal;
     });
-    patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", () => {
-      return false;
-    });
   }
 };
 // src/patches/modules/sharpenStreams.tsx
@@ -5139,14 +5078,16 @@ var { React: React9, Components: Components5 } = BetterDiscord;
 var EffectText = BetterDiscord.Webpack.getBySource("UserNameWithEffects").A;
 var { UserStore: UserStore6 } = BetterDiscord.Webpack.Stores;
 var FONTS = [
-  { name: "GG Sans", id: 11 },
-  { name: "Tempo", id: 12 },
+  { name: "Bangers", id: 1 },
   { name: "Sakura", id: 3 },
   { name: "Jellybean", id: 4 },
+  { name: "Compagnon", id: 5 },
   { name: "Modern", id: 6 },
   { name: "Medieval", id: 7 },
   { name: "8Bit", id: 8 },
   { name: "Vampyre", id: 10 },
+  { name: "GG Sans", id: 11 },
+  { name: "Tempo", id: 12 },
   { name: "Monkey Bars", id: 13 },
   { name: "Mainframe", id: 14 },
   { name: "Headbang", id: 15 },
@@ -6096,7 +6037,7 @@ function ProfileFrames() {
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
-var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".showNewContentDot?");
 var Scroller = styled.div({
   overflowY: "scroll",
   scrollbarWidth: "none",
@@ -6162,7 +6103,7 @@ var UserProfileV2_default = {
     }).then((x2) => Object.values(x2.declarations).find((x3) => x3?.TOGGLE_SCREENSHARE).TOGGLE_SCREENSHARE.handler.toString())
   ],
   ids: [
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
+    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("lastSpeakingWhileMutedNotificationTime"), {
       raw: true
     }).then((x2) => x2.id),
     async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x2) => x2.id),
@@ -6173,7 +6114,7 @@ var UserProfileV2_default = {
   apply(finale, patcher) {
     const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
-    const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".section==="));
+    const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs"));
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
     const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
@@ -6436,6 +6377,53 @@ var blockedUserContext_default = {
         openUserContextMenu(e, pfp.user, channel);
       };
     });
+  }
+};
+// src/patches/modules/collectiblesPatch.ts
+var FAKE_SKU_ID = "69420";
+var originalDecorations = new Map;
+function isFakeDecoration(v) {
+  return typeof v?.skuId === "string" && v.skuId.startsWith(`${FAKE_SKU_ID}:`);
+}
+var avatarDecorationDescriptor = {
+  get() {
+    const entry = AdornStore_default.get(this.id);
+    if (!entry?.decoration) {
+      return originalDecorations.get(this.id);
+    }
+    return {
+      skuId: `${FAKE_SKU_ID}:${this.id}`,
+      asset: `${FAKE_SKU_ID}:${this.id}`
+    };
+  },
+  set(v) {
+    if (!isFakeDecoration(v)) {
+      originalDecorations.set(this.id, v);
+    }
+  },
+  configurable: true
+};
+var collectiblesPatch_default = {
+  name: "collectibles",
+  apply: (finale, patcher) => {
+    return;
+    const UserRecord = BetterDiscord.Webpack.getById(889227).A;
+    Object.defineProperty(UserRecord.prototype, "avatarDecorationData", avatarDecorationDescriptor);
+    Object.values(BetterDiscord.Webpack.Stores.UserStore.getUsers()).forEach((x2) => {
+      originalDecorations.set(x2.id, x2.avatarDecorationData);
+      Object.defineProperty(x2, "avatarDecorationData", avatarDecorationDescriptor);
+    });
+    const mod = BetterDiscord.Webpack.getByKeys("getCollectiblesItemAssetUrl");
+    patcher.after(mod, "getCollectiblesItemAssetUrl", (_, data, b) => {
+      return b;
+      const asset = data?.[0].skuId;
+      if (!asset?.startsWith(`${FAKE_SKU_ID}:`))
+        return b;
+      const userId = asset.slice(FAKE_SKU_ID.length + 1);
+      const entry = AdornStore_default.get(userId);
+      return entry?.decoration?.file_url ?? b;
+    });
+    BetterDiscord.Webpack.Stores.UserStore.emitChange();
   }
 };
 // src/patches/modules/dev.tsx
@@ -6877,6 +6865,21 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.5": [
+    {
+      changes: [
+        {
+          title: "Hotfixes",
+          type: "fixed",
+          items: [
+            "Added new Display Name Styles fonts.",
+            "Fixed YABDP4Nitro profile tab not appearing.",
+            "Fixed error appearing in console for the Clips max file size patch."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.4": [
     {
       changes: [
@@ -7005,7 +7008,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.4",
+  version: "7.0.5",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -7071,9 +7074,6 @@ function startChangelog(sourceVersion) {
   });
   SettingsStore_default.set("lastChangelogVersion", currentVersion);
 }
-
-// src/index.tsx
-var import_varforcer = __toESM(require_varforcer(), 1);
 
 // src/ui/Debug.tsx
 var { React: React18 } = BetterDiscord;

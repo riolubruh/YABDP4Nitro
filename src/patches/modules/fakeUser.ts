@@ -5,11 +5,14 @@ import { getRevealedText } from "@utils/*";
 import {
 	extractDisplayNameStyles,
 	extractDecoration,
-	extractNameplate,
+	extractNameplate, extractTypingStyles,
 } from "../../global/shared/regexHelpers.ts";
 import IgnoreStore from "../../global/stores/IgnoreStore.tsx";
+import AdornStore from "../../global/stores/AdornStore.ts";
 
 const { UserStore } = BetterDiscord.Webpack.Stores;
+
+const ADORN_SKU_ID = "69420";
 
 function getStyleData(surrogate: string[]) {
 	const fontId = Number(surrogate?.[0]);
@@ -34,6 +37,46 @@ export default {
 			const dnsEnabled = SettingsStore.get("displayNameStyles");
 			const decorEnabled = SettingsStore.get("fakeAvatarDecorations");
 			const nameplatesEnabled = SettingsStore.get("nameplatesEnabled");
+			const isAdorn = AdornStore.has(userId);
+
+			// if (isAdorn) {
+			// 	const adorn = AdornStore.get(userId);
+			// 	if (adorn?.decoration) {
+			// 		Object.defineProperty(ret, "__adorn", {value: true, configurable: true});
+			// 		ret.avatarDecorationData = {
+			// 			...ret.avatarDecorationData,
+			// 			adorn: adorn.decoration,
+			// 			skuId: ADORN_SKU_ID,
+			// 		};
+			// 	}
+			// }
+
+			if (IgnoreStore.isIgnored(userId, "nitro")) {
+				ret.displayNameStyles = {colors:[]};
+				ret.avatarDecorationData = {};
+				ret.avatarDecoration = {};
+				ret.collectibles = {};
+				return;
+			}
+
+			const typingEnabled = SettingsStore.get("typingIndicatorStyles");
+
+			if (typingEnabled) {
+				const revealedText = getRevealedText(userId, `\uDB40\uDC74\uDB40\uDC7B`);
+				const parsed = extractTypingStyles(revealedText);
+				if (parsed) {
+					Object.defineProperty(ret, "typingIndicatorStyle", {
+						value: parsed,
+						enumerable: true,
+						writable: true,
+						configurable: true,
+					});
+				}
+			}
+
+			if (IgnoreStore.isIgnored(userId, "encoding")) {
+				return;
+			}
 
 			if (IgnoreStore.isIgnored(userId, "nitro")) {
 				ret.displayNameStyles = {colors:[]};
@@ -68,7 +111,7 @@ export default {
 				}
 			}
 
-			if (decorEnabled) {
+			if (decorEnabled && !isAdorn) {
 				const revealedText = getRevealedText(userId, `\uDB40\uDC2F\uDB40\uDC61`);
 				const skuId = extractDecoration(revealedText);
 				if (skuId) {

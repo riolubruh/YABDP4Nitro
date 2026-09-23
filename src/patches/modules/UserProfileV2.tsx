@@ -1,4 +1,4 @@
-import { BetterDiscord } from "@shared/*";
+import {BetterDiscord} from "@shared/*";
 import {
 	AccentColors,
 	AvatarDecorations,
@@ -9,15 +9,16 @@ import {
 	ProfileEffects,
 	ProfileFrames,
 } from "../../ui";
-import { getKey, wpGet, wpWait } from "../../global/webpack";
-import { copyToClipboard, secondsightifyEncodeOnly, styled } from "@utils/*";
+import {getKey, wpGet, wpWait} from "../../global/webpack";
+import {copyToClipboard, secondsightifyEncodeOnly, styled} from "@utils/*";
 import BadgesStore from "../../global/stores/BadgesStore.tsx";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
+import StyleDots from "../../ui/TypingStyleDots.tsx";
 
 const { React, Components } = BetterDiscord;
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
-const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".showNewContentDot?");
 
 const Scroller = styled.div({
 	overflowY: "scroll",
@@ -103,6 +104,11 @@ export function CustomSettingsTab() {
 					<ProfileFrames />
 				</Card>
 
+				{/*<Card>
+					<CardLabel>Typing Style Dots</CardLabel>
+					<StyleDots/>
+				</Card>*/}
+
 				{isDeveloper || advancedProfileCustomization ? (
 					<Card style={{ gridColumn: "span 2" }}>
 						<CardLabel>Developer</CardLabel>
@@ -145,7 +151,7 @@ export default {
 	],
 	ids: [
 		async () =>
-			await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
+			await wpWait(BetterDiscord.Webpack.Filters.bySource("lastSpeakingWhileMutedNotificationTime"), {
 				raw: true,
 			}).then((x) => x.id),
 		async () =>
@@ -173,7 +179,7 @@ export default {
 		);
 		const tabSectionReturn = getKey(
 			TabBarInjectLocation,
-			BetterDiscord.Webpack.Filters.byStrings(".section===")
+			BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs")
 		);
 
 		const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource(

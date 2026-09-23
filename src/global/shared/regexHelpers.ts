@@ -53,3 +53,41 @@ export function containsProfileEffects(revealedSurrogate: string | undefined | n
 export function containsProfileFrame(revealedSurrogate: string | undefined | null) {
 	return revealedSurrogate?.includes("pf") || false;
 }
+
+export function encodeTypingStyle(style) {
+	const byte = ((style.animation & 0xf) << 4 | (style.typingSuggestion & 0xf))
+		.toString(16).padStart(2, "0");
+
+	const emojis = (style.emojis ?? []).map(e => {
+		if (e.emoji.oneofKind === "unicodeEmoji") {
+			return e.emoji.unicodeEmoji;
+		}
+		return ":" + (e.animated ? "a" : "") + e.emoji.customEmojiId;
+	}).join("|");
+
+	return emojis ? `t{${byte},${emojis}}` : `t{${byte}}`;
+}
+
+export function extractTypingStyles(revealedText) {
+	if (!revealedText) return null;
+	const m = revealedText.match(suggondeeznutz.TYPING_STYLES);
+	if (!m) return null;
+
+	const byte = parseInt(m[1], 16);
+	const animation = (byte >> 4) & 0xf;
+	const typingSuggestion = byte & 0xf;
+
+	const emojis = m[2]
+		? m[2].split("|").map(s => {
+			if (s.startsWith(":")) {
+				const rest = s.slice(1);
+				const animated = rest.startsWith("a");
+				const customEmojiId = animated ? rest.slice(1) : rest;
+				return {emoji: {oneofKind: "customEmojiId", customEmojiId}, animated};
+			}
+			return {emoji: {oneofKind: "unicodeEmoji", unicodeEmoji: s}, animated: false};
+		})
+		: [];
+
+	return {animation, typingSuggestion, emojis};
+}
