@@ -932,41 +932,6 @@ var IgnoreStore_default = new class IgnoreStore extends BetterDiscord.Utils.Stor
   }
 };
 
-// src/global/stores/IgnoreStore.tsx
-var IgnoreStore_default = new class IgnoreStore extends BetterDiscord.Utils.Store {
-  data = BetterDiscord.Data.load("ignores") ?? {};
-  persist() {
-    this.emitChange();
-    BetterDiscord.Data.save("ignores", this.data);
-  }
-  getEntry(id) {
-    return this.data[id] ?? { nitro: false, encoding: false };
-  }
-  ignore(id, flags = { nitro: true, encoding: true }) {
-    const entry = this.getEntry(id);
-    this.data[id] = { ...entry, ...flags };
-    this.persist();
-  }
-  unIgnore(id, flags = { nitro: false, encoding: false }) {
-    const entry = this.getEntry(id);
-    this.data[id] = { ...entry, ...flags };
-    this.persist();
-  }
-  toggleIgnored(id, key) {
-    const entry = this.getEntry(id);
-    this.data[id] = { ...entry, [key]: !entry[key] };
-    this.persist();
-  }
-  isIgnored(id, key) {
-    const entry = this.data?.[id];
-    if (!entry)
-      return false;
-    if (key)
-      return !!entry[key];
-    return !!(entry.nitro || entry.encoding);
-  }
-};
-
 // src/patches/modules/fakeUserProfile.ts
 var { UserProfileStore: UserProfileStore2, SelectedGuildStore: SelectedGuildStore2 } = BetterDiscord.Webpack.Stores;
 function extractProfileColors(string) {
@@ -1100,6 +1065,16 @@ var fakeUser_default = {
             configurable: true
           });
         }
+      }
+      if (IgnoreStore_default.isIgnored(userId, "encoding")) {
+        return;
+      }
+      if (IgnoreStore_default.isIgnored(userId, "nitro")) {
+        ret.displayNameStyles = { colors: [] };
+        ret.avatarDecorationData = {};
+        ret.avatarDecoration = {};
+        ret.collectibles = {};
+        return;
       }
       if (IgnoreStore_default.isIgnored(userId, "encoding")) {
         return;
