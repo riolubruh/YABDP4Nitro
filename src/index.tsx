@@ -11,7 +11,7 @@ import {copyToClipboard, getRevealedText, secondsightifyRevealOnly} from "@utils
 import {Icon} from "@iconify/react";
 import {CustomSettingsTab} from "./patches/modules/UserProfileV2.tsx";
 import Meta from "../package.json";
-import varForcer from "../src/global/shared/varforcer";
+import varForcer from "../../../BDPlugins/src/AllowedMentions";
 import FFmpegStore from "./global/stores/FFmpegStore.ts";
 import changelog from "./global/changelog/changelog.json";
 import DebugPanel from "./ui/Debug.tsx";

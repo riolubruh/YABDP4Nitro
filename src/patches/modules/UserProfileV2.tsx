@@ -18,7 +18,7 @@ import StyleDots from "../../ui/TypingStyleDots.tsx";
 const { React, Components } = BetterDiscord;
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
-const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".RP.ACTIVITY?(0,");
+const GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".showNewContentDot?");
 
 const Scroller = styled.div({
 	overflowY: "scroll",
@@ -151,7 +151,7 @@ export default {
 	],
 	ids: [
 		async () =>
-			await wpWait(BetterDiscord.Webpack.Filters.bySource("speakingWhilePTTInactive"), {
+			await wpWait(BetterDiscord.Webpack.Filters.bySource("lastSpeakingWhileMutedNotificationTime"), {
 				raw: true,
 			}).then((x) => x.id),
 		async () =>
@@ -179,7 +179,7 @@ export default {
 		);
 		const tabSectionReturn = getKey(
 			TabBarInjectLocation,
-			BetterDiscord.Webpack.Filters.byStrings(".section===")
+			BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs")
 		);
 
 		const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource(
