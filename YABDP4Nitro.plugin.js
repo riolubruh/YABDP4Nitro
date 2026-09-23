@@ -876,16 +876,6 @@ function containsProfileEffects(revealedSurrogate) {
 function containsProfileFrame(revealedSurrogate) {
   return revealedSurrogate?.includes("pf") || false;
 }
-function encodeTypingStyle(style) {
-  const byte = ((style.animation & 15) << 4 | style.typingSuggestion & 15).toString(16).padStart(2, "0");
-  const emojis = (style.emojis ?? []).map((e) => {
-    if (e.emoji.oneofKind === "unicodeEmoji") {
-      return e.emoji.unicodeEmoji;
-    }
-    return ":" + (e.animated ? "a" : "") + e.emoji.customEmojiId;
-  }).join("|");
-  return emojis ? `t{${byte},${emojis}}` : `t{${byte}}`;
-}
 function extractTypingStyles(revealedText) {
   if (!revealedText)
     return null;
@@ -6034,130 +6024,8 @@ function ProfileFrames() {
     setSkuId
   })));
 }
-// src/ui/TypingStyleDots.tsx
-var { Components: Components10 } = BetterDiscord;
-var Animations = {
-  PULSE: 1,
-  RING: 2,
-  WAVE: 3
-};
-var Suggestions = {
-  YAPPING: 1,
-  VENTING: 2,
-  OVERSHARING: 3,
-  BARKING: 4,
-  BABBLING: 5,
-  DAYDREAMING: 6,
-  MEOWING: 7
-};
-var ModalModule8 = wpGetByKeys(["Modal"]);
-var Container = styled.div({
-  display: "flex",
-  flexDirection: "column",
-  gap: 20
-});
-var Section = styled.div({
-  display: "flex",
-  flexDirection: "column",
-  gap: 8
-});
-var Label = styled.div({
-  fontSize: 16,
-  fontWeight: 600,
-  color: "var(--header-primary)"
-});
-var Row = styled.div({
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8
-});
-var Preview = styled.div({
-  display: "flex",
-  alignItems: "center",
-  gap: 6,
-  fontSize: 28,
-  fontWeight: 600
-});
-var PreviewEmpty = styled.span({
-  opacity: 0.5,
-  fontSize: 14,
-  fontWeight: 400
-});
-var optionButtonStyle = (selected) => ({
-  backgroundColor: "var(--control-secondary-background-default)",
-  color: "var(--text-default)",
-  border: selected ? "1px solid #fff" : "1px solid transparent"
-});
-function StyleDots() {
-  function handleClick() {
-    GlobalModules.ModalModule.openModal((props) => /* @__PURE__ */ React.createElement(ModalModule8.Modal, {
-      notice: {
-        type: "warning",
-        message: "This is still in early access/beta. Dis shit no work right now."
-      },
-      title: "Typing Style",
-      ...props
-    }, /* @__PURE__ */ React.createElement(StyleDotsModal, null)));
-  }
-  return /* @__PURE__ */ React.createElement(Components10.Button, {
-    onClick: handleClick
-  }, "Change");
-}
-function StyleDotsModal() {
-  const [animation, setAnimation] = React.useState(Animations.PULSE);
-  const [suggestion, setSuggestion] = React.useState(Suggestions.MEOWING);
-  const [emojiInput, setEmojiInput] = React.useState("\uD83D\uDC97");
-  const [animated, setAnimated] = React.useState(false);
-  const parsedEmojis = React.useMemo(() => parseEmojiInput(emojiInput, animated), [emojiInput, animated]);
-  return /* @__PURE__ */ React.createElement(Container, null, /* @__PURE__ */ React.createElement(Preview, null, parsedEmojis.length === 0 && /* @__PURE__ */ React.createElement(PreviewEmpty, null, "(no emojis)"), parsedEmojis.map((e, i2) => /* @__PURE__ */ React.createElement("span", {
-    key: i2
-  }, e.emoji.oneofKind === "unicodeEmoji" ? e.emoji.unicodeEmoji : `:${e.emoji.customEmojiId}`))), /* @__PURE__ */ React.createElement(Section, null, /* @__PURE__ */ React.createElement(Label, null, "Animation"), /* @__PURE__ */ React.createElement(Row, null, Object.entries(Animations).map(([name, value]) => /* @__PURE__ */ React.createElement(Components10.Button, {
-    key: name,
-    onClick: () => setAnimation(value),
-    style: optionButtonStyle(animation === value)
-  }, name.toLowerCase().substring(0, 1).toUpperCase() + name.toLowerCase().substring(1))))), /* @__PURE__ */ React.createElement(Section, null, /* @__PURE__ */ React.createElement(Label, null, "Suggestion"), /* @__PURE__ */ React.createElement(Row, null, Object.entries(Suggestions).map(([name, value]) => /* @__PURE__ */ React.createElement(Components10.Button, {
-    key: name,
-    onClick: () => setSuggestion(value),
-    style: optionButtonStyle(suggestion === value)
-  }, name.toLowerCase().substring(0, 1).toUpperCase() + name.toLowerCase().substring(1))))), /* @__PURE__ */ React.createElement(Section, null, /* @__PURE__ */ React.createElement(Label, null, "Emojis"), /* @__PURE__ */ React.createElement(Components10.TextInput, {
-    initialValue: emojiInput,
-    onChange: (value) => setEmojiInput(value),
-    placeholder: "\uD83D\uDC97 \uD83D\uDE00 :123456789012345678"
-  }), /* @__PURE__ */ React.createElement(Components10.SettingItem, {
-    name: "Animated",
-    note: "Should we animate this Emoji?",
-    inline: true,
-    onChange: (e) => setAnimated(e)
-  }, /* @__PURE__ */ React.createElement(Components10.SwitchInput, {
-    value: animated
-  }))), /* @__PURE__ */ React.createElement(Components10.Button, {
-    onClick: async () => {
-      await navigator.clipboard.writeText(secondsightifyEncodeOnly(encodeTypingStyle({
-        animation,
-        typingSuggestion: suggestion,
-        emojis: parsedEmojis
-      })));
-    }
-  }, "Copy 3y3"));
-}
-var graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-function parseEmojiInput(input, animated) {
-  return input.split(/\s+/).map((s) => s.trim()).filter(Boolean).flatMap((token) => {
-    if (token.startsWith(":")) {
-      return token.split(":").filter(Boolean).map((customEmojiId) => ({
-        emoji: { oneofKind: "customEmojiId", customEmojiId },
-        animated
-      }));
-    }
-    return Array.from(graphemeSegmenter.segment(token), (seg) => ({
-      emoji: { oneofKind: "unicodeEmoji", unicodeEmoji: seg.segment },
-      animated
-    }));
-  });
-}
-
 // src/patches/modules/UserProfileV2.tsx
-var { React: React14, Components: Components11 } = BetterDiscord;
+var { React: React14, Components: Components10 } = BetterDiscord;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
 var GLOBAL_FILTER = BetterDiscord.Webpack.Filters.bySource(".showNewContentDot?");
 var Scroller = styled.div({
@@ -6202,15 +6070,15 @@ function CustomSettingsTab() {
     style: { gridColumn: "span 2" }
   }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)), /* @__PURE__ */ React14.createElement(Card, {
     style: { gridColumn: "span 2" }
-  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Typing Style Dots"), /* @__PURE__ */ React14.createElement(StyleDots, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
     style: { gridColumn: "span 2" }
   }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"), /* @__PURE__ */ React14.createElement("div", {
     style: { display: "flex", gap: "8px", width: "100%" }
-  }, /* @__PURE__ */ React14.createElement(Components11.TextInput, {
+  }, /* @__PURE__ */ React14.createElement(Components10.TextInput, {
     value: devText,
     onChange: setDevText,
     style: { flex: 1 }
-  }), /* @__PURE__ */ React14.createElement(Components11.Button, {
+  }), /* @__PURE__ */ React14.createElement(Components10.Button, {
     onClick: () => {
       copyToClipboard(secondsightifyEncodeOnly(devText), "Copied encoded text to clipboard!");
     }
@@ -6313,7 +6181,7 @@ var canUserUse_default = {
   }
 };
 // src/patches/modules/customClientThemes.tsx
-var { React: React15, Components: Components12 } = BetterDiscord;
+var { React: React15, Components: Components11 } = BetterDiscord;
 var CustomClientThemePanelState = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("CLIENT_THEMES_EDITOR", "activePanel", "SHARE_MESSAGE"), {
   state: (x2) => x2?.setState
 });
@@ -6340,7 +6208,7 @@ var customClientThemes_default = {
             padding: "16px 15px",
             borderTop: "1px solid var(--border-subtle)"
           }
-        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components12.Button, {
+        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
           onClick: (e) => {
             CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
             finale.modules[0].openUserSettings("appearance_panel");
@@ -6348,14 +6216,14 @@ var customClientThemes_default = {
           style: {
             backgroundColor: "var(--control-secondary-background-default)"
           }
-        }, /* @__PURE__ */ React15.createElement(Components12.Text, {
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
           style: {
             fontSize: "16px",
             fontWeight: "500"
           }
-        }, "Back")), /* @__PURE__ */ React15.createElement(Components12.Button, {
+        }, "Back")), /* @__PURE__ */ React15.createElement(Components11.Button, {
           onClick: (e) => onSaveTheme.onSaveTheme(e)
-        }, /* @__PURE__ */ React15.createElement(Components12.Text, {
+        }, /* @__PURE__ */ React15.createElement(Components11.Text, {
           style: {
             fontSize: "16px",
             fontWeight: "500"
@@ -7209,33 +7077,33 @@ function DebugPanel() {
   const patchEntries = Object.entries(patches);
   return /* @__PURE__ */ React18.createElement("div", {
     style: { display: "flex", flexDirection: "column", gap: 14, fontSize: 13 }
-  }, !!stillPending.length && /* @__PURE__ */ React18.createElement(Section2, {
+  }, !!stillPending.length && /* @__PURE__ */ React18.createElement(Section, {
     title: `Still Hanging (${stillPending.length})`
-  }, stillPending.map((p) => /* @__PURE__ */ React18.createElement(Row2, {
+  }, stillPending.map((p) => /* @__PURE__ */ React18.createElement(Row, {
     key: p.label,
     left: p.label,
     right: `${(p.elapsedMs / 1000).toFixed(1)}s`,
     color: "#f0b232"
-  }))), /* @__PURE__ */ React18.createElement(Section2, {
+  }))), /* @__PURE__ */ React18.createElement(Section, {
     title: `Patches (${patchEntries.length})`,
     empty: "No patches have loaded yet."
-  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React18.createElement(Row2, {
+  }, patchEntries.map(([name, s]) => /* @__PURE__ */ React18.createElement(Row, {
     key: name,
     left: name,
     right: s.ok ? `${s.ms}ms` : "failed",
     color: s.ok ? "#23a55a" : "#f23f43",
     sub: s.error
-  }))), /* @__PURE__ */ React18.createElement(Section2, {
+  }))), /* @__PURE__ */ React18.createElement(Section, {
     title: `Log (${log2.length})`,
     empty: "No warnings or errors — looking good."
-  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React18.createElement(Row2, {
+  }, [...log2].reverse().map((e, i2) => /* @__PURE__ */ React18.createElement(Row, {
     key: i2,
     left: e.msg,
     right: `+${e.t}ms`,
     color: LEVEL_COLOR[e.level]
   }))));
 }
-function Section2({ title, children, empty }) {
+function Section({ title, children, empty }) {
   const items = React18.Children.toArray(children).filter(Boolean);
   return /* @__PURE__ */ React18.createElement("div", null, /* @__PURE__ */ React18.createElement("div", {
     style: {
@@ -7252,7 +7120,7 @@ function Section2({ title, children, empty }) {
     style: { color: "var(--text-muted)", fontSize: 12, fontStyle: "italic" }
   }, empty));
 }
-function Row2({ left, right, color, sub }) {
+function Row({ left, right, color, sub }) {
   return /* @__PURE__ */ React18.createElement("div", {
     style: { padding: "6px 8px", borderRadius: 4 }
   }, /* @__PURE__ */ React18.createElement("div", {
@@ -7267,7 +7135,7 @@ function Row2({ left, right, color, sub }) {
 }
 
 // src/index.tsx
-var { Components: Components13 } = BetterDiscord;
+var { Components: Components12 } = BetterDiscord;
 var { React: React19 } = BetterDiscord;
 var { UserStore: UserStore12, ApexExperimentStore, OverridePremiumTypeStore: OverridePremiumTypeStore2 } = BetterDiscord.Webpack.Stores;
 var SettingsSchema = [
@@ -7699,11 +7567,11 @@ var SettingsSchema = [
       const update = (patch) => {
         onChange({ link, type, ...patch });
       };
-      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(Components13.TextInput, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, /* @__PURE__ */ React19.createElement(Components12.TextInput, {
         value: link,
         placeholder: "https://cdn.discordapp.com/attachments/...",
         onChange: (v) => update({ link: v })
-      }), /* @__PURE__ */ React19.createElement(Components13.DropdownInput, {
+      }), /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
         value: type,
         options: [
           { label: "Image", value: "png" },
@@ -7930,22 +7798,22 @@ Select VPN Mode if you have enabled a VPN.`,
           onChange
         });
       case "boolean":
-        return /* @__PURE__ */ React19.createElement(Components13.SwitchInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.SwitchInput, {
           value,
           onChange
         });
       case "number":
-        return /* @__PURE__ */ React19.createElement(Components13.NumberInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.NumberInput, {
           value,
           onChange
         });
       case "string":
-        return /* @__PURE__ */ React19.createElement(Components13.TextInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.TextInput, {
           value,
           onChange
         });
       case "select":
-        return /* @__PURE__ */ React19.createElement(Components13.DropdownInput, {
+        return /* @__PURE__ */ React19.createElement(Components12.DropdownInput, {
           value,
           options: def.options,
           onChange
@@ -7965,22 +7833,22 @@ Select VPN Mode if you have enabled a VPN.`,
         (acc[def.category] ??= []).push(def);
         return acc;
       }, {});
-      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React19.createElement(Components13.SettingGroup, {
+      return /* @__PURE__ */ React19.createElement(React19.Fragment, null, Object.entries(grouped).map(([category, defs]) => /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
         key: category,
         name: category,
         collapsible: true,
         shown: false
-      }, defs.map((def) => /* @__PURE__ */ React19.createElement(Components13.SettingItem, {
+      }, defs.map((def) => /* @__PURE__ */ React19.createElement(Components12.SettingItem, {
         key: def.key,
         name: def.label,
         note: def.note
-      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore12.getCurrentUser().id) && /* @__PURE__ */ React19.createElement(Components13.SettingGroup, {
+      }, this.renderControl(def, values[def.key]))))), BadgesStore_default.isDeveloper(UserStore12.getCurrentUser().id) && /* @__PURE__ */ React19.createElement(Components12.SettingGroup, {
         name: "Debug",
         collapsible: true,
         shown: false
       }, /* @__PURE__ */ React19.createElement(DebugPanel, null)), /* @__PURE__ */ React19.createElement("div", {
         style: { padding: "5px", display: "flex", justifyContent: "space-between" }
-      }, /* @__PURE__ */ React19.createElement(Components13.Tooltip, {
+      }, /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
         text: "Check recent changelog"
       }, (props) => {
         return /* @__PURE__ */ React19.createElement("div", {
@@ -7994,7 +7862,7 @@ Select VPN Mode if you have enabled a VPN.`,
           width: 24,
           icon: "material-symbols:update"
         }));
-      }), /* @__PURE__ */ React19.createElement(Components13.Tooltip, {
+      }), /* @__PURE__ */ React19.createElement(Components12.Tooltip, {
         text: "Copy debug info to clipboard"
       }, (props) => /* @__PURE__ */ React19.createElement("div", {
         ...props

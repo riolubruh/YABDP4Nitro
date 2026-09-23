@@ -104,10 +104,10 @@ export function CustomSettingsTab() {
 					<ProfileFrames />
 				</Card>
 
-				<Card>
+				{/*<Card>
 					<CardLabel>Typing Style Dots</CardLabel>
 					<StyleDots/>
-				</Card>
+				</Card>*/}
 
 				{isDeveloper || advancedProfileCustomization ? (
 					<Card style={{ gridColumn: "span 2" }}>
