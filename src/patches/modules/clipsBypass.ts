@@ -62,7 +62,6 @@ const FREE_FILE_LIMIT = 20971520; //20MB
 const CLIPS_FILE_LIMIT = 104857600; //100MB
 
 export async function doClipsBypass(file) {
-	console.log(file);
 	const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } =
 		SettingsStore.getAll();
 

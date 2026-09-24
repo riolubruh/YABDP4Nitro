@@ -3870,7 +3870,6 @@ var udtaBuffer = base64ToUint8Array("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 var FREE_FILE_LIMIT = 20971520;
 var CLIPS_FILE_LIMIT = 104857600;
 async function doClipsBypass(file) {
-  console.log(file);
   const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } = SettingsStore_default.getAll();
   const skippedFileTypes = [
     "video/3gp",
@@ -6860,6 +6859,20 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.6": [
+    {
+      changes: [
+        {
+          title: "Mo' Hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed ZipClips not working after Discord update.",
+            "Fixed Unlock Stickers patch erroring."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.5": [
     {
       changes: [
