@@ -2,6 +2,7 @@ import { BetterDiscord } from "@shared/*";
 import SettingsStore from "../../global/stores/SettingsStore.ts";
 import FFmpegStore from "../../global/stores/FFmpegStore.ts";
 import { zipSync } from "fflate";
+import {GlobalModules} from "@global/*";
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
 export async function ffmpegTransmux(
@@ -160,9 +161,9 @@ export async function doClipsBypass(file) {
 	//ZipClip
 	else if (file.file.size >= FREE_FILE_LIMIT && file.file.size <= CLIPS_FILE_LIMIT && zipClip) {
 		const clipMaFFmpegArgs = [
-			"-f","lavfi","-i","color=c=black:s=128x96:duration=1","-f","lavfi","-i","anullsrc=r=44100:cl=mono",
+			"-f","lavfi","-i","anullsrc=r=44100:cl=mono:duration=1",
 			"-shortest","-fflags","+shortest","-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1",
-			"-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4",
+			"-preset","ultrafast","output.mp4",
 		];
 		const archiveMimeTypes = [
 			"x-7z-compressed","x-bzip","x-bzip2","x-rar-compressed","x-tar","gzip","x-gzip","zip","x-zip-compressed",
@@ -225,6 +226,16 @@ export default {
 		patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
 			const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore.getAll();
 
+			function addFiles(){
+				GlobalModules.Dispatcher.dispatch({
+					type: "UPLOAD_ATTACHMENT_ADD_FILES",
+					channelId: args.channelId,
+					files: args.files,
+					draftType: args.draftType,
+					allowOptimization: false
+				})
+			}
+
 			if (!args?.files?.length || (!useClipBypass && !useAudioClipBypass && !zipClip))
 				return originalFunction.apply(_, [args]);
 
@@ -239,7 +250,7 @@ export default {
 				})
 			);
 
-			return originalFunction.apply(_, [args]);
+			return addFiles();
 		});
 	},
 };

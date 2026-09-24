@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.5
+ * @version 7.0.6
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -4015,11 +4015,7 @@ async function doClipsBypass(file) {
       "-f",
       "lavfi",
       "-i",
-      "color=c=black:s=128x96:duration=1",
-      "-f",
-      "lavfi",
-      "-i",
-      "anullsrc=r=44100:cl=mono",
+      "anullsrc=r=44100:cl=mono:duration=1",
       "-shortest",
       "-fflags",
       "+shortest",
@@ -4031,10 +4027,6 @@ async function doClipsBypass(file) {
       "-1",
       "-preset",
       "ultrafast",
-      "-vframes",
-      "5",
-      "-c:v",
-      "mjpeg",
       "output.mp4"
     ];
     const archiveMimeTypes = [
@@ -4094,6 +4086,15 @@ var clipsBypass_default = {
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
       const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+      function addFiles() {
+        GlobalModules.Dispatcher.dispatch({
+          type: "UPLOAD_ATTACHMENT_ADD_FILES",
+          channelId: args.channelId,
+          files: args.files,
+          draftType: args.draftType,
+          allowOptimization: false
+        });
+      }
       if (!args?.files?.length || !useClipBypass && !useAudioClipBypass && !zipClip)
         return originalFunction.apply(_, [args]);
       args.files = await Promise.all(args.files.map(async (currentFile) => {
@@ -4104,7 +4105,7 @@ var clipsBypass_default = {
         }
         return currentFile;
       }));
-      return originalFunction.apply(_, [args]);
+      return addFiles();
     });
   }
 };
@@ -4537,8 +4538,7 @@ var sharpenStreams_default = {
 };
 // src/patches/modules/unlockStickers.ts
 var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere"), {
-  getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere"),
-  isSendableSticker: (x2) => typeof x2 === "function" && !x2.toString().includes("canUseCustomStickersEverywhere")
+  getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere")
 });
 var unlockStickers_default = {
   name: "Unlock Stickers",
@@ -4549,12 +4549,6 @@ var unlockStickers_default = {
       if (!stickerBypass && !forceStickersUnlocked)
         return callback.apply(_, args);
       return 0;
-    });
-    patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
-      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
-      if (!stickerBypass && !forceStickersUnlocked)
-        return callback.apply(_, args);
-      return true;
     });
   }
 };
@@ -6865,6 +6859,20 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.6": [
+    {
+      changes: [
+        {
+          title: "Mo' Hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed ZipClips not working after Discord update.",
+            "Fixed Unlock Stickers patch erroring."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.5": [
     {
       changes: [
@@ -7008,7 +7016,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.5",
+  version: "7.0.6",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
