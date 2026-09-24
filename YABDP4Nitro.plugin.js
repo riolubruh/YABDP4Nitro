@@ -3870,6 +3870,7 @@ var udtaBuffer = base64ToUint8Array("AAAuLnV1aWShyFKZM0ZNuIjwg/V6daXv").buffer;
 var FREE_FILE_LIMIT = 20971520;
 var CLIPS_FILE_LIMIT = 104857600;
 async function doClipsBypass(file) {
+  console.log(file);
   const { useClipBypass, forceClip, useAudioClipBypass, forceAudioClip, zipClip, clipTimestamp } = SettingsStore_default.getAll();
   const skippedFileTypes = [
     "video/3gp",
@@ -4015,11 +4016,7 @@ async function doClipsBypass(file) {
       "-f",
       "lavfi",
       "-i",
-      "color=c=black:s=128x96:duration=1",
-      "-f",
-      "lavfi",
-      "-i",
-      "anullsrc=r=44100:cl=mono",
+      "anullsrc=r=44100:cl=mono:duration=1",
       "-shortest",
       "-fflags",
       "+shortest",
@@ -4031,10 +4028,6 @@ async function doClipsBypass(file) {
       "-1",
       "-preset",
       "ultrafast",
-      "-vframes",
-      "5",
-      "-c:v",
-      "mjpeg",
       "output.mp4"
     ];
     const archiveMimeTypes = [
@@ -4094,6 +4087,15 @@ var clipsBypass_default = {
   apply(finale, patcher) {
     patcher.instead(finale.modules[0], "addFiles", async (_, [args], originalFunction) => {
       const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
+      function addFiles() {
+        GlobalModules.Dispatcher.dispatch({
+          type: "UPLOAD_ATTACHMENT_ADD_FILES",
+          channelId: args.channelId,
+          files: args.files,
+          draftType: args.draftType,
+          allowOptimization: false
+        });
+      }
       if (!args?.files?.length || !useClipBypass && !useAudioClipBypass && !zipClip)
         return originalFunction.apply(_, [args]);
       args.files = await Promise.all(args.files.map(async (currentFile) => {
@@ -4104,7 +4106,7 @@ var clipsBypass_default = {
         }
         return currentFile;
       }));
-      return originalFunction.apply(_, [args]);
+      return addFiles();
     });
   }
 };
@@ -4537,8 +4539,7 @@ var sharpenStreams_default = {
 };
 // src/patches/modules/unlockStickers.ts
 var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere"), {
-  getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere"),
-  isSendableSticker: (x2) => typeof x2 === "function" && !x2.toString().includes("canUseCustomStickersEverywhere")
+  getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere")
 });
 var unlockStickers_default = {
   name: "Unlock Stickers",
@@ -4549,12 +4550,6 @@ var unlockStickers_default = {
       if (!stickerBypass && !forceStickersUnlocked)
         return callback.apply(_, args);
       return 0;
-    });
-    patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
-      const { stickerBypass, forceStickersUnlocked } = SettingsStore_default.getAll();
-      if (!stickerBypass && !forceStickersUnlocked)
-        return callback.apply(_, args);
-      return true;
     });
   }
 };

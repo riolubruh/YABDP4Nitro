@@ -8,9 +8,7 @@ const stickerSendability = BetterDiscord.Webpack.getMangled(
 		"canUseCustomStickersEverywhere"
 	),
 	{
-		getStickerSendability: (x) => x.toString().includes("canUseCustomStickersEverywhere"),
-		isSendableSticker: (x) =>
-			typeof x === "function" && !x.toString().includes("canUseCustomStickersEverywhere"),
+		getStickerSendability: (x) => x.toString().includes("canUseCustomStickersEverywhere")
 	}
 );
 
@@ -23,12 +21,6 @@ export default {
 			if (!stickerBypass && !forceStickersUnlocked) return callback.apply(_, args);
 
 			return 0;
-		});
-		patcher.instead(stickerSendability, "isSendableSticker", (_, args, callback) => {
-			const { stickerBypass, forceStickersUnlocked } = SettingsStore.getAll();
-			if (!stickerBypass && !forceStickersUnlocked) return callback.apply(_, args);
-
-			return true;
 		});
 	},
 } as Patch;
