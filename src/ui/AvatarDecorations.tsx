@@ -9,7 +9,6 @@ const { Components, React, Webpack } = BetterDiscord;
 const { useState, useMemo, useCallback } = React;
 const { UserStore } = Webpack.Stores;
 
-const ModalModule = wpGetByKeys(["Modal"]);
 const ProductDisplayer = wpGetProxy(
 	Webpack.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"),
 	{ searchExports: true }
@@ -19,9 +18,9 @@ export default function OpenAvatarDecorationModalButton() {
 	function handleClick() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal title={"Change Avatar Decorations"} {...props}>
+				<GlobalModules.Modal title={"Change Avatar Decorations"} {...props}>
 					<AvatarDecorations />
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}

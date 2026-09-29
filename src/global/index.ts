@@ -63,6 +63,12 @@ export const GlobalModules = wpGetBulkKeyed({
 	},
 	InviteActions: {
 		filter: BetterDiscord.Webpack.Filters.byKeys("createInvite")
+	},
+	Modal: {
+		filter: BetterDiscord.Webpack.Filters.bySource("leadingLayout:", "actions:", ".message"),
+		options: {
+			key: "a"
+		}
 	}
 });
 

@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.6
+ * @version 7.0.7
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -2927,6 +2927,12 @@ var GlobalModules = wpGetBulkKeyed({
   },
   InviteActions: {
     filter: BetterDiscord.Webpack.Filters.byKeys("createInvite")
+  },
+  Modal: {
+    filter: BetterDiscord.Webpack.Filters.bySource("leadingLayout:", "actions:", ".message"),
+    options: {
+      key: "a"
+    }
   }
 });
 function CloseAllContextMenus() {
@@ -2969,7 +2975,6 @@ var UserProfilePictureStore_default = new class UserProfilePictureStore extends 
 // src/patches/modules/banners.tsx
 var { UserStore: UserStore2 } = BetterDiscord.Webpack.Stores;
 var TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
-var ModalModule = wpGetByKeys(["Modal"]);
 var NodePatcher = BetterDiscord.ReactUtils.createNodePatcher();
 function Debug({ user }) {
   const revealedText = getRevealedText(user.id);
@@ -2995,7 +3000,7 @@ function Debug({ user }) {
   };
   function OpenModal() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React.createElement(ModalModule.Modal, {
+      return /* @__PURE__ */ React.createElement(GlobalModules.Modal, {
         size: "lg",
         title: "Debug",
         ...props
@@ -4816,7 +4821,6 @@ var AdminIcon = () => /* @__PURE__ */ React5.createElement("svg", {
   d: "M12 12h7c-.53 4.11-3.28 7.78-7 8.92zH5V6.3l7-3.11M12 1L3 5v6c0 5.55 3.84 10.73 9 12c5.16-1.27 9-6.45 9-12V5z"
 }));
 var IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
-var ModalModule2 = wpGetByKeys(["Modal"]);
 var MODES = [
   {
     label: "4K Mode",
@@ -4865,7 +4869,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
     audioConnection && audioConnection?.updateVideoQuality?.apply?.(audioConnection, []);
     onClose();
   }
-  return /* @__PURE__ */ React5.createElement(ModalModule2.Modal, {
+  return /* @__PURE__ */ React5.createElement(GlobalModules.Modal, {
     actions: [
       { text: "Cancel", onClick: onClose, variant: "secondary" },
       { text: "Apply", onClick: onApply }
@@ -5228,11 +5232,10 @@ function EffectButton({ onClick, selected, children, data, colors }) {
     userName: data.effectName
   }));
 }
-var ModalModule3 = wpGetByKeys(["Modal"]);
 function OpenDisplayNameStyleModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React9.createElement(ModalModule3.Modal, {
+      return /* @__PURE__ */ React9.createElement(GlobalModules.Modal, {
         notice: {
           type: "warning",
           message: GlobalModules.SimpleMarkdownWrapper.parse("Right-click to toggle a color in the gradient. Please be warned that when using Gummy or Prism, it can be up to 150 characters!")
@@ -5406,11 +5409,10 @@ var ShopCollectiblesStore_default = new class ShopCollectiblesStore extends Bett
 // src/ui/ProfileEffects.tsx
 var { Components: Components6, React: React10 } = BetterDiscord;
 var { useState: useState2 } = React10;
-var ModalModule4 = wpGetByKeys(["Modal"]);
 function OpenProfileEffectModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React10.createElement(ModalModule4.Modal, {
+      return /* @__PURE__ */ React10.createElement(GlobalModules.Modal, {
         title: "Change Profile Effect",
         ...props
       }, /* @__PURE__ */ React10.createElement(ProfileEffects, null));
@@ -5512,12 +5514,11 @@ function ProfileEffects() {
 var { Components: Components7, React: React11, Webpack: Webpack2 } = BetterDiscord;
 var { useState: useState3, useMemo: useMemo2, useCallback: useCallback2 } = React11;
 var { UserStore: UserStore7 } = Webpack2.Stores;
-var ModalModule5 = wpGetByKeys(["Modal"]);
 var ProductDisplayer = wpGetProxy(Webpack2.Filters.byStrings("),{avatarDecorationSrc:", ",avatarSrcOverride:"), { searchExports: true });
 function OpenAvatarDecorationModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React11.createElement(ModalModule5.Modal, {
+      return /* @__PURE__ */ React11.createElement(GlobalModules.Modal, {
         title: "Change Avatar Decorations",
         ...props
       }, /* @__PURE__ */ React11.createElement(AvatarDecorations, null));
@@ -5762,7 +5763,6 @@ function AvatarDecorations() {
 var { React: React12, Components: Components8 } = BetterDiscord;
 var { Suspense: Suspense2 } = React12;
 var { useMemo: useMemo3, useState: useState4 } = React12;
-var ModalModule6 = wpGetByKeys(["Modal"]);
 var Nameplate = React12.lazy(async () => ({
   default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {
     timeout: 1e4,
@@ -5773,7 +5773,7 @@ var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
 function OpenNameplateModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React12.createElement(ModalModule6.Modal, {
+      return /* @__PURE__ */ React12.createElement(GlobalModules.Modal, {
         title: "Change Nameplate",
         ...props
       }, /* @__PURE__ */ React12.createElement(Nameplates, null));
@@ -5900,7 +5900,6 @@ function Nameplates() {
 var { React: React13, Components: Components9 } = BetterDiscord;
 var { Suspense: Suspense3 } = React13;
 var { useMemo: useMemo4, useState: useState5 } = React13;
-var ModalModule7 = wpGetByKeys(["Modal"]);
 var ProfileFrameElem = React13.lazy(async () => ({
   default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), {
     timeout: 1e4,
@@ -5910,7 +5909,7 @@ var ProfileFrameElem = React13.lazy(async () => ({
 function OpenProfileFramesModalButton() {
   function handleClick() {
     GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React13.createElement(ModalModule7.Modal, {
+      return /* @__PURE__ */ React13.createElement(GlobalModules.Modal, {
         title: "Change Profile Frame",
         size: "lg",
         ...props
@@ -6110,7 +6109,8 @@ var UserProfileV2_default = {
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs"));
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
-    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("nitro-pink"));
+    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon"));
+    const upsell2 = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null=="));
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
         return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
@@ -6127,11 +6127,13 @@ var UserProfileV2_default = {
         section: "YABDP4Nitro"
       });
     });
-    patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
-      const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
-      if (upsellRemovalEnabled)
-        return null;
-      return originalFunction.apply(args);
+    [upsell.key, upsell2.key].map((x2) => {
+      patcher.instead(GoLiveModalV2UpsellMod.declarations, x2, (_, args, originalFunction) => {
+        const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
+        if (upsellRemovalEnabled)
+          return null;
+        return originalFunction.apply(args);
+      });
     });
     return;
   }
@@ -6859,6 +6861,20 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.7": [
+    {
+      changes: [
+        {
+          title: "Modal Hotfixes",
+          type: "fixed",
+          items: [
+            "Fixed modals not working after Discord update.",
+            "Fixed upsells in User Profile Modal appearing again after Discord update."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.6": [
     {
       changes: [
@@ -7016,7 +7032,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.6",
+  version: "7.0.7",
   private: true,
   devDependencies: {
     "@types/bun": "latest"

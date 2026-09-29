@@ -9,8 +9,6 @@ const { React, Components } = BetterDiscord;
 const { Suspense } = React;
 const { useMemo, useState } = React;
 
-const ModalModule = wpGetByKeys(["Modal"]);
-
 const Nameplate = React.lazy(async () => ({
 	default: await wpWaitWithTimeout(
 		BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"),
@@ -27,9 +25,9 @@ export default function OpenNameplateModalButton() {
 	function handleClick() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal title={"Change Nameplate"} {...props}>
+				<GlobalModules.Modal title={"Change Nameplate"} {...props}>
 					<Nameplates />
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}
