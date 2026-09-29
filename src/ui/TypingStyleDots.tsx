@@ -22,8 +22,6 @@ const Suggestions = {
     MEOWING: 7,
 } as const;
 
-const ModalModule: { Modal: React.FC<any> } = wpGetByKeys(["Modal"]);
-
 export type TypingStyle = {
     animation: number;
     typingSuggestion: number;
@@ -82,7 +80,7 @@ const optionButtonStyle = (selected: boolean) => ({
 export default function StyleDots() {
     function handleClick() {
         GlobalModules.ModalModule.openModal((props: any) => (
-            <ModalModule.Modal
+            <GlobalModules.Modal
                 notice={{
                     type: "warning",
                     message: "This is still in early access/beta. Dis shit no work right now.",
@@ -91,7 +89,7 @@ export default function StyleDots() {
                 {...props}
             >
                 <StyleDotsModal/>
-            </ModalModule.Modal>
+            </GlobalModules.Modal>
         ));
     }
 

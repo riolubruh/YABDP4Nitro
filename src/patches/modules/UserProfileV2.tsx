@@ -188,7 +188,11 @@ export default {
 		);
 		const upsell = getKey(
 			GoLiveModalV2UpsellMod.declarations,
-			BetterDiscord.Webpack.Filters.byStrings("nitro-pink")
+			BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon")
+		);
+		const upsell2 = getKey(
+			GoLiveModalV2UpsellMod.declarations,
+			BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null==")
 		);
 
 		patcher.after(module.module, module.key, (a, [args], callback) => {
@@ -209,11 +213,13 @@ export default {
 			});
 		});
 
-		patcher.instead(upsell.module, upsell.key, (_, args, originalFunction) => {
-			const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
-			if (upsellRemovalEnabled) return null;
-			return originalFunction.apply(args);
-		});
+		[upsell.key,upsell2.key].map(x=> {
+			patcher.instead(GoLiveModalV2UpsellMod.declarations, x, (_, args, originalFunction) => {
+				const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
+				if (upsellRemovalEnabled) return null;
+				return originalFunction.apply(args);
+			});
+		})
 
 		// we no longer load the entire web file for a single module.
 		// Object.values(document.styleSheets).find(x => Object.values(x.rules).find(x => x.selectorText == ":root" && x.cssText.includes("--blue-new-78: hotpink")))!.deleteRule(":root")

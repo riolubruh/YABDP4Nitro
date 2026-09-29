@@ -22,7 +22,6 @@ import UserProfilePictureStore from "../../global/stores/UserProfilePictureStore
 const { UserStore } = BetterDiscord.Webpack.Stores;
 
 const TopLeft = styled.div({ zIndex: "100", position: "absolute", padding: "10px" });
-const ModalModule = wpGetByKeys(["Modal"]);
 
 const NodePatcher = BetterDiscord.ReactUtils.createNodePatcher();
 
@@ -61,7 +60,7 @@ function Debug({ user }: { user: User }) {
 	function OpenModal() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal size={"lg"} title={"Debug"} {...props}>
+				<GlobalModules.Modal size={"lg"} title={"Debug"} {...props}>
 					<pre
 						style={{
 							color: "#d4d4d4",
@@ -78,7 +77,7 @@ function Debug({ user }: { user: User }) {
 					>
 						{JSON.stringify(data, null, 2)}
 					</pre>
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}

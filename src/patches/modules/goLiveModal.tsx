@@ -67,7 +67,6 @@ const AdminIcon = () => (
 );
 
 const IconModule = wpGetByKeys(["Icon", "ChannelIcon"]);
-const ModalModule = wpGetByKeys(["Modal"]);
 
 const MODES = [
 	{
@@ -140,7 +139,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
 	}
 
 	return (
-		<ModalModule.Modal
+		<GlobalModules.Modal
 			actions={[
 				{ text: "Cancel", onClick: onClose, variant: "secondary" },
 				{ text: "Apply", onClick: onApply },
@@ -176,7 +175,7 @@ function ConfigModal({ props, onClose, forceQuality }) {
 					</FieldWrapper>
 				))}
 			</ModalBody>
-		</ModalModule.Modal>
+		</GlobalModules.Modal>
 	);
 }
 

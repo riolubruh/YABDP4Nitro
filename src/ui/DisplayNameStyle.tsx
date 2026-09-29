@@ -214,13 +214,11 @@ function EffectButton({ onClick, selected, children, data, colors }) {
 	);
 }
 
-const ModalModule = wpGetByKeys(["Modal"]);
-
 export default function OpenDisplayNameStyleModalButton() {
 	function handleClick() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal
+				<GlobalModules.Modal
 					notice={{
 						type: "warning",
 						message: GlobalModules.SimpleMarkdownWrapper.parse(
@@ -231,7 +229,7 @@ export default function OpenDisplayNameStyleModalButton() {
 					{...props}
 				>
 					<DisplayNameStyle />
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}

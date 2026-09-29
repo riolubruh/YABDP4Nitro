@@ -8,15 +8,13 @@ import SettingsStore from "../global/stores/SettingsStore.ts";
 const { Components, React } = BetterDiscord;
 const { useState } = React;
 
-const ModalModule = wpGetByKeys(["Modal"]);
-
 export default function OpenProfileEffectModalButton() {
 	function handleClick() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal title={"Change Profile Effect"} {...props}>
+				<GlobalModules.Modal title={"Change Profile Effect"} {...props}>
 					<ProfileEffects />
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}

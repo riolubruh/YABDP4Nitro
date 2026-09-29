@@ -9,8 +9,6 @@ const { React, Components } = BetterDiscord;
 const { Suspense } = React;
 const { useMemo, useState } = React;
 
-const ModalModule = wpGetByKeys(["Modal"]);
-
 const ProfileFrameElem = React.lazy(async () => ({
 	default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), {
 		timeout: 10000,
@@ -22,9 +20,9 @@ export default function OpenProfileFramesModalButton() {
 	function handleClick() {
 		GlobalModules.ModalModule.openModal((props) => {
 			return (
-				<ModalModule.Modal title={"Change Profile Frame"} size={"lg"} {...props}>
+				<GlobalModules.Modal title={"Change Profile Frame"} size={"lg"} {...props}>
 					<ProfileFrames />
-				</ModalModule.Modal>
+				</GlobalModules.Modal>
 			);
 		});
 	}
