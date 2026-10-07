@@ -589,8 +589,7 @@ export default class Plugin {
                 BadgesStore,
                 getRevealedText,
                 secondsightifyRevealOnly,
-                SettingsStore,
-                varForcer,
+                SettingsStore
             };
         }
 

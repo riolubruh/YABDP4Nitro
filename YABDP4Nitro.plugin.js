@@ -2882,7 +2882,7 @@ var GlobalModules = wpGetBulkKeyed({
     ...DefaultOptions
   },
   Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    filter: BetterDiscord.Webpack.Filters.byKeys("_dispatcher"),
     ...DefaultOptions,
     options: {
       key: "_dispatcher"
@@ -6868,8 +6868,8 @@ var changelog_default = {
           title: "Modal Hotfixes",
           type: "fixed",
           items: [
-            "Fixed modals not working after Discord update.",
-            "Fixed upsells in User Profile Modal appearing again after Discord update."
+            "Fixed plugin modals not working after Discord update.",
+            "Fixed upsell in User Profile Modal appearing again after Discord update."
           ]
         }
       ]
