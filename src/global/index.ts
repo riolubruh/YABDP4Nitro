@@ -15,8 +15,7 @@ export const GlobalModules = wpGetBulkKeyed({
 		...DefaultOptions,
 	},
 	Dispatcher: {
-		filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
-		// A is faster than UserStore
+		filter: BetterDiscord.Webpack.Filters.byKeys("_dispatcher"),
 		...DefaultOptions,
 		options: {
 			key: "_dispatcher",

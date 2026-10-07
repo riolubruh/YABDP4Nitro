@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.7
+ * @version 7.0.8
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -2882,7 +2882,7 @@ var GlobalModules = wpGetBulkKeyed({
     ...DefaultOptions
   },
   Dispatcher: {
-    filter: BetterDiscord.Webpack.Filters.byStoreName("A"),
+    filter: BetterDiscord.Webpack.Filters.byKeys("_dispatcher"),
     ...DefaultOptions,
     options: {
       key: "_dispatcher"
@@ -6861,6 +6861,19 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.8": [
+    {
+      changes: [
+        {
+          title: "Dispatcher Hotfix",
+          type: "fixed",
+          items: [
+            "Fixed App Icons, Client Themes, and uploading files not working due to dispatcher being undefined."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.7": [
     {
       changes: [
@@ -6868,8 +6881,8 @@ var changelog_default = {
           title: "Modal Hotfixes",
           type: "fixed",
           items: [
-            "Fixed modals not working after Discord update.",
-            "Fixed upsells in User Profile Modal appearing again after Discord update."
+            "Fixed plugin modals not working after Discord update.",
+            "Fixed upsell in User Profile Modal appearing again after Discord update."
           ]
         }
       ]
@@ -7032,7 +7045,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.7",
+  version: "7.0.8",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
