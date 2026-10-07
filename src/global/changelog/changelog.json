@@ -1,4 +1,17 @@
 {
+	"7.0.8": [
+		{
+			"changes": [
+				{
+					"title": "Dispatcher Hotfix",
+					"type": "fixed",
+					"items": [
+						"Fixed App Icons, Client Themes, and uploading files not working due to dispatcher being undefined."
+					]
+				}
+			]
+		}
+	],
 	"7.0.7": [
 		{
 			"changes": [
