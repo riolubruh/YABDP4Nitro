@@ -14,7 +14,7 @@ export default {
 	name: "customClientThemes",
 	description: "Adds an apply button to the custom client theme panel.",
 	waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
-	ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("`custom_themes_editor_footer`"),{raw:true}).then(x => x.id)],
+	ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`),{raw:true}).then(x => x.id)],
 	apply(finale: any, patcher: any) {
 		wpWait(
 			BetterDiscord.Webpack.Filters.bySource(
@@ -28,7 +28,7 @@ export default {
 				if (!clientThemesEnabled) return;
 
 				const ShareThemeButton = wpGet(
-					BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`),
+					BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`),
 					{
 						declaration: BetterDiscord.Webpack.Filters.byStrings(
 							"CustomThemesShareModalWrapper"
@@ -51,7 +51,7 @@ export default {
 							borderTop: "1px solid var(--border-subtle)",
 						}}
 					>
-						<ShareThemeButton />
+						{ShareThemeButton ? <ShareThemeButton /> : null}
 						<Components.Button
 							onClick={(e) => {
 								CustomClientThemePanelState.state.setState(

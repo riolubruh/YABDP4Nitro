@@ -6195,14 +6195,14 @@ var customClientThemes_default = {
   name: "customClientThemes",
   description: "Adds an apply button to the custom client theme panel.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
-  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("`custom_themes_editor_footer`"), { raw: true }).then((x2) => x2.id)],
+  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`), { raw: true }).then((x2) => x2.id)],
   apply(finale, patcher) {
     wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
       patcher.after(mod, "default", (_, [args], ret) => {
         const clientThemesEnabled = SettingsStore_default.get("clientThemes");
         if (!clientThemesEnabled)
           return;
-        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), {
+        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`), {
           declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
           raw: true
         });
@@ -6214,7 +6214,7 @@ var customClientThemes_default = {
             padding: "16px 15px",
             borderTop: "1px solid var(--border-subtle)"
           }
-        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
+        }, ShareThemeButton ? /* @__PURE__ */ React15.createElement(ShareThemeButton, null) : null, /* @__PURE__ */ React15.createElement(Components11.Button, {
           onClick: (e) => {
             CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
             finale.modules[0].openUserSettings("appearance_panel");
