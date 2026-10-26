@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.8
+ * @version 7.0.9
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -6861,6 +6861,19 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.9": [
+    {
+      changes: [
+        {
+          title: "Custom Gradient Themes Hotfix",
+          type: "fixed",
+          items: [
+            "Fixed Custom Gradient Themes not working."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.8": [
     {
       changes: [
@@ -7045,7 +7058,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.8",
+  version: "7.0.9",
   private: true,
   devDependencies: {
     "@types/bun": "latest"

@@ -2,7 +2,7 @@
 	"name": "YABDP4Nitro",
 	"module": "src/index.tsx",
 	"type": "module",
-	"version": "7.0.8",
+	"version": "7.0.9",
 	"private": true,
 	"devDependencies": {
 		"@types/bun": "latest"
