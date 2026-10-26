@@ -1,4 +1,17 @@
 {
+	"7.0.9": [
+		{
+			"changes": [
+				{
+					"title": "Custom Gradient Themes Hotfix",
+					"type": "fixed",
+					"items": [
+						"Fixed Custom Gradient Themes not working."
+					]
+				}
+			]
+		}
+	],
 	"7.0.8": [
 		{
 			"changes": [

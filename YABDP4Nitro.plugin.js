@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.8
+ * @version 7.0.9
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -6195,14 +6195,14 @@ var customClientThemes_default = {
   name: "customClientThemes",
   description: "Adds an apply button to the custom client theme panel.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
-  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("`custom_themes_editor_footer`"), { raw: true }).then((x2) => x2.id)],
+  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`), { raw: true }).then((x2) => x2.id)],
   apply(finale, patcher) {
     wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
       patcher.after(mod, "default", (_, [args], ret) => {
         const clientThemesEnabled = SettingsStore_default.get("clientThemes");
         if (!clientThemesEnabled)
           return;
-        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`custom_themes_editor_footer`), {
+        const ShareThemeButton = wpGet(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`), {
           declaration: BetterDiscord.Webpack.Filters.byStrings("CustomThemesShareModalWrapper"),
           raw: true
         });
@@ -6214,7 +6214,7 @@ var customClientThemes_default = {
             padding: "16px 15px",
             borderTop: "1px solid var(--border-subtle)"
           }
-        }, /* @__PURE__ */ React15.createElement(ShareThemeButton, null), /* @__PURE__ */ React15.createElement(Components11.Button, {
+        }, ShareThemeButton ? /* @__PURE__ */ React15.createElement(ShareThemeButton, null) : null, /* @__PURE__ */ React15.createElement(Components11.Button, {
           onClick: (e) => {
             CustomClientThemePanelState.state.setState(CustomClientThemePanelState.state.getInitialState());
             finale.modules[0].openUserSettings("appearance_panel");
@@ -6861,6 +6861,19 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.9": [
+    {
+      changes: [
+        {
+          title: "Custom Gradient Themes Hotfix",
+          type: "fixed",
+          items: [
+            "Fixed Custom Gradient Themes not working."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.8": [
     {
       changes: [
@@ -7045,7 +7058,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.8",
+  version: "7.0.9",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
