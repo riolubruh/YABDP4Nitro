@@ -27,6 +27,7 @@ export { default as ClipsBypass } from "./clipsBypass.ts";
 export { default as CustomCameraPreview } from "./customCameraBackground.ts";
 export { default as BlockedUserContext } from "./blockedUserContext.tsx";
 export { default as Adorn } from "./collectiblesPatch.ts";
+export { default as Favorites } from "./favorites";
 
 // dev owo
 export { default as DEV } from "./dev.tsx";

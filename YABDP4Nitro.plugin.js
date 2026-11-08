@@ -437,6 +437,7 @@ __export(exports_modules, {
   GoLiveModal: () => goLiveModal_default,
   GifPickerContext: () => gifPickerContext_default,
   GetAvatarURL: () => getAvatarURL_default,
+  Favorites: () => favorites_default,
   FakeUserProfile: () => fakeUserProfile_default,
   FakeUser: () => fakeUser_default,
   FakeBanners: () => banners_default,
@@ -2905,7 +2906,13 @@ var GlobalModules = wpGetBulkKeyed({
     filter: BetterDiscord.Webpack.Filters.byKeys("intl")
   },
   ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+    filter: BetterDiscord.Webpack.Filters.bySource(".modalKey?"),
+    map: {
+      openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
+      openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
+      closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
+      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for")
+    }
   },
   SimpleMarkdownWrapper: {
     filter: (m) => m.reactParserFor
@@ -6420,6 +6427,85 @@ var collectiblesPatch_default = {
       return entry?.decoration?.file_url ?? b;
     });
     BetterDiscord.Webpack.Stores.UserStore.emitChange();
+  }
+};
+// src/patches/modules/favorites.ts
+var { Webpack: Webpack3 } = BetterDiscord;
+var { FavoriteStore } = Webpack3.Stores;
+var favorites_default = {
+  name: "User Profile",
+  description: "Performs fake profile stuffs.",
+  ids: undefined,
+  waitFor: [],
+  apply(finale, patcher) {
+    return;
+    const mod = Webpack3.getBySource(".REFERENCE_ORIGINAL)", { mapDeclarations: true, map: {
+      beforeUpdateAsync: (x2) => String(x2).includes(".REFERENCE_ORIGINAL)"),
+      updateOrder: (x2) => String(x2).match(/null!=.\.position&&\(.\.favoriteChannels\[.\]/)
+    } });
+    const mod2 = Webpack3.getModule(Webpack3.Filters.bySource("4tSWQg"), { map: {
+      removeFavorite: Webpack3.Filters.byStrings("trackAnalytics")
+    } });
+    console.log(mod);
+    const settings = SettingsStore_default.getAll();
+    let fav = settings.favorites;
+    const MessageActions = wpGetByKeys(["ensurePrivateChannel"]);
+    function toggleFavoritedChannel(id, parentId) {
+      console.log(id);
+      console.log(fav);
+      let a = Webpack3.Stores.ChannelStore.getChannel(id);
+      if (!a)
+        return;
+      const doesExist = fav.favoriteChannels?.[id];
+      if (!doesExist) {
+        fav.favoriteChannels[id] = {
+          id,
+          type: a.type,
+          nickname: undefined,
+          order: -1,
+          parentId
+        };
+      } else {
+        delete fav.favoriteChannels[id];
+      }
+    }
+    patcher.instead(mod, "beforeUpdateAsync", (_, [channelId, obj, context]) => {
+      console.log(channelId[0]);
+      console.log(obj);
+      toggleFavoritedChannel(channelId[0], obj.parentId);
+      Webpack3.getBySource(".autoAddJoinedThreads??!1", { raw: true }).declarations.u = fav.favoriteChannels;
+      return;
+    });
+    console.log(mod);
+    patcher.instead(mod, "updateOrder", (_, [args]) => {
+      for (let i2 = 0;i2 < args.length; i2++) {
+        let obj = args[i2];
+        fav.favoriteChannels[obj.id].order = i2;
+      }
+      return;
+    });
+    patcher.instead(mod2, "removeFavorite", (_, [channelId]) => {
+      toggleFavoritedChannel(channelId, null);
+      return;
+    });
+    patcher.instead(FavoriteStore, "getFavorite", (_, [id]) => {
+      return fav.favoriteChannels[id];
+    });
+    patcher.instead(FavoriteStore, "getFavoriteChannels", () => {
+      return fav.favoriteChannels;
+    });
+    patcher.instead(FavoriteStore, "isFavorite", (_, [id]) => {
+      return id && fav.favoriteChannels[id];
+    });
+    patcher.instead(FavoriteStore, "getFavoritesCount", (_, [id]) => {
+      return Object.keys(fav.favoriteChannels).length;
+    });
+    patcher.instead(FavoriteStore, "getFavoritesCountAgainstLimit", (_, [id]) => {
+      return 0;
+    });
+    patcher.instead(FavoriteStore, "hasStoredFavorites", (_, [id]) => {
+      return true;
+    });
   }
 };
 // src/patches/modules/dev.tsx
