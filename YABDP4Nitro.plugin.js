@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.9
+ * @version 7.0.10
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -449,9 +449,7 @@ __export(exports_modules, {
   CanUserUse: () => canUserUse_default,
   BlockedUserContext: () => blockedUserContext_default,
   AppIcons: () => appIcons_default,
-  AnimatedUserBanner: () => getUserBannerURL_default,
-  AllowClips: () => allowClips_default,
-  Adorn: () => collectiblesPatch_default
+  AnimatedUserBanner: () => getUserBannerURL_default
 });
 
 // src/global/stores/CustomUserProfileStore.ts
@@ -1120,39 +1118,6 @@ var fakeUser_default = {
         }
       }
     });
-  }
-};
-// src/patches/modules/allowClips.ts
-var { ClipsStore } = BetterDiscord.Webpack.Stores;
-var GLOBAL_SOURCE = BetterDiscord.Webpack.Filters.bySource("useEnableClips");
-var allowClips_default = {
-  name: "allowClips",
-  description: "Allow clips",
-  waitFor: [GLOBAL_SOURCE],
-  mangled: {
-    areClipsEnabled: (x) => x.toString().includes("areClipsEnabled")
-  },
-  apply(finale, patcher) {
-    Object.entries(finale.mangled).map(([key, value]) => {
-      patcher.instead(finale.mangled, key, (_, __, originalFunction) => {
-        const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
-        if (useClipBypass || useAudioClipBypass || zipClip)
-          return true;
-        else
-          return originalFunction();
-      });
-    });
-    [
-      "isViewerClippingAllowedForUser",
-      "isClipsEnabledForUser",
-      "isVoiceRecordingAllowedForUse"
-    ].map((x) => patcher.instead(ClipsStore, x, (_, __, originalFunction) => {
-      const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore_default.getAll();
-      if (useClipBypass || useAudioClipBypass || zipClip)
-        return true;
-      else
-        return originalFunction();
-    }));
   }
 };
 // bdapi-react-shim:react
@@ -2905,7 +2870,13 @@ var GlobalModules = wpGetBulkKeyed({
     filter: BetterDiscord.Webpack.Filters.byKeys("intl")
   },
   ModalModule: {
-    filter: BetterDiscord.Webpack.Filters.byKeys("openModal")
+    filter: BetterDiscord.Webpack.Filters.bySource(".modalKey?"),
+    map: {
+      openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
+      openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
+      closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
+      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in") // I let t in. - Knewest
+    }
   },
   SimpleMarkdownWrapper: {
     filter: (m) => m.reactParserFor
@@ -4905,7 +4876,9 @@ function openConfigModal(forceQuality) {
 }
 function CustomFooter() {
   const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
-  const module2 = getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext"));
+  const module2 = StreamingModule ? getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext")) : undefined;
+  if (!module2 || !IconModule?.Icon)
+    return null;
   const [start, dispatch] = module2.module[module2.key]();
   const forceQuality = (type, value) => {
     dispatch({ type, ...value });
@@ -4936,19 +4909,24 @@ function CustomFooter() {
     icon: () => /* @__PURE__ */ React5.createElement(AdminIcon, null)
   }));
 }
-var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GO_LIVE_MODAL_V2", "getUseSystemScreensharePicker", "canStreamQuality");
+// The Go Live modal (module 742527) is lazy-loaded: it only exists after the first Go Live open, so it is awaited without a timeout. "GQgGHISKZ5aYqYeYhX9isDUHGw" is its streaming-store literal. - Knewest
+var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw");
 var validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 var goLiveModal_default = {
   name: "goLiveModal",
   description: "Streaming modal customization.",
-  ids: [
-    async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"), { raw: true }).then((x2) => x2.id)
-  ],
-  waitFor: [LIVE_FILTER],
+  ids: undefined,
+  waitFor: [],
   apply(finale, patcher) {
     const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
     patcher.instead(mod?.module, mod?.key, () => true);
-    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
+    BetterDiscord.Webpack.waitForModule(LIVE_FILTER).then((goLiveModule) => {
+    if (!goLiveModule || typeof goLiveModule.default !== "function") {
+      log("warn", "goLiveModal: No default export on the Go Live module; footer patch skipped.");
+      return;
+    }
+    patcher.after(goLiveModule, "default", (_, [args], ret) => {
+      try {
       const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
       const footer = BetterDiscord.Utils.findInTree(ret, (x2) => String(x2?.className).startsWith("footer"));
       if (!footer)
@@ -4970,7 +4948,12 @@ var goLiveModal_default = {
         footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
       }
       return ret;
+      } catch (e) {
+        log("error", `goLiveModal footer patch threw; modal left unmodified: ${e}`);
+        return ret;
+      }
     });
+    }).catch((e) => log("error", `goLiveModal: Waiting for the Go Live module failed: ${e}`));
   }
 };
 // src/ui/AccentColors.tsx
@@ -6109,8 +6092,8 @@ var UserProfileV2_default = {
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs"));
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
-    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon"));
-    const upsell2 = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null=="));
+    const upsell = GoLiveModalV2UpsellMod ? getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon")) : undefined;
+    const upsell2 = GoLiveModalV2UpsellMod ? getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null==")) : undefined;
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
         return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
@@ -6127,7 +6110,7 @@ var UserProfileV2_default = {
         section: "YABDP4Nitro"
       });
     });
-    [upsell.key, upsell2.key].map((x2) => {
+    [upsell?.key, upsell2?.key].filter(Boolean).map((x2) => {
       patcher.instead(GoLiveModalV2UpsellMod.declarations, x2, (_, args, originalFunction) => {
         const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
         if (upsellRemovalEnabled)
@@ -6373,53 +6356,6 @@ var blockedUserContext_default = {
         openUserContextMenu(e, pfp.user, channel);
       };
     });
-  }
-};
-// src/patches/modules/collectiblesPatch.ts
-var FAKE_SKU_ID = "69420";
-var originalDecorations = new Map;
-function isFakeDecoration(v) {
-  return typeof v?.skuId === "string" && v.skuId.startsWith(`${FAKE_SKU_ID}:`);
-}
-var avatarDecorationDescriptor = {
-  get() {
-    const entry = AdornStore_default.get(this.id);
-    if (!entry?.decoration) {
-      return originalDecorations.get(this.id);
-    }
-    return {
-      skuId: `${FAKE_SKU_ID}:${this.id}`,
-      asset: `${FAKE_SKU_ID}:${this.id}`
-    };
-  },
-  set(v) {
-    if (!isFakeDecoration(v)) {
-      originalDecorations.set(this.id, v);
-    }
-  },
-  configurable: true
-};
-var collectiblesPatch_default = {
-  name: "collectibles",
-  apply: (finale, patcher) => {
-    return;
-    const UserRecord = BetterDiscord.Webpack.getById(889227).A;
-    Object.defineProperty(UserRecord.prototype, "avatarDecorationData", avatarDecorationDescriptor);
-    Object.values(BetterDiscord.Webpack.Stores.UserStore.getUsers()).forEach((x2) => {
-      originalDecorations.set(x2.id, x2.avatarDecorationData);
-      Object.defineProperty(x2, "avatarDecorationData", avatarDecorationDescriptor);
-    });
-    const mod = BetterDiscord.Webpack.getByKeys("getCollectiblesItemAssetUrl");
-    patcher.after(mod, "getCollectiblesItemAssetUrl", (_, data, b) => {
-      return b;
-      const asset = data?.[0].skuId;
-      if (!asset?.startsWith(`${FAKE_SKU_ID}:`))
-        return b;
-      const userId = asset.slice(FAKE_SKU_ID.length + 1);
-      const entry = AdornStore_default.get(userId);
-      return entry?.decoration?.file_url ?? b;
-    });
-    BetterDiscord.Webpack.Stores.UserStore.emitChange();
   }
 };
 // src/patches/modules/dev.tsx
