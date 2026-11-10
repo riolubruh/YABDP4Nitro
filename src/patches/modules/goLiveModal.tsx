@@ -187,10 +187,13 @@ function openConfigModal(forceQuality) {
 
 function CustomFooter() {
 	const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
-	const module = getKey(
-		StreamingModule.declarations,
-		BetterDiscord.Webpack.Filters.byStrings(".useContext")
-	);
+	const module = StreamingModule
+		? getKey(
+			StreamingModule.declarations,
+			BetterDiscord.Webpack.Filters.byStrings(".useContext")
+		)
+		: undefined;
+	if (!module || !IconModule?.Icon) return null;
 	const [start, dispatch] = module.module[module.key]();
 
 	const forceQuality = (type, value) => {
@@ -229,25 +232,16 @@ function CustomFooter() {
 	);
 }
 
-const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource(
-	"GO_LIVE_MODAL_V2",
-	"getUseSystemScreensharePicker",
-	"canStreamQuality"
-);
+// The Go Live modal (module 742527) is lazy-loaded: it only exists after the first Go Live open, so it is awaited without a timeout. "GQgGHISKZ5aYqYeYhX9isDUHGw" is its streaming-store literal. - Knewest
+const LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw");
 
 const validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 
 export default {
 	name: "goLiveModal",
 	description: "Streaming modal customization.",
-	ids: [
-		async () =>
-			await BetterDiscord.Webpack.waitForModule(
-				BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"),
-				{ raw: true }
-			).then((x) => x.id),
-	],
-	waitFor: [LIVE_FILTER],
+	ids: undefined,
+	waitFor: [],
 	apply(finale, patcher) {
 		const mod = getKey(
 			validatorMod.declarations,
@@ -255,46 +249,59 @@ export default {
 		);
 		patcher.instead(mod?.module, mod?.key, () => true);
 
-		patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-			const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
-			const footer = BetterDiscord.Utils.findInTree(ret, (x) =>
-				String(x?.className).startsWith("footer")
-			);
-			if (!footer) return ret;
-			const footerContent = BetterDiscord.Utils.findInTree(footer, (x) =>
-				String(x?.className).startsWith("footerContent")
-			);
-			if (!footerContent) return ret;
+		BetterDiscord.Webpack.waitForModule(LIVE_FILTER)
+			.then((goLiveModule) => {
+				if (!goLiveModule || typeof goLiveModule.default !== "function") {
+					console.warn("YABDP4Nitro goLiveModal: No default export on the Go Live module, footer patch skipped.");
+					return;
+				}
+				patcher.after(goLiveModule, "default", (_, [args], ret) => {
+					try {
+						const removeScreenshareUpsell = SettingsStore.get("removeScreenshareUpsell");
+						const footer = BetterDiscord.Utils.findInTree(ret, (x) =>
+							String(x?.className).startsWith("footer")
+						);
+						if (!footer) return ret;
+						const footerContent = BetterDiscord.Utils.findInTree(footer, (x) =>
+							String(x?.className).startsWith("footerContent")
+						);
+						if (!footerContent) return ret;
 
-			if (removeScreenshareUpsell) {
-				footer.children = footer.children.filter(
-					(x) => !x?.props?.className.startsWith("upsell")
-				);
-				footerContent.children[1] ? footerContent.children[1].props.children =
-					footerContent.children[1].props.children.filter(
-						(x) => !x?.type?.toString?.()?.includes("pill")
-					) : footerContent
-			}
+						if (removeScreenshareUpsell) {
+							footer.children = footer.children.filter(
+								(x) => !x?.props?.className.startsWith("upsell")
+							);
+							footerContent.children[1] ? footerContent.children[1].props.children =
+								footerContent.children[1].props.children.filter(
+									(x) => !x?.type?.toString?.()?.includes("pill")
+								) : footerContent
+						}
 
-			if (SettingsStore.get("ResolutionSwapper")) {
-				const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) =>
-					String(x?.key).includes("gay")
-				);
-				if (!doesExist)
-					footerContent.children[1].props.children.push(
-						<CustomFooter key="yabd-is-gay" />
-					);
+						if (SettingsStore.get("ResolutionSwapper")) {
+							const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x) =>
+								String(x?.key).includes("gay")
+							);
+							if (!doesExist)
+								footerContent.children[1].props.children.push(
+									<CustomFooter key="yabd-is-gay" />
+								);
 
-				const originalChildren = footerContent.children;
+							const originalChildren = footerContent.children;
 
-				footerContent.children = (
-					<FooterColumn>
-						<FooterRow>{originalChildren}</FooterRow>
-					</FooterColumn>
-				);
-			}
+							footerContent.children = (
+								<FooterColumn>
+									<FooterRow>{originalChildren}</FooterRow>
+								</FooterColumn>
+							);
+						}
 
-			return ret;
-		});
+						return ret;
+					} catch (e) {
+						console.error(`YABDP4Nitro goLiveModal: Footer patch threw, modal left unmodified: ${e}`);
+						return ret;
+					}
+				});
+			})
+			.catch((e) => console.error(`YABDP4Nitro goLiveModal: Waiting for the Go Live module failed: ${e}`));
 	},
 };
