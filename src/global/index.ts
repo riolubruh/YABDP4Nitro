@@ -43,7 +43,7 @@ export const GlobalModules = wpGetBulkKeyed({
 			openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
 			openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
 			closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
-			closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for")
+			closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in") // I let t in. - Knewest
 		},
 	},
 	SimpleMarkdownWrapper: {

@@ -186,14 +186,18 @@ export default {
 			"profile-editing-nameplate-error",
 			{ raw: true }
 		);
-		const upsell = getKey(
-			GoLiveModalV2UpsellMod.declarations,
-			BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon")
-		);
-		const upsell2 = getKey(
-			GoLiveModalV2UpsellMod.declarations,
-			BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null==")
-		);
+		const upsell = GoLiveModalV2UpsellMod
+			? getKey(
+				GoLiveModalV2UpsellMod.declarations,
+				BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon")
+			)
+			: undefined;
+		const upsell2 = GoLiveModalV2UpsellMod
+			? getKey(
+				GoLiveModalV2UpsellMod.declarations,
+				BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null==")
+			)
+			: undefined;
 
 		patcher.after(module.module, module.key, (a, [args], callback) => {
 			if (args.section == "YABDP4Nitro") {
@@ -213,7 +217,7 @@ export default {
 			});
 		});
 
-		[upsell.key,upsell2.key].map(x=> {
+		[upsell?.key, upsell2?.key].filter(Boolean).map(x=> {
 			patcher.instead(GoLiveModalV2UpsellMod.declarations, x, (_, args, originalFunction) => {
 				const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
 				if (upsellRemovalEnabled) return null;
