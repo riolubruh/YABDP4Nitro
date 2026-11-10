@@ -16,6 +16,7 @@ export default {
 		areClipsEnabled: (x) => x.toString().includes("areClipsEnabled"),
 	},
 	apply(finale, patcher) {
+		return;
 		Object.entries(finale.mangled).map(([key, value]) => {
 			patcher.instead(finale.mangled, key, (_, __, originalFunction) => {
 				const { useClipBypass, useAudioClipBypass, zipClip } = SettingsStore.getAll();

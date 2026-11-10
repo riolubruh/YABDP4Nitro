@@ -5,7 +5,8 @@ import SettingsStore from "../../global/stores/SettingsStore.ts";
 const stickerSendability = BetterDiscord.Webpack.getMangled(
 	BetterDiscord.Webpack.Filters.bySource(
 		"SENDABLE_WITH_BOOSTED_GUILD",
-		"canUseCustomStickersEverywhere"
+		"canUseCustomStickersEverywhere",
+		"getSelfMember"
 	),
 	{
 		getStickerSendability: (x) => x.toString().includes("canUseCustomStickersEverywhere")

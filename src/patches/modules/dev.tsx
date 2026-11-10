@@ -56,7 +56,7 @@ export default {
 				(BadgesStore.check(user.id) || BadgesStore.isImportant(user.id))
 			) {
 				const badges = BadgesStore.returnRespondingBadges(user.id);
-				res.props.badges.push(
+				res.props.badges.unshift(
 					...badges.map((x) => (
 						<img key={`yabd-${x.id}`} height={"16px"} width={"16px"} src={x.iconSrc} />
 					))

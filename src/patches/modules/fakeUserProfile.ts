@@ -28,7 +28,7 @@ export default {
 	name: "User Profile",
 	description: "Performs fake profile stuffs.",
 	ids: undefined,
-	waitFor: [(x) => x.getUser],
+	waitFor: [],
 	apply(finale, patcher) {
 		patcher.after(
 			UserProfileStore,
@@ -110,7 +110,7 @@ export default {
 
 				if (!disableUserBadge && noBadgeFound && BadgesStore.check(ret?.userId)) {
 					if (!ret.badges) ret.badges = [];
-					ret.badges.push(...BadgesStore.returnRespondingBadges(ret.userId));
+					ret.badges.unshift(...BadgesStore.returnRespondingBadges(ret.userId));
 				}
 			}
 		);
