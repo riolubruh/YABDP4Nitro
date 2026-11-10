@@ -5,7 +5,7 @@ import { getKey } from "../../global/webpack";
 const { React } = BetterDiscord;
 
 export default {
-	name: "fakeBanners",
+	name: "userCallTile",
 	description: "3y3 banners",
 	ids: undefined,
 	waitFor: [

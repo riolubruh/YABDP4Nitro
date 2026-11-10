@@ -94,15 +94,15 @@ export function CustomSettingsTab() {
 					<CardLabel>Avatar Decoration</CardLabel>
 					<AvatarDecorations />
 				</Card>
-				<Card>
+				{/*<Card>
 					<CardLabel>Nameplate</CardLabel>
 					<Nameplates />
-				</Card>
+				</Card>*/}
 
-				<Card style={{ gridColumn: "span 2" }}>
+				{/*<Card style={{ gridColumn: "span 2" }}>
 					<CardLabel>Profile Frame</CardLabel>
 					<ProfileFrames />
-				</Card>
+				</Card>*/}
 
 				{/*<Card>
 					<CardLabel>Typing Style Dots</CardLabel>
@@ -139,7 +139,7 @@ export function CustomSettingsTab() {
 export default {
 	name: "User Profile V2",
 	description: "skibidi toilet",
-	entrys: [
+	/*entrys: [
 		async () =>
 			await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
 				raw: true,
@@ -168,11 +168,11 @@ export default {
 				),
 				{ raw: true }
 			).then((x) => x.id),
-	],
+	],*/
 	priority: 10,
 	waitFor: [GLOBAL_FILTER],
 	apply(finale, patcher) {
-		const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
+		const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true })?.declarations;
 		const module = getKey(
 			TabBarInjectLocation,
 			BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,")
@@ -218,7 +218,7 @@ export default {
 		});
 
 		[upsell?.key, upsell2?.key].filter(Boolean).map(x=> {
-			patcher.instead(GoLiveModalV2UpsellMod.declarations, x, (_, args, originalFunction) => {
+			patcher.instead(GoLiveModalV2UpsellMod?.declarations, x, (_, args, originalFunction) => {
 				const upsellRemovalEnabled = SettingsStore.get("removeProfileUpsell");
 				if (upsellRemovalEnabled) return null;
 				return originalFunction.apply(args);

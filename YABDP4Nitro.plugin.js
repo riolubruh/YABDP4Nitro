@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.9
+ * @version 7.0.10
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -412,6 +412,7 @@ var exports_src = {};
 __export(exports_src, {
   fs: () => fs,
   default: () => Plugin,
+  controller: () => controller,
   _path: () => _path
 });
 module.exports = __toCommonJS(exports_src);
@@ -999,7 +1000,7 @@ var fakeUserProfile_default = {
       if (!disableUserBadge && noBadgeFound && BadgesStore_default.check(ret?.userId)) {
         if (!ret.badges)
           ret.badges = [];
-        ret.badges.push(...BadgesStore_default.returnRespondingBadges(ret.userId));
+        ret.badges.unshift(...BadgesStore_default.returnRespondingBadges(ret.userId));
       }
     });
   }
@@ -2911,7 +2912,7 @@ var GlobalModules = wpGetBulkKeyed({
       openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
       openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
       closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
-      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for")
+      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in")
     }
   },
   SimpleMarkdownWrapper: {
@@ -4549,7 +4550,7 @@ var sharpenStreams_default = {
   }
 };
 // src/patches/modules/unlockStickers.ts
-var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere"), {
+var stickerSendability = BetterDiscord.Webpack.getMangled(BetterDiscord.Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", "canUseCustomStickersEverywhere", "getSelfMember"), {
   getStickerSendability: (x2) => x2.toString().includes("canUseCustomStickersEverywhere")
 });
 var unlockStickers_default = {
@@ -4748,7 +4749,7 @@ var clientThemes_default = {
 // src/patches/modules/userCallTileBg.ts
 var { React: React4 } = BetterDiscord;
 var userCallTileBg_default = {
-  name: "fakeBanners",
+  name: "userCallTile",
   description: "3y3 banners",
   ids: undefined,
   waitFor: [
@@ -4912,7 +4913,9 @@ function openConfigModal(forceQuality) {
 }
 function CustomFooter() {
   const StreamingModule = wpGet(wpFilter.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw"), { raw: true });
-  const module2 = getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext"));
+  const module2 = StreamingModule ? getKey(StreamingModule.declarations, BetterDiscord.Webpack.Filters.byStrings(".useContext")) : undefined;
+  if (!module2 || !IconModule?.Icon)
+    return null;
   const [start, dispatch] = module2.module[module2.key]();
   const forceQuality = (type, value) => {
     dispatch({ type, ...value });
@@ -4943,41 +4946,50 @@ function CustomFooter() {
     icon: () => /* @__PURE__ */ React5.createElement(AdminIcon, null)
   }));
 }
-var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GO_LIVE_MODAL_V2", "getUseSystemScreensharePicker", "canStreamQuality");
+var LIVE_FILTER = BetterDiscord.Webpack.Filters.bySource("GQgGHISKZ5aYqYeYhX9isDUHGw");
 var validatorMod = BetterDiscord.Webpack.getBySource("canStreamWithSettings", { raw: true });
 var goLiveModal_default = {
   name: "goLiveModal",
   description: "Streaming modal customization.",
-  ids: [
-    async () => await BetterDiscord.Webpack.waitForModule(BetterDiscord.Webpack.Filters.bySource("allowOneClickGoLive:"), { raw: true }).then((x2) => x2.id)
-  ],
-  waitFor: [LIVE_FILTER],
+  ids: undefined,
+  waitFor: [],
   apply(finale, patcher) {
     const mod = getKey(validatorMod.declarations, BetterDiscord.Webpack.Filters.byStrings("canStreamWithSettings"));
     patcher.instead(mod?.module, mod?.key, () => true);
-    patcher.after(finale.modules[0], "default", (_, [args], ret) => {
-      const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
-      const footer = BetterDiscord.Utils.findInTree(ret, (x2) => String(x2?.className).startsWith("footer"));
-      if (!footer)
-        return ret;
-      const footerContent = BetterDiscord.Utils.findInTree(footer, (x2) => String(x2?.className).startsWith("footerContent"));
-      if (!footerContent)
-        return ret;
-      if (removeScreenshareUpsell) {
-        footer.children = footer.children.filter((x2) => !x2?.props?.className.startsWith("upsell"));
-        footerContent.children[1] && (footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill")));
+    BetterDiscord.Webpack.waitForModule(LIVE_FILTER).then((goLiveModule) => {
+      if (!goLiveModule || typeof goLiveModule.default !== "function") {
+        console.warn("YABDP4Nitro goLiveModal: No default export on the Go Live module, footer patch skipped.");
+        return;
       }
-      if (SettingsStore_default.get("ResolutionSwapper")) {
-        const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) => String(x2?.key).includes("gay"));
-        if (!doesExist)
-          footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
-            key: "yabd-is-gay"
-          }));
-        const originalChildren = footerContent.children;
-        footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
-      }
-      return ret;
-    });
+      patcher.after(goLiveModule, "default", (_, [args], ret) => {
+        try {
+          const removeScreenshareUpsell = SettingsStore_default.get("removeScreenshareUpsell");
+          const footer = BetterDiscord.Utils.findInTree(ret, (x2) => String(x2?.className).startsWith("footer"));
+          if (!footer)
+            return ret;
+          const footerContent = BetterDiscord.Utils.findInTree(footer, (x2) => String(x2?.className).startsWith("footerContent"));
+          if (!footerContent)
+            return ret;
+          if (removeScreenshareUpsell) {
+            footer.children = footer.children.filter((x2) => !x2?.props?.className.startsWith("upsell"));
+            footerContent.children[1] && (footerContent.children[1].props.children = footerContent.children[1].props.children.filter((x2) => !x2?.type?.toString?.()?.includes("pill")));
+          }
+          if (SettingsStore_default.get("ResolutionSwapper")) {
+            const doesExist = BetterDiscord.Utils.findInTree(footerContent, (x2) => String(x2?.key).includes("gay"));
+            if (!doesExist)
+              footerContent.children[1].props.children.push(/* @__PURE__ */ React5.createElement(CustomFooter, {
+                key: "yabd-is-gay"
+              }));
+            const originalChildren = footerContent.children;
+            footerContent.children = /* @__PURE__ */ React5.createElement(FooterColumn, null, /* @__PURE__ */ React5.createElement(FooterRow, null, originalChildren));
+          }
+          return ret;
+        } catch (e) {
+          console.error(`YABDP4Nitro goLiveModal: Footer patch threw, modal left unmodified: ${e}`);
+          return ret;
+        }
+      });
+    }).catch((e) => console.error(`YABDP4Nitro goLiveModal: Waiting for the Go Live module failed: ${e}`));
   }
 };
 // src/ui/AccentColors.tsx
@@ -5768,8 +5780,6 @@ function AvatarDecorations() {
 }
 // src/ui/Nameplates.tsx
 var { React: React12, Components: Components8 } = BetterDiscord;
-var { Suspense: Suspense2 } = React12;
-var { useMemo: useMemo3, useState: useState4 } = React12;
 var Nameplate = React12.lazy(async () => ({
   default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource(".x5CoXR),className:"), {
     timeout: 1e4,
@@ -5777,263 +5787,14 @@ var Nameplate = React12.lazy(async () => ({
   })
 }));
 var { UserStore: UserStore8 } = BetterDiscord.Webpack.Stores;
-function OpenNameplateModalButton() {
-  function handleClick() {
-    GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React12.createElement(GlobalModules.Modal, {
-        title: "Change Nameplate",
-        ...props
-      }, /* @__PURE__ */ React12.createElement(Nameplates, null));
-    });
-  }
-  return /* @__PURE__ */ React12.createElement(Components8.Button, {
-    onClick: handleClick
-  }, "Change");
-}
-function copyNameplate3y3({ skuId, palette }) {
-  copyToClipboard(" " + secondsightifyEncodeOnly(`n{${skuId},${palette}}`), "3y3 copied to clipboard!");
-}
-function AdvancedNameplateTextInput({ skuId, setSkuId, palette, setPalette }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState4("");
-  const [customPaletteTextBox, setCustomPaletteTextBox] = useState4("");
-  function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == "Enter")
-      return copyNameplate3y3({
-        skuId: skuId ?? customSkuTextBox,
-        palette: palette ?? customPaletteTextBox
-      });
-    else {
-      setCustomSkuTextBox(skuId ?? customSkuTextBox);
-      setCustomPaletteTextBox(palette ?? customPaletteTextBox);
-      setSkuId(null);
-      setPalette(null);
-    }
-  }
-  return /* @__PURE__ */ React12.createElement("div", {
-    style: { marginBottom: "8px" }
-  }, /* @__PURE__ */ React12.createElement(Components8.TextInput, {
-    placeholder: "Custom SKU ID... (enter to copy)",
-    defaultValue: skuId ?? customSkuTextBox,
-    value: skuId ?? customSkuTextBox,
-    onKeyDown,
-    onChange: (e) => setCustomSkuTextBox(e)
-  }), /* @__PURE__ */ React12.createElement(Components8.TextInput, {
-    placeholder: "Palette... (enter to copy)",
-    defaultValue: palette ?? customPaletteTextBox,
-    value: palette ?? customPaletteTextBox,
-    onKeyDown,
-    onChange: (e) => setCustomPaletteTextBox(e)
-  }));
-}
-function Nameplate3y3({ product, setPalette, setSkuId }) {
-  const [hovered, setHovered] = React12.useState(false);
-  return /* @__PURE__ */ React12.createElement("div", {
-    onMouseEnter: () => setHovered(true),
-    onMouseLeave: () => setHovered(false),
-    onClick: () => {
-      setPalette(product.palette);
-      setSkuId(product.sku_id);
-      copyNameplate3y3({ skuId: product.sku_id, palette: product.palette });
-    },
-    style: {
-      marginBottom: "10px"
-    },
-    title: product.productName
-  }, /* @__PURE__ */ React12.createElement(Nameplate, {
-    section: "purchase",
-    currentUser: UserStore8.getCurrentUser(),
-    nameplate: {
-      skuId: product.sku_id,
-      asset: product.asset,
-      label: product.label,
-      palette: product.palette
-    },
-    canUsePremiumCollectibles: true,
-    isSelected: hovered
-  }));
-}
-function NameplateCategory({ skuId, query, setSkuId, setPalette }) {
-  const category = ShopCollectiblesStore_default.getCategory(skuId);
-  if (!category)
-    return null;
-  const products = ShopCollectiblesStore_default.getNameplates(skuId);
-  const filteredProducts = useMemo3(() => {
-    if (!products?.length)
-      return [];
-    if (!query.trim())
-      return products;
-    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-  }, [products, query]);
-  return filteredProducts.length ? /* @__PURE__ */ React12.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      backgroundColor: "var(--background-base-lower)",
-      borderRadius: "10px",
-      margin: "5px 0px",
-      padding: "8px"
-    }
-  }, filteredProducts.length ? /* @__PURE__ */ React12.createElement(Components8.Text, null, category.name) : null, filteredProducts.map((x2) => /* @__PURE__ */ React12.createElement(Nameplate3y3, {
-    product: x2,
-    setSkuId,
-    setPalette
-  }))) : null;
-}
-function Nameplates() {
-  const [query, setQuery] = useState4("");
-  const [skuId, setSkuId] = useState4("");
-  const [palette, setPalette] = useState4("");
-  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
-  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  return /* @__PURE__ */ React12.createElement(Suspense2, {
-    fallback: /* @__PURE__ */ React12.createElement("div", null, "This could be infinite loading situation, Please load the normal nameplates button")
-  }, advancedProfileCustomization ? /* @__PURE__ */ React12.createElement(AdvancedNameplateTextInput, {
-    palette,
-    setPalette,
-    skuId,
-    setSkuId
-  }) : null, /* @__PURE__ */ React12.createElement(Components8.SearchInput, {
-    placeholder: "Search nameplates...",
-    defaultValue: query,
-    onChange: (e) => setQuery(e)
-  }), Collections.map((x2) => /* @__PURE__ */ React12.createElement(NameplateCategory, {
-    skuId: x2,
-    query,
-    setSkuId,
-    setPalette
-  })));
-}
 // src/ui/ProfileFrames.tsx
 var { React: React13, Components: Components9 } = BetterDiscord;
-var { Suspense: Suspense3 } = React13;
-var { useMemo: useMemo4, useState: useState5 } = React13;
 var ProfileFrameElem = React13.lazy(async () => ({
   default: await wpWaitWithTimeout(BetterDiscord.Webpack.Filters.bySource("let{profileFrame:"), {
     timeout: 1e4,
     declaration: (x2) => String(x2).includes("let{profileFrame:")
   })
 }));
-function OpenProfileFramesModalButton() {
-  function handleClick() {
-    GlobalModules.ModalModule.openModal((props) => {
-      return /* @__PURE__ */ React13.createElement(GlobalModules.Modal, {
-        title: "Change Profile Frame",
-        size: "lg",
-        ...props
-      }, /* @__PURE__ */ React13.createElement(ProfileFrames, null));
-    });
-  }
-  return /* @__PURE__ */ React13.createElement(Components9.Button, {
-    onClick: handleClick
-  }, "Change");
-}
-function copyProfileFrame3y3({ skuId }) {
-  copyToClipboard(" " + secondsightifyEncodeOnly(`pf${skuId}`), "3y3 copied to clipboard!");
-}
-function CustomSkuTextInput3({ skuId, setSkuId }) {
-  const [customSkuTextBox, setCustomSkuTextBox] = useState5("");
-  function onChange(e) {
-    setCustomSkuTextBox(e);
-  }
-  function onKeyDown(e) {
-    if (e.keyCode == 13 || e.key == "Enter")
-      return copyProfileFrame3y3({ skuId: skuId ?? customSkuTextBox });
-    else {
-      setCustomSkuTextBox(skuId ?? customSkuTextBox);
-      setSkuId(null);
-    }
-  }
-  return /* @__PURE__ */ React13.createElement("div", {
-    style: { marginBottom: "8px" }
-  }, /* @__PURE__ */ React13.createElement(Components9.TextInput, {
-    placeholder: "Custom SKU ID... (enter to copy)",
-    defaultValue: skuId ?? customSkuTextBox,
-    value: skuId ?? customSkuTextBox,
-    onKeyDown,
-    onChange
-  }));
-}
-function ProfileFrame({ product, setSkuId }) {
-  const [hovered, setHovered] = React13.useState(false);
-  return /* @__PURE__ */ React13.createElement("div", {
-    onMouseOver: () => setHovered(true),
-    onMouseOut: () => setHovered(false),
-    onClick: () => {
-      copyProfileFrame3y3({ skuId: product.sku_id });
-      setSkuId(product.sku_id);
-    },
-    title: product.productName
-  }, /* @__PURE__ */ React13.createElement(ProfileFrameElem, {
-    profileFrame: {
-      ...product,
-      overflowBottom: product.overflow_bottom,
-      overflowTop: product.overflow_top,
-      overflowHorizontal: product.overflow_horizontal,
-      innerWidth: product.inner_width,
-      skuId: product.sku_id
-    },
-    section: "purchase",
-    isSelected: hovered,
-    canUsePremiumCollectibles: true,
-    style: {
-      height: "175px",
-      width: "175px",
-      cursor: "pointer"
-    }
-  }));
-}
-function ProfileFrameCategory({ skuId, query, setSkuId }) {
-  const category = ShopCollectiblesStore_default.getCategory(skuId);
-  if (!category)
-    return null;
-  const products = ShopCollectiblesStore_default.getProfileFrames(skuId);
-  const filteredProducts = useMemo4(() => {
-    if (!products?.length)
-      return [];
-    if (!query.trim())
-      return products;
-    return products.filter((product) => product?.productName?.toLowerCase?.()?.includes?.(query.toLowerCase()));
-  }, [products, query]);
-  return filteredProducts.length ? /* @__PURE__ */ React13.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      backgroundColor: "var(--background-base-lower)",
-      borderRadius: "10px",
-      margin: "5px 0px",
-      padding: "8px"
-    }
-  }, filteredProducts.length ? /* @__PURE__ */ React13.createElement(Components9.Text, null, category.name) : null, /* @__PURE__ */ React13.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
-      gap: "8px"
-    }
-  }, filteredProducts.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrame, {
-    product: x2,
-    setSkuId
-  })))) : null;
-}
-function ProfileFrames() {
-  const [query, setQuery] = useState5("");
-  const [skuId, setSkuId] = useState5("");
-  const Collections = BetterDiscord.Hooks.useStateFromStores([ShopCollectiblesStore_default], () => ShopCollectiblesStore_default.getCategories());
-  const advancedProfileCustomization = SettingsStore_default.get("advancedProfileCustomization");
-  return /* @__PURE__ */ React13.createElement(Suspense3, {
-    fallback: /* @__PURE__ */ React13.createElement("div", null, "This could be infinite loading situation, Please load the normal profile effects button")
-  }, advancedProfileCustomization ? /* @__PURE__ */ React13.createElement(CustomSkuTextInput3, {
-    setSkuId,
-    skuId
-  }) : null, /* @__PURE__ */ React13.createElement(Components9.SearchInput, {
-    placeholder: "Search nameplates...",
-    defaultValue: query,
-    onChange: (e) => setQuery(e)
-  }), Collections.map((x2) => /* @__PURE__ */ React13.createElement(ProfileFrameCategory, {
-    skuId: x2,
-    query,
-    setSkuId
-  })));
-}
 // src/patches/modules/UserProfileV2.tsx
 var { React: React14, Components: Components10 } = BetterDiscord;
 var { UserStore: UserStore9 } = BetterDiscord.Webpack.Stores;
@@ -6078,9 +5839,7 @@ function CustomSettingsTab() {
   const [devText, setDevText] = React14.useState("");
   return /* @__PURE__ */ React14.createElement(Scroller, null, /* @__PURE__ */ React14.createElement(Grid, null, /* @__PURE__ */ React14.createElement(CardTop, {
     style: { gridColumn: "span 2" }
-  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Nameplate"), /* @__PURE__ */ React14.createElement(OpenNameplateModalButton, null)), /* @__PURE__ */ React14.createElement(Card, {
-    style: { gridColumn: "span 2" }
-  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Frame"), /* @__PURE__ */ React14.createElement(OpenProfileFramesModalButton, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
+  }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Theme Colors"), /* @__PURE__ */ React14.createElement(AccentColors, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom PFP"), /* @__PURE__ */ React14.createElement(CustomPFP, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Custom Banner"), /* @__PURE__ */ React14.createElement(CustomBanner, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Display Name Style"), /* @__PURE__ */ React14.createElement(OpenDisplayNameStyleModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Profile Effect"), /* @__PURE__ */ React14.createElement(OpenProfileEffectModalButton, null)), /* @__PURE__ */ React14.createElement(Card, null, /* @__PURE__ */ React14.createElement(CardLabel, null, "Avatar Decoration"), /* @__PURE__ */ React14.createElement(OpenAvatarDecorationModalButton, null)), isDeveloper || advancedProfileCustomization ? /* @__PURE__ */ React14.createElement(Card, {
     style: { gridColumn: "span 2" }
   }, /* @__PURE__ */ React14.createElement(CardLabel, null, "Developer"), /* @__PURE__ */ React14.createElement("div", {
     style: { display: "flex", gap: "8px", width: "100%" }
@@ -6097,27 +5856,15 @@ function CustomSettingsTab() {
 var UserProfileV2_default = {
   name: "User Profile V2",
   description: "skibidi toilet",
-  entrys: [
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("this.handleOpenRTCDebugPopout"), {
-      raw: true
-    }).then((x2) => Object.values(x2.declarations).find((x3) => x3?.TOGGLE_SCREENSHARE).TOGGLE_SCREENSHARE.handler.toString())
-  ],
-  ids: [
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource("lastSpeakingWhileMutedNotificationTime"), {
-      raw: true
-    }).then((x2) => x2.id),
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedNameplate:.,stackingBehavior/), { raw: true }).then((x2) => x2.id),
-    async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(/initialSelectedProfileFrame:.,stackingBehavior:.,returnRef/), { raw: true }).then((x2) => x2.id)
-  ],
   priority: 10,
   waitFor: [GLOBAL_FILTER],
   apply(finale, patcher) {
-    const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true }).declarations;
+    const TabBarInjectLocation = wpGet(GLOBAL_FILTER, { raw: true })?.declarations;
     const module2 = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings(".RP.ACTIVITY?(0,"));
     const tabSectionReturn = getKey(TabBarInjectLocation, BetterDiscord.Webpack.Filters.byStrings("UserProfileModalV2Tabs"));
     const GoLiveModalV2UpsellMod = BetterDiscord.Webpack.getBySource("profile-editing-nameplate-error", { raw: true });
-    const upsell = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon"));
-    const upsell2 = getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null=="));
+    const upsell = GoLiveModalV2UpsellMod ? getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("premiumTryItOut", "EyeIcon")) : undefined;
+    const upsell2 = GoLiveModalV2UpsellMod ? getKey(GoLiveModalV2UpsellMod.declarations, BetterDiscord.Webpack.Filters.byStrings("trialOffer:", "return null==")) : undefined;
     patcher.after(module2.module, module2.key, (a, [args], callback) => {
       if (args.section == "YABDP4Nitro") {
         return /* @__PURE__ */ React14.createElement(CustomSettingsTab, null);
@@ -6134,8 +5881,8 @@ var UserProfileV2_default = {
         section: "YABDP4Nitro"
       });
     });
-    [upsell.key, upsell2.key].map((x2) => {
-      patcher.instead(GoLiveModalV2UpsellMod.declarations, x2, (_, args, originalFunction) => {
+    [upsell?.key, upsell2?.key].filter(Boolean).map((x2) => {
+      patcher.instead(GoLiveModalV2UpsellMod?.declarations, x2, (_, args, originalFunction) => {
         const upsellRemovalEnabled = SettingsStore_default.get("removeProfileUpsell");
         if (upsellRemovalEnabled)
           return null;
@@ -6202,7 +5949,6 @@ var customClientThemes_default = {
   name: "customClientThemes",
   description: "Adds an apply button to the custom client theme panel.",
   waitFor: [BetterDiscord.Webpack.Filters.byKeys("openUserSettings")],
-  ids: [async () => await wpWait(BetterDiscord.Webpack.Filters.bySource(`PREMIUM_WISHLIST_CUSTOM_THEMES_EDITOR}`), { raw: true }).then((x2) => x2.id)],
   apply(finale, patcher) {
     wpWait(BetterDiscord.Webpack.Filters.bySource("onSaveTheme", "CUSTOM_THEMES_EDITOR", "CUSTOM_THEME_COACHMARK")).then((mod) => {
       patcher.after(mod, "default", (_, [args], ret) => {
@@ -6548,7 +6294,7 @@ var dev_default = {
         return res;
       if (!res.props.badges.find((x2) => x2.key.includes("yabd")) && (BadgesStore_default.check(user.id) || BadgesStore_default.isImportant(user.id))) {
         const badges = BadgesStore_default.returnRespondingBadges(user.id);
-        res.props.badges.push(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
+        res.props.badges.unshift(...badges.map((x2) => /* @__PURE__ */ React16.createElement("img", {
           key: `yabd-${x2.id}`,
           height: "16px",
           width: "16px",
@@ -6771,10 +6517,6 @@ function log(level, msg) {
   if (DEBUG)
     BetterDiscord.Logger[level]("[Patcher:debug]", msg);
 }
-function track(label, p) {
-  pending.set(label, Date.now());
-  return p.finally(() => pending.delete(label));
-}
 function getDebugSnapshot() {
   const now = Date.now();
   return {
@@ -6784,50 +6526,6 @@ function getDebugSnapshot() {
     stillPending: [...pending].map(([label, t]) => ({ label, elapsedMs: now - t }))
   };
 }
-async function resolveList(ids, loader, cache, kind, patchName) {
-  if (!ids)
-    return [];
-  const entries = typeof ids === "function" ? await ids() : ids;
-  const results = await Promise.allSettled(entries.map(async (entry) => {
-    const id = typeof entry === "function" ? await entry() : entry;
-    const cacheKey = id.toString();
-    if (cache.has(cacheKey))
-      return cache.get(cacheKey);
-    const label = `${patchName} ${kind} "${cacheKey}"`;
-    const t0 = Date.now();
-    const resolvedId = await track(label, loader?.(id));
-    const dt = Date.now() - t0;
-    if (resolvedId == null)
-      log("warn", `${label} resolved to undefined (${dt}ms)`);
-    else if (dt > 2000)
-      log("warn", `${label} took ${dt}ms`);
-    cache.set(cacheKey, resolvedId);
-    return resolvedId;
-  }));
-  const resolved = [];
-  results.forEach((r, i2) => {
-    if (r.status === "fulfilled") {
-      resolved.push(r.value);
-    } else {
-      log("error", `${patchName} ${kind} at index ${i2} rejected: ${r.reason}`);
-    }
-  });
-  return resolved;
-}
-var resolveIds = (ids, patchName) => resolveList(ids, BetterDiscord.Utils.forceLoad, idCache, "id", patchName);
-var resolveEntries = (ids, patchName) => resolveList(ids, BetterDiscord.Utils.loadEntry, entryCache, "entry", patchName);
-function withTimeout(p, ms, label) {
-  let settled = false;
-  p.then(() => settled = true, () => settled = true);
-  return track(label, Promise.race([
-    p,
-    new Promise((_, rej) => setTimeout(() => {
-      if (!settled)
-        log("error", `TIMEOUT: "${label}" still hanging after ${ms}ms`);
-      rej(new Error(`timeout waiting for ${label}`));
-    }, ms))
-  ]));
-}
 async function getCachedModule(filter, patchName) {
   const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
   if (moduleCache.has(cacheKey))
@@ -6835,7 +6533,7 @@ async function getCachedModule(filter, patchName) {
   const t0 = Date.now();
   let module2;
   try {
-    module2 = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 1e4, `${patchName} module`);
+    module2 = BetterDiscord.Webpack.waitForModule(filter, { signal: controller.signal });
   } catch (e) {
     log("error", `"${patchName}" waitForModule failed after ${Date.now() - t0}ms: ${e}`);
     throw e;
@@ -6852,18 +6550,6 @@ async function loadPatch(patch) {
   const finale = {};
   const t0 = Date.now();
   const operations = [
-    resolveIds(patch.ids, patch.name).then((ids) => {
-      if (ids.length)
-        finale.ids = ids;
-      else if (patch.ids)
-        log("warn", `"${patch.name}" got zero resolved ids`);
-    }).catch((e) => log("error", `"${patch.name}" resolveIds threw: ${e}`)),
-    resolveEntries(patch.entrys, patch.name).then((entrys) => {
-      if (entrys.length)
-        finale.entrys = entrys;
-      else if (patch.entrys)
-        log("warn", `"${patch.name}" got zero resolved entrys`);
-    }).catch((e) => log("error", `"${patch.name}" resolveEntries threw: ${e}`)),
     ...Array.isArray(patch.waitFor) ? patch.waitFor.map(async (x2, i2) => {
       try {
         const module2 = await getCachedModule(x2, `${patch.name}[waitFor:${i2}]`);
@@ -6947,6 +6633,32 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.10": [
+    {
+      changes: [
+        {
+          title: "Some rspack 2.x fixes",
+          type: "fixed",
+          items: [
+            "Added Knewest to the list of contributors",
+            "Fixed Go Live Modal crashing.",
+            "Fixed issues with the Profile Editor Modal",
+            "Fixed Sticker bypass not working.",
+            "Changed module loading to kind of work like YABDP4Nitro 6.x because BdApi.Utils.forceLoad is broken.",
+            "Made custom badges appear first in the list so that it will always appear properly with the new badge system."
+          ]
+        },
+        {
+          title: "Known Issues",
+          type: "progress",
+          items: [
+            "Disabled UI for Nameplates and Profile Frames as they were causing crashes.",
+            "Some issues related to disabling the plugin caused by the aforementioned change to module loading."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.9": [
     {
       changes: [
@@ -7144,7 +6856,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.9",
+  version: "7.0.10",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
@@ -7755,6 +7467,7 @@ function overrideVariant(experimentName, variantId) {
   ApexExperimentStore.createOverride(experimentName, variantId);
   ApexExperimentStore.emitChange();
 }
+var controller = new AbortController;
 
 class Plugin {
   unpatch = loadContextMenus();
@@ -7918,6 +7631,8 @@ Select VPN Mode if you have enabled a VPN.`,
     this.unpatch();
     new BdApi("Patcher").Patcher.unpatchAll();
     FFmpegStore_default.unload();
+    controller.abort();
+    controller = new AbortController;
     UserStore12.getCurrentUser().premiumType = OverridePremiumTypeStore2.getPremiumTypeActual();
     BetterDiscord.Logger.info(`(v${package_default.version}) has stopped.`);
   }

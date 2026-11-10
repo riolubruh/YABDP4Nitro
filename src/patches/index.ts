@@ -4,6 +4,7 @@ import * as modules from "./modules";
 import * as contextMenus from "./contextMenus";
 
 import type { Ids, Patch } from "../types/patches";
+import {controller} from "../index.tsx";
 const PatcherAPI = new BdApi("Patcher");
 
 const moduleCache = new Map<any, any>();
@@ -80,7 +81,7 @@ async function resolveList(
 	return resolved;
 }
 
-const resolveIds = (ids: Ids | undefined, patchName: string) =>
+/*const resolveIds = (ids: Ids | undefined, patchName: string) =>
 	resolveList(ids, BetterDiscord.Utils.forceLoad, idCache, "id", patchName);
 const resolveEntries = (ids: Ids | undefined, patchName: string) =>
 	resolveList(ids, BetterDiscord.Utils.loadEntry, entryCache, "entry", patchName);
@@ -104,7 +105,7 @@ export function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promis
 			),
 		])
 	);
-}
+}*/
 
 async function getCachedModule(filter: any, patchName: string): Promise<any> {
 	const cacheKey = typeof filter === "function" ? filter : JSON.stringify(filter);
@@ -114,7 +115,7 @@ async function getCachedModule(filter: any, patchName: string): Promise<any> {
 	const t0 = Date.now();
 	let module: any;
 	try {
-		module = await withTimeout(BetterDiscord.Webpack.waitForModule(filter), 10000, `${patchName} module`);
+		module = BetterDiscord.Webpack.waitForModule(filter, {signal: controller.signal})
 	} catch (e) {
 		log("error", `"${patchName}" waitForModule failed after ${Date.now() - t0}ms: ${e}`);
 		throw e;
@@ -133,7 +134,7 @@ async function loadPatch(patch: Patch) {
 	const t0 = Date.now();
 
 	const operations = [
-		resolveIds(patch.ids, patch.name)
+		/*resolveIds(patch.ids, patch.name)
 			.then((ids) => {
 				if (ids.length) finale.ids = ids;
 				else if (patch.ids) log("warn", `"${patch.name}" got zero resolved ids`);
@@ -145,7 +146,7 @@ async function loadPatch(patch: Patch) {
 				if (entrys.length) finale.entrys = entrys;
 				else if (patch.entrys) log("warn", `"${patch.name}" got zero resolved entrys`);
 			})
-			.catch((e) => log("error", `"${patch.name}" resolveEntries threw: ${e}`)),
+			.catch((e) => log("error", `"${patch.name}" resolveEntries threw: ${e}`)),*/
 
 		...(Array.isArray(patch.waitFor)
 			? patch.waitFor.map(async (x, i) => {

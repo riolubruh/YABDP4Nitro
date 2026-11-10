@@ -110,7 +110,7 @@ export default {
 
 				if (!disableUserBadge && noBadgeFound && BadgesStore.check(ret?.userId)) {
 					if (!ret.badges) ret.badges = [];
-					ret.badges.push(...BadgesStore.returnRespondingBadges(ret.userId));
+					ret.badges.unshift(...BadgesStore.returnRespondingBadges(ret.userId));
 				}
 			}
 		);

@@ -533,6 +533,8 @@ function overrideVariant(experimentName: string, variantId: number) {
     ApexExperimentStore.emitChange();
 }
 
+export let controller = new AbortController();
+
 export default class Plugin {
     private unpatch = loadContextMenus();
     private source: string = "";
@@ -786,6 +788,8 @@ export default class Plugin {
         this.unpatch();
         new BdApi("Patcher").Patcher.unpatchAll();
         FFmpegStore.unload();
+        controller.abort();
+        controller = new AbortController();
         // UserBackgroundStore.unload();
         // UserProfilePictureStore.unload();
         // ShopCollectiblesStore.unload();

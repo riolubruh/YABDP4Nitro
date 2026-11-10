@@ -1,4 +1,30 @@
 {
+	"7.0.10": [
+		{
+			"changes": [
+				{
+					"title": "Some rspack 2.x fixes",
+					"type": "fixed",
+					"items": [
+						"Added Knewest to the list of contributors",
+						"Fixed Go Live Modal crashing.",
+						"Fixed issues with the Profile Editor Modal",
+						"Fixed Sticker bypass not working.",
+						"Changed module loading to kind of work like YABDP4Nitro 6.x because BdApi.Utils.forceLoad is broken.",
+						"Made custom badges appear first in the list so that it will always appear properly with the new badge system."
+					]
+				},
+				{
+					"title": "Known Issues",
+					"type": "progress",
+					"items": [
+						"Disabled UI for Nameplates and Profile Frames as they were causing crashes.",
+						"Some issues related to disabling the plugin caused by the aforementioned change to module loading."
+					]
+				}
+			]
+		}
+	],
 	"7.0.9": [
 		{
 			"changes": [
