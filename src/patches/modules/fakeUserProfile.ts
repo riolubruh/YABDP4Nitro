@@ -28,7 +28,7 @@ export default {
 	name: "User Profile",
 	description: "Performs fake profile stuffs.",
 	ids: undefined,
-	waitFor: [(x) => x.getUser],
+	waitFor: [],
 	apply(finale, patcher) {
 		patcher.after(
 			UserProfileStore,

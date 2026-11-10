@@ -1,8 +1,9 @@
 const specialThanks = [
 	"122072911455453184", // Weblure,
 	"760274365853335563", // Kozhura_ubezhishe_player_fly,
-	"482224256730791967", // Moeefa, and
-	"1106012563835195412", // HunBun (hunbun.net) !
+	"482224256730791967", // Moeefa,
+	"1106012563835195412",// HunBun (hunbun.net), and
+	"332116671294734336"  // Knewest !
 ];
 
 const Badges = {
