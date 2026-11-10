@@ -38,7 +38,13 @@ export const GlobalModules = wpGetBulkKeyed({
 		filter: BetterDiscord.Webpack.Filters.byKeys("intl"),
 	},
 	ModalModule: {
-		filter: BetterDiscord.Webpack.Filters.byKeys("openModal"),
+		filter: BetterDiscord.Webpack.Filters.bySource(".modalKey?"),
+		map: {
+			openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
+			openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
+			closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
+			closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in"), // I let t in. - Knewest
+		},
 	},
 	SimpleMarkdownWrapper: {
 		filter: (m) => m.reactParserFor,
