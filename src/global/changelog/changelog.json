@@ -19,7 +19,8 @@
 					"type": "progress",
 					"items": [
 						"Disabled UI for Nameplates and Profile Frames as they were causing crashes.",
-						"Some issues related to disabling the plugin caused by the aforementioned change to module loading."
+						"Some issues related to disabling the plugin caused by the aforementioned change to module loading.",
+						"You have to open the Go Live modal at least once for the patch to work due to us waiting for the module to load now instead of loading it manually."
 					]
 				}
 			]
