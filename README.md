@@ -586,10 +586,11 @@ Significant contributions to the plugin will earn you a special **YABDP4Nitro Co
 
 Special thanks to:
 
-- Weblure for making [multiple code contributions](https://github.com/riolubruh/YABDP4Nitro/commits?author=Weblure)!
+- [Weblure](https://github.com/Weblure) for making [multiple code contributions](https://github.com/riolubruh/YABDP4Nitro/commits?author=Weblure)!
 - Kozhura_ubezhishe_player_fly for creating and designing the [**YABDP4Nitro User Badge**](https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge_hires.png)!
 - Moeefa for [committing a bugfix](https://github.com/riolubruh/YABDP4Nitro/commits?author=Moeefa)!
 - HunBun for being the brains behind the Discord Clips Bypass!
+- [Knewest](https://github.com/Knewest) for making major streaming and sticker improvements! (upcoming)
 
 Thank you all so much for your effort in making this plugin great!
 
