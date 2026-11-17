@@ -2877,7 +2877,7 @@ var GlobalModules = wpGetBulkKeyed({
       openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
       openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
       closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
-      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in")
+      closeAllModals: BetterDiscord.Webpack.Filters.byRegex(/\.getState\(\);for\(let . in/)
     }
   },
   SimpleMarkdownWrapper: {
@@ -7347,6 +7347,11 @@ This will reload the plugin and you can use it normally.`,
     GlobalModules.Dispatcher.subscribe("APP_ICON_UPDATED", ({ id }) => SettingsStore_default.set("appIcon", id));
     if (false) {}
     UserBackgroundStore_default.fetch();
+    BetterDiscord.Webpack.getByStrings("initialSelectedProfileFrame", "await Promise.all", { searchExports: true })({});
+    BetterDiscord.Webpack.getByStrings("initialSelectedEffect", "await Promise.all", { searchExports: true })({});
+    setTimeout(() => {
+      GlobalModules.ModalModule.closeAllModals();
+    }, 1);
   }
   exposed = {
     YABDNitroPanel: CustomSettingsTab
