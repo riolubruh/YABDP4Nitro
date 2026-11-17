@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 7.0.10
+ * @version 7.0.11
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -1039,7 +1039,7 @@ var fakeUser_default = {
   name: "User Profile",
   description: "Performs fake profile stuffs.",
   ids: undefined,
-  waitFor: [(x) => x.getUser],
+  waitFor: [],
   apply(finale, patcher) {
     patcher.after(UserStore, "getUser", (_, [userId], ret) => {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");
@@ -2877,7 +2877,7 @@ var GlobalModules = wpGetBulkKeyed({
       openModalLazy: BetterDiscord.Webpack.Filters.byStrings(".modalKey?"),
       openModal: BetterDiscord.Webpack.Filters.byStrings(",instant:"),
       closeModal: BetterDiscord.Webpack.Filters.byStrings(".onCloseCallback()"),
-      closeAllModals: BetterDiscord.Webpack.Filters.byStrings(".getState();for(let t in")
+      closeAllModals: BetterDiscord.Webpack.Filters.byRegex(/\.getState\(\);for\(let . in/)
     }
   },
   SimpleMarkdownWrapper: {
@@ -6472,6 +6472,27 @@ function loadContextMenus() {
 
 // src/global/changelog/changelog.json
 var changelog_default = {
+  "7.0.11": [
+    {
+      changes: [
+        {
+          title: "Fix fake user profile features not always appearing.",
+          type: "fixed",
+          items: [
+            "Fixed getUser patch not working on plugin initial startup."
+          ]
+        },
+        {
+          title: "Known Issues",
+          type: "progress",
+          items: [
+            "UIs for Nameplates and Profile Frames are still disabled.",
+            "Go Live patch still only applies after first open."
+          ]
+        }
+      ]
+    }
+  ],
   "7.0.10": [
     {
       changes: [
@@ -6696,7 +6717,7 @@ var package_default = {
   name: "YABDP4Nitro",
   module: "src/index.tsx",
   type: "module",
-  version: "7.0.10",
+  version: "7.0.11",
   private: true,
   devDependencies: {
     "@types/bun": "latest"
