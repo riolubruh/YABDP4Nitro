@@ -596,11 +596,6 @@ export default class Plugin {
         }
 
         UserBackgroundStore.fetch();
-
-        // technically could load lazy loaded shit this way but its disgusting and i hate it - Riolubruh
-        // BetterDiscord.Webpack.getByStrings("initialSelectedProfileFrame", "await Promise.all", {searchExports:true})({})
-        // BetterDiscord.Webpack.getByStrings("initialSelectedEffect", "await Promise.all", {searchExports:true})({});
-        // setTimeout(() => {GlobalModules.ModalModule.closeAllModals()}, 1);
     }
 
     exposed = {
