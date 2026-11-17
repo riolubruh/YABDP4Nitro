@@ -1039,7 +1039,7 @@ var fakeUser_default = {
   name: "User Profile",
   description: "Performs fake profile stuffs.",
   ids: undefined,
-  waitFor: [(x) => x.getUser],
+  waitFor: [],
   apply(finale, patcher) {
     patcher.after(UserStore, "getUser", (_, [userId], ret) => {
       const dnsEnabled = SettingsStore_default.get("displayNameStyles");

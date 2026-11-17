@@ -31,7 +31,7 @@ export default {
 	name: "User Profile",
 	description: "Performs fake profile stuffs.",
 	ids: undefined,
-	waitFor: [(x) => x.getUser],
+	waitFor: [],
 	apply(finale, patcher) {
 		patcher.after(UserStore, "getUser", (_: any, [userId]: string, ret: User) => {
 			const dnsEnabled = SettingsStore.get("displayNameStyles");
